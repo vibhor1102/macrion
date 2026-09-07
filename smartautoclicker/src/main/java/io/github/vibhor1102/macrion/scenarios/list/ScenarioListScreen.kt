@@ -37,6 +37,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.coordinatorlayout.widget.CoordinatorLayout
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updateLayoutParams
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
@@ -60,8 +63,6 @@ internal class ScenarioListViews(context: Context, onCreateClicked: () -> Unit) 
     val loadingVisible: MutableState<Boolean> = mutableStateOf(true)
 
     val root = CoordinatorLayout(context).apply {
-        fitsSystemWindows = true
-
         list.id = View.generateViewId()
         list.isVerticalScrollBarEnabled = true
         list.layoutManager = if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
@@ -141,6 +142,16 @@ internal class ScenarioListViews(context: Context, onCreateClicked: () -> Unit) 
                 behavior = HideBottomViewOnScrollBehavior<FloatingActionButton>()
             },
         )
+
+        ViewCompat.setOnApplyWindowInsetsListener(this) { _, windowInsets ->
+            val topInset = windowInsets.getInsets(
+                WindowInsetsCompat.Type.statusBars() or WindowInsetsCompat.Type.displayCutout(),
+            ).top
+            appBarLayout.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                topMargin = topInset
+            }
+            windowInsets
+        }
     }
 }
 
