@@ -26,10 +26,4 @@ android {
 
 dependencies {
     implementation(project(":core:common:base"))
-
-    playStoreImplementation(libs.androidx.appCompat)
-    playStoreImplementation(libs.androidx.datastore)
-    playStoreImplementation(libs.androidx.fragment.ktx)
-    playStoreImplementation(libs.google.play.review)
-    playStoreImplementation(project(":core:common:ui"))
 }

@@ -8,11 +8,9 @@ androidNdk = "28.2.13676358"
 # Build script
 androidGradlePlugin = "9.2.1"
 googleProtobufGradlePlugin = "0.10.0"
-googleServices = "4.5.0"
 java = "21"
 kotlin = "2.3.21"
 kotlinxCoroutines = "1.11.0"
-kotlinxCoroutinesPlayServices = "1.11.0"
 ksp = "2.3.9"
 
 # Androidx
@@ -43,14 +41,6 @@ ncnn = "20260113"
 googleDaggerHilt = "2.59.2"
 googleProtobufRuntime = "4.35.1"
 
-# PlayStore only
-androidBillingClient = "9.0.0"
-googleFirebaseBom = "34.15.0"
-googleUserMessaging = "4.0.0"
-googleGmsAds = "25.3.0"
-googlePlayReview = "2.0.2"
-googlePlayAssetDelivery = "2.3.0"
-
 # Tests only
 androidxArchCoreTesting = "2.2.0"
 androidxTestCore = "1.7.0"
@@ -70,7 +60,6 @@ acra-core = { module = "ch.acra:acra-core", version = "5.13.1" }
 android-gradlePlugin = { group = "com.android.tools.build", name = "gradle", version.ref = "androidGradlePlugin" }
 kotlin-gradlePlugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
 androidx-room-gradlePlugin = { group = "androidx.room", name = "room-gradle-plugin", version.ref = "androidxRoom" }
-google-gms-gradlePlugin = { group = "com.google.gms.google-services", name = "com.google.gms.google-services.gradle.plugin", version.ref = "googleServices" }
 google-protobuf-gradlePlugin = { group = "com.google.protobuf", name = "protobuf-gradle-plugin", version.ref = "googleProtobufGradlePlugin" }
 
 # Dependencies used in build-logic. Might seem unused but check in files if that is the case
@@ -120,23 +109,13 @@ airbnb-lottie = { group = "com.airbnb.android", name = "lottie", version.ref = "
 google-material = { group = "com.google.android.material", name = "material", version.ref = "googleMaterial" }
 kotlin-reflect = { group = "org.jetbrains.kotlin", name = "kotlin-reflect", version.ref = "kotlin" }
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
-kotlinx-coroutines-play-services = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-play-services", version.ref = "kotlinxCoroutinesPlayServices" }
 google-dagger-hilt-compiler = { group = "com.google.dagger", name = "hilt-android-compiler", version.ref = "googleDaggerHilt" }
 google-dagger-hilt-testing = { group = "com.google.dagger", name = "hilt-android-testing", version.ref = "googleDaggerHilt" }
 google-protobuf-java = { group = "com.google.protobuf", name = "protobuf-java", version.ref = "googleProtobufRuntime" }
 google-protobuf-kotlin = { group = "com.google.protobuf", name = "protobuf-kotlin", version.ref = "googleProtobufRuntime" }
 
 
-# PlayStore only. Might seem unused but check in files if that is the case
-android-billingClient = { group = "com.android.billingclient", name = "billing", version.ref = "androidBillingClient" }
-android-billingClient-ktx = { group = "com.android.billingclient", name = "billing-ktx", version.ref = "androidBillingClient" }
-google-firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "googleFirebaseBom" }
 google-dagger-hilt = { group = "com.google.dagger", name = "hilt-android", version.ref = "googleDaggerHilt" }
-google-userMessaging = { group = "com.google.android.ump", name = "user-messaging-platform", version.ref = "googleUserMessaging" }
-google-gms-ads = { group = "com.google.android.gms", name = "play-services-ads", version.ref = "googleGmsAds" }
-google-play-review = { group = "com.google.android.play", name = "review", version.ref = "googlePlayReview" }
-google-play-asset-delivery = { group = "com.google.android.play", name = "asset-delivery", version.ref = "googlePlayAssetDelivery" }
-google-play-asset-delivery-ktx = { group = "com.google.android.play", name = "asset-delivery-ktx", version.ref = "googlePlayAssetDelivery" }
 
 # Tests only
 androidx-arch-core-testing = { group = "androidx.arch.core", name = "core-testing", version.ref = "androidxArchCoreTesting" }
@@ -154,7 +133,6 @@ androidxNavigationSafeArgs = { id = "androidx.navigation.safeargs.kotlin", versi
 androidxRoom = { id = "androidx.room", version.ref = "androidxRoom" }
 googleDaggerHiltAndroid = { id = "com.google.dagger.hilt.android", version.ref = "googleDaggerHilt" }
 googleKsp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
-googleGms = { id = "com.google.gms.google-services", version.ref = "googleServices" }
 googleProtobufGradle = { id = "com.google.protobuf", version.ref = "googleProtobufGradlePlugin" }
 jetbrainsKotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 jetbrainsKotlinCompose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }

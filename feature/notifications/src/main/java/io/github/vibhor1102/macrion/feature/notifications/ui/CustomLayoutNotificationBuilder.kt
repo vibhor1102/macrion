@@ -19,6 +19,7 @@ package io.github.vibhor1102.macrion.feature.notifications.ui
 
 import android.app.Notification
 import android.content.Context
+import android.widget.FrameLayout
 import android.widget.RemoteViews
 import androidx.annotation.IdRes
 import androidx.core.app.NotificationCompat
@@ -45,6 +46,12 @@ internal class CustomLayoutNotificationBuilder(
         setContentIntent(ServiceNotificationAction.Config.getPendingIntent(context, appComponentsProvider))
 
         updateState(context, initialState)
+    }
+
+    fun checkCustomViewsInflation(context: Context) {
+        val parent = FrameLayout(context)
+        contentView?.apply(context, parent)
+        bigContentView?.apply(context, parent)
     }
 
     override fun updateState(context: Context, state: ServiceNotificationState) {
@@ -94,5 +101,4 @@ internal class CustomLayoutNotificationBuilder(
         setOnClickPendingIntent(viewId, action.getPendingIntent(context, appComponentsProvider))
     }
 }
-
 

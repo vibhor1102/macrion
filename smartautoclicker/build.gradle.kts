@@ -113,23 +113,6 @@ android {
         }
     }
 
-    // Text recognition alphabet models downloaded with PlayAssetDelivery
-    if (project.isBuildForVariant(MacrionFlavour.PLAY_STORE)) {
-        assetPacks.addAll(
-            listOf(
-                ":core:smart:detection-models:models:text:arabic",
-                ":core:smart:detection-models:models:text:chinese_simplified",
-                ":core:smart:detection-models:models:text:chinese_traditional",
-                ":core:smart:detection-models:models:text:cyrillic",
-                ":core:smart:detection-models:models:text:devanagari",
-                ":core:smart:detection-models:models:text:japanese",
-                ":core:smart:detection-models:models:text:kannada",
-                ":core:smart:detection-models:models:text:korean",
-                ":core:smart:detection-models:models:text:tamil",
-                ":core:smart:detection-models:models:text:telugu",
-            )
-        )
-    }
 }
 
 // Assign unique versionCodes per ABI for fDroid multi-APK publishing

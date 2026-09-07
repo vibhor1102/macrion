@@ -45,6 +45,12 @@ fun WindowManager.safeUpdateViewLayout(view: View, params: WindowManager.LayoutP
     }
 }
 
+fun WindowManager.safeRemoveView(view: View) {
+    try {
+        removeView(view)
+    } catch (_: IllegalArgumentException) {}
+}
+
 fun WindowManager.LayoutParams.disableMoveAnimations() {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
         setCanPlayMoveAnimation(false)

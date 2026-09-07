@@ -30,7 +30,5 @@ enum class MacrionDimension(val flavourDimensionName: String) {
 /** Gradle flavours for Macrion. */
 enum class MacrionFlavour(val flavourName: String, val dimension: MacrionDimension) {
     /** Gradle flavour for FOSS fDroid Macrion. */
-    F_DROID("fDroid", MacrionDimension.VERSION),
-    /** Gradle flavour for PlayStore Macrion (with in app purchase and ads). */
-    PLAY_STORE("playStore", MacrionDimension.VERSION);
+    F_DROID("fDroid", MacrionDimension.VERSION);
 }

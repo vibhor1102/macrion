@@ -15,10 +15,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import com.buzbuz.gradle.convention.extensions.playStore
-import com.buzbuz.gradle.convention.extensions.buildConfigField
-import com.buzbuz.gradle.convention.extensions.manifestPlaceholders
-
 plugins {
     alias(libs.plugins.buzbuz.androidLibrary)
     alias(libs.plugins.buzbuz.androidUnitTest)
@@ -32,23 +28,6 @@ android {
     namespace = "io.github.vibhor1102.macrion.feature.revenue"
     buildFeatures.compose = true
 
-    productFlavors {
-        playStore {
-            dimension = "version"
-
-            buildFeatures {
-                buildConfig = true
-            }
-
-            buildConfigField(buildParameters.consentTestDevicesIds)
-            buildConfigField(buildParameters.consentTestGeography)
-            buildConfigField(buildParameters.adsUnitId)
-            buildConfigField(buildParameters.adsTestDevicesIds)
-            buildConfigField(buildParameters.billingPublicKey)
-
-            manifestPlaceholders(buildParameters.adsApplicationId)
-        }
-    }
 }
 
 dependencies {
@@ -62,20 +41,4 @@ dependencies {
     implementation(project(":core:common:quality"))
     implementation(project(":core:common:ui"))
 
-    playStoreImplementation(libs.androidx.appCompat)
-    playStoreImplementation(libs.androidx.core.ktx)
-    playStoreImplementation(libs.androidx.fragment.ktx)
-    playStoreImplementation(libs.androidx.lifecycle.viewmodel.ktx)
-    playStoreImplementation(libs.androidx.compose.foundation)
-    playStoreImplementation(libs.androidx.compose.material3)
-
-    playStoreImplementation(libs.android.billingClient)
-    playStoreImplementation(libs.android.billingClient.ktx)
-
-    playStoreImplementation(libs.google.userMessaging)
-    playStoreImplementation(libs.google.gms.ads)
-
-    playStoreImplementation(libs.google.material)
-
-    testPlayStoreImplementation(libs.kotlinx.coroutines.test)
 }

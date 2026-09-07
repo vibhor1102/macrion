@@ -32,8 +32,6 @@ test('accepts factory nullable fields, detection context, cycles placeholder and
   assert.equal((await send(h.mf, r)).status, 201);
   const fallback = fixture(); fallback.truncated = true; fallback.crash = { type: 'java.lang.Error', message: null };
   assert.equal((await send(h.mf, fallback)).status, 201);
-  const play = fixture(); play.build.flavor = 'playStore'; play.build.buildType = 'release';
-  assert.equal((await send(h.mf, play)).status, 201);
 });
 
 test('accepts minimal native exits and rejects tombstone-like additions', async t => {

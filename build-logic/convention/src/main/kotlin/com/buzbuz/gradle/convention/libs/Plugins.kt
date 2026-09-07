@@ -18,7 +18,6 @@ package com.buzbuz.gradle.convention.libs
 
 import org.gradle.api.artifacts.VersionCatalog
 
-
 internal class Plugins internal constructor(private val libs: VersionCatalog) {
 
     val android: Android by lazy { Android() }
@@ -53,8 +52,6 @@ internal class Plugins internal constructor(private val libs: VersionCatalog) {
             get() = libs.getPluginId("googleKsp")
         val daggerHiltAndroid: String
             get() = libs.getPluginId("googleDaggerHiltAndroid")
-        val gms: String
-            get() = libs.getPluginId("googleGms")
         val protobuf: String
             get() = libs.getPluginId("googleProtobufGradle")
     }
