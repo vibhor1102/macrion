@@ -45,6 +45,7 @@ import io.github.vibhor1102.macrion.core.base.addDumpTabulationLvl
 import io.github.vibhor1102.macrion.core.base.extensions.disableMoveAnimations
 import io.github.vibhor1102.macrion.core.base.extensions.doWhenMeasured
 import io.github.vibhor1102.macrion.core.base.extensions.safeAddView
+import io.github.vibhor1102.macrion.core.base.extensions.safeRemoveView
 import io.github.vibhor1102.macrion.core.base.extensions.safeUpdateViewLayout
 import io.github.vibhor1102.macrion.core.common.overlays.R
 import io.github.vibhor1102.macrion.core.common.overlays.base.BaseOverlay
@@ -350,8 +351,8 @@ abstract class OverlayMenu(
         positionDataSource.removeOnLockedPositionChangedListener(onLockedPositionChangedListener)
         saveMenuPosition(displayConfigManager.displayConfig.orientation)
 
-        windowManager.removeView(menuLayout)
-        screenOverlayView?.let { windowManager.removeView(it) }
+        windowManager.safeRemoveView(menuLayout)
+        screenOverlayView?.let { windowManager.safeRemoveView(it) }
         screenOverlayView = null
 
         resizeController.release()
@@ -405,8 +406,8 @@ abstract class OverlayMenu(
         lifecycleRegistry.currentState = Lifecycle.State.CREATED
 
         windowManager.apply {
-            removeView(oldOverlayView)
-            removeView(menuLayout)
+            safeRemoveView(oldOverlayView)
+            safeRemoveView(menuLayout)
             screenOverlayView?.let { overlayView ->
                 if (!safeAddView(overlayView, overlayLayoutParams)) {
                     finish()

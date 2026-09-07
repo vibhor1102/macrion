@@ -31,6 +31,7 @@ import androidx.lifecycle.setViewTreeViewModelStoreOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 
 import io.github.vibhor1102.macrion.core.base.extensions.safeAddView
+import io.github.vibhor1102.macrion.core.base.extensions.safeRemoveView
 import io.github.vibhor1102.macrion.core.common.overlays.base.BaseOverlay
 import io.github.vibhor1102.macrion.core.common.overlays.manager.OverlayManager
 
@@ -93,6 +94,6 @@ abstract class FullscreenOverlay(@StyleRes theme: Int? = null) : BaseOverlay(the
 
     @CallSuper
     override fun onStop() {
-        windowManager.removeView(view)
+        windowManager.safeRemoveView(view)
     }
 }
