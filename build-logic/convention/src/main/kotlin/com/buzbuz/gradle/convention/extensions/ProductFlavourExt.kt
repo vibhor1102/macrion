@@ -30,14 +30,6 @@ fun <T : ProductFlavor> NamedDomainObjectContainer<T>.fDroid(configureAction: T.
     getByName(MacrionFlavour.F_DROID.flavourName, configureAction)
 }
 
-/**
- * For playStore flavour configuration in build.gradle.kts
- * Usage: android.productFlavors.playStore { ... }
- */
-fun <T : ProductFlavor> NamedDomainObjectContainer<T>.playStore(configureAction: T.() -> Unit) {
-    getByName(MacrionFlavour.PLAY_STORE.flavourName, configureAction)
-}
-
 internal fun getVariantName(flavour: MacrionFlavour?, buildType: MacrionBuildType?): String? =
     when {
         flavour != null && buildType != null ->

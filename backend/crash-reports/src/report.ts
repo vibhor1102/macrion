@@ -43,7 +43,7 @@ export function validateReport(input: unknown): Report {
   boolean(root.mainThread); boolean(root.truncated); integer(root.redactionCount, 0);
   const b = object(root.build, ["versionName", "versionCode", "flavor", "buildType"]);
   diagnosticString(b.versionName, 128); integer(b.versionCode, 0, Number.MAX_SAFE_INTEGER);
-  requireValue(["fDroid", "playStore"].includes(b.flavor as string));
+  requireValue(b.flavor === "fDroid");
   requireValue(["debug", "release"].includes(b.buildType as string));
   const d = object(root.device, ["androidVersion", "api", "manufacturer", "model", "abi"]);
   for (const key of ["androidVersion", "manufacturer", "model", "abi"]) diagnosticString(d[key], 128);

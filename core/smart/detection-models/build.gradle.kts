@@ -31,9 +31,5 @@ dependencies {
     implementation(libs.androidx.annotation)
     implementation(project(":core:common:base"))
 
-    playStoreImplementation(libs.google.play.asset.delivery)
-    playStoreImplementation(libs.google.play.asset.delivery.ktx)
-    playStoreImplementation(libs.kotlinx.coroutines.play.services)
-
     testImplementation(libs.kotlinx.coroutines.test)
 }
