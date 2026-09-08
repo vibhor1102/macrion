@@ -7,17 +7,20 @@ on:
         description: Release tag to create (for example, vX.Y.Z)
         required: true
         type: string
+  release:
+    types: [published]
 
 permissions:
   contents: read
 
 concurrency:
-  group: release-${{ inputs.tag_name }}
+  group: release-${{ inputs.tag_name || github.event.release.tag_name }}
   cancel-in-progress: false
 
 jobs:
   build:
     name: Build application
+    if: github.event_name == 'workflow_dispatch'
     environment: github-release
     runs-on: ubuntu-latest
     timeout-minutes: 35
@@ -148,5 +151,113 @@ jobs:
         target_commitish: ${{ github.sha }}
         body_path: ${{ steps.release.outputs.notes_path }}
         draft: true
+        discussion_category_name: Announcements
         files: release-artifacts/*.apk
         fail_on_unmatched_files: true
+
+  retire-previous-release-discussion:
+    name: Retire previous release discussion
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      discussions: write
+
+    steps:
+    - name: Link to the new discussion and close the previous one
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        CURRENT_TAG: ${{ github.event.release.tag_name }}
+        CURRENT_PUBLISHED_AT: ${{ github.event.release.published_at }}
+      run: |
+        if [[ ! "$CURRENT_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+([-.][0-9A-Za-z.-]+)?$ ]]; then
+          echo "Skipping non-application release '$CURRENT_TAG'."
+          exit 0
+        fi
+
+        current_discussion_url="$(
+          gh api "repos/${{ github.repository }}/releases/tags/$CURRENT_TAG" \
+            --jq '.discussion_url // empty'
+        )"
+        if [[ -z "$current_discussion_url" ]]; then
+          echo "Published release '$CURRENT_TAG' has no linked discussion." >&2
+          exit 1
+        fi
+
+        previous_release="$(
+          gh api --paginate --slurp "repos/${{ github.repository }}/releases?per_page=100" \
+            | jq --arg current "$CURRENT_TAG" --arg published "$CURRENT_PUBLISHED_AT" '
+                [add[]
+                  | select(.draft == false)
+                  | select(.tag_name != $current)
+                  | select(.published_at < $published)
+                  | select(.tag_name | test("^v[0-9]+\\.[0-9]+\\.[0-9]+([-.][0-9A-Za-z.-]+)?$"))]
+                | sort_by(.published_at)
+                | last // empty
+              '
+        )"
+        if [[ -z "$previous_release" ]]; then
+          echo "No previous published Macrion release exists; nothing to close."
+          exit 0
+        fi
+
+        previous_tag="$(jq -r '.tag_name' <<<"$previous_release")"
+        previous_discussion_url="$(jq -r '.discussion_url // empty' <<<"$previous_release")"
+        if [[ -z "$previous_discussion_url" ]]; then
+          echo "Previous release '$previous_tag' has no linked discussion; nothing to close."
+          exit 0
+        fi
+
+        previous_discussion_number="${previous_discussion_url##*/}"
+        discussion="$(
+          gh api graphql \
+            -f owner='${{ github.repository_owner }}' \
+            -f name='${{ github.event.repository.name }}' \
+            -F number="$previous_discussion_number" \
+            -f query='query($owner: String!, $name: String!, $number: Int!) {
+              repository(owner: $owner, name: $name) {
+                discussion(number: $number) {
+                  id
+                  closed
+                  comments(last: 100) { nodes { body } }
+                }
+              }
+            }' \
+            --jq '.data.repository.discussion'
+        )"
+
+        discussion_id="$(jq -r '.id' <<<"$discussion")"
+        if [[ "$(jq -r '.closed' <<<"$discussion")" == "true" ]]; then
+          echo "The discussion for '$previous_tag' is already closed."
+          exit 0
+        fi
+
+        marker="<!-- macrion-superseded-by:$CURRENT_TAG -->"
+        if ! jq -e --arg marker "$marker" \
+          '.comments.nodes | any(.body | contains($marker))' <<<"$discussion" >/dev/null; then
+          message="A newer version, [Macrion $CURRENT_TAG]($current_discussion_url), has been released. Further release discussion should continue there."
+          body="$message"$'\n\n'"$marker"
+          gh api graphql \
+            -f discussionId="$discussion_id" \
+            -f body="$body" \
+            -f query='mutation($discussionId: ID!, $body: String!) {
+              addDiscussionComment(input: {discussionId: $discussionId, body: $body}) {
+                comment { id }
+              }
+            }' \
+            --silent
+        else
+          echo "The supersession notice is already present on '$previous_tag'."
+        fi
+
+        gh api graphql \
+          -f discussionId="$discussion_id" \
+          -f query='mutation($discussionId: ID!) {
+            closeDiscussion(input: {discussionId: $discussionId}) {
+              discussion { id }
+            }
+          }' \
+          --silent
+        echo "Closed the discussion for '$previous_tag' in favor of '$CURRENT_TAG'."
