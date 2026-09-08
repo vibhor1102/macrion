@@ -18,14 +18,13 @@ package io.github.vibhor1102.macrion.core.common.overlays.base
 
 import android.app.Application
 import android.content.Context
+import android.content.ContextWrapper
 import android.content.res.Configuration
 import android.hardware.display.DisplayManager
-import android.os.Build
 import android.util.Log
 import android.view.Display
 import android.view.KeyEvent
 import android.view.View
-import android.view.WindowManager
 
 import androidx.annotation.CallSuper
 import androidx.appcompat.view.ContextThemeWrapper
@@ -73,7 +72,6 @@ import java.io.PrintWriter
 abstract class BaseOverlay internal constructor(
     private val theme: Int? = null,
     private val recreateOnRotation: Boolean = false,
-    private val useWindowContext: Boolean = false,
 ) : Overlay(), Dumpable, SavedStateRegistryOwner {
 
     /** The context for this overlay. */
@@ -319,12 +317,10 @@ abstract class BaseOverlay internal constructor(
      * @param appContext the Android application context.
      */
     private fun newOverlayContext(appContext: Context): Context {
-        val displayContext = appContext.createDefaultDisplayContext()
-        val baseContext = if (useWindowContext && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            displayContext.createWindowContext(WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY, null)
-        } else {
-            displayContext
-        }
+        val baseContext = OverlayWindowManagerContext(
+            displayContext = appContext.createDefaultDisplayContext(),
+            windowManagerContext = appContext,
+        )
 
         return if (theme == null) baseContext
         else DynamicColors.wrapContextIfAvailable(
@@ -364,6 +360,23 @@ abstract class BaseOverlay internal constructor(
 
     /** @return the dump representation of this OverlayController. */
     private fun toDumpString() = "${javaClass.simpleName}@${hashCode()}"
+}
+
+/**
+ * Context serving the WindowManager of the accessibility-service context.
+ *
+ * A display context provides its own WindowManager without the accessibility-overlay token. On Android 11 and 12,
+ * that makes adding a TYPE_ACCESSIBILITY_OVERLAY window fail with BadTokenException. Keep the service context's
+ * WindowManager while retaining the display context for configuration and display-aware views.
+ */
+private class OverlayWindowManagerContext(
+    displayContext: Context,
+    private val windowManagerContext: Context,
+) : ContextWrapper(displayContext) {
+
+    override fun getSystemService(name: String): Any? =
+        if (name == WINDOW_SERVICE) windowManagerContext.getSystemService(name)
+        else super.getSystemService(name)
 }
 
 inline fun <reified VM : ViewModel, EP : Any> BaseOverlay.viewModels(
