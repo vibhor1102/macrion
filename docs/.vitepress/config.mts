@@ -43,6 +43,7 @@ export default defineConfig({
   title: 'Macrion',
   description: 'Clean, image-aware Android automation',
   base: '/macrion/',
+  cleanUrls: true,
   srcExclude: ['changelog/releases/**'],
   head: [
     ['link', { rel: 'icon', type: 'image/svg+xml', href: '/macrion/logo.svg' }],

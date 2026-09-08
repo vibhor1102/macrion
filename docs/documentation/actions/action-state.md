@@ -6,7 +6,7 @@ While touch and text actions interact with on-screen user interfaces, **State & 
 
 ## Change Counter (`ChangeCounter`)
 
-The **ChangeCounter** action updates the numeric value of a named runtime variable tracked in the scenario's in-memory [`ProcessingState`](file:///home/vibhor/Scripts/Macrion-worktrees/Macrion-Antigravity/core/smart/processing/src/main/java/io/github/vibhor1102/macrion/core/processing/data/processor/state/ProcessingState.kt).
+The **ChangeCounter** action updates the numeric value of a named runtime variable tracked in the scenario's in-memory [`ProcessingState`](https://github.com/vibhor1102/Macrion/blob/main/core/smart/processing/src/main/java/io/github/vibhor1102/macrion/core/processing/data/processor/state/ProcessingState.kt).
 
 ```
 ChangeCounter Action

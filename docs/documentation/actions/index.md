@@ -30,7 +30,7 @@ Each event contains an ordered list of actions:
 
 ## Action Execution Pipeline
 
-When an event triggers, [`ActionExecutor`](file:///home/vibhor/Scripts/Macrion-worktrees/Macrion-Antigravity/core/smart/processing/src/main/java/io/github/vibhor1102/macrion/core/processing/data/processor/ActionExecutor.kt) handles the execution loop. It bridges the background coroutine processing engine with Android's main UI thread and the Android Accessibility framework.
+When an event triggers, [`ActionExecutor`](https://github.com/vibhor1102/Macrion/blob/main/core/smart/processing/src/main/java/io/github/vibhor1102/macrion/core/processing/data/processor/ActionExecutor.kt) handles the execution loop. It bridges the background coroutine processing engine with Android's main UI thread and the Android Accessibility framework.
 
 ```mermaid
 flowchart TD
@@ -78,7 +78,7 @@ Macrion separates internal state management from Android framework interactions:
 
 ## Anti-Detection & Humanization Engine
 
-Repetitive, pixel-perfect clicks and rigid timing intervals can trigger anti-bot heuristics in certain games and security-sensitive applications. Macrion includes a built-in anti-detection engine governed by [`RandomizerConfig`](file:///home/vibhor/Scripts/Macrion-worktrees/Macrion-Antigravity/core/common/actions/utils/RandomizerConfig.kt).
+Repetitive, pixel-perfect clicks and rigid timing intervals can trigger anti-bot heuristics in certain games and security-sensitive applications. Macrion includes a built-in anti-detection engine governed by [`RandomizerConfig`](https://github.com/vibhor1102/Macrion/blob/main/core/common/actions/src/main/java/io/github/vibhor1102/macrion/core/common/actions/utils/RandomizerConfig.kt).
 
 When randomization is enabled in Scenario Settings, Macrion injects controlled pseudo-random Gaussian jitter into both spatial coordinates and temporal durations.
 
@@ -124,7 +124,7 @@ Automating gestures across external applications can encounter system lag, ANRs,
 
 Android's `AccessibilityService.dispatchGesture` operates asynchronously with a `GestureResultCallback` (`onCompleted` or `onCancelled`). If the underlying display server or window manager stalls, a coroutine could hang indefinitely waiting for callback confirmation.
 
-[`GestureExecutor`](file:///home/vibhor/Scripts/Macrion-worktrees/Macrion-Antigravity/core/common/actions/src/main/java/io/github/vibhor1102/macrion/core/common/actions/gesture/GestureExecutor.kt) wraps every gesture dispatch in a `withTimeoutOrNull` block:
+[`GestureExecutor`](https://github.com/vibhor1102/Macrion/blob/main/core/common/actions/src/main/java/io/github/vibhor1102/macrion/core/common/actions/gesture/GestureExecutor.kt) wraps every gesture dispatch in a `withTimeoutOrNull` block:
 
 $$\text{Timeout} = \text{clamp}(2 \times \text{durationMs}, 100\text{ ms}, 65\,000\text{ ms})$$
 
@@ -151,7 +151,7 @@ An automatic 500 ms backoff is enforced before the scenario engine continues.
 
 On Google Pixel devices running early Android 15 builds, a known OS bug ([Issue Tracker #384188031](https://issuetracker.google.com/issues/384188031)) causes the system `InputDispatcher` to freeze gesture dispatch if accessibility touches are submitted without intermittent hardware-like unblock taps. 
 
-When the **Pixel Touch Unfreeze Workaround** is active in App Settings, [`UnblockGestureScheduler`](file:///home/vibhor/Scripts/Macrion-worktrees/Macrion-Antigravity/core/base/src/main/java/io/github/vibhor1102/macrion/core/base/workarounds/UnblockGestureScheduler.kt) automatically injects a harmless, multi-finger wake gesture at 10-second intervals upon loop completion.
+When the **Pixel Touch Unfreeze Workaround** is active in App Settings, [`UnblockGestureScheduler`](https://github.com/vibhor1102/Macrion/blob/main/core/common/base/src/main/java/io/github/vibhor1102/macrion/core/base/workarounds/Android15PixelInputBlock.kt) automatically injects a harmless, multi-finger wake gesture at 10-second intervals upon loop completion.
 
 ### 4. Intent Flooding Protection
 

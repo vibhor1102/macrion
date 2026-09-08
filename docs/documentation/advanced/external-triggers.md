@@ -43,12 +43,12 @@ graph LR
 
 ### Cryptographic Configuration Signing
 
-To prevent malicious third-party apps on the device from forging intent broadcasts to execute unauthorized macros, Macrion protects all plugin configurations using [`AndroidKeystoreLocalePluginSigner`](file:///home/vibhor/Scripts/Macrion-worktrees/Macrion-Antigravity/feature/external-launch/src/main/java/io/github/vibhor1102/macrion/feature/externallaunch/localeplugin/data/AndroidKeystoreLocalePluginSigner.kt).
+To prevent malicious third-party apps on the device from forging intent broadcasts to execute unauthorized macros, Macrion protects all plugin configurations using [`AndroidKeystoreLocalePluginSigner`](https://github.com/vibhor1102/Macrion/blob/main/feature/external-launch/src/main/java/io/github/vibhor1102/macrion/feature/externallaunch/localeplugin/data/AndroidKeystoreLocalePluginSigner.kt).
 
 When a scenario is configured in Tasker:
 1. Macrion serializes the configuration JSON.
 2. The payload is signed using an asymmetric private key stored securely inside the hardware-backed **Android Keystore**.
-3. When Tasker executes the task, [`LocalePluginFireReceiver`](file:///home/vibhor/Scripts/Macrion-worktrees/Macrion-Antigravity/feature/external-launch/src/main/java/io/github/vibhor1102/macrion/feature/externallaunch/localeplugin/receiver/LocalePluginFireReceiver.kt) verifies the cryptographic signature before executing any actions. Untrusted or modified payloads are rejected immediately.
+3. When Tasker executes the task, [`LocalePluginFireReceiver`](https://github.com/vibhor1102/Macrion/blob/main/feature/external-launch/src/main/java/io/github/vibhor1102/macrion/feature/externallaunch/localeplugin/receiver/LocalePluginFireReceiver.kt) verifies the cryptographic signature before executing any actions. Untrusted or modified payloads are rejected immediately.
 
 ---
 
@@ -74,7 +74,7 @@ Halts active scenario processing, clears all pending gesture queues, and dismiss
 
 In Tasker, you can create state-based profiles using **State ➔ Plugin ➔ Macrion ➔ Scenario State**:
 - Evaluates whether Macrion is currently **Running** or **Stopped**.
-- Handled by [`ScenarioStateProvider`](file:///home/vibhor/Scripts/Macrion-worktrees/Macrion-Antigravity/feature/external-launch/src/main/java/io/github/vibhor1102/macrion/feature/externallaunch/localeplugin/scenariostate/ScenarioStateProvider.kt).
+- Handled by [`ScenarioStateProvider`](https://github.com/vibhor1102/Macrion/blob/main/feature/external-launch/src/main/java/io/github/vibhor1102/macrion/feature/externallaunch/localeplugin/scenariostate/ScenarioStateProvider.kt).
 - **Practical Use Cases**:
   - *Keep Screen Awake*: Keep the display from timing out only while a Macrion scenario is actively running.
   - *Mute Media Volume*: Automatically silence game sounds while automation is active, and restore volume when finished.
@@ -94,7 +94,7 @@ To capture these signals in Tasker:
 
 ## Quick Settings (QS) Tile
 
-Macrion integrates with Android's system Quick Settings shade via [`QSTileService`](file:///home/vibhor/Scripts/Macrion-worktrees/Macrion-Antigravity/feature/external-launch/src/main/java/io/github/vibhor1102/macrion/feature/externallaunch/qstile/ui/QSTileService.kt), allowing users to launch or toggle scenarios with a single swipe-down tap.
+Macrion integrates with Android's system Quick Settings shade via [`QSTileService`](https://github.com/vibhor1102/Macrion/blob/main/feature/external-launch/src/main/java/io/github/vibhor1102/macrion/feature/externallaunch/qstile/ui/QSTileService.kt), allowing users to launch or toggle scenarios with a single swipe-down tap.
 
 ```
 Quick Settings Tile Lifecycle
