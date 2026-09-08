@@ -7,25 +7,23 @@ on:
         description: Release tag to create (for example, vX.Y.Z)
         required: true
         type: string
-  release:
-    types: [published]
 
 permissions:
   contents: read
 
 concurrency:
-  group: release-${{ inputs.tag_name || github.event.release.tag_name }}
+  group: release-${{ inputs.tag_name }}
   cancel-in-progress: false
 
 jobs:
   build:
-    name: Build application
-    if: github.event_name == 'workflow_dispatch'
+    name: Build and publish application
     environment: github-release
     runs-on: ubuntu-latest
     timeout-minutes: 35
     permissions:
       contents: write
+      discussions: write
 
     steps:
     - name: Require main branch
@@ -143,44 +141,27 @@ jobs:
           "$APKSIGNER" verify --verbose --print-certs "$apk"
         done
 
-    - name: Create draft release with APKs
+    - name: Publish release with APKs
       uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2.6.2
       with:
         tag_name: ${{ inputs.tag_name }}
         name: Macrion ${{ inputs.tag_name }}
         target_commitish: ${{ github.sha }}
         body_path: ${{ steps.release.outputs.notes_path }}
-        draft: true
+        draft: false
         discussion_category_name: Announcements
         files: release-artifacts/*.apk
         fail_on_unmatched_files: true
 
-  retire-previous-release-discussion:
-    name: Retire previous release discussion
-    if: github.event_name == 'release'
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    permissions:
-      contents: read
-      discussions: write
-
-    steps:
     - name: Link to the new discussion and close the previous one
       shell: bash
       env:
         GH_TOKEN: ${{ github.token }}
-        CURRENT_TAG: ${{ github.event.release.tag_name }}
-        CURRENT_PUBLISHED_AT: ${{ github.event.release.published_at }}
+        CURRENT_TAG: ${{ inputs.tag_name }}
       run: |
-        if [[ ! "$CURRENT_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+([-.][0-9A-Za-z.-]+)?$ ]]; then
-          echo "Skipping non-application release '$CURRENT_TAG'."
-          exit 0
-        fi
-
-        current_discussion_url="$(
-          gh api "repos/${{ github.repository }}/releases/tags/$CURRENT_TAG" \
-            --jq '.discussion_url // empty'
-        )"
+        current_release="$(gh api "repos/${{ github.repository }}/releases/tags/$CURRENT_TAG")"
+        current_discussion_url="$(jq -r '.discussion_url // empty' <<<"$current_release")"
+        current_published_at="$(jq -r '.published_at' <<<"$current_release")"
         if [[ -z "$current_discussion_url" ]]; then
           echo "Published release '$CURRENT_TAG' has no linked discussion." >&2
           exit 1
@@ -188,7 +169,7 @@ jobs:
 
         previous_release="$(
           gh api --paginate --slurp "repos/${{ github.repository }}/releases?per_page=100" \
-            | jq --arg current "$CURRENT_TAG" --arg published "$CURRENT_PUBLISHED_AT" '
+            | jq --arg current "$CURRENT_TAG" --arg published "$current_published_at" '
                 [add[]
                   | select(.draft == false)
                   | select(.tag_name != $current)
@@ -214,7 +195,7 @@ jobs:
         discussion="$(
           gh api graphql \
             -f owner='${{ github.repository_owner }}' \
-            -f name='${{ github.event.repository.name }}' \
+            -f name="${GITHUB_REPOSITORY#*/}" \
             -F number="$previous_discussion_number" \
             -f query='query($owner: String!, $name: String!, $number: Int!) {
               repository(owner: $owner, name: $name) {
