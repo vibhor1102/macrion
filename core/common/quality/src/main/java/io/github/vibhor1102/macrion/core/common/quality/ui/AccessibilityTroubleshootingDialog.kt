@@ -68,6 +68,6 @@ class AccessibilityTroubleshootingDialog : DialogFragment() {
     }
 
     private fun showDontKillMyApp() {
-        context?.safeStartWebBrowserActivity("https://dontkillmyapp.com?app=Macrion")
+        context?.safeStartWebBrowserActivity("https://dontkillmyapp.com?app=macrion")
     }
 }

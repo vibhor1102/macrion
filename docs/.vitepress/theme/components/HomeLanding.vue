@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const downloadUrl = 'https://github.com/vibhor1102/Macrion/releases/latest'
+const downloadUrl = 'https://github.com/vibhor1102/macrion/releases/latest'
 </script>
 
 <template>

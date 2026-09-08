@@ -2,7 +2,7 @@
 
 When building complex automation scenarios involving multiple visual conditions, variable counters, and phase-switching state machines, unexpected behavior can occasionally occur—an image might fail to match, a gesture might land off-target, or a counter might not increment as expected.
 
-Macrion incorporates an integrated debugging engine ([`DebugEngine`](https://github.com/vibhor1102/Macrion/blob/main/core/smart/debugging/src/main/java/io/github/vibhor1102/macrion/core/smart/debugging/engine/DebugEngine.kt)) that provides real-time visual overlays, per-condition latency profiling, and comprehensive execution event logs.
+Macrion incorporates an integrated debugging engine ([`DebugEngine`](https://github.com/vibhor1102/macrion/blob/main/core/smart/debugging/src/main/java/io/github/vibhor1102/macrion/core/smart/debugging/engine/DebugEngine.kt)) that provides real-time visual overlays, per-condition latency profiling, and comprehensive execution event logs.
 
 ---
 
@@ -35,7 +35,7 @@ Bounding boxes outline the search areas and matched templates directly on screen
 
 Optimizing scenario speed requires identifying which specific conditions consume the most CPU time.
 
-[`ConditionProfileRecorder`](https://github.com/vibhor1102/Macrion/blob/main/core/smart/debugging/src/main/java/io/github/vibhor1102/macrion/core/smart/debugging/engine/recorder/ConditionProfileRecorder.kt) benchmarks every condition evaluation in real time, recording:
+[`ConditionProfileRecorder`](https://github.com/vibhor1102/macrion/blob/main/core/smart/debugging/src/main/java/io/github/vibhor1102/macrion/core/smart/debugging/engine/recorder/ConditionProfileRecorder.kt) benchmarks every condition evaluation in real time, recording:
 - **Execution Time**: Duration in milliseconds for each evaluation cycle.
 - **Average Latency**: Rolling average over the last $N$ frames.
 - **Evaluation Count**: Total number of times the condition has been checked.
@@ -54,7 +54,7 @@ Example Profile Breakdown:
 
 ## Event Occurrence Timeline & State Inspector
 
-Whenever an event triggers, Macrion records a detailed snapshot ([`DebugReportEventOccurrence`](https://github.com/vibhor1102/Macrion/blob/main/core/smart/debugging/src/main/java/io/github/vibhor1102/macrion/core/smart/debugging/domain/model/report/DebugReportEventOccurrence.kt)) capturing the exact internal state of your scenario at that instant.
+Whenever an event triggers, Macrion records a detailed snapshot ([`DebugReportEventOccurrence`](https://github.com/vibhor1102/macrion/blob/main/core/smart/debugging/src/main/java/io/github/vibhor1102/macrion/core/smart/debugging/domain/model/report/DebugReportEventOccurrence.kt)) capturing the exact internal state of your scenario at that instant.
 
 ```mermaid
 flowchart LR
@@ -85,7 +85,7 @@ flowchart LR
 
 ## Diagnostic Dumps & Bug Reporting
 
-For persistent issues or unexpected crashes, Macrion includes a built-in diagnostic dumping subsystem implemented via the [`Dumpable`](https://github.com/vibhor1102/Macrion/blob/main/core/common/base/src/main/java/io/github/vibhor1102/macrion/core/base/Dumpsys.kt) interface.
+For persistent issues or unexpected crashes, Macrion includes a built-in diagnostic dumping subsystem implemented via the [`Dumpable`](https://github.com/vibhor1102/macrion/blob/main/core/common/base/src/main/java/io/github/vibhor1102/macrion/core/base/Dumpsys.kt) interface.
 
 ### Generating a Diagnostic Report
 

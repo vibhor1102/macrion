@@ -48,7 +48,7 @@ if (intent.isBroadcast) {
 
 ### Typed Extras Serialization
 
-Macrion supports adding strongly-typed extras to the intent payload. The engine supports 8 primitive data types via [`putDomainExtra`](https://github.com/vibhor1102/Macrion/blob/main/core/smart/domain/src/main/java/io/github/vibhor1102/macrion/core/domain/model/action/intent/IntentExtra.kt#L63):
+Macrion supports adding strongly-typed extras to the intent payload. The engine supports 8 primitive data types via [`putDomainExtra`](https://github.com/vibhor1102/macrion/blob/main/core/smart/domain/src/main/java/io/github/vibhor1102/macrion/core/domain/model/action/intent/IntentExtra.kt#L63):
 
 | Extra Type | Kotlin Primitive | Serialization Method | Example Value |
 | :--- | :--- | :--- | :--- |
@@ -76,7 +76,7 @@ Notification Action Parameters
 
 ### Importance Channels
 
-Notifications are categorized into three dedicated Android notification channels managed by [`NotificationRequestExecutor`](https://github.com/vibhor1102/Macrion/blob/main/core/common/actions/src/main/java/io/github/vibhor1102/macrion/core/common/actions/notification/NotificationRequestExecutor.kt):
+Notifications are categorized into three dedicated Android notification channels managed by [`NotificationRequestExecutor`](https://github.com/vibhor1102/macrion/blob/main/core/common/actions/src/main/java/io/github/vibhor1102/macrion/core/common/actions/notification/NotificationRequestExecutor.kt):
 
 | Importance Level | Channel Behavior | Recommended Use Case |
 | :--- | :--- | :--- |
@@ -124,7 +124,7 @@ sequenceDiagram
     Tasker->>Tasker: Execute Tasker Task (e.g., play TTS alert, send Telegram message, toggle Wi-Fi)
 ```
 
-1. **Macrion Dispatch**: When `ExternalAction` fires, it broadcasts `com.twofortyfouram.locale.intent.action.REQUEST_QUERY` via [`ExternalActionEventContract`](https://github.com/vibhor1102/Macrion/blob/main/core/common/actions/src/main/java/io/github/vibhor1102/macrion/core/common/actions/external/ExternalActionEventContract.kt).
+1. **Macrion Dispatch**: When `ExternalAction` fires, it broadcasts `com.twofortyfouram.locale.intent.action.REQUEST_QUERY` via [`ExternalActionEventContract`](https://github.com/vibhor1102/macrion/blob/main/core/common/actions/src/main/java/io/github/vibhor1102/macrion/core/common/actions/external/ExternalActionEventContract.kt).
 2. **Pass-Through Payload**: The action name is bundled under `net.dinglisch.android.tasker.extras.PASS_THROUGH_DATA` with the key `io.github.vibhor1102.macrion.extra.EXTERNAL_ACTION_NAME`.
 3. **Tasker Interception**: A Tasker Event profile configured with Macrion's plugin condition matches the action name and immediately executes whatever actions the user configured in Tasker (e.g., sending an SMS, dimming the screen, or saving a log to disk).
 

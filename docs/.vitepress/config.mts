@@ -61,7 +61,7 @@ export default defineConfig({
       { text: 'Changelog', link: '/changelog/' }
     ],
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/vibhor1102/Macrion' }
+      { icon: 'github', link: 'https://github.com/vibhor1102/macrion' }
     ],
     search: {
       provider: 'local'

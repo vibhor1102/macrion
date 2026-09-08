@@ -23,7 +23,7 @@ const __dirname = path.dirname(__filename);
 
 const RELEASES_DIR = path.resolve(__dirname, '../docs/changelog/releases');
 const OUTPUT_FILE = path.resolve(__dirname, '../docs/changelog/index.md');
-const GITHUB_REPO = 'https://github.com/vibhor1102/Macrion';
+const GITHUB_REPO = 'https://github.com/vibhor1102/macrion';
 
 function parseSemver(filename) {
   const match = filename.match(/^v?(\d+)\.(\d+)\.(\d+)(?:[-.]([0-9A-Za-z.-]+))?\.md$/);

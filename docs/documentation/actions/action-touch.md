@@ -28,7 +28,7 @@ The click lands at a fixed, absolute display coordinate `Point(x, y)` chosen man
 Instead of tapping a hardcoded coordinate, Macrion dynamically targets the center of an image, color patch, or text phrase identified during the current frame's vision evaluation.
 
 How the target coordinate is resolved depends on the parent event's condition logic operator:
-- **`OR` Logic**: When an event evaluates with `OR` logic, multiple conditions may be checked. Macrion automatically selects the first condition that matched in the frame via [`getFirstScreenConditionDetectedResult()`](https://github.com/vibhor1102/Macrion/blob/main/core/smart/processing/src/main/java/io/github/vibhor1102/macrion/core/processing/data/processor/ActionExecutor.kt#L138).
+- **`OR` Logic**: When an event evaluates with `OR` logic, multiple conditions may be checked. Macrion automatically selects the first condition that matched in the frame via [`getFirstScreenConditionDetectedResult()`](https://github.com/vibhor1102/macrion/blob/main/core/smart/processing/src/main/java/io/github/vibhor1102/macrion/core/processing/data/processor/ActionExecutor.kt#L138).
 - **`AND` Logic**: When all conditions must match simultaneously, you explicitly configure which specific condition to tap via the `clickOnConditionId` field.
 
 ```kotlin
@@ -139,7 +139,7 @@ Swipes are defined by 2D vector mathematics:
 
 When screen conditions evaluate at downscaled resolutions for performance (e.g., processing frames downscaled to `640x360`), detection coordinates must be translated back into physical device coordinates for touch dispatch.
 
-Macrion's [`ScalingManager`](https://github.com/vibhor1102/Macrion/blob/main/core/smart/processing/src/main/java/io/github/vibhor1102/macrion/core/processing/data/scaling/ScalingManager.kt) ensures pixel-perfect touch mapping:
+Macrion's [`ScalingManager`](https://github.com/vibhor1102/macrion/blob/main/core/smart/processing/src/main/java/io/github/vibhor1102/macrion/core/processing/data/scaling/ScalingManager.kt) ensures pixel-perfect touch mapping:
 
 ```
 [Camera / Screen Capture: 2400 x 1080]

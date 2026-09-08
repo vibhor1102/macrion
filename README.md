@@ -19,7 +19,7 @@ Macrion is derived from [Klick'r](https://github.com/Nain57/Smart-AutoClicker), 
 
 ## Installation
 
-Macrion is currently distributed through [GitHub Releases](https://github.com/vibhor1102/Macrion/releases). Download the APK for your device and open it to install. For most modern Android phones, choose the `arm64-v8a` APK; choose the universal APK if you are unsure.
+Macrion is currently distributed through [GitHub Releases](https://github.com/vibhor1102/macrion/releases). Download the APK for your device and open it to install. For most modern Android phones, choose the `arm64-v8a` APK; choose the universal APK if you are unsure.
 
 Android may ask you to allow installation from your browser or file manager. This permission can be disabled again after installation.
 
@@ -42,7 +42,7 @@ Macrion can import supported Klick'r backups. It can also create a Klick'r-compa
 
 ## Status and feedback
 
-The project is approaching its first public version, `0.1.0`. Bugs and compatibility reports are welcome in [GitHub Issues](https://github.com/vibhor1102/Macrion/issues).
+The project is approaching its first public version, `0.1.0`. Bugs and compatibility reports are welcome in [GitHub Issues](https://github.com/vibhor1102/macrion/issues).
 
 ## License and attribution
 

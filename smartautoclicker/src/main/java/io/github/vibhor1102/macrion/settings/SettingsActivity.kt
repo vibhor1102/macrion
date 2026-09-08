@@ -67,9 +67,9 @@ class SettingsActivity : AppCompatActivity() {
         .toString()
 
     private companion object {
-        const val GITHUB_URL = "https://github.com/vibhor1102/Macrion"
+        const val GITHUB_URL = "https://github.com/vibhor1102/macrion"
         const val DISCORD_URL = "https://discord.gg/g3RpJxtWFZ"
-        const val BUG_REPORT_URL = "https://github.com/vibhor1102/Macrion/issues/new"
+        const val BUG_REPORT_URL = "https://github.com/vibhor1102/macrion/issues/new"
         const val BUG_REPORT_TEMPLATE = "bug_report.yml"
     }
 }

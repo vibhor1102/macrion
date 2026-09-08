@@ -8,7 +8,7 @@ Welcome to **Macrion**! This guide walks you through downloading the app, instal
 
 Official APK releases are available directly on GitHub:
 
-👉 **[Download Latest Macrion Release](https://github.com/vibhor1102/Macrion/releases)**
+👉 **[Download Latest Macrion Release](https://github.com/vibhor1102/macrion/releases)**
 
 Under the **Assets** section of the latest release, choose the file matching your device:
 
@@ -73,4 +73,4 @@ The guides section is currently under active development. Step-by-step walkthrou
 
 - **[Documentation Reference](/documentation/)** — Explore comprehensive reference documentation covering all app settings, screen condition types, triggers, actions, and device safety features.
 - **[Changelog](/changelog/)** — Review the complete version history and release notes for Macrion.
-- **[GitHub Repository](https://github.com/vibhor1102/Macrion)** — View source code, report issues, or star the project.
+- **[GitHub Repository](https://github.com/vibhor1102/macrion)** — View source code, report issues, or star the project.

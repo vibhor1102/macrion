@@ -6,7 +6,7 @@ The **SetText** action allows Macrion to input arbitrary strings, numbers, and d
 
 ## Text Injection Architecture
 
-Text injection is managed by [`TextExecutor`](https://github.com/vibhor1102/Macrion/blob/main/core/common/actions/src/main/java/io/github/vibhor1102/macrion/core/common/actions/text/TextExecutor.kt) and operates through a robust multi-stage pipeline:
+Text injection is managed by [`TextExecutor`](https://github.com/vibhor1102/macrion/blob/main/core/common/actions/src/main/java/io/github/vibhor1102/macrion/core/common/actions/text/TextExecutor.kt) and operates through a robust multi-stage pipeline:
 
 ```mermaid
 flowchart TD
@@ -141,7 +141,7 @@ $$\{ \text{counterName} \}$$
 
 ### Variable Resolution Engine
 
-Before dispatching text to the accessibility service, [`TextCounters`](https://github.com/vibhor1102/Macrion/blob/main/core/common/actions/src/main/java/io/github/vibhor1102/macrion/core/common/actions/text/TextCounters.kt) scans the input string using the regular expression `\{([^}]+)\}`.
+Before dispatching text to the accessibility service, [`TextCounters`](https://github.com/vibhor1102/macrion/blob/main/core/common/actions/src/main/java/io/github/vibhor1102/macrion/core/common/actions/text/TextCounters.kt) scans the input string using the regular expression `\{([^}]+)\}`.
 
 For each matching token:
 1. Macrion queries the active scenario's `ProcessingState` for the current numeric value of `counterName`.
