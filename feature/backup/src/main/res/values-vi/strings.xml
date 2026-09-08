@@ -34,4 +34,13 @@
     <string name="message_backup_error_no_zip_app">Không tìm thấy ứng dụng nào trên thiết bị để xử lý việc lưu/tải tệp zip.</string>
     <string name="content_desc_backup_state">Trạng thái sao lưu</string>
 
+    <string name="item_title_backup_klickr_compatible">Tạo bản sao lưu tương thích với Klick’r</string>
+    <string name="message_backup_import_malformed">Bản sao lưu này có vẻ bị lỗi hoặc trộn lẫn định dạng sao lưu của Macrion và Klick’r.</string>
+    <string name="message_backup_klickr_compatibility_loss">Các tính năng chỉ có ở Macrion sẽ bị xóa khỏi bản sao lưu này để Klick’r có thể nhập.</string>
+    <string name="message_backup_klickr_compatibility_analysis">Đang kiểm tra khả năng tương thích Klick’r của các kịch bản đã chọn…</string>
+    <string name="message_backup_klickr_compatibility_review_without_loss">Mục tiêu tương thích: %1$s\n\nKhông cần xóa thành phần chỉ có ở Macrion. Tiếp tục để chọn nơi lưu bản sao lưu.</string>
+    <string name="message_backup_klickr_compatibility_review">Mục tiêu tương thích: %1$s\n\nCác thành phần sẽ bị xóa: %2$d\nCác kịch bản không thể xuất: %3$d\n\nTiếp tục để chọn nơi lưu bản sao lưu, hoặc hủy mà không tạo tệp.</string>
+    <string name="message_backup_create_klickr_compatible_completed">Đã hoàn thành bản sao lưu tương thích Klick’r. Các thành phần chỉ có ở Macrion đã bị xóa: %1$d.</string>
+    <string name="message_backup_create_klickr_compatible_completed_without_loss">Đã hoàn thành bản sao lưu tương thích Klick’r. Không cần xóa tính năng chỉ có ở Macrion nào.</string>
+
 </resources>

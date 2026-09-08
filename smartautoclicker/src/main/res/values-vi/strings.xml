@@ -85,4 +85,35 @@
         <item quantity="other">%1$d ngày trước</item>
     </plurals>
 
+    <string name="dialog_title_copy_scenario">Sao chép kịch bản</string>
+    <string name="dialog_title_locale_plugin_background_launch">Khởi chạy nền bị chặn</string>
+    <string name="message_locale_plugin_background_launch">Klick\'r không thể tự động mở lời nhắc chụp màn hình.\n\nĐể hoàn tất khởi chạy kịch bản, một thông báo đã được hiển thị thay thế.\n\nMột số điện thoại Android hạn chế ứng dụng nền nhiều hơn Android tiêu chuẩn. Hãy xem hướng dẫn này để cải thiện độ ổn định của quyền.</string>
+    <string name="content_desc_back">Quay lại</string>
+    <string name="field_scenario_switcher_title">Hiển thị bộ chuyển kịch bản</string>
+    <string name="field_scenario_switcher_desc">Hiển thị bộ chuyển kịch bản trên thanh công cụ nổi để chuyển nhanh.</string>
+    <string name="field_home_button_title">Hiển thị nút trang chủ Macrion</string>
+    <string name="field_home_button_desc">Thêm nút thanh công cụ để dừng kịch bản và mở màn hình chính của Macrion.</string>
+    <string name="field_stop_confirmation_title">Xác nhận trước khi dừng</string>
+    <string name="field_stop_confirmation_desc">Hỏi trước khi dừng Macrion từ thanh công cụ lớp phủ.</string>
+    <string name="field_tutorial_title">Hướng dẫn</string>
+    <string name="field_tutorial_desc">Tìm hiểu cách dùng Klick\'r</string>
+    <string name="crash_reports_title">Báo cáo sự cố cục bộ</string>
+    <string name="crash_report_prompt_title">Ôi không, Macrion đã gặp sự cố</string>
+    <string name="crash_report_prompt_message">Macrion đã gặp vấn đề và phải đóng. Gửi báo cáo sự cố có thể giúp Vibhor tìm và khắc phục nguyên nhân, và anh ấy sẽ xem xét sớm nhất có thể.\n\nBáo cáo chứa thông tin kỹ thuật về sự cố và thiết bị, đồng thời được kiểm tra để giảm thông tin cá nhân. Không có gì được gửi trừ khi bạn chọn Gửi báo cáo.</string>
+    <string name="crash_report_local_notice">Một báo cáo kỹ thuật đã được lưu trên thiết bị này. Không có gì được gửi trừ khi bạn chọn Gửi báo cáo. Báo cáo gồm thông tin về sự cố và thiết bị. Chúng tôi cố gắng xóa thông tin cá nhân, nhưng một số thông tin có thể còn trong chi tiết lỗi. Báo cáo cục bộ hết hạn sau bảy ngày; báo cáo đã gửi được giữ tối đa 30 ngày.</string>
+    <string name="crash_report_send">Gửi báo cáo</string>
+    <string name="crash_report_sending">Đang gửi…</string>
+    <string name="crash_report_sent">Đã gửi báo cáo sự cố. Cảm ơn bạn.</string>
+    <string name="crash_report_send_failed">Không thể gửi báo cáo. Báo cáo vẫn ở trên thiết bị này.</string>
+    <string name="crash_report_rejected">Máy chủ không thể nhận báo cáo này. Báo cáo vẫn ở trên thiết bị này.</string>
+    <string name="crash_report_review">Xem lại</string>
+    <string name="crash_report_discard">Bỏ qua</string>
+    <string name="crash_report_copy">Sao chép</string>
+    <string name="crash_report_copied">Đã sao chép báo cáo</string>
+    <string name="crash_reports_empty">Không có báo cáo sự cố cục bộ.</string>
+    <string name="crash_reports_error">Không thể truy cập báo cáo sự cố cục bộ. Vui lòng thử lại.</string>
+    <string name="crash_reports_loading">Đang tải báo cáo cục bộ…</string>
+    <string name="crash_reports_sample">Tạo báo cáo mô phỏng (chỉ gỡ lỗi)</string>
+    <string name="crash_report_label">Báo cáo %1$s</string>
+
 </resources>

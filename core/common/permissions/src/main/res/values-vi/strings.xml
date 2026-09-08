@@ -28,4 +28,7 @@
     <string name="button_request_permission">Cấp quyền</string>
     <string name="button_deny">Từ chối</string>
 
+    <string name="dialog_title_permission_launch_fallback_notification">Thông báo khởi chạy</string>
+    <string name="message_permission_desc_launch_fallback_notification">Tùy chọn: cho phép Klick\'r gửi thông báo để nhấn khởi chạy khi Android chặn việc khởi chạy tự động.</string>
+
 </resources>

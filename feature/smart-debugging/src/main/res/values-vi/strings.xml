@@ -58,4 +58,56 @@
     <string name="overlay_title_results">Kết quả</string>
     <string name="overlay_title_threshold">Ngưỡng</string>
 
+    <string name="menu_item_debug_report_conditions">Điều kiện</string>
+    <string name="item_title_report_execution_limiter_idle_time">Thời gian chờ của bộ giới hạn thực thi</string>
+    <string name="item_value_report_unavailable">Không có</string>
+    <string name="item_title_report_event_activity">Hoạt động sự kiện</string>
+    <string name="item_desc_report_event_activity_empty">Không có sự kiện nào được đạt tới</string>
+    <plurals name="item_desc_report_event_activity_reached">
+        <item quantity="one">Đã đạt tới %1$d sự kiện · tổng %2$d lần xuất hiện</item>
+        <item quantity="other">Đã đạt tới %1$d sự kiện · tổng %2$d lần xuất hiện</item>
+    </plurals>
+    <string name="item_desc_report_event_activity_most_frequent">Thường xuyên nhất: %1$s · %2$d×</string>
+    <string name="dialog_overlay_title_event_activity">Hoạt động sự kiện</string>
+    <string name="item_event_activity_screen_events">Sự kiện màn hình</string>
+    <string name="item_event_activity_trigger_events">Sự kiện kích hoạt</string>
+    <string name="title_event_activity_empty">Không có sự kiện nào</string>
+    <string name="desc_event_activity_empty">Kịch bản này hiện không chứa sự kiện nào.</string>
+    <string name="content_desc_event_activity_sort">Sắp xếp hoạt động sự kiện</string>
+    <string name="content_desc_event_activity_fast_scroller">Thanh cuộn nhanh hoạt động sự kiện</string>
+    <string name="event_activity_sort_scenario_order">Thứ tự kịch bản</string>
+    <string name="event_activity_sort_most_frequent">Thường xuyên nhất</string>
+    <string name="event_activity_sort_first_execution">Lần thực thi đầu tiên</string>
+    <string name="title_condition_performance_unavailable">Hiệu năng điều kiện không có sẵn cho báo cáo này.</string>
+    <string name="content_desc_condition_performance_sort">Sắp xếp điều kiện</string>
+    <string name="content_desc_condition_performance_fast_scroller">Thanh cuộn nhanh hiệu năng điều kiện</string>
+    <string name="item_condition_performance_total_time">Tổng thời gian: %1$s giây</string>
+    <string name="item_condition_performance_fulfilled">Đạt: %1$s %2$s trên %3$s %4$s</string>
+    <plurals name="item_condition_performance_time">
+        <item quantity="one">lần</item>
+        <item quantity="other">lần</item>
+    </plurals>
+    <plurals name="item_condition_performance_check">
+        <item quantity="one">lần kiểm tra</item>
+        <item quantity="other">lần kiểm tra</item>
+    </plurals>
+    <string name="item_condition_performance_average">Trung bình: %1$s ms mỗi lần kiểm tra</string>
+    <string name="item_condition_performance_average_unavailable">Trung bình: Không có</string>
+    <string name="desc_condition_performance_footer">Phần trăm hiển thị tỷ lệ của mỗi điều kiện trong tổng thời gian kiểm tra điều kiện của báo cáo này. Chúng không biểu thị tổng thời gian kịch bản hoặc mức sử dụng pin.</string>
+    <string name="condition_performance_sort_total_time">Tổng thời gian</string>
+    <string name="condition_performance_sort_average">Trung bình mỗi lần kiểm tra</string>
+    <string name="condition_performance_sort_checks">Lần kiểm tra</string>
+    <string name="condition_performance_sort_scenario_order">Thứ tự kịch bản</string>
+    <string name="title_event_occurrence_filtered_empty">Không có sự kiện phù hợp</string>
+    <string name="desc_event_occurrence_filtered_empty">Không có sự kiện Dòng thời gian nào khớp với bộ lọc hiện tại.</string>
+    <string name="button_clear_timeline_filters">Xóa bộ lọc</string>
+    <string name="content_desc_timeline_filters_active">Đang hoạt động %1$d loại bộ lọc Dòng thời gian</string>
+    <string name="content_desc_timeline_fast_scroller">Thanh cuộn nhanh Dòng thời gian</string>
+    <string name="item_event_occurrence_detecting_label">đang phát hiện</string>
+    <string name="item_event_occurrence_actions_label">hành động</string>
+    <string name="item_event_occurrence_detected_at">Được phát hiện lúc %1$s</string>
+    <string name="item_event_occurrence_recorded_at">Được ghi lại lúc %1$s</string>
+    <string name="content_desc_event_occurrence_fast_scroller">Thanh cuộn nhanh chi tiết lần xuất hiện sự kiện</string>
+    <string name="content_desc_filtered_events_fast_scroller">Thanh cuộn nhanh sự kiện đã lọc</string>
+
 </resources>

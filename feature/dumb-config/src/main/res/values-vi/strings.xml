@@ -51,4 +51,8 @@
     <string name="content_desc_show_actions">Hiển thị hoặc ẩn các hành động đã tạo</string>
     <string name="content_desc_open_action_list">Mở danh sách hành động</string>
 
+    <string name="dialog_stop_confirmation_title">Dừng Macrion?</string>
+    <string name="dialog_stop_confirmation_message">Kịch bản hiện tại sẽ bị dừng.</string>
+    <string name="dialog_stop_confirmation_stop">Dừng</string>
+
 </resources>

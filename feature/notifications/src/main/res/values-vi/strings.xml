@@ -26,4 +26,6 @@
     <string name="notification_button_stop">Dừng lại</string>
     <string name="notification_button_config">Cấu hình</string>
 
+    <string name="notification_button_switch">Chuyển kịch bản</string>
+
 </resources>

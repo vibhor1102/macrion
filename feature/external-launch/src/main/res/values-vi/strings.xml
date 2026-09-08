@@ -21,4 +21,41 @@
     <string name="tile_label_stop_scenario">Dừng Macrion</string>
     <string name="tile_subtext_unavailable">Không có kịch bản nào được xác định</string>
 
+    <string name="locale_plugin_scenario_state_name">Trạng thái Macrion</string>
+    <string name="locale_plugin_scenario_state_blurb">Cung cấp trạng thái kịch bản Macrion hiện tại</string>
+    <string name="locale_plugin_launch_name">Khởi chạy kịch bản Macrion</string>
+    <string name="locale_plugin_stop_name">Dừng Macrion</string>
+    <string name="locale_plugin_run_current_name">Chạy kịch bản Macrion hiện tại</string>
+    <string name="locale_plugin_title">Khởi chạy kịch bản Macrion</string>
+    <string name="locale_plugin_description">Chọn kịch bản mà Macrion cần chuẩn bị. Nhấn Chạy trong Macrion khi sẵn sàng.</string>
+    <string name="locale_plugin_scenario_hint">Kịch bản</string>
+    <string name="locale_plugin_no_scenarios">Hãy tạo một kịch bản trong Macrion trước khi cấu hình hành động này.</string>
+    <string name="locale_plugin_deleted_scenario">Kịch bản đã chọn trước đó không còn tồn tại. Hãy chọn kịch bản khác.</string>
+    <string name="locale_plugin_smart_note">Các kịch bản Thông minh sẽ yêu cầu quyền chụp màn hình khi khởi chạy, trừ khi Macrion đã có phiên chụp đang hoạt động.</string>
+    <string name="locale_plugin_save">Lưu</string>
+    <string name="locale_plugin_cancel">Hủy</string>
+    <string name="locale_plugin_blurb_launch">Khởi chạy %1$s (%2$s)</string>
+    <string name="locale_plugin_blurb_stop">Dừng Macrion</string>
+    <string name="locale_plugin_blurb_run_current">Chạy kịch bản Macrion hiện tại</string>
+    <string name="locale_plugin_type_smart">Thông minh</string>
+    <string name="locale_plugin_type_dumb">Đơn giản</string>
+    <string name="locale_plugin_scenario_icon">Loại kịch bản</string>
+    <string name="locale_plugin_notification_channel">Khởi chạy tự động hóa</string>
+    <string name="locale_plugin_notification_launch_title">Hoàn tất khởi chạy Macrion</string>
+    <string name="locale_plugin_notification_launch_text">Nhấn để khởi chạy %1$s</string>
+    <string name="locale_plugin_notification_error_title">Tự động hóa Macrion cần được chú ý</string>
+    <string name="locale_plugin_error_invalid">Hành động đã lưu này không còn hợp lệ. Hãy mở và lưu lại trong ứng dụng tự động hóa của bạn.</string>
+    <string name="locale_plugin_error_missing_scenario">Kịch bản đã chọn không còn tồn tại. Hãy chỉnh sửa hành động này trong ứng dụng tự động hóa của bạn.</string>
+    <string name="locale_plugin_error_permissions">Các quyền Macrion bắt buộc chưa được cấp.</string>
+    <string name="locale_plugin_error_fallback_unavailable">Macrion không thể mở trực tiếp và thông báo dự phòng đang bị tắt.</string>
+    <string name="locale_plugin_error_projection">Quyền chụp màn hình chưa được cấp.</string>
+    <string name="external_action_event_plugin_name">Hành động bên ngoài Macrion</string>
+    <string name="external_action_event_title">Chọn hành động bên ngoài</string>
+    <string name="external_action_event_subtitle">Chạy tự động hóa này khi kịch bản Thông minh kích hoạt Hành động bên ngoài đã chọn.</string>
+    <string name="external_action_event_name_hint">Hành động bên ngoài</string>
+    <string name="external_action_event_description">Tên phải khớp với Hành động bên ngoài đã lưu trong một kịch bản Thông minh Macrion. Tên không phải bí mật, vì vậy đừng dùng chúng để bảo vệ các tự động hóa nhạy cảm.</string>
+    <string name="external_action_event_empty">Trước tiên, hãy tạo Hành động bên ngoài trong một kịch bản Thông minh Macrion, rồi quay lại đây.</string>
+    <string name="external_action_event_missing_name">Tên đã lưu này hiện không được dùng trong Macrion. Bạn có thể giữ nguyên khi lưu hoặc chọn tên khác.</string>
+    <string name="external_action_event_blurb">Hành động bên ngoài: %1$s</string>
+
 </resources>
