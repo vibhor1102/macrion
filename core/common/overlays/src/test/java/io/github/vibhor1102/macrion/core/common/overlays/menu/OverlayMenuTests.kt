@@ -33,6 +33,7 @@ import io.github.vibhor1102.macrion.core.common.overlays.di.OverlaysEntryPoint
 import io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.common.OverlayMenuPositionDataSource
 import io.github.vibhor1102.macrion.core.common.overlays.testutils.captureWindowManagerAddedMenuView
 import io.github.vibhor1102.macrion.core.common.overlays.testutils.captureWindowManagerAddedViews
+import io.github.vibhor1102.macrion.core.common.overlays.testutils.mockSystemService
 import io.github.vibhor1102.macrion.core.display.config.DisplayConfigManager
 import io.github.vibhor1102.macrion.core.display.di.DisplayEntryPoint
 import io.github.vibhor1102.macrion.core.common.overlays.R
@@ -179,8 +180,8 @@ class OverlayMenuTests {
         // Mock Android managers
         mockWhen(mockContext.applicationContext).thenReturn(mockContext)
         mockWhen(mockContext.resources).thenReturn(mockResources)
-        mockWhen(mockContext.getSystemService(LayoutInflater::class.java)).thenReturn(mockLayoutInflater)
-        mockWhen(mockContext.getSystemService(WindowManager::class.java)).thenReturn(mockWindowManager)
+        mockContext.mockSystemService(LayoutInflater::class.java, Context.LAYOUT_INFLATER_SERVICE, mockLayoutInflater)
+        mockContext.mockSystemService(WindowManager::class.java, Context.WINDOW_SERVICE, mockWindowManager)
         mockWhen(mockContext.getSharedPreferences(OverlayMenuPositionDataSource.PREFERENCE_NAME, Context.MODE_PRIVATE))
             .thenReturn(mockSharedPrefs)
 
