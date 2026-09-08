@@ -24,7 +24,14 @@ on:
       tag_name:
         description: 'Release tag to attach assets to (e.g. recognition-models-1.0.0)'
         required: true
-        default: 'recognition-models-1.0.0'
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-ocr-models-${{ inputs.tag_name || github.ref_name }}
+  cancel-in-progress: false
 
 jobs:
   build:
@@ -32,7 +39,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Resolve tag name
         id: tag
@@ -42,12 +49,16 @@ jobs:
           else
             tag="${{ inputs.tag_name }}"
           fi
+          if ! [[ "$tag" =~ ^recognition-models-[0-9]+\.[0-9]+\.[0-9]+([-.][0-9A-Za-z.-]+)?$ ]]; then
+            echo "Invalid recognition-model release tag: '$tag'." >&2
+            exit 1
+          fi
           version="${tag#recognition-models-}"
           echo "name=$tag" >> $GITHUB_OUTPUT
           echo "version=$version" >> $GITHUB_OUTPUT
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.12'
 
