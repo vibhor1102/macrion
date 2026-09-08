@@ -25,9 +25,21 @@ class TranslationParityTests {
 
         assertTrue("No Android resource directories found", resourceDirectories.isNotEmpty())
 
+        val supportedLocales = resourceDirectories
+            .flatMap { resourcesDirectory ->
+                resourcesDirectory.listFiles()
+                    ?.filter { directory: File ->
+                        directory.isDirectory && directory.name.startsWith("values-") &&
+                                localeQualifierRegex.matches(directory.name.removePrefix("values-"))
+                    }
+                    .orEmpty()
+            }
+            .map { it.name.removePrefix("values-") }
+            .toSortedSet()
+
         val failures = resourceDirectories.flatMap { resourcesDirectory ->
             val defaultResources = resourceNames(File(resourcesDirectory, "values"), excludeNonTranslatable = true)
-            SUPPORTED_LOCALES.mapNotNull { locale ->
+            supportedLocales.mapNotNull { locale ->
                 val localeDirectory = File(resourcesDirectory, "values-$locale")
                 val missing = if (localeDirectory.isDirectory) {
                     defaultResources - resourceNames(localeDirectory, excludeNonTranslatable = false)
@@ -84,7 +96,7 @@ class TranslationParityTests {
 
     private companion object {
         val RESOURCE_TAGS = listOf("string", "plurals", "string-array")
-        val SUPPORTED_LOCALES = listOf("ar", "es", "fr", "it", "ja", "pt-rBR", "ru", "uk", "zh-rCN", "zh-rTW")
         val EXCLUDED_DIRECTORIES = setOf(".agents", ".git", ".gradle", "backend", "build", "node_modules")
+        val localeQualifierRegex = Regex("""(?:[a-z]{2,3}(?:-r[A-Z]{2})?|b\\+[A-Za-z]{2,8}(?:\\+[A-Za-z0-9]{1,8})*)""")
     }
 }
