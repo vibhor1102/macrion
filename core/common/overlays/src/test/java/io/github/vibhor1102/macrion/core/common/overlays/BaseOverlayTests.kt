@@ -20,9 +20,12 @@ import android.content.Context
 import android.hardware.display.DisplayManager
 import android.os.Build
 import android.view.Display
+import android.view.WindowManager
 
 import androidx.lifecycle.Lifecycle
 import androidx.test.ext.junit.runners.AndroidJUnit4
+
+import io.github.vibhor1102.macrion.core.common.overlays.testutils.mockSystemService
 
 import org.junit.Assert.assertEquals
 import org.junit.Before
@@ -35,6 +38,7 @@ import org.mockito.Mockito.inOrder
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations
+import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 
 /** Test the [BaseOverlay] class. */
@@ -240,5 +244,26 @@ class BaseOverlayTests {
         verify(overlayControllerImpl).onDismissed()
         verify(dismissListener).onDismissed(mockContext, overlay)
         assertEquals(Lifecycle.State.DESTROYED, overlay.lifecycle.currentState)
+    }
+
+    @Test
+    fun overlayContextServesCreationContextWindowManager() {
+        val mockDisplayContext = Mockito.mock(Context::class.java)
+        Mockito.`when`(mockContext.createDisplayContext(mockDisplay)).thenReturn(mockDisplayContext)
+        val theme = RuntimeEnvironment.getApplication().theme
+        Mockito.`when`(mockContext.theme).thenReturn(theme)
+        Mockito.`when`(mockDisplayContext.theme).thenReturn(theme)
+
+        val creationWindowManager = Mockito.mock(WindowManager::class.java)
+        mockContext.mockSystemService(WindowManager::class.java, Context.WINDOW_SERVICE, creationWindowManager)
+        mockDisplayContext.mockSystemService(
+            WindowManager::class.java,
+            Context.WINDOW_SERVICE,
+            Mockito.mock(WindowManager::class.java),
+        )
+
+        overlay.create(mockContext)
+
+        assertEquals(creationWindowManager, overlay.context.getSystemService(WindowManager::class.java))
     }
 }
