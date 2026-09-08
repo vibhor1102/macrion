@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" fill="none">
+  <title>Macrion Logo</title>
+  <path fill="#0B5F63" d="M 256,0 C 102.4,0 0,102.4 0,256 C 0,409.6 102.4,512 256,512 C 409.6,512 512,409.6 512,256 C 512,102.4 409.6,0 256,0 Z"/>
+  <g transform="matrix(0.8 0 0 0.8 51.2 51.2)">
+    <path stroke="#FFFFFF" stroke-linecap="round" stroke-linejoin="round" stroke-width="30"
+      d="M160.75,88H127.75C106.15,88 88.75,105.4 88.75,127V160 M351.25,88H384.25C405.85,88 423.25,105.4 423.25,127V160 M160.75,424H127.75C106.15,424 88.75,406.6 88.75,385V352 M351.25,424H384.25C405.85,424 423.25,406.6 423.25,385V352"/>
+    <circle cx="256" cy="256" r="93.75" stroke="#FFFFFF" stroke-width="36"/>
+    <circle cx="256" cy="256" r="33" fill="#FFFFFF"/>
+  </g>
+</svg>

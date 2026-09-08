@@ -1,0 +1,15 @@
+{
+  "name": "macrion-docs",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Documentation for Macrion Android Automation App",
+  "scripts": {
+    "changelog:generate": "node scripts/generate-changelog.mjs",
+    "docs:dev": "node scripts/generate-changelog.mjs && vitepress dev docs",
+    "docs:build": "node scripts/generate-changelog.mjs && vitepress build docs",
+    "docs:preview": "vitepress preview docs"
+  },
+  "devDependencies": {
+    "vitepress": "^1.6.3"
+  }
+}

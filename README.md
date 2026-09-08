@@ -2,7 +2,7 @@
 
 Macrion is an open-source Android automation app that can react to what is visible on screen and perform actions for you. It supports image-aware scenarios as well as straightforward, position-based auto-clicking.
 
-Macrion is derived from [Klick'r / Smart AutoClicker](https://github.com/Nain57/Smart-AutoClicker), created by Kevin Buzeau and its contributors. It is now developed as an independent app with its own package name, releases, and direction.
+Macrion is derived from [Klick'r](https://github.com/Nain57/Smart-AutoClicker), created by Kevin Buzeau and its contributors. It is now developed as an independent app with its own package name, releases, and direction.
 
 > [!WARNING]
 > Macrion is currently an early release. Back up important scenarios before upgrading, and expect some inherited Klick'r wording or structure while the migration continues.
@@ -46,4 +46,4 @@ The project is approaching its first public version, `0.1.0`. Bugs and compatibi
 
 ## License and attribution
 
-Macrion is free software licensed under the [GNU General Public License v3.0](LICENSE). It retains the copyright and license notices of Klick'r / Smart AutoClicker and its contributors where applicable.
+Macrion is free software licensed under the [GNU General Public License v3.0](LICENSE). It retains the copyright and license notices of Klick'r and its contributors where applicable.
