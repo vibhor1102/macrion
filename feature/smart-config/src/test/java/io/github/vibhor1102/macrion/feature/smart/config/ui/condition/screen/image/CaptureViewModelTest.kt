@@ -115,11 +115,16 @@ class CaptureViewModelTest {
     @Test
     fun takeScreenshot_notifiesMonitoredViewsManager() {
         coEvery { mockDisplayRecorder.takeScreenshot() } returns mockk()
-        val latch = CountDownLatch(1)
+        val notificationLatch = CountDownLatch(1)
+        every {
+            mockMonitoredViewsManager.notifyClick(
+                MonitoredViewType.SCREEN_CONDITION_CAPTURE_MENU_BUTTON_CAPTURE,
+            )
+        } answers { notificationLatch.countDown() }
 
-        viewModel.takeScreenshot { latch.countDown() }
+        viewModel.takeScreenshot { }
 
-        assertTrue("Callback not called within timeout", latch.await(1, TimeUnit.SECONDS))
+        assertTrue("Tutorial notification not sent within timeout", notificationLatch.await(1, TimeUnit.SECONDS))
         verify { mockMonitoredViewsManager.notifyClick(MonitoredViewType.SCREEN_CONDITION_CAPTURE_MENU_BUTTON_CAPTURE) }
     }
 
