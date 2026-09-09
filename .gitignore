@@ -38,6 +38,7 @@ captures/
 
 # IntelliJ
 *.iml
+.idea/
 .idea/workspace.xml
 .idea/tasks.xml
 .idea/gradle.xml
@@ -105,4 +106,3 @@ scripts/**/*.pyc
 node_modules/
 docs/.vitepress/dist/
 docs/.vitepress/cache/
-
