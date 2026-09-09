@@ -167,5 +167,5 @@ private fun File.requireDirectChildOf(directory: File): File {
 private fun OCRAlphabet.getRecognitionModelUrl(): String =
     "${GITHUB_BASE_URL}${name.lowercase()}.zip"
 
-private const val GITHUB_BASE_URL = "https://github.com/Nain57/Smart-AutoClicker/releases/download/recognition-models-1.0.0/"
+private const val GITHUB_BASE_URL = "https://github.com/vibhor1102/Macrion/releases/download/recognition-models-1.0.0/"
 private const val TAG = "DirectDownloadModelRemoteDataSource"
