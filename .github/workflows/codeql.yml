@@ -1,0 +1,84 @@
+name: CodeQL
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '17 3 * * 1'
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+  security-events: write
+
+concurrency:
+  group: codeql-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analyze-interpreted:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [actions, javascript-typescript, python]
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4.37.9
+      with:
+        languages: ${{ matrix.language }}
+        build-mode: none
+
+    - name: Perform CodeQL analysis
+      uses: github/codeql-action/analyze@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4.37.9
+      with:
+        category: /language:${{ matrix.language }}
+
+  analyze-java-kotlin:
+    name: Analyze (java-kotlin)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+    - name: Set up JDK 25 and restore Gradle cache
+      uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c # v6.0.0
+      with:
+        distribution: zulu
+        java-version: '25'
+        cache: gradle
+        cache-dependency-path: |
+          **/*.gradle
+          **/*.gradle.kts
+          gradle/libs.versions.toml
+          gradle/wrapper/gradle-wrapper.properties
+
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4.37.9
+      with:
+        languages: java-kotlin
+        build-mode: manual
+
+    - name: Build Android app for CodeQL
+      shell: bash
+      run: |
+        ./gradlew --no-daemon --max-workers=6 --parallel --build-cache \
+          -PmacrionDebugAbi=arm64-v8a :smartautoclicker:assembleFDroidDebug
+      env:
+        JAVA_TOOL_OPTIONS: -Djava.net.preferIPv4Stack=true
+
+    - name: Perform CodeQL analysis
+      uses: github/codeql-action/analyze@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4.37.9
+      with:
+        category: /language:java-kotlin
