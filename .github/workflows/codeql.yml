@@ -73,7 +73,8 @@ jobs:
     - name: Build Android app for CodeQL
       shell: bash
       run: |
-        ./gradlew --no-daemon --max-workers=6 --parallel --build-cache \
+        # CodeQL must observe compiler invocations; cached compilation outputs are insufficient.
+        ./gradlew --no-daemon --max-workers=6 --parallel --no-build-cache \
           -PmacrionDebugAbi=arm64-v8a :smartautoclicker:assembleFDroidDebug
       env:
         JAVA_TOOL_OPTIONS: -Djava.net.preferIPv4Stack=true
