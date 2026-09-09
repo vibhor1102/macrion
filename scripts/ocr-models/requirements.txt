@@ -5,5 +5,5 @@ onnxsim-prebuilt==0.4.39.post2
 numpy==2.0.2
 pyyaml==6.0.2
 requests==2.34.2
-onnxruntime==1.19.2
+onnxruntime==1.29.0
 pnnx
