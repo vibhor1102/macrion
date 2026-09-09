@@ -30,6 +30,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
 import java.util.zip.ZipFile
@@ -134,7 +135,7 @@ internal class DirectDownloadModelRemoteDataSource @Inject constructor(
 
                     if (!entry.isDirectory) {
                         // Strip any leading directory from the zip entry — we only want the file name
-                        val outFile = File(destDir, File(entry.name).name)
+                        val outFile = File(destDir, File(entry.name).name).requireDirectChildOf(destDir)
                         outFile.outputStream().use { zis.copyTo(it) }
                     }
 
@@ -152,6 +153,15 @@ internal class DirectDownloadModelRemoteDataSource @Inject constructor(
             return false
         }
     }
+}
+
+/** Reject archive entry names that resolve outside the model directory (for example, `..`). */
+private fun File.requireDirectChildOf(directory: File): File {
+    val canonicalDirectory = directory.canonicalFile
+    if (canonicalFile.parentFile != canonicalDirectory) {
+        throw IOException("Archive entry resolves outside the model directory: $path")
+    }
+    return this
 }
 
 private fun OCRAlphabet.getRecognitionModelUrl(): String =

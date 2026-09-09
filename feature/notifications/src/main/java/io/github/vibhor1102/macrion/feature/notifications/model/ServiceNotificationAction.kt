@@ -110,7 +110,12 @@ internal fun ServiceNotificationAction.getPendingIntent(context: Context, appCom
             )
 
         is NotificationActionPendingIntent.Broadcast ->
-            PendingIntent.getBroadcast(context, 0, Intent(intent.action), PendingIntent.FLAG_IMMUTABLE)
+            PendingIntent.getBroadcast(
+                context,
+                0,
+                Intent(intent.action).setPackage(context.packageName),
+                PendingIntent.FLAG_IMMUTABLE,
+            )
     }
 
 
