@@ -69,6 +69,7 @@ import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring
 
 
 class ColorCaptureMenu (
+    private val initialPosition: PointF? = null,
     private val onColorSelected: (position: PointF, colorInt: Int) -> Unit,
 ) : OverlayMenu(theme = R.style.AppTheme, recreateOverlayViewOnRotation = true) {
 
@@ -122,7 +123,7 @@ class ColorCaptureMenu (
 
         when (viewId) {
             R.id.btn_confirm -> when (captureStep) {
-                ColorCaptureMenuStep.SCREENSHOT_SELECTION -> viewModel.captureScreen()
+                ColorCaptureMenuStep.SCREENSHOT_SELECTION -> viewModel.captureScreen(initialPosition)
                 ColorCaptureMenuStep.PIXEL_SELECTION -> {
                     viewModel.getPixelSelection()?.let { (position, color) ->
                         back()

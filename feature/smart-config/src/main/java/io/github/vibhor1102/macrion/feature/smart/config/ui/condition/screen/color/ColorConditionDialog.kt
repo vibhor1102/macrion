@@ -167,7 +167,7 @@ class ColorConditionDialog(private val listener: OnConditionConfigCompleteListen
     }
     private fun onConfirmDelete() { listener.onDeleteClicked(); super.back() }
     private fun showPixelColorPickerOverlay() {
-        overlayManager.navigateTo(context, ColorCaptureMenu { position, color ->
+        overlayManager.navigateTo(context, ColorCaptureMenu(viewModel.uiState.value?.conditionPosition) { position, color ->
             viewModel.setColor(color); viewModel.setPosition(position)
         }, true)
     }

@@ -198,6 +198,17 @@ class ColorCaptureViewModelTest {
     }
 
     @Test
+    fun captureScreen_withInitialPosition_restoresThatPosition() = runTest(testDispatcher) {
+        coEvery { mockDisplayRecorder.takeScreenshot() } returns mockBitmap()
+        val initialPosition = PointF(300f, 400f)
+
+        viewModel.captureScreen(initialPosition)
+        advanceTimeBy(201)
+
+        assertEquals(initialPosition, viewModel.uiState.value.pixelSelectionUiState?.selectedPosition)
+    }
+
+    @Test
     fun captureScreen_withSuccessfulScreenshot_notifiesMonitoredViewsManager() = runTest(testDispatcher) {
         coEvery { mockDisplayRecorder.takeScreenshot() } returns mockBitmap()
 

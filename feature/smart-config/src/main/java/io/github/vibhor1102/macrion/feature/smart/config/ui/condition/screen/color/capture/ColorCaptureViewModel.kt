@@ -67,7 +67,7 @@ class ColorCaptureViewModel @Inject constructor(
         return selectedPosition to selectedColor
     }
 
-    fun captureScreen() {
+    fun captureScreen(initialPosition: PointF? = null) {
         _uiState.update { capturingState() }
 
         screenshotJob = viewModelScope.launch(ioDispatcher) {
@@ -79,7 +79,7 @@ class ColorCaptureViewModel @Inject constructor(
                     withContext(mainDispatcher) {
                         monitoredViewsManager.notifyClick(MonitoredViewType.SCREEN_CONDITION_CAPTURE_MENU_BUTTON_CAPTURE)
                     }
-                    pixelSelectionState(screenshot)
+                    pixelSelectionState(screenshot, initialPosition)
                 }
             }
         }
@@ -126,9 +126,9 @@ class ColorCaptureViewModel @Inject constructor(
             showHideButtonEnabled = false,
         )
 
-    private fun pixelSelectionState(screenshot: Bitmap): ColorCaptureUiState {
+    private fun pixelSelectionState(screenshot: Bitmap, initialPosition: PointF?): ColorCaptureUiState {
         val displaySize = displayConfigManager.displayConfig.sizePx
-        val position = PointF(displaySize.x / 2f, displaySize.y / 2f)
+        val position = initialPosition ?: PointF(displaySize.x / 2f, displaySize.y / 2f)
         val selectorColor = screenshot.getPixelColor(position)
 
         return ColorCaptureUiState(
