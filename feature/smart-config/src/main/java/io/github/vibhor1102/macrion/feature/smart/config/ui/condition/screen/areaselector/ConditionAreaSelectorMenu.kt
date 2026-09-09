@@ -38,7 +38,7 @@ import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring
 class ConditionAreaSelectorMenu(
     private val onHelpClicked: (() -> Unit)? = null,
     private val onAreaSelected: (Rect) -> Unit
-) : OverlayMenu() {
+) : OverlayMenu(theme = R.style.ScenarioConfigTheme) {
 
     override fun tutorialMonitoringTag(): String = MonitoredOverlayType.CONDITION_AREA_SELECTOR_MENU.name
 

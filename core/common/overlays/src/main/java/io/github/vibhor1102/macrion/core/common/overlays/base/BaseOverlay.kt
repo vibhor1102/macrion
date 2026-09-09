@@ -18,16 +18,11 @@ package io.github.vibhor1102.macrion.core.common.overlays.base
 
 import android.app.Application
 import android.content.Context
-import android.content.ContextWrapper
-import android.content.res.Configuration
-import android.hardware.display.DisplayManager
 import android.util.Log
-import android.view.Display
 import android.view.KeyEvent
 import android.view.View
 
 import androidx.annotation.CallSuper
-import androidx.appcompat.view.ContextThemeWrapper
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleRegistry
 import androidx.lifecycle.ViewModelStore
@@ -49,8 +44,6 @@ import io.github.vibhor1102.macrion.core.common.overlays.di.createHiltViewModelF
 import io.github.vibhor1102.macrion.core.common.overlays.manager.OverlayManager
 import io.github.vibhor1102.macrion.core.display.config.DisplayConfigManager
 import io.github.vibhor1102.macrion.core.display.di.DisplayEntryPoint
-
-import com.google.android.material.color.DynamicColors
 
 import dagger.hilt.EntryPoints
 
@@ -156,7 +149,7 @@ abstract class BaseOverlay internal constructor(
 
         Log.d(TAG, "create overlay ${hashCode()}")
         if (!this::context.isInitialized) context = appContext
-        context = newOverlayContext(appContext)
+        context = newOverlayContext(appContext, theme) { displayConfigManager.displayConfig.orientation }
 
         dismissListener?.let { listener -> onDestroyListener = { listener(appContext, this@BaseOverlay) } }
         savedStateController.performAttach()
@@ -308,43 +301,6 @@ abstract class BaseOverlay internal constructor(
     override fun handleKeyEvent(keyEvent: KeyEvent): Boolean =
         onKeyEvent(keyEvent)
 
-    /**
-     * Get a new context wrapper from the provided theme. If the theme is null, the application theme is used.
-     *
-     * This is required because an overlay can be attached to a context without UI configuration changes notification,
-     * which can leads to an invalid theming for the dialog, an invalid rotation ...
-     *
-     * @param appContext the Android application context.
-     */
-    private fun newOverlayContext(appContext: Context): Context {
-        val baseContext = OverlayWindowManagerContext(
-            displayContext = appContext.createDefaultDisplayContext(),
-            windowManagerContext = appContext,
-        )
-
-        return if (theme == null) baseContext
-        else DynamicColors.wrapContextIfAvailable(
-            ContextThemeWrapper(baseContext, theme).apply {
-                applyOverrideConfiguration(
-                    Configuration(applicationContext.resources.configuration).apply {
-                        orientation = displayConfigManager.displayConfig.orientation
-                    }
-                )
-            }
-        )
-    }
-
-    /** Get a context associated with the default display. */
-    private fun Context.createDefaultDisplayContext(): Context {
-        val display = getSystemService(DisplayManager::class.java)
-            ?.getDisplay(Display.DEFAULT_DISPLAY)
-            ?: return this
-
-        val displayContext = createDisplayContext(display) ?: return this
-        displayContext.theme.setTo(theme)
-        return displayContext
-    }
-
     override fun dump(writer: PrintWriter, prefix: CharSequence) {
         val contentPrefix = prefix.addDumpTabulationLvl()
 
@@ -360,23 +316,6 @@ abstract class BaseOverlay internal constructor(
 
     /** @return the dump representation of this OverlayController. */
     private fun toDumpString() = "${javaClass.simpleName}@${hashCode()}"
-}
-
-/**
- * Context serving the WindowManager of the accessibility-service context.
- *
- * A display context provides its own WindowManager without the accessibility-overlay token. On Android 11 and 12,
- * that makes adding a TYPE_ACCESSIBILITY_OVERLAY window fail with BadTokenException. Keep the service context's
- * WindowManager while retaining the display context for configuration and display-aware views.
- */
-private class OverlayWindowManagerContext(
-    displayContext: Context,
-    private val windowManagerContext: Context,
-) : ContextWrapper(displayContext) {
-
-    override fun getSystemService(name: String): Any? =
-        if (name == WINDOW_SERVICE) windowManagerContext.getSystemService(name)
-        else super.getSystemService(name)
 }
 
 inline fun <reified VM : ViewModel, EP : Any> BaseOverlay.viewModels(
