@@ -66,7 +66,7 @@ function filterChangelogContent(rawMarkdown, version) {
   const processedLines = [];
   let foundH1 = false;
   let title = `Macrion ${version.replace(/^v/, '')}`;
-  const anchorId = version.replace(/\./g, '-').replace(/^v/, 'v');
+  const anchorId = version.replace(/\./g, '-');
 
   for (let line of lines) {
     // Top-level H1 heading: # Macrion X.Y.Z
