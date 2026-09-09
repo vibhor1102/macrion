@@ -73,8 +73,8 @@ android {
     defaultConfig {
         applicationId = getExtraActualApplicationId()
 
-        versionCode = 6
-        versionName = "0.4.1"
+        versionCode = 7
+        versionName = "0.4.2"
     }
 
     if (project.isBuildForVariant(MacrionFlavour.F_DROID, MacrionBuildType.DEBUG)) {

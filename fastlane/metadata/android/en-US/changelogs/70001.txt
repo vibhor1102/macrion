@@ -1,0 +1,2 @@
+Fixed configuration overlays on older Android devices and made color recapture retain the selected pixel.
+Updated text-recognition model downloads and prepared Macrion for its F-Droid release.
