@@ -80,6 +80,7 @@ abstract class CopyDialog(
                     CopySearchTopBar(
                         titleRes = titleRes,
                         searchHintRes = searchHintRes,
+                        modifier = Modifier.fillMaxSize(),
                         onDismiss = { debounceUserInteraction { back() } },
                         onQueryChanged = ::onSearchQueryChanged,
                         onCopy = ::onCopyClicked,
@@ -111,6 +112,7 @@ abstract class CopyDialog(
 fun CopySearchTopBar(
     @androidx.annotation.StringRes titleRes: Int,
     @androidx.annotation.StringRes searchHintRes: Int,
+    modifier: Modifier = Modifier,
     onDismiss: () -> Unit,
     onQueryChanged: (String) -> Unit,
     onCopy: () -> Unit,
@@ -132,7 +134,7 @@ fun CopySearchTopBar(
     }
 
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .shadow(3.dp)
             .background(MaterialTheme.colorScheme.surfaceContainerLow)

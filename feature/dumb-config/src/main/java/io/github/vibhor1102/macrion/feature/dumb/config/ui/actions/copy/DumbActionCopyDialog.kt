@@ -21,6 +21,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -43,6 +44,7 @@ import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.CopyDialog
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.CopySearchTopBar
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
+import io.github.vibhor1102.macrion.core.ui.R as UiR
 import io.github.vibhor1102.macrion.feature.dumb.config.ui.actions.DumbActionListItem
 import io.github.vibhor1102.macrion.feature.dumb.config.R
 import io.github.vibhor1102.macrion.feature.dumb.config.di.DumbConfigViewModelsEntryPoint
@@ -90,7 +92,14 @@ class DumbActionCopyDialog(
                 .heightIn(min = dimensionResource(io.github.vibhor1102.macrion.core.common.overlays.R.dimen.bottom_sheet_min_height))
                 .background(MaterialTheme.colorScheme.surfaceContainerLowest),
         ) {
-            CopySearchTopBar(titleRes, searchHintRes, { debounceUserInteraction { back() } }, viewModel::updateSearchQuery, ::onCopyClicked)
+            CopySearchTopBar(
+                titleRes = titleRes,
+                searchHintRes = searchHintRes,
+                modifier = Modifier.fillMaxWidth().height(dimensionResource(UiR.dimen.dialog_top_bar_height)),
+                onDismiss = { debounceUserInteraction { back() } },
+                onQueryChanged = viewModel::updateSearchQuery,
+                onCopy = ::onCopyClicked,
+            )
             when {
                 items == null -> androidx.compose.material3.CircularProgressIndicator(Modifier.weight(1f).padding(24.dp))
                 items.isEmpty() -> androidx.compose.foundation.layout.Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = androidx.compose.ui.Alignment.Center) {
