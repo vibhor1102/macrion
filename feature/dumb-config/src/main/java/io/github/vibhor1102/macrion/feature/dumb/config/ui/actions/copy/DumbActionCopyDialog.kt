@@ -128,7 +128,14 @@ class DumbActionCopyDialog(
     @Composable
     private fun CopyHeader(item: DumbActionCopyItem.HeaderItem) {
         Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
-            Text(stringResource(item.title), Modifier.padding(12.dp), style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(
+                text = stringResource(item.title),
+                modifier = Modifier.padding(12.dp),
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
         }
     }
