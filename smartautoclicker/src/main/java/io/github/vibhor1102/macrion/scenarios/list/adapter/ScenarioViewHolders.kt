@@ -2,9 +2,13 @@
 package io.github.vibhor1102.macrion.scenarios.list.adapter
 
 import android.graphics.Bitmap
-import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.compose.foundation.Image
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -42,20 +46,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.recyclerview.widget.RecyclerView
 import io.github.vibhor1102.macrion.R
 import io.github.vibhor1102.macrion.core.domain.model.condition.ScreenCondition
 import io.github.vibhor1102.macrion.core.dumb.domain.model.DumbScenario as DumbScenarioModel
-import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.core.ui.utils.setColorIndicatorDrawable
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.formatters.toEffectDescription
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.formatters.toNaturalDisplayString
@@ -70,85 +70,15 @@ private typealias DumbScenarioItem = ScenarioListUiState.Item.ScenarioItem.Valid
 private typealias SmartScenarioItem = ScenarioListUiState.Item.ScenarioItem.Valid.Smart
 private typealias EventItem = ScenarioListUiState.Item.ScenarioItem.Valid.Smart.EventItem
 
-abstract class ScenarioComposeViewHolder<T : ScenarioItem>(parent: ViewGroup) :
-    RecyclerView.ViewHolder(ComposeView(parent.context)) {
-    private var item by mutableStateOf<T?>(null)
-
-    init {
-        (itemView as ComposeView).apply {
-            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindowOrReleasedFromPool)
-            setContent { MacrionTheme { item?.let { Content(it) } } }
-        }
-    }
-
-    fun onBind(value: T) { item = value }
-
-    @Composable protected abstract fun Content(item: T)
-}
-
-class EmptyScenarioHolder(
-    parent: ViewGroup,
-    private val launch: (EmptyScenario) -> Unit,
-    private val delete: (EmptyScenario) -> Unit,
-) : ScenarioComposeViewHolder<EmptyScenario>(parent) {
-    @Composable override fun Content(item: EmptyScenario) {
-        ScenarioCard(onClick = { launch(item) }) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    painterResource(if (item.scenario is DumbScenarioModel) R.drawable.ic_dumb else R.drawable.ic_smart),
-                    null,
-                    Modifier.size(24.dp),
-                )
-                Spacer(Modifier.width(8.dp))
-                ScenarioTitle(item.displayName, Modifier.weight(1f))
-                IconButton(onClick = { delete(item) }) {
-                    Icon(painterResource(R.drawable.ic_delete), null, Modifier.size(20.dp))
-                }
-                Spacer(Modifier.width(16.dp))
-                FilledIconButton(onClick = { launch(item) }) {
-                    Icon(painterResource(R.drawable.ic_play_arrow), null, Modifier.size(20.dp))
-                }
-            }
-        }
-    }
-}
-
-class DumbScenarioViewHolder(
-    parent: ViewGroup,
-    private val launch: (ValidScenario) -> Unit,
-    private val expand: (ValidScenario) -> Unit,
-    private val export: (ValidScenario) -> Unit,
-    private val copy: (ValidScenario) -> Unit,
-    private val delete: (ValidScenario) -> Unit,
-) : ScenarioComposeViewHolder<DumbScenarioItem>(parent) {
-    @Composable override fun Content(item: DumbScenarioItem) {
-        ValidScenarioCard(item, R.drawable.ic_dumb, { launch(item) }, { expand(item) }, { export(item) }) {
-            DumbDetails(item, { copy(item) }, { delete(item) })
-        }
-    }
-}
-
-class SmartScenarioViewHolder(
-    parent: ViewGroup,
-    private val bitmapProvider: (ScreenCondition.Image, (Bitmap?) -> Unit) -> Job?,
-    private val launch: (ValidScenario) -> Unit,
-    private val expand: (ValidScenario) -> Unit,
-    private val export: (ValidScenario) -> Unit,
-    private val copy: (ValidScenario) -> Unit,
-    private val delete: (ValidScenario) -> Unit,
-) : ScenarioComposeViewHolder<SmartScenarioItem>(parent) {
-    @Composable override fun Content(item: SmartScenarioItem) {
-        ValidScenarioCard(item, R.drawable.ic_smart, { launch(item) }, { expand(item) }, { export(item) }) {
-            SmartDetails(item, bitmapProvider, { copy(item) }, { delete(item) })
-        }
-    }
-}
-
 @Composable
-private fun ScenarioCard(onClick: () -> Unit, content: @Composable () -> Unit) {
+private fun ScenarioCard(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit,
+) {
     ElevatedCard(
         onClick = onClick,
-        modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 4.dp),
+        modifier = modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 4.dp),
         elevation = CardDefaults.elevatedCardElevation(),
     ) {
         Box(
@@ -175,9 +105,10 @@ private fun ValidScenarioCard(
     onLaunch: () -> Unit,
     onExpand: () -> Unit,
     onExport: () -> Unit,
+    modifier: Modifier = Modifier,
     details: @Composable () -> Unit,
 ) {
-    ScenarioCard(onClick = if (item.showExportCheckbox) onExport else onLaunch) {
+    ScenarioCard(onClick = if (item.showExportCheckbox) onExport else onLaunch, modifier = modifier) {
         Column(Modifier.fillMaxWidth()) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(painterResource(typeIcon), null, Modifier.size(24.dp))
@@ -195,7 +126,13 @@ private fun ValidScenarioCard(
                     }
                 }
             }
-            if (!item.showExportCheckbox && item.expanded) details()
+            if (!item.showExportCheckbox) {
+                AnimatedVisibility(
+                    visible = item.expanded,
+                    enter = expandVertically() + fadeIn(),
+                    exit = shrinkVertically() + fadeOut(),
+                ) { details() }
+            }
         }
     }
 }
@@ -348,4 +285,51 @@ private fun ConditionPreview(
 
 @Composable private fun ErrorPreview() {
     Icon(painterResource(R.drawable.ic_cancel), null, Modifier.size(32.dp), tint = Color.Red)
+}
+
+/**
+ * Shared scenario-row content for Compose screens.
+ *
+ * The RecyclerView holders above use the same building blocks while the scenario list is being
+ * migrated. Keeping this dispatch here ensures the card layout has one source of truth.
+ */
+@Composable
+internal fun ScenarioListItem(
+    item: ScenarioListUiState.Item.ScenarioItem,
+    bitmapProvider: (ScreenCondition.Image, (Bitmap?) -> Unit) -> Job?,
+    onLaunch: (ScenarioListUiState.Item.ScenarioItem) -> Unit,
+    onExpand: (ScenarioListUiState.Item.ScenarioItem.Valid) -> Unit,
+    onExport: (ScenarioListUiState.Item.ScenarioItem.Valid) -> Unit,
+    onCopy: (ScenarioListUiState.Item.ScenarioItem.Valid) -> Unit,
+    onDelete: (ScenarioListUiState.Item.ScenarioItem) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    when (item) {
+        is EmptyScenario -> ScenarioCard(onClick = { onLaunch(item) }, modifier = modifier) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    painterResource(if (item.scenario is DumbScenarioModel) R.drawable.ic_dumb else R.drawable.ic_smart),
+                    null,
+                    Modifier.size(24.dp),
+                )
+                Spacer(Modifier.width(8.dp))
+                ScenarioTitle(item.displayName, Modifier.weight(1f))
+                IconButton(onClick = { onDelete(item) }) {
+                    Icon(painterResource(R.drawable.ic_delete), null, Modifier.size(20.dp))
+                }
+                Spacer(Modifier.width(16.dp))
+                FilledIconButton(onClick = { onLaunch(item) }) {
+                    Icon(painterResource(R.drawable.ic_play_arrow), null, Modifier.size(20.dp))
+                }
+            }
+        }
+
+        is DumbScenarioItem -> ValidScenarioCard(
+            item, R.drawable.ic_dumb, { onLaunch(item) }, { onExpand(item) }, { onExport(item) }, modifier,
+        ) { DumbDetails(item, { onCopy(item) }, { onDelete(item) }) }
+
+        is SmartScenarioItem -> ValidScenarioCard(
+            item, R.drawable.ic_smart, { onLaunch(item) }, { onExpand(item) }, { onExport(item) }, modifier,
+        ) { SmartDetails(item, bitmapProvider, { onCopy(item) }, { onDelete(item) }) }
+    }
 }

@@ -19,18 +19,14 @@ package io.github.vibhor1102.macrion.scenarios.list
 
 import android.content.DialogInterface
 import android.content.Intent
-import android.graphics.Rect
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
-import android.view.MenuItem
 import android.view.View
-import android.view.View.OnAttachStateChangeListener
 import android.view.ViewGroup
 import android.view.WindowManager
 
 import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.widget.SearchView
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -41,6 +37,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
@@ -55,7 +54,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 
 import io.github.vibhor1102.macrion.R
-import io.github.vibhor1102.macrion.core.base.extensions.applySafeContentInsets
 import io.github.vibhor1102.macrion.core.common.navigation.TutorialNavigator
 import io.github.vibhor1102.macrion.core.common.navigation.getTutorialNavigator
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
@@ -64,7 +62,6 @@ import io.github.vibhor1102.macrion.feature.backup.ui.BackupDialogFragment
 import io.github.vibhor1102.macrion.feature.backup.ui.BackupDialogFragment.Companion.FRAGMENT_TAG_BACKUP_DIALOG
 import io.github.vibhor1102.macrion.scenarios.migration.ConditionsMigrationFragment
 import io.github.vibhor1102.macrion.scenarios.creation.ScenarioCreationDialog
-import io.github.vibhor1102.macrion.scenarios.list.adapter.ScenarioAdapter
 import io.github.vibhor1102.macrion.scenarios.list.copy.ScenarioCopyDialog
 import io.github.vibhor1102.macrion.scenarios.list.copy.ScenarioCopyDialog.Companion.FRAGMENT_TAG_COPY_DIALOG
 import io.github.vibhor1102.macrion.scenarios.list.model.ScenarioListUiState
@@ -73,7 +70,6 @@ import io.github.vibhor1102.macrion.scenarios.migration.ConditionsMigrationFragm
 import io.github.vibhor1102.macrion.settings.SettingsActivity
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.google.android.material.shape.MaterialShapeDrawable
 import dagger.hilt.android.AndroidEntryPoint
 
 import kotlinx.coroutines.launch
@@ -96,57 +92,57 @@ class ScenarioListFragment : Fragment() {
     /** ViewModel providing the scenarios data to the UI. */
     private val scenarioListViewModel: ScenarioListViewModel by viewModels()
 
-    private lateinit var views: ScenarioListViews
-    /** Adapter displaying the click scenarios as a list. */
-    private lateinit var scenariosAdapter: ScenarioAdapter
+    private var uiState by mutableStateOf<ScenarioListUiState?>(null)
+    private var searchQuery by mutableStateOf("")
 
 
     /** The current dialog being displayed. Null if not displayed. */
     private var dialog: AlertDialog? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-        views = ScenarioListViews(requireContext(), ::onCreateClicked)
-        return views.root
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-        scenariosAdapter = ScenarioAdapter(
-            bitmapProvider = scenarioListViewModel::getConditionBitmap,
-            launchScenarioListener = ::onStartClicked,
-            deleteScenarioListener = ::onDeleteClicked,
-            exportClickListener = ::onExportClicked,
-            copyClickedListener = ::showCopyScenarioDialog,
-            expandCollapseListener = scenarioListViewModel::expandCollapseItem,
-            onSortTypeClicked = scenarioListViewModel::updateSortType,
-            onSmartChipClicked = scenarioListViewModel::updateSmartVisible,
-            onDumbChipClicked = scenarioListViewModel::updateDumbVisible,
-            onSortOrderClicked = scenarioListViewModel::updateSortOrder,
-        )
+        return ComposeView(requireContext()).apply {
+            setContent {
+                MacrionTheme {
+                    ComposeScenarioList(
+                        uiState = uiState,
+                        searchQuery = searchQuery,
+                        bitmapProvider = scenarioListViewModel::getConditionBitmap,
+                        onSearchQueryChanged = { query ->
+                            searchQuery = query
+                            scenarioListViewModel.updateSearchQuery(query)
+                        },
+                        onSearchRequested = {
+                            searchQuery = ""
+                            scenarioListViewModel.setUiState(ScenarioListUiState.Type.SEARCH)
+                            scenarioListViewModel.updateSearchQuery("")
+                        },
+                        onCancel = {
+                            searchQuery = ""
+                            scenarioListViewModel.updateSearchQuery(null)
+                            scenarioListViewModel.setUiState(ScenarioListUiState.Type.SELECTION)
+                        },
+                        onSelectAll = scenarioListViewModel::toggleAllScenarioSelectionForBackup,
+                        onImportExport = ::onImportExportClicked,
+                        onTutorials = { tutorialNavigator.startTutorialActivity(requireContext()) },
+                        onSettings = ::startSettingsActivity,
+                        onCreate = ::onCreateClicked,
+                        onLaunch = ::onStartClicked,
+                        onExpand = scenarioListViewModel::expandCollapseItem,
+                        onExport = ::onExportClicked,
+                        onCopy = ::showCopyScenarioDialog,
+                        onDelete = ::onDeleteClicked,
+                        onSortTypeClicked = scenarioListViewModel::updateSortType,
+                        onSmartChipClicked = scenarioListViewModel::updateSmartVisible,
+                        onDumbChipClicked = scenarioListViewModel::updateDumbVisible,
+                        onSortOrderClicked = scenarioListViewModel::updateSortOrder,
+                    )
+                }
+            }
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        views.apply {
-            list.adapter = scenariosAdapter
-
-            add.setOnClickListener { onCreateClicked() }
-
-            appBarLayout.statusBarForeground = MaterialShapeDrawable.createWithElevationOverlay(context)
-
-            topAppBar.setOnMenuItemClickListener { onMenuItemSelected(it) }
-
-            val fabHorizontalMarginInset = resources.getDimensionPixelSize(R.dimen.margin_horizontal_mini)
-            val fabHorizontalMargin = resources.getDimensionPixelSize(R.dimen.margin_horizontal_large)
-            val fabBottomMarginInset = resources.getDimensionPixelSize(R.dimen.margin_vertical_default)
-            val fabBottomMargin = resources.getDimensionPixelSize(R.dimen.margin_vertical_extra_large)
-            add.applySafeContentInsets(
-                marginsIfInset = Rect(fabHorizontalMarginInset, 0, fabHorizontalMarginInset, fabBottomMarginInset),
-                marginIfNot =  Rect(fabHorizontalMargin, 0, fabHorizontalMargin, fabBottomMargin),
-            )
-        }
 
         lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -156,99 +152,23 @@ class ScenarioListFragment : Fragment() {
         }
     }
 
-    private fun onMenuItemSelected(item: MenuItem): Boolean {
-        val uiState = scenarioListViewModel.uiState.value ?: return false
-
-        when (item.itemId) {
-            R.id.action_import_export -> {
-                if (uiState.type == ScenarioListUiState.Type.EXPORT) {
-                    showBackupDialog(
-                        isImport = false,
-                        smartScenariosToBackup = scenarioListViewModel.getSmartScenariosSelectedForBackup(),
-                        dumbScenariosToBackup = scenarioListViewModel.getDumbScenariosSelectedForBackup(),
-                    )
-                }
-                else if (scenarioListViewModel.getScenarioValidForBackupCount() == 0) showBackupDialog(isImport = true)
-                else showImportExportDialog()
-            }
-            R.id.action_tutorials -> tutorialNavigator.startTutorialActivity(requireContext())
-            R.id.action_cancel -> scenarioListViewModel.setUiState(ScenarioListUiState.Type.SELECTION)
-            R.id.action_search -> scenarioListViewModel.setUiState(ScenarioListUiState.Type.SEARCH)
-            R.id.action_select_all -> scenarioListViewModel.toggleAllScenarioSelectionForBackup()
-            R.id.action_settings -> startSettingsActivity()
-            else -> return false
+    private fun onImportExportClicked() {
+        val uiState = scenarioListViewModel.uiState.value ?: return
+        if (uiState.type == ScenarioListUiState.Type.EXPORT) {
+            showBackupDialog(
+                isImport = false,
+                smartScenariosToBackup = scenarioListViewModel.getSmartScenariosSelectedForBackup(),
+                dumbScenariosToBackup = scenarioListViewModel.getDumbScenariosSelectedForBackup(),
+            )
         }
-
-        return true
+        else if (scenarioListViewModel.getScenarioValidForBackupCount() == 0) showBackupDialog(isImport = true)
+        else showImportExportDialog()
     }
 
     private fun updateUiState(uiState: ScenarioListUiState?) {
         uiState ?: return
 
-        updateMenu(uiState.menuUiState)
-        updateScenarioList(uiState)
-    }
-
-    /**
-     * Update the display of the action menu.
-     * @param menuState the new ui state for the menu.
-     */
-    private fun updateMenu(menuState: ScenarioListUiState.Menu) {
-        views.topAppBar.menu.apply {
-            findItem(R.id.action_select_all)?.bind(menuState.selectAllItemState)
-            findItem(R.id.action_cancel)?.bind(menuState.cancelItemState)
-            findItem(R.id.action_import_export)?.bind(menuState.importExportItemState)
-            findItem(R.id.action_tutorials)?.bind(menuState.tutorialsItemState)
-            findItem(R.id.action_search)?.apply {
-                bind(menuState.searchItemState)
-                actionView?.let { actionView ->
-                    (actionView as SearchView).apply {
-                        setIconifiedByDefault(true)
-                        setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-                            override fun onQueryTextSubmit(query: String?) = false
-                            override fun onQueryTextChange(newText: String?): Boolean {
-                                scenarioListViewModel.updateSearchQuery(newText)
-                                return true
-                            }
-                        })
-                        addOnAttachStateChangeListener(object : OnAttachStateChangeListener {
-                            override fun onViewDetachedFromWindow(arg0: View) {
-                                scenarioListViewModel.updateSearchQuery(null)
-                                scenarioListViewModel.setUiState(ScenarioListUiState.Type.SELECTION)
-                            }
-
-                            override fun onViewAttachedToWindow(arg0: View) {
-                                scenarioListViewModel.updateSearchQuery("")
-                            }
-                        })
-                    }
-                }
-            }
-            findItem(R.id.action_settings)?.bind(menuState.settingsItemState)
-        }
-    }
-
-    /**
-     * Observer upon the list of click scenarios.
-     * Will update the list/empty view according to the current click scenarios
-     */
-    private fun updateScenarioList(uiState: ScenarioListUiState) {
-        views.apply {
-            loadingVisible.value = false
-            if (uiState.listContent.isEmpty() && uiState.type == ScenarioListUiState.Type.SELECTION) {
-                list.visibility = View.GONE
-                add.visibility = View.GONE
-                emptyVisible.value = true
-            } else {
-                list.visibility = View.VISIBLE
-                add.visibility =
-                    if (uiState.type == ScenarioListUiState.Type.SELECTION) View.VISIBLE
-                    else View.GONE
-                emptyVisible.value = false
-            }
-        }
-
-        scenariosAdapter.submitList(uiState.listContent)
+        this.uiState = uiState
     }
 
     private fun onConditionMigrationRequired(isRequired: Boolean) {
@@ -404,14 +324,6 @@ class ScenarioListFragment : Fragment() {
 
     private fun startSettingsActivity() {
         requireContext().startActivity(Intent(context, SettingsActivity::class.java))
-    }
-}
-
-private fun MenuItem.bind(state: ScenarioListUiState.Menu.Item) {
-    isVisible = state.visible
-    isEnabled = state.enabled
-    icon = icon?.mutate()?.apply {
-        alpha = state.iconAlpha
     }
 }
 
