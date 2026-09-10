@@ -29,6 +29,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -57,6 +58,8 @@ private data class FastScrollerThumbBounds(
     val top: Float,
     val height: Float,
     val minimumTouchHeight: Float,
+    val minimumTop: Float,
+    val maximumTop: Float,
 )
 
 @Composable
@@ -135,6 +138,7 @@ internal fun ReportFastScroller(
 ) {
     var heightPx by remember { mutableIntStateOf(0) }
     var dragging by remember { mutableStateOf(false) }
+    var draggedThumbTop by remember { mutableFloatStateOf(0f) }
     var thumbVisible by remember { mutableStateOf(true) }
     val layoutInfo = state.layoutInfo
     val itemCount = layoutInfo.totalItemsCount
@@ -173,6 +177,10 @@ internal fun ReportFastScroller(
     val currentOffset = (state.firstVisibleItemIndex * averageItemHeight + state.firstVisibleItemScrollOffset)
         .coerceIn(0f, scrollableRange)
     val thumbTop = marginPx + thumbTravel * currentOffset / scrollableRange
+    // The list's pixel offset is necessarily estimated for variable-height rows.  While
+    // dragging, retain the exact thumb position separately so that estimate changes can't
+    // pull the affordance away from the user's finger.
+    val displayedThumbTop = if (dragging) draggedThumbTop else thumbTop
 
     val latestScrollMultiplier = rememberUpdatedState(scrollableRange / thumbTravel)
     val latestThumbBounds = rememberUpdatedState(
@@ -180,6 +188,8 @@ internal fun ReportFastScroller(
             top = thumbTop,
             height = thumbHeight,
             minimumTouchHeight = minimumThumbHeightPx,
+            minimumTop = marginPx,
+            maximumTop = marginPx + thumbTravel,
         ),
     )
     val dragVisualProgress by animateFloatAsState(
@@ -213,11 +223,17 @@ internal fun ReportFastScroller(
 
                     try {
                         thumbVisible = true
+                        draggedThumbTop = bounds.top
                         dragging = true
                         drag(down.id) { change ->
                             val dragAmount = change.positionChange().y
                             if (dragAmount != 0f) {
                                 change.consume()
+                                val currentBounds = latestThumbBounds.value
+                                draggedThumbTop = (draggedThumbTop + dragAmount).coerceIn(
+                                    currentBounds.minimumTop,
+                                    currentBounds.maximumTop,
+                                )
                                 state.dispatchRawDelta(dragAmount * latestScrollMultiplier.value)
                             }
                         }
@@ -237,7 +253,7 @@ internal fun ReportFastScroller(
         )
         drawRoundRect(
             color = thumbColor.copy(alpha = 0.8f + 0.2f * dragVisualProgress),
-            topLeft = Offset(size.width - visualThumbWidth, thumbTop),
+            topLeft = Offset(size.width - visualThumbWidth, displayedThumbTop),
             size = Size(visualThumbWidth, thumbHeight),
             cornerRadius = androidx.compose.ui.geometry.CornerRadius(visualThumbWidth / 2),
         )
