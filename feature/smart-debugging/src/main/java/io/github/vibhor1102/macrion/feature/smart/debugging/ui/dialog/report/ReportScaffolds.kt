@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
+import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilledIconButton
@@ -21,6 +22,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -44,7 +47,6 @@ import androidx.compose.ui.unit.dp
 import io.github.vibhor1102.macrion.feature.smart.debugging.R
 import kotlinx.coroutines.launch
 import kotlin.math.max
-import kotlin.math.roundToInt
 
 @Composable
 internal fun ReportDialogTopBar(
@@ -123,6 +125,7 @@ internal fun ReportFastScroller(
     val scope = rememberCoroutineScope()
     var heightPx by remember { mutableIntStateOf(0) }
     var dragging by remember { mutableStateOf(false) }
+    var dragOffsetY by remember { mutableStateOf(0f) }
     val layoutInfo = state.layoutInfo
     val itemCount = layoutInfo.totalItemsCount
     val visibleCount = layoutInfo.visibleItemsInfo.size
@@ -130,58 +133,79 @@ internal fun ReportFastScroller(
     val thumbColor = MaterialTheme.colorScheme.primary
     if (itemCount == 0 || visibleCount >= itemCount) return
 
-    fun scrollTo(positionY: Float) {
+    val density = androidx.compose.ui.platform.LocalDensity.current
+    val marginPx = with(density) { 4.dp.toPx() }
+    val minimumThumbHeightPx = with(density) { 48.dp.toPx() }
+    val averageItemHeight = (layoutInfo.visibleItemsInfo
+        .map { it.size }
+        .average()
+        .takeIf { !it.isNaN() } ?: 1.0)
+        .toFloat()
+        .coerceAtLeast(1f)
+    val viewportHeight = heightPx.toFloat().coerceAtLeast(1f)
+    val availableHeight = (viewportHeight - marginPx * 2).coerceAtLeast(1f)
+    val estimatedRange = (averageItemHeight * itemCount).coerceAtLeast(viewportHeight)
+    val scrollableRange = (estimatedRange - viewportHeight).coerceAtLeast(1f)
+    val thumbHeight = max(
+        minimumThumbHeightPx,
+        availableHeight * viewportHeight / estimatedRange,
+    ).coerceAtMost(availableHeight)
+    val thumbTravel = (availableHeight - thumbHeight).coerceAtLeast(1f)
+    val currentOffset = (state.firstVisibleItemIndex * averageItemHeight + state.firstVisibleItemScrollOffset)
+        .coerceIn(0f, scrollableRange)
+    val thumbTop = marginPx + thumbTravel * currentOffset / scrollableRange
+
+    fun scrollToThumbTop(requestedTop: Float) {
         if (heightPx == 0) return
-        val fraction = (positionY / heightPx).coerceIn(0f, 1f)
-        val target = (fraction * (itemCount - 1)).roundToInt()
-        scope.launch { state.scrollToItem(target) }
+        val targetTop = requestedTop.coerceIn(marginPx, marginPx + thumbTravel)
+        val targetOffset = (targetTop - marginPx) / thumbTravel * scrollableRange
+        scope.launch { state.scroll { scrollBy(targetOffset - currentOffset) } }
     }
+    val dragVisualProgress by animateFloatAsState(
+        targetValue = if (dragging) 1f else 0f,
+        animationSpec = tween(durationMillis = 140),
+        label = "report-fast-scroller-drag",
+    )
 
     Canvas(
         modifier = modifier
-            .width(48.dp)
+            .width(32.dp)
             .fillMaxHeight()
-            .padding(vertical = 8.dp)
             .onSizeChanged { heightPx = it.height }
             .semantics { this.contentDescription = contentDescription }
             .pointerInput(itemCount) {
                 detectVerticalDragGestures(
                     onDragStart = { position ->
+                        val touchPadding = (max(thumbHeight, minimumThumbHeightPx) - thumbHeight) / 2
+                        val touchTop = thumbTop - touchPadding
+                        val touchBottom = thumbTop + thumbHeight + touchPadding
+                        if (position.y !in touchTop..touchBottom) return@detectVerticalDragGestures
                         dragging = true
-                        scrollTo(position.y)
+                        dragOffsetY = position.y - thumbTop
                     },
                     onDragEnd = { dragging = false },
                     onDragCancel = { dragging = false },
                     onVerticalDrag = { change, _ ->
+                        if (!dragging) return@detectVerticalDragGestures
                         change.consume()
-                        scrollTo(change.position.y)
+                        scrollToThumbTop(change.position.y - dragOffsetY)
                     },
                 )
             },
     ) {
-        val trackWidth = if (dragging) 8.dp.toPx() else 4.dp.toPx()
-        val margin = 8.dp.toPx()
-        val availableHeight = size.height - margin * 2
-        val thumbHeight = max(48.dp.toPx(), availableHeight * visibleCount / itemCount)
-            .coerceAtMost(availableHeight)
-        val scrollableItems = max(itemCount - visibleCount, 1)
-        val firstItem = layoutInfo.visibleItemsInfo.firstOrNull()
-        val itemProgress = if (firstItem == null || firstItem.size == 0) 0f else {
-            state.firstVisibleItemIndex + state.firstVisibleItemScrollOffset.toFloat() / firstItem.size
-        }
-        val fraction = (itemProgress / scrollableItems).coerceIn(0f, 1f)
-        val thumbTop = margin + (availableHeight - thumbHeight) * fraction
+        val trackWidth = 3.dp.toPx() + 5.dp.toPx() * dragVisualProgress
+        val visualThumbWidth = 8.dp.toPx() + 6.dp.toPx() * dragVisualProgress
         drawRoundRect(
             color = trackColor,
-            topLeft = Offset(size.width - trackWidth, margin),
+            topLeft = Offset(size.width - trackWidth, marginPx),
             size = Size(trackWidth, availableHeight),
             cornerRadius = androidx.compose.ui.geometry.CornerRadius(trackWidth / 2),
         )
         drawRoundRect(
-            color = thumbColor.copy(alpha = if (dragging) 1f else 0.72f),
-            topLeft = Offset(size.width - trackWidth, thumbTop),
-            size = Size(trackWidth, thumbHeight),
-            cornerRadius = androidx.compose.ui.geometry.CornerRadius(trackWidth / 2),
+            color = thumbColor.copy(alpha = 0.8f + 0.2f * dragVisualProgress),
+            topLeft = Offset(size.width - visualThumbWidth, thumbTop),
+            size = Size(visualThumbWidth, thumbHeight),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(visualThumbWidth / 2),
         )
     }
 }

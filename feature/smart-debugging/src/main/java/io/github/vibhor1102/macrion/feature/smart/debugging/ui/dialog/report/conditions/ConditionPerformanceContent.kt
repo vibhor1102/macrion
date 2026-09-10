@@ -6,6 +6,7 @@ import android.graphics.Bitmap
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -108,7 +109,8 @@ private fun ConditionPerformanceList(
     Box(Modifier.fillMaxSize()) {
         LazyColumn(
             state = listState,
-            modifier = Modifier.fillMaxSize().padding(bottom = 88.dp),
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(bottom = 88.dp),
         ) {
             items(entries, key = { it.condition.id.databaseId }) { entry ->
                 ConditionPerformanceItem(entry, bitmapProvider)
