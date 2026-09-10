@@ -30,6 +30,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -47,6 +48,12 @@ import androidx.compose.ui.unit.dp
 import io.github.vibhor1102.macrion.feature.smart.debugging.R
 import kotlinx.coroutines.launch
 import kotlin.math.max
+
+private data class FastScrollerThumbBounds(
+    val top: Float,
+    val height: Float,
+    val minimumTouchHeight: Float,
+)
 
 @Composable
 internal fun ReportDialogTopBar(
@@ -161,6 +168,14 @@ internal fun ReportFastScroller(
         val targetOffset = (targetTop - marginPx) / thumbTravel * scrollableRange
         scope.launch { state.scroll { scrollBy(targetOffset - currentOffset) } }
     }
+    val latestScrollToThumbTop = rememberUpdatedState(::scrollToThumbTop)
+    val latestThumbBounds = rememberUpdatedState(
+        FastScrollerThumbBounds(
+            top = thumbTop,
+            height = thumbHeight,
+            minimumTouchHeight = minimumThumbHeightPx,
+        ),
+    )
     val dragVisualProgress by animateFloatAsState(
         targetValue = if (dragging) 1f else 0f,
         animationSpec = tween(durationMillis = 140),
@@ -173,22 +188,23 @@ internal fun ReportFastScroller(
             .fillMaxHeight()
             .onSizeChanged { heightPx = it.height }
             .semantics { this.contentDescription = contentDescription }
-            .pointerInput(itemCount) {
+            .pointerInput(Unit) {
                 detectVerticalDragGestures(
                     onDragStart = { position ->
-                        val touchPadding = (max(thumbHeight, minimumThumbHeightPx) - thumbHeight) / 2
-                        val touchTop = thumbTop - touchPadding
-                        val touchBottom = thumbTop + thumbHeight + touchPadding
+                        val bounds = latestThumbBounds.value
+                        val touchPadding = (max(bounds.height, bounds.minimumTouchHeight) - bounds.height) / 2
+                        val touchTop = bounds.top - touchPadding
+                        val touchBottom = bounds.top + bounds.height + touchPadding
                         if (position.y !in touchTop..touchBottom) return@detectVerticalDragGestures
                         dragging = true
-                        dragOffsetY = position.y - thumbTop
+                        dragOffsetY = position.y - bounds.top
                     },
                     onDragEnd = { dragging = false },
                     onDragCancel = { dragging = false },
                     onVerticalDrag = { change, _ ->
                         if (!dragging) return@detectVerticalDragGestures
                         change.consume()
-                        scrollToThumbTop(change.position.y - dragOffsetY)
+                        latestScrollToThumbTop.value(change.position.y - dragOffsetY)
                     },
                 )
             },
