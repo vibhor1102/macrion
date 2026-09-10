@@ -87,12 +87,12 @@ class ScreenConditionsBriefMenu(
         return menuView
     }
 
-    override fun onCreateBriefItemViewHolder(parent: ViewGroup, orientation: Int): ScreenConditionBriefViewHolder =
-        ScreenConditionBriefViewHolder(LayoutInflater.from(parent.context), orientation, parent)
+    @androidx.compose.runtime.Composable
+    override fun ItemBriefContent(item: ItemBrief, orientation: Int, onClick: () -> Unit) {
+        ScreenConditionBriefItem(item.data as UiScreenCondition, orientation, onClick)
+    }
 
-    override fun onBriefItemViewBound(index: Int, itemView: View?) {
-        if (index != 0) return
-
+    override fun onFirstBriefItemViewChanged(itemView: View?) {
         if (itemView != null) viewModel.monitorBriefFirstItemView(itemView)
         else viewModel.stopBriefFirstItemMonitoring()
     }

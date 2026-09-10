@@ -20,24 +20,39 @@ import android.content.res.Configuration
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewConfiguration
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.Space
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.rememberSplineBasedDecay
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.snapping.SnapLayoutInfoProvider
+import androidx.compose.foundation.gestures.snapping.snapFlingBehavior
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -48,7 +63,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.recyclerview.widget.RecyclerView
 import io.github.vibhor1102.macrion.core.common.overlays.R
 import io.github.vibhor1102.macrion.core.ui.views.gesturerecord.GestureRecordView
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.ItemBriefView
@@ -61,7 +75,7 @@ class ItemsBriefOverlayViewBinding private constructor(
     val viewRecorder: GestureRecordView,
     val layoutInstructions: ComposeView,
     val layoutActionList: View,
-    val listActions: RecyclerView,
+    val listActions: ComposeView,
     val emptyScenarioCard: View,
     private val controlPanel: ComposeView,
     private val orientation: Int,
@@ -72,6 +86,13 @@ class ItemsBriefOverlayViewBinding private constructor(
     }
     private val emptyText = mutableIntStateOf(0)
     private val controlState = mutableStateOf(ItemBriefControlsState())
+    private val briefItems = mutableStateOf<List<ItemBrief>>(emptyList())
+    private val requestedBriefItemIndex = mutableIntStateOf(0)
+
+    private var briefItemContent: (@Composable (ItemBrief, Int, () -> Unit) -> Unit)? = null
+    private var onItemClicked: (Int, ItemBrief) -> Unit = { _, _ -> }
+    private var onFocusedItemChanged: (Int) -> Unit = {}
+    private var onFirstItemViewChanged: (View?) -> Unit = {}
 
     private var onMovePrevious: () -> Unit = {}
     private var onDelete: () -> Unit = {}
@@ -126,12 +147,7 @@ class ItemsBriefOverlayViewBinding private constructor(
                 id = View.generateViewId()
                 visibility = View.GONE
             }
-            val listActions = RecyclerView(context).apply {
-                id = View.generateViewId()
-                clipToPadding = false
-                isHorizontalScrollBarEnabled = false
-                isVerticalScrollBarEnabled = false
-            }
+            val listActions = ComposeView(context).apply { id = View.generateViewId() }
             val controlPanel = ComposeView(context).apply { id = View.generateViewId() }
             val spacer = Space(context).apply { id = View.generateViewId() }
 
@@ -172,12 +188,6 @@ class ItemsBriefOverlayViewBinding private constructor(
                         marginEnd = resources.getDimensionPixelSize(UiR.dimen.margin_horizontal_extra_large)
                         bottomMargin = resources.getDimensionPixelSize(UiR.dimen.margin_vertical_extra_large)
                     },
-                )
-                listActions.setPadding(
-                    resources.getDimensionPixelSize(UiR.dimen.margin_horizontal_large),
-                    0,
-                    resources.getDimensionPixelSize(UiR.dimen.margin_horizontal_large),
-                    0,
                 )
                 layoutActionList.addView(
                     listActions,
@@ -230,8 +240,6 @@ class ItemsBriefOverlayViewBinding private constructor(
                         bottomMargin = 64.dpToPx(resources.displayMetrics.density)
                     },
                 )
-                val verticalPadding = 64.dpToPx(resources.displayMetrics.density)
-                listActions.setPadding(0, verticalPadding, 0, verticalPadding)
                 layoutActionList.addView(
                     listActions,
                     ConstraintLayout.LayoutParams(0, 0).apply {
@@ -273,7 +281,7 @@ class ItemsBriefOverlayViewBinding private constructor(
         val layoutInstructions: ComposeView,
         val layoutActionList: ConstraintLayout,
         val backgroundList: ComposeView,
-        val listActions: RecyclerView,
+        val listActions: ComposeView,
         val emptyScenarioCard: ComposeView,
         val controlPanel: ComposeView,
     )
@@ -298,6 +306,41 @@ class ItemsBriefOverlayViewBinding private constructor(
 
     fun updateControls(state: ItemBriefControlsState) {
         controlState.value = state
+    }
+
+    fun setBriefItemsContent(
+        initialItemIndex: Int,
+        itemContent: @Composable (ItemBrief, Int, () -> Unit) -> Unit,
+        onItemClicked: (Int, ItemBrief) -> Unit,
+        onFocusedItemChanged: (Int) -> Unit,
+        onFirstItemViewChanged: (View?) -> Unit,
+    ) {
+        this.briefItemContent = itemContent
+        this.onItemClicked = onItemClicked
+        this.onFocusedItemChanged = onFocusedItemChanged
+        this.onFirstItemViewChanged = onFirstItemViewChanged
+        requestedBriefItemIndex.intValue = initialItemIndex
+
+        listActions.setContent {
+            MacrionTheme {
+                BriefItemsCarousel(
+                    items = briefItems.value,
+                    orientation = orientation,
+                    requestedIndex = requestedBriefItemIndex.intValue,
+                    itemContent = briefItemContent ?: return@MacrionTheme,
+                    onItemClicked = this@ItemsBriefOverlayViewBinding.onItemClicked,
+                    onFocusedItemChanged = this@ItemsBriefOverlayViewBinding.onFocusedItemChanged,
+                    onFirstItemViewChanged = this@ItemsBriefOverlayViewBinding.onFirstItemViewChanged,
+                )
+            }
+        }
+    }
+
+    fun updateBriefItems(items: List<ItemBrief>, focusedIndex: Int) {
+        briefItems.value = items
+        requestedBriefItemIndex.intValue = focusedIndex
+        listActions.visibility = if (items.isEmpty()) View.GONE else View.VISIBLE
+        emptyScenarioCard.visibility = if (items.isEmpty()) View.VISIBLE else View.GONE
     }
 
     private fun setControlPanelContent() {
@@ -484,3 +527,148 @@ private fun ComposeView.setEmptyContent(textState: androidx.compose.runtime.Muta
         }
     }
 }
+
+@Composable
+private fun BriefItemsCarousel(
+    items: List<ItemBrief>,
+    orientation: Int,
+    requestedIndex: Int,
+    itemContent: @Composable (ItemBrief, Int, () -> Unit) -> Unit,
+    onItemClicked: (Int, ItemBrief) -> Unit,
+    onFocusedItemChanged: (Int) -> Unit,
+    onFirstItemViewChanged: (View?) -> Unit,
+) {
+    val listState = rememberLazyListState()
+
+    LaunchedEffect(items, requestedIndex) {
+        if (items.isEmpty()) {
+            onFirstItemViewChanged(null)
+        } else {
+            listState.scrollToItem(requestedIndex.coerceIn(0, items.lastIndex))
+        }
+    }
+    LaunchedEffect(listState, items.size) {
+        snapshotFlow { listState.focusedItemIndex() }
+            .collect { index -> if (index != null) onFocusedItemChanged(index) }
+    }
+
+    val flingBehavior = rememberBriefCarouselFlingBehavior(listState)
+    if (orientation == Configuration.ORIENTATION_PORTRAIT) {
+        LazyRow(
+            modifier = Modifier.fillMaxSize(),
+            state = listState,
+            flingBehavior = flingBehavior,
+            contentPadding = PaddingValues(horizontal = 16.dp),
+        ) {
+            itemsIndexed(items, key = { _, brief -> brief.id.toString() }) { index, brief ->
+                BriefItemContainer(
+                    modifier = Modifier.fillParentMaxSize(),
+                    isFirstItem = index == 0,
+                    onFirstItemViewChanged = onFirstItemViewChanged,
+                    onClick = { onItemClicked(index, brief) },
+                ) {
+                    itemContent(brief, orientation) { onItemClicked(index, brief) }
+                }
+            }
+        }
+    } else {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            state = listState,
+            flingBehavior = flingBehavior,
+            contentPadding = PaddingValues(vertical = 64.dp),
+        ) {
+            itemsIndexed(items, key = { _, brief -> brief.id.toString() }) { index, brief ->
+                BriefItemContainer(
+                    modifier = Modifier.fillParentMaxSize(),
+                    isFirstItem = index == 0,
+                    onFirstItemViewChanged = onFirstItemViewChanged,
+                    onClick = { onItemClicked(index, brief) },
+                ) {
+                    itemContent(brief, orientation) { onItemClicked(index, brief) }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun rememberBriefCarouselFlingBehavior(listState: LazyListState): androidx.compose.foundation.gestures.FlingBehavior {
+    val context = LocalContext.current
+    val decayAnimationSpec = rememberSplineBasedDecay<Float>()
+    val maximumFlingVelocity = remember(context) {
+        ViewConfiguration.get(context).scaledMaximumFlingVelocity.toFloat()
+    }
+    val defaultSnapProvider = remember(listState) { SnapLayoutInfoProvider(listState) }
+    val tunedSnapProvider = remember(listState, defaultSnapProvider, maximumFlingVelocity) {
+        object : SnapLayoutInfoProvider {
+            override fun calculateApproachOffset(velocity: Float, decayOffset: Float): Float {
+                val defaultApproach = defaultSnapProvider.calculateApproachOffset(velocity, decayOffset)
+                val pageSize = listState.layoutInfo.visibleItemsInfo.firstOrNull()?.size ?: return defaultApproach
+                if (pageSize == 0 || maximumFlingVelocity == 0f) return defaultApproach
+
+                // A gently accelerating quadratic keeps the response continuous and predictable:
+                // its slope changes linearly and its second derivative is constant. There are no
+                // velocity thresholds or page-count caps.
+                val normalizedVelocity = kotlin.math.abs(velocity) / maximumFlingVelocity
+                val additionalPages =
+                    FLING_LINEAR_FACTOR * normalizedVelocity +
+                        FLING_QUADRATIC_FACTOR * normalizedVelocity * normalizedVelocity
+                val desiredApproach = additionalPages * pageSize
+
+                return kotlin.math.min(desiredApproach, kotlin.math.abs(defaultApproach)) *
+                    kotlin.math.sign(decayOffset)
+            }
+
+            override fun calculateSnapOffset(velocity: Float): Float =
+                defaultSnapProvider.calculateSnapOffset(velocity)
+        }
+    }
+    return remember(tunedSnapProvider, decayAnimationSpec) {
+        snapFlingBehavior(
+            snapLayoutInfoProvider = tunedSnapProvider,
+            decayAnimationSpec = decayAnimationSpec,
+            snapAnimationSpec = spring(
+                dampingRatio = EXPRESSIVE_SNAP_DAMPING_RATIO,
+                stiffness = EXPRESSIVE_SNAP_STIFFNESS,
+            ),
+        )
+    }
+}
+
+@Composable
+private fun BriefItemContainer(
+    modifier: Modifier,
+    isFirstItem: Boolean,
+    onFirstItemViewChanged: (View?) -> Unit,
+    onClick: () -> Unit,
+    content: @Composable () -> Unit,
+) {
+    Box(modifier) {
+        if (isFirstItem) {
+            val context = LocalContext.current
+            AndroidView(
+                factory = {
+                    View(context).apply { setOnClickListener { onClick() } }.also(onFirstItemViewChanged)
+                },
+                modifier = Modifier.matchParentSize(),
+            )
+        }
+        content()
+    }
+}
+
+private fun LazyListState.focusedItemIndex(): Int? {
+    val visibleItems = layoutInfo.visibleItemsInfo
+    if (visibleItems.isEmpty()) return null
+
+    val viewportCenter = (layoutInfo.viewportStartOffset + layoutInfo.viewportEndOffset) / 2
+    return visibleItems.minBy { item ->
+        kotlin.math.abs(item.offset + item.size / 2 - viewportCenter)
+    }.index
+}
+
+private const val FLING_LINEAR_FACTOR = 2f
+private const val FLING_QUADRATIC_FACTOR = 2f
+private const val EXPRESSIVE_SNAP_DAMPING_RATIO = 0.8f
+private const val EXPRESSIVE_SNAP_STIFFNESS = 380f

@@ -107,8 +107,10 @@ class DumbScenarioBriefMenu(
         return menuView
     }
 
-    override fun onCreateBriefItemViewHolder(parent: ViewGroup, orientation: Int): DumbActionBriefViewHolder =
-        DumbActionBriefViewHolder(orientation, parent)
+    @androidx.compose.runtime.Composable
+    override fun ItemBriefContent(item: ItemBrief, orientation: Int, onClick: () -> Unit) {
+        DumbActionBriefItem(item.data as DumbActionDetails, orientation, onClick)
+    }
 
     override fun onScreenOverlayVisibilityChanged(isVisible: Boolean) {
         super.onScreenOverlayVisibilityChanged(isVisible)

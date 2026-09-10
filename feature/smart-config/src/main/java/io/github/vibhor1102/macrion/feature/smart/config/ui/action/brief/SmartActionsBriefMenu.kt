@@ -82,12 +82,12 @@ class SmartActionsBriefMenu(initialItemIndex: Int) : ItemBriefMenu(
         return menuView
     }
 
-    override fun onCreateBriefItemViewHolder(parent: ViewGroup, orientation: Int): SmartActionBriefViewHolder =
-        SmartActionBriefViewHolder(LayoutInflater.from(parent.context), orientation, parent)
+    @androidx.compose.runtime.Composable
+    override fun ItemBriefContent(item: ItemBrief, orientation: Int, onClick: () -> Unit) {
+        SmartActionBriefItem(item.data as UiAction, orientation, onClick)
+    }
 
-    override fun onBriefItemViewBound(index: Int, itemView: View?) {
-        if (index != 0) return
-
+    override fun onFirstBriefItemViewChanged(itemView: View?) {
         if (itemView != null) viewModel.monitorBriefFirstItemView(itemView)
         else viewModel.stopBriefFirstItemMonitoring()
     }
