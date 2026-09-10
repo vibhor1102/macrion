@@ -24,6 +24,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -188,7 +189,9 @@ internal fun ReportFastScroller(
     )
     val visibilityProgress by animateFloatAsState(
         targetValue = if (thumbVisible) 1f else 0f,
-        animationSpec = tween(durationMillis = 180),
+        // A slightly longer easing makes the utility control feel like it is
+        // retreating after use instead of disappearing between frames.
+        animationSpec = tween(durationMillis = 520, easing = FastOutSlowInEasing),
         label = "report-fast-scroller-visibility",
     )
 
