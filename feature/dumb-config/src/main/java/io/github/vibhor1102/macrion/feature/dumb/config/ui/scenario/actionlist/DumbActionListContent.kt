@@ -70,7 +70,7 @@ class DumbActionListContent(appContext: Context) : NavBarDialogContent(appContex
     override fun onCreateView(container: ViewGroup): ViewGroup {
         return ComposeView(context).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-            setContent { MacrionTheme { Content() } }
+            setContent { MacrionTheme { this@DumbActionListContent.Content() } }
         }
     }
 
