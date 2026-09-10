@@ -69,7 +69,7 @@ abstract class CopyDialog(
     /** The resource id for the text displayed when there is nothing to copy. */
     protected abstract val emptyRes: Int
 
-    final override fun onCreateView(): ViewGroup {
+    override fun onCreateView(): ViewGroup {
         val topBar = ComposeView(context).apply {
             layoutParams = ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
@@ -108,7 +108,7 @@ abstract class CopyDialog(
 }
 
 @Composable
-private fun CopySearchTopBar(
+fun CopySearchTopBar(
     @androidx.annotation.StringRes titleRes: Int,
     @androidx.annotation.StringRes searchHintRes: Int,
     onDismiss: () -> Unit,
