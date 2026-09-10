@@ -1,9 +1,6 @@
 /* Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report
 
-import android.view.ViewGroup
-import android.widget.FrameLayout
-import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -44,19 +41,10 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import io.github.vibhor1102.macrion.core.ui.views.fastscroll.VerticalFastScrollerView
 import io.github.vibhor1102.macrion.feature.smart.debugging.R
 import kotlinx.coroutines.launch
 import kotlin.math.max
 import kotlin.math.roundToInt
-
-internal class ReportRecyclerViews(
-    val recyclerView: RecyclerView,
-    val fastScroller: VerticalFastScrollerView,
-)
 
 @Composable
 internal fun ReportDialogTopBar(
@@ -125,61 +113,7 @@ internal fun ReportEmptyMessage(
     }
 }
 
-@Composable
-internal fun ReportRecycler(
-    @StringRes contentDescriptionRes: Int,
-    modifier: Modifier = Modifier,
-    bottomPaddingDp: Int = 0,
-    onCreated: (ReportRecyclerViews) -> Unit,
-) {
-    AndroidView(
-        modifier = modifier,
-        factory = { context ->
-            val recycler = RecyclerView(context).apply {
-                layoutManager = LinearLayoutManager(context)
-                clipToPadding = bottomPaddingDp == 0
-                setPadding(0, 0, 0, (bottomPaddingDp * resources.displayMetrics.density).toInt())
-            }
-            val scroller = VerticalFastScrollerView(context).apply {
-                contentDescription = context.getString(contentDescriptionRes)
-                attachToRecyclerView(recycler)
-            }
-            FrameLayout(context).apply {
-                addView(recycler, FrameLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                ))
-                addView(scroller, FrameLayout.LayoutParams(
-                    (32 * resources.displayMetrics.density).toInt(),
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    android.view.Gravity.END,
-                ))
-                onCreated(ReportRecyclerViews(recycler, scroller))
-            }
-        },
-    )
-}
-
-@Composable
-internal fun ReportLoadableList(
-    items: List<*>?,
-    @StringRes contentDescriptionRes: Int,
-    emptyTitle: String? = null,
-    emptySecondary: String? = null,
-    onCreated: (ReportRecyclerViews) -> Unit,
-) {
-    when {
-        items == null -> ReportLoading()
-        items.isEmpty() && emptyTitle != null -> ReportEmptyMessage(
-            title = emptyTitle,
-            secondary = emptySecondary,
-        )
-        items.isEmpty() -> Box(Modifier.fillMaxSize())
-        else -> ReportRecycler(contentDescriptionRes, Modifier.fillMaxSize(), onCreated = onCreated)
-    }
-}
-
-/** Compose counterpart of [VerticalFastScrollerView] for report LazyColumns. */
+/** Shared fast scroller for report LazyColumns. */
 @Composable
 internal fun ReportFastScroller(
     state: LazyListState,
