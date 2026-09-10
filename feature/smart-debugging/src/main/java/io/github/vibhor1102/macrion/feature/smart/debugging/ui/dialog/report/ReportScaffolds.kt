@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
-import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilledIconButton
@@ -29,7 +28,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -46,7 +44,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import io.github.vibhor1102.macrion.feature.smart.debugging.R
-import kotlinx.coroutines.launch
 import kotlin.math.max
 
 private data class FastScrollerThumbBounds(
@@ -129,10 +126,8 @@ internal fun ReportFastScroller(
     contentDescription: String,
     modifier: Modifier = Modifier,
 ) {
-    val scope = rememberCoroutineScope()
     var heightPx by remember { mutableIntStateOf(0) }
     var dragging by remember { mutableStateOf(false) }
-    var dragOffsetY by remember { mutableStateOf(0f) }
     val layoutInfo = state.layoutInfo
     val itemCount = layoutInfo.totalItemsCount
     val visibleCount = layoutInfo.visibleItemsInfo.size
@@ -162,13 +157,7 @@ internal fun ReportFastScroller(
         .coerceIn(0f, scrollableRange)
     val thumbTop = marginPx + thumbTravel * currentOffset / scrollableRange
 
-    fun scrollToThumbTop(requestedTop: Float) {
-        if (heightPx == 0) return
-        val targetTop = requestedTop.coerceIn(marginPx, marginPx + thumbTravel)
-        val targetOffset = (targetTop - marginPx) / thumbTravel * scrollableRange
-        scope.launch { state.scroll { scrollBy(targetOffset - currentOffset) } }
-    }
-    val latestScrollToThumbTop = rememberUpdatedState(::scrollToThumbTop)
+    val latestScrollMultiplier = rememberUpdatedState(scrollableRange / thumbTravel)
     val latestThumbBounds = rememberUpdatedState(
         FastScrollerThumbBounds(
             top = thumbTop,
@@ -197,14 +186,13 @@ internal fun ReportFastScroller(
                         val touchBottom = bounds.top + bounds.height + touchPadding
                         if (position.y !in touchTop..touchBottom) return@detectVerticalDragGestures
                         dragging = true
-                        dragOffsetY = position.y - bounds.top
                     },
                     onDragEnd = { dragging = false },
                     onDragCancel = { dragging = false },
-                    onVerticalDrag = { change, _ ->
+                    onVerticalDrag = { change, dragAmount ->
                         if (!dragging) return@detectVerticalDragGestures
                         change.consume()
-                        latestScrollToThumbTop.value(change.position.y - dragOffsetY)
+                        state.dispatchRawDelta(dragAmount * latestScrollMultiplier.value)
                     },
                 )
             },
