@@ -12,7 +12,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.gestures.detectVerticalDragGestures
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.drag
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilledIconButton
@@ -35,6 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
@@ -178,23 +181,27 @@ internal fun ReportFastScroller(
             .onSizeChanged { heightPx = it.height }
             .semantics { this.contentDescription = contentDescription }
             .pointerInput(Unit) {
-                detectVerticalDragGestures(
-                    onDragStart = { position ->
-                        val bounds = latestThumbBounds.value
-                        val touchPadding = (max(bounds.height, bounds.minimumTouchHeight) - bounds.height) / 2
-                        val touchTop = bounds.top - touchPadding
-                        val touchBottom = bounds.top + bounds.height + touchPadding
-                        if (position.y !in touchTop..touchBottom) return@detectVerticalDragGestures
+                awaitEachGesture {
+                    val down = awaitFirstDown(requireUnconsumed = false)
+                    val bounds = latestThumbBounds.value
+                    val touchPadding = (max(bounds.height, bounds.minimumTouchHeight) - bounds.height) / 2
+                    val touchTop = bounds.top - touchPadding
+                    val touchBottom = bounds.top + bounds.height + touchPadding
+                    if (down.position.y !in touchTop..touchBottom) return@awaitEachGesture
+
+                    try {
                         dragging = true
-                    },
-                    onDragEnd = { dragging = false },
-                    onDragCancel = { dragging = false },
-                    onVerticalDrag = { change, dragAmount ->
-                        if (!dragging) return@detectVerticalDragGestures
-                        change.consume()
-                        state.dispatchRawDelta(dragAmount * latestScrollMultiplier.value)
-                    },
-                )
+                        drag(down.id) { change ->
+                            val dragAmount = change.positionChange().y
+                            if (dragAmount != 0f) {
+                                change.consume()
+                                state.dispatchRawDelta(dragAmount * latestScrollMultiplier.value)
+                            }
+                        }
+                    } finally {
+                        dragging = false
+                    }
+                }
             },
     ) {
         val trackWidth = 3.dp.toPx() + 5.dp.toPx() * dragVisualProgress
