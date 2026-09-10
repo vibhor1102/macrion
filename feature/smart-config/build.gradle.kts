@@ -30,6 +30,7 @@ android {
 dependencies {
     val composeBom = platform(libs.androidx.compose.bom)
     implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.reorderable)
 
     implementation(libs.androidx.appCompat)
     implementation(composeBom)
