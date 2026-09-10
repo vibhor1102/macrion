@@ -2,14 +2,28 @@
 package io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.conditions
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.navbar.NavBarDialogContent
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.navbar.viewModels
@@ -17,24 +31,21 @@ import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.feature.smart.debugging.R
 import io.github.vibhor1102.macrion.feature.smart.debugging.di.DebuggingViewModelsEntryPoint
 import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.ReportEmptyMessage
+import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.ReportFastScroller
 import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.ReportLoading
-import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.ReportRecycler
-import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.ReportRecyclerViews
-import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.conditions.adapter.ConditionPerformanceAdapter
+import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.conditions.adapter.ConditionPerformanceFooter
+import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.conditions.adapter.ConditionPerformanceRow
+import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.conditions.adapter.ConditionPerformanceRowState
 import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.sort.DebugReportSortOption
 import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.sort.DebugReportSortPopup
-import io.github.vibhor1102.macrion.feature.smart.debugging.utils.captureScrollPosition
-import io.github.vibhor1102.macrion.feature.smart.debugging.utils.restoreScrollPosition
+import io.github.vibhor1102.macrion.core.domain.model.condition.ScreenCondition
+import kotlinx.coroutines.Job
 
 class ConditionPerformanceContent(appContext: Context) : NavBarDialogContent(appContext) {
     private val viewModel: ConditionPerformanceViewModel by viewModels(
         entryPoint = DebuggingViewModelsEntryPoint::class.java,
         creator = { conditionPerformanceViewModel() },
     )
-    private val adapter = ConditionPerformanceAdapter { condition, callback ->
-        viewModel.getConditionBitmap(condition, callback)
-    }
-    private var listViews: ReportRecyclerViews? = null
     private var sortPopup: DebugReportSortPopup<ConditionPerformanceSort>? = null
 
     override fun floatingActionButtonsAreAvailable() = true
@@ -55,24 +66,15 @@ class ConditionPerformanceContent(appContext: Context) : NavBarDialogContent(app
         LaunchedEffect(state) {
             dialogController.floatingActionButtons.root.visibility =
                 if (state is ConditionPerformanceUiState.Available) View.VISIBLE else View.GONE
-            if (state is ConditionPerformanceUiState.Available) {
-                val previous = listViews?.recyclerView?.captureScrollPosition()
-                adapter.submitEntries(state.entries) {
-                    previous?.let { listViews?.recyclerView?.restoreScrollPosition(it) }
-                    listViews?.fastScroller?.refresh()
-                }
-            } else if (state is ConditionPerformanceUiState.NotAvailable) adapter.submitList(emptyList())
         }
         when (state) {
             ConditionPerformanceUiState.Loading -> ReportLoading()
             ConditionPerformanceUiState.NotAvailable -> ReportEmptyMessage(
                 context.getString(R.string.title_condition_performance_unavailable),
             )
-            is ConditionPerformanceUiState.Available -> ReportRecycler(
-                R.string.content_desc_condition_performance_fast_scroller,
-                Modifier.fillMaxSize(),
-                bottomPaddingDp = 88,
-                onCreated = { views -> listViews = views; views.recyclerView.adapter = adapter },
+            is ConditionPerformanceUiState.Available -> ConditionPerformanceList(
+                entries = state.entries,
+                bitmapProvider = viewModel::getConditionBitmap,
             )
         }
     }
@@ -95,4 +97,80 @@ class ConditionPerformanceContent(appContext: Context) : NavBarDialogContent(app
             viewModel::setSort,
         ).also { it.show() }
     }
+}
+
+@Composable
+private fun ConditionPerformanceList(
+    entries: List<ConditionPerformanceEntry>,
+    bitmapProvider: (ScreenCondition.Image, (Bitmap?) -> Unit) -> Job,
+) {
+    val listState = rememberLazyListState()
+    Box(Modifier.fillMaxSize()) {
+        LazyColumn(
+            state = listState,
+            modifier = Modifier.fillMaxSize().padding(bottom = 88.dp),
+        ) {
+            items(entries, key = { it.condition.id.databaseId }) { entry ->
+                ConditionPerformanceItem(entry, bitmapProvider)
+            }
+            item { ConditionPerformanceFooter() }
+        }
+        ReportFastScroller(
+            state = listState,
+            contentDescription = LocalContext.current.getString(
+                R.string.content_desc_condition_performance_fast_scroller,
+            ),
+            modifier = Modifier.align(Alignment.CenterEnd),
+        )
+    }
+}
+
+@Composable
+private fun ConditionPerformanceItem(
+    entry: ConditionPerformanceEntry,
+    bitmapProvider: (ScreenCondition.Image, (Bitmap?) -> Unit) -> Job,
+) {
+    val context = LocalContext.current
+    var bitmap by remember(entry.condition.id) { mutableStateOf<Bitmap?>(null) }
+    var bitmapFailed by remember(entry.condition.id) { mutableStateOf(false) }
+    DisposableEffect(entry.condition) {
+        val job = (entry.condition as? ScreenCondition.Image)?.let { condition ->
+            bitmapProvider(condition) { loadedBitmap ->
+                bitmap = loadedBitmap
+                bitmapFailed = loadedBitmap == null
+            }
+        }
+        onDispose { job?.cancel() }
+    }
+    val fulfilledCount = formatCount(entry.fulfilledCount)
+    val checkCount = formatCount(entry.checkCount)
+    val average = formatAverageDuration(entry.totalDurationNs, entry.checkCount)?.let { value ->
+        context.getString(R.string.item_condition_performance_average, value)
+    } ?: context.getString(R.string.item_condition_performance_average_unavailable)
+    ConditionPerformanceRow(
+        ConditionPerformanceRowState(
+            entry = entry,
+            totalTime = context.getString(
+                R.string.item_condition_performance_total_time,
+                formatTotalDuration(entry.totalDurationNs),
+            ),
+            fulfilled = context.getString(
+                R.string.item_condition_performance_fulfilled,
+                fulfilledCount,
+                context.resources.getQuantityString(
+                    R.plurals.item_condition_performance_time,
+                    entry.fulfilledCount.coerceAtMost(Int.MAX_VALUE.toLong()).toInt(),
+                ),
+                checkCount,
+                context.resources.getQuantityString(
+                    R.plurals.item_condition_performance_check,
+                    entry.checkCount.coerceAtMost(Int.MAX_VALUE.toLong()).toInt(),
+                ),
+            ),
+            average = average,
+            percentage = formatPercentage(entry.totalDurationNs, entry.totalMeasuredDurationNs),
+            bitmap = bitmap,
+            bitmapFailed = bitmapFailed,
+        ),
+    )
 }
