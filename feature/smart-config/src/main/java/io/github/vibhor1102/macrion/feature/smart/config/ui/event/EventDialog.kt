@@ -4,11 +4,14 @@ package io.github.vibhor1102.macrion.feature.smart.config.ui.event
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
+import android.graphics.Bitmap
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -20,8 +23,11 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -29,19 +35,18 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayDialog
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredOverlayType
 import io.github.vibhor1102.macrion.core.domain.model.AND
 import io.github.vibhor1102.macrion.core.domain.model.OR
+import io.github.vibhor1102.macrion.core.domain.model.condition.ScreenCondition
 import io.github.vibhor1102.macrion.core.ui.bindings.dropdown.TimeUnitDropDownItem
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTextField
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
@@ -53,6 +58,8 @@ import io.github.vibhor1102.macrion.feature.smart.config.ui.action.brief.SmartAc
 import io.github.vibhor1102.macrion.feature.smart.config.ui.action.brief.SmartActionsLegacyDialog
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.compose.TutorialClickAnchor
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.compose.TutorialViewAnchor
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.formatters.toEffectDescription
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.formatters.toNaturalDisplayString
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.dialogs.showCloseWithoutSavingDialog
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.dialogs.showDeleteEventWithAssociatedActionsDialog
 import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.brief.ScreenConditionsBriefMenu
@@ -168,11 +175,11 @@ class EventDialog(private val onConfigComplete: () -> Unit, private val onDelete
     @Composable private fun ScreenConditionSelector(items: List<io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.condition.UiScreenCondition>) {
         if (items.isEmpty()) { EmptySelector(true, ::showConditions); return }
         Row(Modifier.fillMaxWidth().height(116.dp), verticalAlignment = Alignment.CenterVertically) {
-            AndroidView(factory = { ctx -> RecyclerView(ctx).apply {
-                layoutManager = LinearLayoutManager(ctx, RecyclerView.HORIZONTAL, false)
-                adapter = EventImageConditionsAdapter(::showImageConditionsBriefMenu, viewModel::getConditionBitmap)
-                overScrollMode = View.OVER_SCROLL_NEVER
-            } }, update = { (it.adapter as EventImageConditionsAdapter).submitList(items) }, modifier = Modifier.weight(1f).fillMaxHeight())
+            LazyRow(Modifier.weight(1f).fillMaxHeight()) {
+                itemsIndexed(items, key = { _, item -> item.condition.id.databaseId.takeIf { it != 0L } ?: -requireNotNull(item.condition.id.tempId) }) { index, item ->
+                    EventImageConditionCard(item, viewModel::getConditionBitmap) { showImageConditionsBriefMenu(index) }
+                }
+            }
             Spacer(Modifier.width(8.dp))
             FilledTonalIconButton(onClick = ::showConditions, modifier = Modifier.size(40.dp)) {
                 Icon(painterResource(R.drawable.ic_chevron_right), null)
@@ -184,11 +191,11 @@ class EventDialog(private val onConfigComplete: () -> Unit, private val onDelete
         if (items.isEmpty()) { EmptySelector(conditions, onClick); return }
         Row(Modifier.fillMaxWidth().heightIn(min = 62.dp).padding(vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically) {
-            AndroidView(factory = { ctx -> RecyclerView(ctx).apply {
-                layoutManager = LinearLayoutManager(ctx, RecyclerView.HORIZONTAL, false)
-                adapter = EventChildrenCardsAdapter { index -> if (conditions) showTriggerConditionsDialog() else showActionsOverlay(index) }
-                overScrollMode = View.OVER_SCROLL_NEVER
-            } }, update = { (it.adapter as EventChildrenCardsAdapter).submitList(items) }, modifier = Modifier.weight(1f).height(64.dp))
+            LazyRow(Modifier.weight(1f).height(64.dp)) {
+                itemsIndexed(items) { index, item ->
+                    EventChildCard(item) { if (conditions) showTriggerConditionsDialog() else showActionsOverlay(index) }
+                }
+            }
             Spacer(Modifier.width(8.dp))
             FilledTonalIconButton(onClick = onClick, modifier = Modifier.size(40.dp)) {
                 Icon(painterResource(R.drawable.ic_chevron_right), null)
@@ -296,5 +303,65 @@ class EventDialog(private val onConfigComplete: () -> Unit, private val onDelete
         if (viewModel.isLegacyActionUiEnabled()) SmartActionsLegacyDialog() else SmartActionsBriefMenu(index), true)
     private fun showTryElementMenu() { viewModel.getTryInfo()?.let { (scenario, event) ->
         overlayManager.navigateTo(context, TryEventOverlayMenu(scenario, event), true) } }
+}
+
+@Composable
+private fun EventImageConditionCard(
+    uiCondition: io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.condition.UiScreenCondition,
+    bitmapProvider: (ScreenCondition.Image, (Bitmap?) -> Unit) -> kotlinx.coroutines.Job?,
+    onClick: () -> Unit,
+) {
+    var bitmap by remember(uiCondition.condition.id) { mutableStateOf<Bitmap?>(null) }
+    var bitmapFailed by remember(uiCondition.condition.id) { mutableStateOf(false) }
+    val imageCondition = uiCondition.condition as? ScreenCondition.Image
+    DisposableEffect(imageCondition) {
+        val loadingJob = imageCondition?.let { image -> bitmapProvider(image) { loaded -> bitmap = loaded; bitmapFailed = loaded == null } }
+        onDispose { loadingJob?.cancel() }
+    }
+    Box(Modifier.size(108.dp).padding(horizontal = 4.dp, vertical = 4.dp)) {
+        OutlinedCard(onClick = onClick, modifier = Modifier.fillMaxSize(), elevation = CardDefaults.outlinedCardElevation(defaultElevation = 2.dp)) {
+            Column(Modifier.fillMaxSize()) {
+                Box(Modifier.weight(1f).fillMaxWidth().padding(vertical = 2.dp).clipToBounds().background(MaterialTheme.colorScheme.surfaceVariant), contentAlignment = Alignment.Center) {
+                    when (val condition = uiCondition.condition) {
+                        is ScreenCondition.Color -> ColorIndicator(condition.color)
+                        is ScreenCondition.Image -> when {
+                            bitmap != null -> androidx.compose.foundation.Image(bitmap!!.asImageBitmap(), null, Modifier.fillMaxSize(), contentScale = androidx.compose.ui.layout.ContentScale.Fit)
+                            bitmapFailed -> Icon(painterResource(R.drawable.ic_cancel), null, tint = MaterialTheme.colorScheme.error)
+                        }
+                        is ScreenCondition.Number -> Text(condition.comparisonOperation.toEffectDescription(LocalContext.current, operand = condition.counterValue.toNaturalDisplayString()), Modifier.padding(horizontal = 4.dp), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                        is ScreenCondition.Text -> Text(condition.text, Modifier.padding(horizontal = 4.dp), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                    }
+                }
+                HorizontalDivider()
+                Text(uiCondition.name, Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 2.dp), style = MaterialTheme.typography.bodySmall, textAlign = androidx.compose.ui.text.style.TextAlign.Center, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Row(Modifier.fillMaxWidth().height(20.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Box(Modifier.weight(1f), contentAlignment = Alignment.Center) { Icon(painterResource(uiCondition.shouldBeVisibleIconRes), null, Modifier.height(16.dp)) }
+                    Box(Modifier.weight(1f), contentAlignment = Alignment.Center) { if (imageCondition != null) Icon(painterResource(uiCondition.detectionTypeIconRes), null, Modifier.height(16.dp)) }
+                    Text(uiCondition.thresholdText, Modifier.weight(1f), fontSize = 14.sp, textAlign = androidx.compose.ui.text.style.TextAlign.Center, maxLines = 1)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ColorIndicator(color: Int) {
+    val border = MaterialTheme.colorScheme.onSurfaceVariant
+    androidx.compose.foundation.Canvas(Modifier.size(48.dp)) {
+        drawCircle(Color(color), radius = 20.dp.toPx(), center = center)
+        drawCircle(border, radius = 22.dp.toPx(), center = center, style = androidx.compose.ui.graphics.drawscope.Stroke(4.dp.toPx()))
+    }
+}
+
+@Composable
+private fun EventChildCard(item: EventChildrenItem, onClick: () -> Unit) {
+    Box(Modifier.width(56.dp).height(64.dp).padding(horizontal = 4.dp, vertical = 8.dp)) {
+        Surface(Modifier.fillMaxSize().border(1.dp, MaterialTheme.colorScheme.outlineVariant, MaterialTheme.shapes.medium).clickable(onClick = onClick), shape = MaterialTheme.shapes.medium, color = MaterialTheme.colorScheme.surfaceContainerLow, shadowElevation = 2.dp) {
+            Box(contentAlignment = Alignment.Center) {
+                Icon(painterResource(item.iconRes), null, Modifier.size(29.dp))
+                if (item.isInError) Box(Modifier.align(Alignment.TopEnd).padding(top = 8.dp, end = 6.dp).size(6.dp).background(MaterialTheme.colorScheme.error, CircleShape))
+            }
+        }
+    }
 }
 private const val TAG = "EventDialog"

@@ -2,6 +2,7 @@
 package io.github.vibhor1102.macrion.feature.dumb.config.ui.actions
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -34,6 +36,8 @@ import io.github.vibhor1102.macrion.feature.dumb.config.ui.actions.copy.DumbActi
 internal fun DumbActionListItem(
     details: DumbActionDetails,
     showHandle: Boolean,
+    reorderHandleModifier: Modifier = Modifier,
+    isBeingDragged: Boolean = false,
     onClick: () -> Unit,
 ) {
     Row(
@@ -45,7 +49,12 @@ internal fun DumbActionListItem(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (showHandle) {
-            Box(Modifier.size(48.dp), contentAlignment = Alignment.Center) {
+            Box(
+                Modifier.size(48.dp)
+                    .background(if (isBeingDragged) MaterialTheme.colorScheme.primary.copy(alpha = 0.12f) else androidx.compose.ui.graphics.Color.Transparent, CircleShape)
+                    .then(reorderHandleModifier),
+                contentAlignment = Alignment.Center,
+            ) {
                 Image(
                     painter = painterResource(R.drawable.ic_reorder),
                     contentDescription = stringResource(R.string.content_desc_drag_and_drop),
