@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
@@ -34,37 +35,43 @@ class CrashReportPrompt : DialogFragment() {
         val content = ComposeView(requireContext()).apply {
             setContent {
                 MacrionTheme {
-                    Column(Modifier.fillMaxWidth().padding(24.dp)) {
-                        Text(
-                            text = stringResource(R.string.crash_report_prompt_title),
-                            style = MaterialTheme.typography.headlineSmall,
-                        )
-                        Text(
-                            text = stringResource(R.string.crash_report_prompt_message),
-                            modifier = Modifier.padding(top = 16.dp, bottom = 24.dp),
-                            style = MaterialTheme.typography.bodyMedium,
-                        )
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        ) {
-                            OutlinedButton(
-                                onClick = {
-                                    discardReport()
-                                    dismiss()
-                                },
-                                modifier = Modifier.weight(1f).height(48.dp),
+                    Surface(
+                        color = androidx.compose.ui.graphics.Color.Transparent,
+                        contentColor = MaterialTheme.colorScheme.onSurface,
+                    ) {
+                        Column(Modifier.fillMaxWidth().padding(24.dp)) {
+                            Text(
+                                text = stringResource(R.string.crash_report_prompt_title),
+                                style = MaterialTheme.typography.headlineSmall,
+                            )
+                            Text(
+                                text = stringResource(R.string.crash_report_prompt_message),
+                                modifier = Modifier.padding(top = 16.dp, bottom = 24.dp),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp),
                             ) {
-                                Text(stringResource(R.string.crash_report_discard))
-                            }
-                            Button(
-                                onClick = {
-                                    sendReport()
-                                    dismiss()
-                                },
-                                modifier = Modifier.weight(1f).height(48.dp),
-                            ) {
-                                Text(stringResource(R.string.crash_report_send))
+                                OutlinedButton(
+                                    onClick = {
+                                        discardReport()
+                                        dismiss()
+                                    },
+                                    modifier = Modifier.weight(1f).height(48.dp),
+                                ) {
+                                    Text(stringResource(R.string.crash_report_discard))
+                                }
+                                Button(
+                                    onClick = {
+                                        sendReport()
+                                        dismiss()
+                                    },
+                                    modifier = Modifier.weight(1f).height(48.dp),
+                                ) {
+                                    Text(stringResource(R.string.crash_report_send))
+                                }
                             }
                         }
                     }

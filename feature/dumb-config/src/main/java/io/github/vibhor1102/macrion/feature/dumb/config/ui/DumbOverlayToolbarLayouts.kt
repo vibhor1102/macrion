@@ -7,17 +7,6 @@ import io.github.vibhor1102.macrion.core.common.overlays.menu.OverlayMenuButton
 import io.github.vibhor1102.macrion.core.common.overlays.menu.createOverlayMenuLayout
 import io.github.vibhor1102.macrion.feature.dumb.config.R
 
-fun createDumbMainOverlayToolbar(context: Context): ViewGroup = createOverlayMenuLayout(
-    context,
-    listOf(
-        OverlayMenuButton(R.id.btn_play, R.drawable.ic_play_arrow, R.string.content_desc_play_pause_scenario),
-        OverlayMenuButton(R.id.btn_stop, R.drawable.ic_stop, R.string.content_desc_stop_clicker),
-        OverlayMenuButton(R.id.btn_show_actions, R.drawable.ic_show_path, R.string.content_desc_show_actions),
-        OverlayMenuButton(R.id.btn_action_list, R.drawable.ic_settings_filled, R.string.content_desc_open_action_list),
-        OverlayMenuButton(R.id.btn_move, R.drawable.ic_move, R.string.content_desc_move_menu),
-    ),
-)
-
 fun createDumbBriefOverlayToolbar(context: Context): ViewGroup = createOverlayMenuLayout(
     context,
     listOf(

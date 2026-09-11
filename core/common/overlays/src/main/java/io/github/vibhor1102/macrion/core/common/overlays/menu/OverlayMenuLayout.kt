@@ -30,6 +30,7 @@ fun createOverlayMenuLayout(
     buttons: List<OverlayMenuButton>,
     content: View? = null,
     contentLayoutParams: LinearLayout.LayoutParams? = null,
+    buttonViewFactory: ((OverlayMenuButton) -> View)? = null,
 ): ViewGroup {
     val density = context.resources.displayMetrics.density
     fun dp(value: Int) = (value * density).toInt()
@@ -41,9 +42,7 @@ fun createOverlayMenuLayout(
         setPadding(dp(4), dp(4), dp(4), dp(4))
         layoutTransition = LayoutTransition()
         buttons.forEach { button ->
-            addView(ImageButton(context).apply {
-                id = button.id
-                layoutParams = LinearLayout.LayoutParams(dp(48), dp(48))
+            val buttonView = buttonViewFactory?.invoke(button) ?: ImageButton(context).apply {
                 setBackgroundColor(Color.TRANSPARENT)
                 setPadding(0, 0, 0, 0)
                 scaleType = ImageView.ScaleType.FIT_CENTER
@@ -51,6 +50,10 @@ fun createOverlayMenuLayout(
                     ContextCompat.getColor(context, R.color.overlayMenuButtons),
                 )
                 setImageResource(button.icon)
+            }
+            addView(buttonView.apply {
+                id = button.id
+                layoutParams = LinearLayout.LayoutParams(dp(48), dp(48))
                 button.contentDescription?.let { contentDescription = context.getString(it) }
             })
         }

@@ -16,10 +16,28 @@
  */
 package io.github.vibhor1102.macrion.feature.dumb.config.ui
 
+import android.util.Size
 import android.view.KeyEvent
 import android.view.LayoutInflater
+import android.view.MotionEvent
+import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageButton
+import android.widget.FrameLayout
+
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Icon
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.AbstractComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -32,9 +50,11 @@ import io.github.vibhor1102.macrion.core.common.navigation.getTutorialNavigator
 import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.manager.OverlayManager.Companion.showAsOverlay
 import io.github.vibhor1102.macrion.core.common.overlays.menu.OverlayMenu
+import io.github.vibhor1102.macrion.core.common.overlays.menu.OverlayMenuButton
+import io.github.vibhor1102.macrion.core.common.overlays.menu.createOverlayMenuLayout
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.Tip
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.core.ui.utils.getDynamicColorsContext
-import io.github.vibhor1102.macrion.core.ui.utils.AnimatedStatesImageButtonController
 import io.github.vibhor1102.macrion.feature.dumb.config.R
 import io.github.vibhor1102.macrion.feature.dumb.config.di.DumbConfigViewModelsEntryPoint
 import io.github.vibhor1102.macrion.feature.dumb.config.ui.brief.DumbScenarioBriefMenu
@@ -61,12 +81,11 @@ class DumbMainMenu(
     }
 
     private lateinit var menuView: ViewGroup
-    private val playButton get() = menuView.findViewById<ImageButton>(R.id.btn_play)
-    private val stopButton get() = menuView.findViewById<ImageButton>(R.id.btn_stop)
-    private val showActionsButton get() = menuView.findViewById<ImageButton>(R.id.btn_show_actions)
-    private val actionListButton get() = menuView.findViewById<ImageButton>(R.id.btn_action_list)
-    /** Controls the animations of the play/pause button. */
-    private lateinit var playPauseButtonController: AnimatedStatesImageButtonController
+    private val playButton get() = menuView.findViewById<View>(R.id.btn_play)
+    private val stopButton get() = menuView.findViewById<View>(R.id.btn_stop)
+    private val showActionsButton get() = menuView.findViewById<View>(R.id.btn_show_actions)
+    private val actionListButton get() = menuView.findViewById<View>(R.id.btn_action_list)
+    private var isPlaying by mutableStateOf(false)
 
     /**
      * Tells if this service has handled onKeyEvent with ACTION_DOWN for a key in order to return
@@ -86,23 +105,100 @@ class DumbMainMenu(
     }
 
     override fun onCreateMenu(layoutInflater: LayoutInflater): ViewGroup {
-        playPauseButtonController = AnimatedStatesImageButtonController(
-            context = context,
-            state1StaticRes = R.drawable.ic_play_arrow,
-            state2StaticRes = R.drawable.ic_pause,
-            state1to2AnimationRes = R.drawable.anim_play_pause,
-            state2to1AnimationRes = R.drawable.anim_pause_play,
+        val buttons = listOf(
+            OverlayMenuButton(R.id.btn_play, R.drawable.ic_play_arrow, R.string.content_desc_play_pause_scenario),
+            OverlayMenuButton(R.id.btn_stop, R.drawable.ic_stop, R.string.content_desc_stop_clicker),
+            OverlayMenuButton(R.id.btn_show_actions, R.drawable.ic_show_path, R.string.content_desc_show_actions),
+            OverlayMenuButton(R.id.btn_action_list, R.drawable.ic_settings_filled, R.string.content_desc_open_action_list),
+            OverlayMenuButton(R.id.btn_move, R.drawable.ic_move, R.string.content_desc_move_menu),
         )
-
-        menuView = createDumbMainOverlayToolbar(context)
-        playPauseButtonController.attachView(playButton)
+        menuView = createOverlayMenuLayout(context, buttons, buttonViewFactory = { button ->
+            OverlayButtonFrameLayout(context).apply {
+                addView(TouchTransparentComposeView(context) {
+                    MacrionTheme {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            if (button.id == R.id.btn_play) {
+                                AnimatedContent(targetState = isPlaying, label = "playPause") { playing ->
+                                    Icon(
+                                        painter = painterResource(
+                                            if (playing) R.drawable.ic_pause else R.drawable.ic_play_arrow,
+                                        ),
+                                        contentDescription = null,
+                                        modifier = Modifier.fillMaxSize(),
+                                        tint = colorResource(
+                                            io.github.vibhor1102.macrion.core.ui.R.color.overlayMenuButtons,
+                                        ),
+                                    )
+                                }
+                            } else {
+                                Icon(
+                                    painter = painterResource(button.icon),
+                                    contentDescription = null,
+                                    modifier = Modifier.fillMaxSize(),
+                                    tint = colorResource(
+                                        io.github.vibhor1102.macrion.core.ui.R.color.overlayMenuButtons,
+                                    ),
+                                )
+                            }
+                        }
+                    }
+                }.apply {
+                    layoutParams = FrameLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                    )
+                    setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+                })
+            }
+        })
 
         return menuView
     }
 
+    /**
+     * Compose renders the button, while its containing Android view remains the interaction
+     * surface expected by [OverlayMenu]. The renderer must decline touch events so the parent can
+     * retain the original click debouncing, resize guard, enabled state, and move handling.
+     */
+    private class TouchTransparentComposeView(
+        context: android.content.Context,
+        private val content: @Composable () -> Unit,
+    ) : AbstractComposeView(context) {
+        @Composable
+        override fun Content() = content()
+
+        override fun dispatchTouchEvent(event: MotionEvent): Boolean = false
+    }
+
+    /**
+     * Behaves like the leaf ImageButton used before migration: this direct menu item owns the
+     * complete pointer sequence, and its renderer never becomes a touch target.
+     */
+    private class OverlayButtonFrameLayout(context: android.content.Context) : FrameLayout(context) {
+        override fun onInterceptTouchEvent(event: MotionEvent): Boolean = true
+    }
+
+    override fun getWindowMaximumSize(backgroundView: ViewGroup): Size {
+        val buttonContainer = backgroundView.findViewById<ViewGroup>(
+            io.github.vibhor1102.macrion.core.common.overlays.R.id.menu_items,
+        )
+        val contentWidth = (0 until buttonContainer.childCount).maxOfOrNull { index ->
+            buttonContainer.getChildAt(index).layoutParams.width
+        } ?: 0
+        val contentHeight = (0 until buttonContainer.childCount).sumOf { index ->
+            buttonContainer.getChildAt(index).layoutParams.height
+        }
+        return Size(
+            contentWidth + buttonContainer.paddingLeft + buttonContainer.paddingRight,
+            contentHeight + buttonContainer.paddingTop + buttonContainer.paddingBottom,
+        )
+    }
+
     override fun onDestroy() {
         super.onDestroy()
-        playPauseButtonController.detachView()
         viewModel.stopEdition()
     }
 
@@ -129,34 +225,34 @@ class DumbMainMenu(
     }
 
     /** Refresh the play menu item according to the scenario state. */
-    private fun updatePlayPauseButtonEnabledState(canStartDetection: Boolean) =
+    private fun updatePlayPauseButtonEnabledState(canStartDetection: Boolean) {
         setMenuItemViewEnabled(playButton, canStartDetection)
+    }
 
     private fun updateMenuPlayingState(isPlaying: Boolean) {
         val currentState = playButton.tag
         if (currentState == isPlaying) return
 
         playButton.tag = isPlaying
+        this.isPlaying = isPlaying
         if (isPlaying) {
             if (currentState == null) {
-                playPauseButtonController.toState2(false)
+                setMenuItemVisibility(stopButton, false)
+                setMenuItemVisibility(showActionsButton, false)
+                setMenuItemVisibility(actionListButton, false)
             } else {
                 animateLayoutChanges {
                     setMenuItemVisibility(stopButton, false)
                     setMenuItemVisibility(showActionsButton, false)
                     setMenuItemVisibility(actionListButton, false)
-                    playPauseButtonController.toState2(true)
                 }
             }
         } else {
-            if (currentState == null) {
-                playPauseButtonController.toState1(false)
-            } else {
+            if (currentState != null) {
                 animateLayoutChanges {
                     setMenuItemVisibility(stopButton, true)
                     setMenuItemVisibility(showActionsButton, true)
                     setMenuItemVisibility(actionListButton, true)
-                    playPauseButtonController.toState1(true)
                 }
             }
         }

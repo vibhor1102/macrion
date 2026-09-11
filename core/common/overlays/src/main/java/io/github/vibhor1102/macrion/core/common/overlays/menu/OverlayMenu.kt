@@ -220,14 +220,6 @@ abstract class OverlayMenu(
         loadMenuPosition(displayConfigManager.displayConfig.orientation)
         moveButton?.isVisible = !positionDataSource.isPositionLocked()
 
-        // Handle window resize animations
-        resizeController = OverlayMenuResizeController(
-            backgroundViewGroup = menuBackground,
-            resizedContainer = buttonsContainer,
-            maximumSize = getWindowMaximumSize(menuBackground),
-            windowResizer = ::onNewWindowSize,
-        )
-
         // Add the overlay, if any. It needs to be below the menu or user won't be able to click on the menu.
         screenOverlayView?.let {
             if (animateOverlayView()) it.visibility = View.GONE
@@ -238,11 +230,23 @@ abstract class OverlayMenu(
         }
 
         // Add the menu view to the window manager, but hidden
-        if (animateOverlayView()) menuBackground.visibility = View.GONE
+        // Keep the background measurable while attaching. Compose content needs a window in order
+        // to obtain its recomposer during the maximum-size measurement below.
+        if (animateOverlayView()) menuBackground.visibility = View.INVISIBLE
         if (!windowManager.safeAddView(menuLayout, menuLayoutParams)) {
             finish()
             return
         }
+
+        // Handle window resize animations only after attachment. Measuring an unattached
+        // ComposeView forces composition before a window recomposer exists and crashes.
+        resizeController = OverlayMenuResizeController(
+            backgroundViewGroup = menuBackground,
+            resizedContainer = buttonsContainer,
+            maximumSize = getWindowMaximumSize(menuBackground),
+            windowResizer = ::onNewWindowSize,
+        )
+        if (animateOverlayView()) menuBackground.visibility = View.GONE
     }
 
     private fun View.installOverlayViewTreeOwners() {
@@ -276,6 +280,14 @@ abstract class OverlayMenu(
         if (lifecycle.currentState != Lifecycle.State.CREATED) return
         if (animations.showAnimationIsRunning) return
 
+        // WindowManager.addView schedules attachment. A navigation request can call start before
+        // that attachment is complete, while the show animation immediately measures its target.
+        // Unattached ComposeView children cannot resolve a window recomposer during that measure.
+        if (!menuLayout.isAttachedToWindow) {
+            menuLayout.post(::start)
+            return
+        }
+
         super.start()
         loadMenuPosition(displayConfigManager.displayConfig.orientation)
 
@@ -297,7 +309,17 @@ abstract class OverlayMenu(
     }
 
     final override fun resume() {
-        if (lifecycle.currentState == Lifecycle.State.CREATED) start()
+        if (lifecycle.currentState == Lifecycle.State.CREATED) {
+            start()
+
+            // start() can be deferred until WindowManager attaches the menu. Preserve this resume
+            // request so the posted start can complete the lifecycle transition after its show
+            // animation. Without it, all debounced menu clicks are ignored in STARTED state.
+            if (lifecycle.currentState == Lifecycle.State.CREATED) {
+                resumeOnceShown = true
+                return
+            }
+        }
         if (lifecycle.currentState != Lifecycle.State.STARTED) return
 
         if (animations.showAnimationIsRunning) {
