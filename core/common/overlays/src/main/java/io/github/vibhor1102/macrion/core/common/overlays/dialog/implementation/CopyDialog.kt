@@ -44,7 +44,6 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
@@ -52,16 +51,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.draw.shadow
 
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayDialog
-import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
-import io.github.vibhor1102.macrion.core.ui.bindings.lists.LoadableListViews
 import io.github.vibhor1102.macrion.core.ui.R as UiR
 
 abstract class CopyDialog(
     @StyleRes theme: Int,
 ) : OverlayDialog(theme) {
 
-    /** List content retained as a RecyclerView for large copy sources. */
-    protected lateinit var loadableListViews: LoadableListViews
     /** The resource id for the dialog title. */
     protected abstract val titleRes: Int
     /** The resource id for the search hint text. */
@@ -69,40 +64,7 @@ abstract class CopyDialog(
     /** The resource id for the text displayed when there is nothing to copy. */
     protected abstract val emptyRes: Int
 
-    override fun onCreateView(): ViewGroup {
-        val topBar = ComposeView(context).apply {
-            layoutParams = ViewGroup.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                resources.getDimensionPixelSize(UiR.dimen.dialog_top_bar_height),
-            )
-            setContent {
-                MacrionTheme {
-                    CopySearchTopBar(
-                        titleRes = titleRes,
-                        searchHintRes = searchHintRes,
-                        modifier = Modifier.fillMaxSize(),
-                        onDismiss = { debounceUserInteraction { back() } },
-                        onQueryChanged = ::onSearchQueryChanged,
-                        onCopy = ::onCopyClicked,
-                    )
-                }
-            }
-        }
-        loadableListViews = LoadableListViews(context, emptyRes)
-
-        return ComposeView(context).apply {
-            setContent {
-                MacrionTheme {
-                    ListDialogScaffold(
-                        topBar = topBar,
-                        list = loadableListViews.root,
-                        enforceMinimumHeight = true,
-                        listBottomPadding = true,
-                    )
-                }
-            }
-        }
-    }
+    abstract override fun onCreateView(): ViewGroup
 
     abstract fun onSearchQueryChanged(newText: String?)
     abstract fun onCopyClicked()
