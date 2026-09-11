@@ -28,17 +28,17 @@ plugins {
     alias(libs.plugins.buzbuz.sourceDownload)
 }
 
-val supportedDebugAbis = listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
+val supportedAbis = listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
 val isReleaseBuild = gradle.startParameter.taskNames.any { it.contains("Release", ignoreCase = true) }
-val macrionDebugAbiProperty = providers.gradleProperty("macrionDebugAbi").orNull?.trim()
-val debugAbiFilter = when {
-    isReleaseBuild -> emptyList()
-    macrionDebugAbiProperty == null -> listOf("arm64-v8a")
-    macrionDebugAbiProperty.equals("all", ignoreCase = true) -> emptyList()
-    macrionDebugAbiProperty in supportedDebugAbis -> listOf(macrionDebugAbiProperty)
+val macrionAbiProperty = providers.gradleProperty("macrionAbi").orNull?.trim()
+    ?: providers.gradleProperty("macrionDebugAbi").orNull?.trim()
+val targetAbiFilter = when {
+    macrionAbiProperty == null -> if (isReleaseBuild) emptyList() else listOf("arm64-v8a")
+    macrionAbiProperty.equals("all", ignoreCase = true) -> emptyList()
+    macrionAbiProperty in supportedAbis -> listOf(macrionAbiProperty)
     else -> throw GradleException(
-        "Unsupported macrionDebugAbi '$macrionDebugAbiProperty'. " +
-                "Use one of ${supportedDebugAbis.joinToString()}, or 'all'.",
+        "Unsupported macrionAbi '$macrionAbiProperty'. " +
+                "Use one of ${supportedAbis.joinToString()}, or 'all'.",
     )
 }
 
@@ -72,16 +72,16 @@ android {
     }
 
     defaultConfig {
-        if (debugAbiFilter.isNotEmpty()) {
+        if (targetAbiFilter.isNotEmpty()) {
             ndk {
-                abiFilters.addAll(debugAbiFilter)
+                abiFilters.addAll(targetAbiFilter)
             }
         }
 
         externalNativeBuild {
             cmake {
-                if (debugAbiFilter.isNotEmpty()) {
-                    abiFilters.addAll(debugAbiFilter)
+                if (targetAbiFilter.isNotEmpty()) {
+                    abiFilters.addAll(targetAbiFilter)
                 }
                 if (System.getenv("USE_CCACHE") == "true") {
                     arguments.addAll(
@@ -116,6 +116,8 @@ android {
                         listOf(
                             "-DANDROID_SDK_ROOT=${project.androidComponents.sdkComponents.sdkDirectory}",
                             "-DCMAKE_BUILD_TYPE=Release",
+                            "-DCMAKE_C_FLAGS=-ffile-prefix-map=${project.rootDir.absolutePath}=.",
+                            "-DCMAKE_CXX_FLAGS=-ffile-prefix-map=${project.rootDir.absolutePath}=.",
                             "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON",
                             "-DOPENCV_ENABLE_NONFREE=OFF",
                             "-DBUILD_opencv_ittnotify=OFF",

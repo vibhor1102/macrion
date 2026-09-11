@@ -32,15 +32,17 @@ plugins {
     alias(libs.plugins.jetbrainsKotlinCompose)
 }
 
-val supportedDebugAbis = listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
-val macrionDebugAbiProperty = providers.gradleProperty("macrionDebugAbi").orNull?.trim()
-val debugAbiFilter = when {
-    macrionDebugAbiProperty == null -> listOf("arm64-v8a")
-    macrionDebugAbiProperty.equals("all", ignoreCase = true) -> supportedDebugAbis
-    macrionDebugAbiProperty in supportedDebugAbis -> listOf(macrionDebugAbiProperty)
+val supportedAbis = listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
+val isRelease = project.isBuildForVariant(MacrionFlavour.F_DROID, MacrionBuildType.RELEASE)
+val macrionAbiProperty = providers.gradleProperty("macrionAbi").orNull?.trim()
+    ?: providers.gradleProperty("macrionDebugAbi").orNull?.trim()
+val targetAbiFilter = when {
+    macrionAbiProperty == null -> if (isRelease) supportedAbis else listOf("arm64-v8a")
+    macrionAbiProperty.equals("all", ignoreCase = true) -> supportedAbis
+    macrionAbiProperty in supportedAbis -> listOf(macrionAbiProperty)
     else -> throw GradleException(
-        "Unsupported macrionDebugAbi '$macrionDebugAbiProperty'. " +
-                "Use one of ${supportedDebugAbis.joinToString()}, or 'all'.",
+        "Unsupported macrionAbi '$macrionAbiProperty'. " +
+                "Use one of ${supportedAbis.joinToString()}, or 'all'.",
     )
 }
 
@@ -64,6 +66,11 @@ obfuscationConfig {
 android {
     namespace = "io.github.vibhor1102.macrion"
 
+    dependenciesInfo {
+        includeInApk = false
+        includeInBundle = false
+    }
+
     buildFeatures {
         viewBinding = true
         buildConfig = true
@@ -73,8 +80,8 @@ android {
     defaultConfig {
         applicationId = getExtraActualApplicationId()
 
-        versionCode = 7
-        versionName = "0.4.2"
+        versionCode = 8
+        versionName = "0.4.3"
     }
 
     if (project.isBuildForVariant(MacrionFlavour.F_DROID, MacrionBuildType.DEBUG)) {
@@ -92,14 +99,9 @@ android {
                 isEnable = true
                 reset()
 
-                val isRelease = project.isBuildForVariant(MacrionFlavour.F_DROID, MacrionBuildType.RELEASE)
-                if (isRelease || macrionDebugAbiProperty?.equals("all", ignoreCase = true) == true) {
-                    include(*supportedDebugAbis.toTypedArray())
-                    isUniversalApk = true
-                } else {
-                    include(*debugAbiFilter.toTypedArray())
-                    isUniversalApk = false
-                }
+                val shouldBuildUniversal = isRelease && (macrionAbiProperty == null || macrionAbiProperty.equals("all", ignoreCase = true))
+                include(*targetAbiFilter.toTypedArray())
+                isUniversalApk = shouldBuildUniversal
             }
         }
     }

@@ -1,0 +1,1 @@
+Technical preparations for upcoming F-Droid release; no user-facing changes.

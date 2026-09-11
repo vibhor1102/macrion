@@ -48,12 +48,17 @@ jobs:
           gradle/libs.versions.toml
           gradle/wrapper/gradle-wrapper.properties
 
-    - name: set NDK
+    - name: Set up pinned Android NDK 28.2.13676358
       shell: bash
       run: |
-        echo "ANDROID_NDK=$ANDROID_NDK_LATEST_HOME" >> "$GITHUB_ENV"
-        echo "ANDROID_NDK_HOME=$ANDROID_NDK_LATEST_HOME" >> "$GITHUB_ENV"
-        echo "ANDROID_NDK_ROOT=$ANDROID_NDK_LATEST_HOME" >> "$GITHUB_ENV"
+        ndk_path="$ANDROID_HOME/ndk/28.2.13676358"
+        if [ ! -d "$ndk_path" ]; then
+          echo "Installing NDK 28.2.13676358 via sdkmanager..."
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install "ndk;28.2.13676358"
+        fi
+        echo "ANDROID_NDK=$ndk_path" >> "$GITHUB_ENV"
+        echo "ANDROID_NDK_HOME=$ndk_path" >> "$GITHUB_ENV"
+        echo "ANDROID_NDK_ROOT=$ndk_path" >> "$GITHUB_ENV"
 
     - name: Validate release metadata
       id: release
@@ -73,17 +78,6 @@ jobs:
         echo "version=$version" >> "$GITHUB_OUTPUT"
         echo "notes_path=$processed_notes" >> "$GITHUB_OUTPUT"
 
-    - name: Install ccache
-      run: sudo apt-get install -y ccache
-
-    - name: Restore ccache
-      uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
-      with:
-        path: .ccache
-        key: ${{ runner.os }}-release-ccache-${{ hashFiles('**/*.c', '**/*.cc', '**/*.cpp', '**/*.h', '**/CMakeLists.txt', 'gradle/libs.versions.toml') }}
-        restore-keys: |
-          ${{ runner.os }}-release-ccache-
-
     - name: Restore and validate release keystore
       shell: bash
       run: |
@@ -99,16 +93,12 @@ jobs:
 
     - name: Build with Gradle
       run: |
-        ccache -M 500M
         ./gradlew --no-daemon --max-workers=6 --parallel --build-cache \
           -PsigningStorePassword="${{ secrets.SIGNING_STORE_PASSWORD }}" \
           -PsigningKeyAlias="${{ secrets.SIGNING_KEY_ALIAS }}" \
           -PsigningKeyPassword="${{ secrets.SIGNING_KEY_PASSWORD }}" \
           :smartautoclicker:assembleFDroidRelease
-        ccache -s
       env:
-        USE_CCACHE: 'true'
-        CCACHE_DIR: ${{ github.workspace }}/.ccache
         JAVA_TOOL_OPTIONS: "-Djava.net.preferIPv4Stack=true"
 
     - name: Prepare Macrion APKs
