@@ -18,12 +18,21 @@ package io.github.vibhor1102.macrion.core.ui.views.itembrief
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.graphics.Canvas
 import android.graphics.PointF
 import android.util.AttributeSet
 import android.util.Log
 import android.view.MotionEvent
-import android.view.View
+
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.platform.AbstractComposeView
 
 import io.github.vibhor1102.macrion.core.display.config.DisplayConfigManager
 import io.github.vibhor1102.macrion.core.display.di.DisplayEntryPoint
@@ -48,7 +57,7 @@ class ItemBriefView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0,
-) : View(context, attrs, defStyleAttr) {
+) : AbstractComposeView(context) {
 
     /** Paint drawing the outer circle of the position 1. */
     private val style: ItemBriefViewStyle
@@ -64,6 +73,7 @@ class ItemBriefView @JvmOverloads constructor(
 
     private var renderer: ItemBriefRenderer<*>? = null
     private var description: ItemBriefDescription? = null
+    private var renderVersion by mutableIntStateOf(0)
 
     /** Listener upon touch events */
     var onTouchListener: ((position: PointF) -> Unit)? = null
@@ -122,12 +132,19 @@ class ItemBriefView @JvmOverloads constructor(
 
     override fun invalidate() {
         renderer?.onInvalidate()
+        renderVersion++
         super.invalidate()
     }
 
-    override fun onDraw(canvas: Canvas) {
-        super.onDraw(canvas)
-        renderer?.onDraw(canvas)
+    @Composable
+    override fun Content() {
+        // Reading this state bridges the existing renderer invalidation contract into Compose's
+        // draw pass. It lets animation and configuration updates keep their exact timing while
+        // the surface itself is now a Compose Canvas.
+        renderVersion
+        Canvas(Modifier.fillMaxSize()) {
+            drawIntoCanvas { canvas -> renderer?.onDraw(canvas.nativeCanvas) }
+        }
     }
 
     /** Get the position of the motion event and ensure it is within screen bounds. */
