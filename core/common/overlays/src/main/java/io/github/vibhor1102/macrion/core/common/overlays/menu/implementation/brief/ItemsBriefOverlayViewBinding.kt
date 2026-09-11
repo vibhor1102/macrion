@@ -17,14 +17,20 @@
 package io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.brief
 
 import android.content.res.Configuration
+import android.os.Handler
+import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import android.view.ViewConfiguration
-import android.widget.FrameLayout
 import android.widget.ImageView
-import android.widget.Space
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.rememberSplineBasedDecay
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.snapping.SnapLayoutInfoProvider
@@ -62,7 +68,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.constraintlayout.widget.ConstraintLayout
 import io.github.vibhor1102.macrion.core.common.overlays.R
 import io.github.vibhor1102.macrion.core.ui.views.gesturerecord.GestureRecordView
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.ItemBriefView
@@ -70,14 +75,9 @@ import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.core.ui.R as UiR
 
 class ItemsBriefOverlayViewBinding private constructor(
-    val root: View,
+    val root: ComposeView,
     val viewBrief: ItemBriefView,
     val viewRecorder: GestureRecordView,
-    val layoutInstructions: ComposeView,
-    val layoutActionList: View,
-    val listActions: ComposeView,
-    val emptyScenarioCard: View,
-    private val controlPanel: ComposeView,
     private val orientation: Int,
 ) {
 
@@ -88,6 +88,13 @@ class ItemsBriefOverlayViewBinding private constructor(
     private val controlState = mutableStateOf(ItemBriefControlsState())
     private val briefItems = mutableStateOf<List<ItemBrief>>(emptyList())
     private val requestedBriefItemIndex = mutableIntStateOf(0)
+    private val isPanelVisible = mutableStateOf(false)
+    private val isInstructionsVisible = mutableStateOf(false)
+    private val isPanelAutoHideEnabled = mutableStateOf(true)
+
+    private val mainHandler = Handler(Looper.getMainLooper())
+    private val hidePanelRunnable = Runnable { isPanelVisible.value = false }
+    private val hideInstructionsRunnable = Runnable { isInstructionsVisible.value = false }
 
     private var briefItemContent: (@Composable (ItemBrief, Int, () -> Unit) -> Unit)? = null
     private var onItemClicked: (Int, ItemBrief) -> Unit = { _, _ -> }
@@ -100,191 +107,22 @@ class ItemsBriefOverlayViewBinding private constructor(
     private var onPlay: () -> Unit = {}
     private var onMoveNext: () -> Unit = {}
 
-    private constructor(views: HostViews, orientation: Int) : this(
-        root = views.root,
-        viewBrief = views.viewBrief,
-        viewRecorder = views.viewRecorder,
-        layoutInstructions = views.layoutInstructions,
-        layoutActionList = views.layoutActionList,
-        listActions = views.listActions,
-        emptyScenarioCard = views.emptyScenarioCard,
-        controlPanel = views.controlPanel,
-        orientation = orientation,
-    )
-
     companion object {
 
+        private const val AUTO_HIDE_DELAY_MS = 3_000L
+
         fun inflate(inflater: LayoutInflater, orientation: Int): ItemsBriefOverlayViewBinding {
-            val isPortrait = orientation == Configuration.ORIENTATION_PORTRAIT
-            val views = createHostViews(inflater, isPortrait)
-            return ItemsBriefOverlayViewBinding(views, orientation).apply {
-                views.backgroundList.setFade(if (isPortrait) FadeDirection.BOTTOM else FadeDirection.LEFT)
-                views.emptyScenarioCard.setEmptyContent(emptyText)
-                setInstructionsContent(isPortrait)
-                setControlPanelContent()
-            }
-        }
-
-        private fun createHostViews(inflater: LayoutInflater, isPortrait: Boolean): HostViews {
             val context = inflater.context
-            val resources = context.resources
-            val matchParent = ViewGroup.LayoutParams.MATCH_PARENT
-            val wrapContent = ViewGroup.LayoutParams.WRAP_CONTENT
-
-            val root = FrameLayout(context).apply {
-                layoutParams = FrameLayout.LayoutParams(matchParent, matchParent)
-            }
             val viewRecorder = GestureRecordView(context).apply {
                 visibility = View.GONE
             }
-            val layoutInstructions = ComposeView(context).apply {
-                visibility = View.GONE
-            }
             val viewBrief = ItemBriefView(context)
-            val layoutActionList = ConstraintLayout(context)
-            val backgroundList = ComposeView(context).apply { id = View.generateViewId() }
-            val emptyScenarioCard = ComposeView(context).apply {
-                id = View.generateViewId()
-                visibility = View.GONE
+            val root = ComposeView(context)
+            return ItemsBriefOverlayViewBinding(root, viewBrief, viewRecorder, orientation).apply {
+                root.setContent { MacrionTheme { OverlayContent() } }
             }
-            val listActions = ComposeView(context).apply { id = View.generateViewId() }
-            val controlPanel = ComposeView(context).apply { id = View.generateViewId() }
-            val spacer = Space(context).apply { id = View.generateViewId() }
-
-            root.addView(viewRecorder, FrameLayout.LayoutParams(matchParent, matchParent))
-            root.addView(layoutInstructions, FrameLayout.LayoutParams(matchParent, wrapContent))
-            root.addView(viewBrief, FrameLayout.LayoutParams(matchParent, matchParent))
-            root.addView(layoutActionList, FrameLayout.LayoutParams(matchParent, matchParent))
-
-            if (isPortrait) {
-                layoutActionList.addView(
-                    backgroundList,
-                    ConstraintLayout.LayoutParams(0, 0).apply {
-                        startToStart = ConstraintLayout.LayoutParams.PARENT_ID
-                        endToEnd = ConstraintLayout.LayoutParams.PARENT_ID
-                        topToTop = spacer.id
-                        bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
-                    },
-                )
-                layoutActionList.addView(
-                    spacer,
-                    ConstraintLayout.LayoutParams(0, 0).apply {
-                        startToStart = ConstraintLayout.LayoutParams.PARENT_ID
-                        endToEnd = ConstraintLayout.LayoutParams.PARENT_ID
-                        bottomToTop = controlPanel.id
-                        bottomMargin = resources.getDimensionPixelSize(R.dimen.overlay_brief_background_top_padding_port)
-                    },
-                )
-                layoutActionList.addView(
-                    emptyScenarioCard,
-                    ConstraintLayout.LayoutParams(
-                        0,
-                        resources.getDimensionPixelSize(R.dimen.item_brief_height),
-                    ).apply {
-                        startToStart = ConstraintLayout.LayoutParams.PARENT_ID
-                        endToEnd = ConstraintLayout.LayoutParams.PARENT_ID
-                        bottomToTop = controlPanel.id
-                        marginStart = resources.getDimensionPixelSize(UiR.dimen.margin_horizontal_extra_large)
-                        marginEnd = resources.getDimensionPixelSize(UiR.dimen.margin_horizontal_extra_large)
-                        bottomMargin = resources.getDimensionPixelSize(UiR.dimen.margin_vertical_extra_large)
-                    },
-                )
-                layoutActionList.addView(
-                    listActions,
-                    ConstraintLayout.LayoutParams(0, 0).apply {
-                        startToStart = ConstraintLayout.LayoutParams.PARENT_ID
-                        endToEnd = ConstraintLayout.LayoutParams.PARENT_ID
-                        topToTop = ConstraintLayout.LayoutParams.PARENT_ID
-                        bottomToTop = controlPanel.id
-                        bottomMargin = resources.getDimensionPixelSize(UiR.dimen.margin_vertical_extra_large)
-                    },
-                )
-                layoutActionList.addView(
-                    controlPanel,
-                    ConstraintLayout.LayoutParams(0, wrapContent).apply {
-                        startToStart = ConstraintLayout.LayoutParams.PARENT_ID
-                        endToEnd = ConstraintLayout.LayoutParams.PARENT_ID
-                        bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
-                    },
-                )
-            } else {
-                layoutActionList.addView(
-                    backgroundList,
-                    ConstraintLayout.LayoutParams(0, 0).apply {
-                        startToStart = ConstraintLayout.LayoutParams.PARENT_ID
-                        endToStart = spacer.id
-                        topToTop = ConstraintLayout.LayoutParams.PARENT_ID
-                        bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
-                    },
-                )
-                layoutActionList.addView(
-                    spacer,
-                    ConstraintLayout.LayoutParams(0, 0).apply {
-                        startToEnd = controlPanel.id
-                        topToTop = ConstraintLayout.LayoutParams.PARENT_ID
-                        bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
-                        marginStart = resources.getDimensionPixelSize(R.dimen.overlay_brief_background_end_padding_land)
-                    },
-                )
-                layoutActionList.addView(
-                    emptyScenarioCard,
-                    ConstraintLayout.LayoutParams(
-                        resources.getDimensionPixelSize(R.dimen.overlay_brief_item_width_land),
-                        0,
-                    ).apply {
-                        startToEnd = controlPanel.id
-                        topToTop = ConstraintLayout.LayoutParams.PARENT_ID
-                        bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
-                        marginStart = resources.getDimensionPixelSize(UiR.dimen.margin_horizontal_default)
-                        topMargin = 64.dpToPx(resources.displayMetrics.density)
-                        bottomMargin = 64.dpToPx(resources.displayMetrics.density)
-                    },
-                )
-                layoutActionList.addView(
-                    listActions,
-                    ConstraintLayout.LayoutParams(0, 0).apply {
-                        startToEnd = controlPanel.id
-                        endToEnd = ConstraintLayout.LayoutParams.PARENT_ID
-                        topToTop = ConstraintLayout.LayoutParams.PARENT_ID
-                        bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
-                        marginStart = resources.getDimensionPixelSize(UiR.dimen.margin_horizontal_default)
-                    },
-                )
-                layoutActionList.addView(
-                    controlPanel,
-                    ConstraintLayout.LayoutParams(wrapContent, 0).apply {
-                        startToStart = ConstraintLayout.LayoutParams.PARENT_ID
-                        topToTop = ConstraintLayout.LayoutParams.PARENT_ID
-                        bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
-                    },
-                )
-            }
-
-            return HostViews(
-                root = root,
-                viewBrief = viewBrief,
-                viewRecorder = viewRecorder,
-                layoutInstructions = layoutInstructions,
-                layoutActionList = layoutActionList,
-                backgroundList = backgroundList,
-                listActions = listActions,
-                emptyScenarioCard = emptyScenarioCard,
-                controlPanel = controlPanel,
-            )
         }
     }
-
-    private data class HostViews(
-        val root: FrameLayout,
-        val viewBrief: ItemBriefView,
-        val viewRecorder: GestureRecordView,
-        val layoutInstructions: ComposeView,
-        val layoutActionList: ConstraintLayout,
-        val backgroundList: ComposeView,
-        val listActions: ComposeView,
-        val emptyScenarioCard: ComposeView,
-        val controlPanel: ComposeView,
-    )
 
     fun setEmptyText(textRes: Int) {
         emptyText.intValue = textRes
@@ -321,62 +159,77 @@ class ItemsBriefOverlayViewBinding private constructor(
         this.onFirstItemViewChanged = onFirstItemViewChanged
         requestedBriefItemIndex.intValue = initialItemIndex
 
-        listActions.setContent {
-            MacrionTheme {
-                BriefItemsCarousel(
-                    items = briefItems.value,
-                    orientation = orientation,
-                    requestedIndex = requestedBriefItemIndex.intValue,
-                    itemContent = briefItemContent ?: return@MacrionTheme,
-                    onItemClicked = this@ItemsBriefOverlayViewBinding.onItemClicked,
-                    onFocusedItemChanged = this@ItemsBriefOverlayViewBinding.onFocusedItemChanged,
-                    onFirstItemViewChanged = this@ItemsBriefOverlayViewBinding.onFirstItemViewChanged,
-                )
-            }
-        }
     }
 
     fun updateBriefItems(items: List<ItemBrief>, focusedIndex: Int) {
         briefItems.value = items
         requestedBriefItemIndex.intValue = focusedIndex
-        listActions.visibility = if (items.isEmpty()) View.GONE else View.VISIBLE
-        emptyScenarioCard.visibility = if (items.isEmpty()) View.VISIBLE else View.GONE
     }
 
-    private fun setControlPanelContent() {
-        controlPanel.setContent {
-            MacrionTheme {
-                ItemBriefControls(
-                    state = controlState.value,
-                    isPortrait = orientation == Configuration.ORIENTATION_PORTRAIT,
-                    onMovePrevious = { onMovePrevious() },
-                    onDelete = { onDelete() },
-                    onPosition = { onPosition() },
-                    onPlay = { onPlay() },
-                    onMoveNext = { onMoveNext() },
-                )
+    /** Mirrors the legacy brief panel's immediate reveal and three-second auto-hide timer. */
+    fun showOrResetPanelTimer() {
+        isPanelVisible.value = true
+        mainHandler.removeCallbacks(hidePanelRunnable)
+        if (isPanelAutoHideEnabled.value) mainHandler.postDelayed(hidePanelRunnable, AUTO_HIDE_DELAY_MS)
+    }
+
+    fun hidePanel() {
+        mainHandler.removeCallbacks(hidePanelRunnable)
+        isPanelVisible.value = false
+    }
+
+    fun setPanelAutoHideEnabled(enabled: Boolean) {
+        isPanelAutoHideEnabled.value = enabled
+        if (!enabled) mainHandler.removeCallbacks(hidePanelRunnable)
+    }
+
+    fun showOrResetInstructionsTimer() {
+        isInstructionsVisible.value = true
+        mainHandler.removeCallbacks(hideInstructionsRunnable)
+        mainHandler.postDelayed(hideInstructionsRunnable, AUTO_HIDE_DELAY_MS)
+    }
+
+    fun hideInstructions() {
+        mainHandler.removeCallbacks(hideInstructionsRunnable)
+        isInstructionsVisible.value = false
+    }
+
+    fun dispose() {
+        mainHandler.removeCallbacksAndMessages(null)
+    }
+
+    @Composable
+    private fun OverlayContent() {
+        val isPortrait = orientation == Configuration.ORIENTATION_PORTRAIT
+        Box(Modifier.fillMaxSize()) {
+            AndroidView(factory = { viewRecorder }, modifier = Modifier.fillMaxSize())
+            AndroidView(factory = { viewBrief }, modifier = Modifier.fillMaxSize())
+
+            AnimatedVisibility(
+                visible = isPanelVisible.value,
+                enter = if (isPortrait) slideInVertically { it } + fadeIn() else slideInHorizontally { -it } + fadeIn(),
+                exit = if (isPortrait) slideOutVertically { it } + fadeOut() else slideOutHorizontally { -it } + fadeOut(),
+            ) {
+                if (isPortrait) PortraitBriefPanel() else LandscapeBriefPanel()
             }
-        }
-    }
 
-    private fun setInstructionsContent(isPortrait: Boolean) {
-        layoutInstructions.setContent {
-            val colors = arrayOf(
-                0f to Color.Black,
-                0.7f to Color.Black.copy(alpha = 0.53f),
-                1f to Color.Transparent,
-            )
-            MacrionTheme {
+            AnimatedVisibility(
+                visible = isInstructionsVisible.value,
+                enter = slideInVertically { -it } + fadeIn(),
+                exit = slideOutVertically { -it } + fadeOut(),
+                modifier = Modifier.align(Alignment.TopCenter),
+            ) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Brush.verticalGradient(colorStops = colors))
-                        .padding(
-                            start = 32.dp,
-                            top = if (isPortrait) 12.dp else 8.dp,
-                            end = 32.dp,
-                            bottom = 24.dp,
-                        ),
+                        .background(
+                            Brush.verticalGradient(
+                                0f to Color.Black,
+                                0.7f to Color.Black.copy(alpha = 0.53f),
+                                1f to Color.Transparent,
+                            ),
+                        )
+                        .padding(start = 32.dp, top = if (isPortrait) 12.dp else 8.dp, end = 32.dp, bottom = 24.dp),
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
@@ -389,6 +242,95 @@ class ItemsBriefOverlayViewBinding private constructor(
                         textAlign = TextAlign.Center,
                     )
                 }
+            }
+        }
+    }
+
+    @Composable
+    private fun PortraitBriefPanel() {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        0f to Color.Transparent,
+                        0.3f to Color.Black.copy(alpha = 0.53f),
+                        1f to Color.Black,
+                    ),
+                ),
+        ) {
+            Spacer(Modifier.height(112.dp))
+            Box(Modifier.weight(1f).fillMaxWidth().padding(bottom = 24.dp)) {
+                if (briefItems.value.isEmpty()) EmptyBriefCard(Modifier.fillMaxSize().padding(horizontal = 32.dp))
+                else briefItemContent?.let { itemContent ->
+                    BriefItemsCarousel(
+                        items = briefItems.value,
+                        orientation = orientation,
+                        requestedIndex = requestedBriefItemIndex.intValue,
+                        itemContent = itemContent,
+                        onItemClicked = onItemClicked,
+                        onFocusedItemChanged = onFocusedItemChanged,
+                        onFirstItemViewChanged = onFirstItemViewChanged,
+                    )
+                }
+            }
+            Controls()
+        }
+    }
+
+    @Composable
+    private fun LandscapeBriefPanel() {
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.horizontalGradient(
+                        0f to Color.Black,
+                        0.7f to Color.Black.copy(alpha = 0.53f),
+                        1f to Color.Transparent,
+                    ),
+                ),
+        ) {
+            Controls()
+            Box(Modifier.weight(1f).fillMaxHeight().padding(start = 16.dp, end = 156.dp)) {
+                if (briefItems.value.isEmpty()) EmptyBriefCard(Modifier.fillMaxHeight().width(124.dp).padding(vertical = 64.dp))
+                else briefItemContent?.let { itemContent ->
+                    BriefItemsCarousel(
+                        items = briefItems.value,
+                        orientation = orientation,
+                        requestedIndex = requestedBriefItemIndex.intValue,
+                        itemContent = itemContent,
+                        onItemClicked = onItemClicked,
+                        onFocusedItemChanged = onFocusedItemChanged,
+                        onFirstItemViewChanged = onFirstItemViewChanged,
+                    )
+                }
+            }
+        }
+    }
+
+    @Composable
+    private fun Controls() = ItemBriefControls(
+        state = controlState.value,
+        isPortrait = orientation == Configuration.ORIENTATION_PORTRAIT,
+        onMovePrevious = onMovePrevious,
+        onDelete = onDelete,
+        onPosition = onPosition,
+        onPlay = onPlay,
+        onMoveNext = onMoveNext,
+    )
+
+    @Composable
+    private fun EmptyBriefCard(modifier: Modifier) {
+        ElevatedCard(modifier) {
+            Box(Modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 8.dp), contentAlignment = Alignment.Center) {
+                if (emptyText.intValue != 0) Text(
+                    text = stringResource(emptyText.intValue),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontStyle = FontStyle.Italic,
+                    textAlign = TextAlign.Center,
+                )
             }
         }
     }
@@ -477,53 +419,6 @@ private fun PositionCard(state: ItemBriefControlsState, onClick: () -> Unit, mod
                 textAlign = TextAlign.Center,
                 maxLines = if (isMultiline) 3 else 1,
             )
-        }
-    }
-}
-
-private enum class FadeDirection { TOP, BOTTOM, LEFT }
-
-private fun Int.dpToPx(density: Float): Int = (this * density).toInt()
-
-private fun ComposeView.setFade(direction: FadeDirection) {
-    isClickable = false
-    setContent {
-        val opaque = Color.Black
-        val middle = Color.Black.copy(alpha = 0.53f)
-        val transparent = Color.Transparent
-        val colors = when (direction) {
-            FadeDirection.TOP -> arrayOf(0f to opaque, 0.7f to middle, 1f to transparent)
-            FadeDirection.BOTTOM -> arrayOf(0f to transparent, 0.3f to middle, 1f to opaque)
-            FadeDirection.LEFT -> arrayOf(0f to opaque, 0.7f to middle, 1f to transparent)
-        }
-        val brush = if (direction == FadeDirection.LEFT) {
-            Brush.horizontalGradient(colorStops = colors)
-        } else {
-            Brush.verticalGradient(colorStops = colors)
-        }
-        Box(Modifier.fillMaxSize().background(brush))
-    }
-}
-
-private fun ComposeView.setEmptyContent(textState: androidx.compose.runtime.MutableIntState) {
-    setContent {
-        MacrionTheme {
-            ElevatedCard(Modifier.fillMaxSize()) {
-                Box(
-                    modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 8.dp),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    if (textState.intValue != 0) {
-                        Text(
-                            text = stringResource(textState.intValue),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontStyle = FontStyle.Italic,
-                            textAlign = TextAlign.Center,
-                        )
-                    }
-                }
-            }
         }
     }
 }
