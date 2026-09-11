@@ -5,38 +5,90 @@
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.sort
 
-import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.view.Gravity
 import android.view.View
-import android.view.ViewGroup
-import android.widget.BaseAdapter
-import android.widget.FrameLayout
-import android.widget.ImageView
-import android.widget.LinearLayout
 import android.widget.PopupWindow
-import android.widget.TextView
+
 import androidx.annotation.StringRes
-import androidx.appcompat.widget.ListPopupWindow
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.unit.dp
+
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.feature.smart.debugging.R
-import com.google.android.material.card.MaterialCardView
-import com.google.android.material.R as MaterialR
-import com.google.android.material.color.MaterialColors
-import com.google.android.material.shape.MaterialShapeDrawable
-import com.google.android.material.shape.ShapeAppearanceModel
-import kotlin.math.roundToInt
+
+/** Compact sort chooser which keeps the report visible behind it. */
+internal class DebugReportSortPopup<T>(
+    private val anchor: View,
+    private val options: List<DebugReportSortOption<T>>,
+    private val onSelected: (T) -> Unit,
+) {
+    private val density = anchor.resources.displayMetrics.density
+    private val width = minOf(
+        (280 * density).toInt(),
+        anchor.resources.displayMetrics.widthPixels - (32 * density).toInt(),
+    )
+    private val height = ((SORT_MENU_VERTICAL_PADDING_DP * 2 + SORT_OPTION_HEIGHT_DP * options.size) * density).toInt()
+
+    private val popup = PopupWindow(anchor.context).apply {
+        contentView = ComposeView(anchor.context).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
+            setContent {
+                MacrionTheme {
+                    SortMenu(options) { value ->
+                        dismiss()
+                        onSelected(value)
+                    }
+                }
+            }
+        }
+        this.width = this@DebugReportSortPopup.width
+        this.height = this@DebugReportSortPopup.height
+        isFocusable = true
+        isOutsideTouchable = true
+        inputMethodMode = PopupWindow.INPUT_METHOD_NOT_NEEDED
+        setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        elevation = 8 * density
+    }
+
+    fun show() {
+        val location = IntArray(2)
+        anchor.getLocationOnScreen(location)
+        val displayHeight = anchor.resources.displayMetrics.heightPixels
+        val gap = (8 * density).toInt()
+        val x = (location[0] + anchor.width - width).coerceAtLeast((16 * density).toInt())
+        val y = if (location[1] + anchor.height + gap + height <= displayHeight) {
+            location[1] + anchor.height + gap
+        } else {
+            (location[1] - height - gap).coerceAtLeast((16 * density).toInt())
+        }
+        popup.showAtLocation(anchor.rootView, Gravity.TOP or Gravity.START, x, y)
+    }
+
+    fun dismiss() = popup.dismiss()
+}
 
 internal data class DebugReportSortOption<T>(
     val value: T,
@@ -44,123 +96,56 @@ internal data class DebugReportSortOption<T>(
     val selected: Boolean,
 )
 
-/** Compact sort chooser which keeps the report visible behind it. */
-internal class DebugReportSortPopup<T>(
-    private val anchor: View,
-    options: List<DebugReportSortOption<T>>,
-    onSelected: (T) -> Unit,
-) {
-    private val density = anchor.resources.displayMetrics.density
-    private val popup = ListPopupWindow(anchor.context).apply {
-        anchorView = anchor
-        setAdapter(SortOptionsAdapter(options))
-        width = minOf((280 * density).toInt(), anchor.resources.displayMetrics.widthPixels - (32 * density).toInt())
-        height = dp(POPUP_VERTICAL_PADDING_DP * 2 + OPTION_HEIGHT_DP * options.size)
-        isModal = true
-        inputMethodMode = PopupWindow.INPUT_METHOD_NOT_NEEDED
-        setDropDownGravity(Gravity.END)
-        setBackgroundDrawable(createPopupBackground())
-        setOnItemClickListener { _, _, position, _ ->
-            dismiss()
-            onSelected(options[position].value)
+@Composable
+private fun <T> SortMenu(options: List<DebugReportSortOption<T>>, onSelected: (T) -> Unit) {
+    Surface(
+        color = MaterialTheme.colorScheme.surfaceContainer,
+        shape = MaterialTheme.shapes.extraLarge,
+        shadowElevation = 8.dp,
+    ) {
+        Column(Modifier.padding(vertical = SORT_MENU_VERTICAL_PADDING_DP.dp)) {
+            options.forEach { option -> SortOption(option, onSelected) }
         }
     }
+}
 
-    fun show() {
-        popup.show()
-        popup.listView?.apply {
-            divider = null
-            selector = ColorDrawable(Color.TRANSPARENT)
-            val padding = dp(POPUP_VERTICAL_PADDING_DP)
-            setPadding(padding, padding, padding, padding)
-            clipToPadding = false
-            isVerticalScrollBarEnabled = false
-            overScrollMode = View.OVER_SCROLL_NEVER
-        }
-    }
-
-    fun dismiss() {
-        popup.dismiss()
-    }
-
-    private fun createPopupBackground(): MaterialShapeDrawable {
-        val cornerRadius = 20 * density
-        return MaterialShapeDrawable(
-            ShapeAppearanceModel.builder().setAllCornerSizes(cornerRadius).build()
-        ).apply {
-            fillColor = ColorStateList.valueOf(
-                MaterialColors.getColor(anchor, MaterialR.attr.colorSurfaceContainer)
+@Composable
+private fun <T> SortOption(option: DebugReportSortOption<T>, onSelected: (T) -> Unit) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(SORT_OPTION_HEIGHT_DP.dp)
+            .selectable(
+                selected = option.selected,
+                onClick = { onSelected(option.value) },
+                role = Role.RadioButton,
+            ),
+        color = if (option.selected) MaterialTheme.colorScheme.secondaryContainer
+        else MaterialTheme.colorScheme.surfaceContainer,
+        shape = MaterialTheme.shapes.large,
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = stringResource(option.titleRes),
+                modifier = Modifier.weight(1f),
+                style = MaterialTheme.typography.bodyLarge,
+                color = if (option.selected) MaterialTheme.colorScheme.onSecondaryContainer
+                else MaterialTheme.colorScheme.onSurface,
             )
-            elevation = 8 * density
+            if (option.selected) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_debug_confirm),
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp),
+                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                )
+            }
         }
     }
-
-    private fun dp(value: Int): Int = (value * density).roundToInt()
 }
 
-private const val OPTION_HEIGHT_DP = 56
-private const val POPUP_VERTICAL_PADDING_DP = 8
-
-private class SortOptionsAdapter<T>(
-    private val options: List<DebugReportSortOption<T>>,
-) : BaseAdapter() {
-
-    override fun getCount(): Int = options.size
-    override fun getItem(position: Int): DebugReportSortOption<T> = options[position]
-    override fun getItemId(position: Int): Long = position.toLong()
-
-    override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
-        val row = (convertView as? SortOptionView) ?: SortOptionView(parent)
-        val option = getItem(position)
-        row.bind(option)
-        return row
-    }
-}
-
-private class SortOptionView(parent: ViewGroup) : FrameLayout(parent.context) {
-    private val density = resources.displayMetrics.density
-    private val card = MaterialCardView(context).apply {
-        radius = 16 * density
-        cardElevation = 0f
-        strokeWidth = 0
-    }
-    private val title = TextView(context).apply {
-        setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_BodyLarge)
-        maxLines = 1
-    }
-    private val selectedIcon = ImageView(context).apply {
-        setImageResource(R.drawable.ic_debug_confirm)
-        visibility = View.INVISIBLE
-    }
-
-    init {
-        layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, (56 * density).roundToInt())
-        addView(card, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT).apply {
-            topMargin = (2 * density).roundToInt()
-            bottomMargin = (2 * density).roundToInt()
-        })
-        val content = LinearLayout(context).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
-            val horizontal = (16 * density).roundToInt()
-            setPadding(horizontal, 0, horizontal, 0)
-        }
-        card.addView(content, ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
-        content.addView(title, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
-        content.addView(selectedIcon, LinearLayout.LayoutParams((24 * density).roundToInt(), (24 * density).roundToInt()).apply {
-            marginStart = (16 * density).roundToInt()
-        })
-    }
-
-    fun <T> bind(option: DebugReportSortOption<T>) {
-        val selectedContainer = MaterialColors.getColor(this, MaterialR.attr.colorSecondaryContainer)
-        val selectedContent = MaterialColors.getColor(this, MaterialR.attr.colorOnSecondaryContainer)
-        val normalContent = MaterialColors.getColor(this, MaterialR.attr.colorOnSurface)
-        isSelected = option.selected
-        card.setCardBackgroundColor(if (option.selected) selectedContainer else Color.TRANSPARENT)
-        title.setText(option.titleRes)
-        title.setTextColor(if (option.selected) selectedContent else normalContent)
-        selectedIcon.visibility = if (option.selected) View.VISIBLE else View.INVISIBLE
-        selectedIcon.imageTintList = ColorStateList.valueOf(selectedContent)
-    }
-}
+private const val SORT_OPTION_HEIGHT_DP = 56
+private const val SORT_MENU_VERTICAL_PADDING_DP = 8

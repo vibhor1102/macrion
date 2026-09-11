@@ -39,7 +39,6 @@ import io.github.vibhor1102.macrion.core.common.overlays.manager.OverlayManager.
 import io.github.vibhor1102.macrion.core.common.overlays.menu.OverlayMenu
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.Tip
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredOverlayType
-import io.github.vibhor1102.macrion.core.ui.utils.AnimatedStatesImageButtonController
 import io.github.vibhor1102.macrion.core.ui.utils.getDynamicColorsContext
 import io.github.vibhor1102.macrion.feature.smart.config.R
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
@@ -58,6 +57,12 @@ import kotlinx.coroutines.launch
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Icon
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 
 /**
  * [OverlayMenu] implementation for displaying the main menu overlay.
@@ -101,8 +106,7 @@ class MainMenu(
 
     private lateinit var viewBinding: MainMenuViews
     private var liveDebugUiState by mutableStateOf<LiveDebuggingUiState?>(null)
-    /** Controls the animations of the play/pause button. */
-    private lateinit var playPauseButtonController: AnimatedStatesImageButtonController
+    private var isDetecting by mutableStateOf(false)
     /** The coroutine job for the observable used in debug mode. Null when not in debug mode. */
     private var debugObservableJob: Job? = null
 
@@ -137,18 +141,22 @@ class MainMenu(
     private var keyDownHandled: Boolean = false
 
     override fun onCreateMenu(layoutInflater: LayoutInflater): ViewGroup {
-        playPauseButtonController = AnimatedStatesImageButtonController(
+        viewBinding = createMainOverlayMenu(
             context = context,
-            state1StaticRes = R.drawable.ic_play_arrow,
-            state2StaticRes = R.drawable.ic_pause,
-            state1to2AnimationRes = R.drawable.anim_play_pause,
-            state2to1AnimationRes = R.drawable.anim_pause_play,
+            debugContent = { MainLiveDebugPanel(liveDebugUiState) },
+            playPauseContent = {
+                AnimatedContent(isDetecting, label = "playPause") { detecting ->
+                    Icon(
+                        painterResource(if (detecting) R.drawable.ic_pause else R.drawable.ic_play_arrow),
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize(),
+                        tint = colorResource(CoreUiR.color.overlayMenuButtons),
+                    )
+                }
+            },
         )
-        viewBinding = createMainOverlayMenu(context) { MainLiveDebugPanel(liveDebugUiState) }
         viewBinding.btnSwitchScenario.isVisible = isSwitchButtonInitiallyVisible
         viewBinding.btnOpenHome.isVisible = isHomeButtonInitiallyVisible
-        playPauseButtonController.attachView(viewBinding.btnPlay)
-
         return viewBinding.root
     }
 
@@ -204,7 +212,6 @@ class MainMenu(
         viewBinding.root.removeCallbacks(updateTouchableRegion)
         viewBinding.root.removeOnLayoutChangeListener(updateTouchableRegionOnLayout)
         super.onDestroy()
-        playPauseButtonController.detachView()
     }
 
     override fun onKeyEvent(keyEvent: KeyEvent): Boolean {
@@ -257,15 +264,19 @@ class MainMenu(
     }
 
     override fun getWindowMaximumSize(backgroundView: ViewGroup): Size {
-        val bgSize = super.getWindowMaximumSize(backgroundView)
-        val switchButtonWidth = if (viewBinding.btnSwitchScenario.isVisible) {
-            0
-        } else {
-            context.resources.getDimensionPixelSize(CoreUiR.dimen.overlay_menu_btn_size)
+        val buttons = backgroundView.findViewById<ViewGroup>(
+            io.github.vibhor1102.macrion.core.common.overlays.R.id.menu_items,
+        )
+        val buttonWidth = (0 until buttons.childCount).maxOfOrNull { index ->
+            buttons.getChildAt(index).layoutParams.width
+        } ?: 0
+        val buttonsHeight = (0 until buttons.childCount).sumOf { index ->
+            buttons.getChildAt(index).layoutParams.height
         }
         return Size(
-            bgSize.width + switchButtonWidth + context.resources.getDimensionPixelSize(R.dimen.overlay_debug_panel_width),
-            bgSize.height,
+            buttonWidth + buttons.paddingLeft + buttons.paddingRight +
+                context.resources.getDimensionPixelSize(R.dimen.overlay_debug_panel_width),
+            buttonsHeight + buttons.paddingTop + buttons.paddingBottom,
         )
     }
 
@@ -333,6 +344,7 @@ class MainMenu(
         if (currentState == newState) return
 
         viewBinding.btnPlay.tag = newState
+        isDetecting = newState is UiState.Detecting
         when (newState) {
             UiState.Idle -> {
                 if (currentState == null) {
@@ -340,14 +352,12 @@ class MainMenu(
                     viewBinding.btnClickList.isVisible = true
                     viewBinding.btnSwitchScenario.isVisible = isSwitchButtonInitiallyVisible
                     viewBinding.btnOpenHome.isVisible = isHomeButtonInitiallyVisible
-                    playPauseButtonController.toState1(false)
                 } else {
                     animateLayoutChanges {
                         setMenuItemVisibility(viewBinding.btnStop, true)
                         setMenuItemVisibility(viewBinding.btnClickList, true)
                         setMenuItemVisibility(viewBinding.btnSwitchScenario, viewModel.isSwitchButtonVisible.value)
                         setMenuItemVisibility(viewBinding.btnOpenHome, isHomeButtonInitiallyVisible)
-                        playPauseButtonController.toState1(true)
                     }
                 }
             }
@@ -358,14 +368,12 @@ class MainMenu(
                     viewBinding.btnClickList.isVisible = false
                     viewBinding.btnSwitchScenario.isVisible = false
                     viewBinding.btnOpenHome.isVisible = false
-                    playPauseButtonController.toState2(false)
                 } else {
                     animateLayoutChanges {
                         setMenuItemVisibility(viewBinding.btnStop, false)
                         setMenuItemVisibility(viewBinding.btnClickList, false)
                         setMenuItemVisibility(viewBinding.btnSwitchScenario, false)
                         setMenuItemVisibility(viewBinding.btnOpenHome, false)
-                        playPauseButtonController.toState2(true)
                     }
                 }
             }
