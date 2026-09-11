@@ -22,7 +22,6 @@ import android.graphics.PointF
 
 import io.github.vibhor1102.macrion.core.display.config.DisplayConfigManager
 import io.github.vibhor1102.macrion.core.ui.R
-import io.github.vibhor1102.macrion.core.ui.views.pixelselector.PixelSelectorView
 import io.github.vibhor1102.macrion.core.ui.views.viewcomponents.CaptureComponentStyle
 import io.github.vibhor1102.macrion.core.ui.views.viewcomponents.DEFAULT_ZOOM_MAXIMUM
 import io.github.vibhor1102.macrion.core.ui.views.viewcomponents.DEFAULT_ZOOM_MINIMUM

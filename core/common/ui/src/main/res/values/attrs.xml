@@ -19,7 +19,6 @@
 
     <attr format="reference" name="itemBriefStyle"/>
 
-    <attr format="reference" name="pixelSelectorStyle"/>
 
     <attr format="reference" name="conditionSelectorStyle"/>
 
@@ -90,14 +89,6 @@
         <attr name="cornerRadius"/>
         <attr name="radius"/>
         <attr name="innerRadius"/>
-    </declare-styleable>
-
-    <!-- Styleable attributes for the ColorSelectorView. -->
-    <declare-styleable name="PixelSelectorView" >
-        <attr name="minimumZoomValue"/>
-        <attr name="maximumZoomValue"/>
-        <attr name="colorOutlinePrimary"/>
-        <attr name="thickness" />
     </declare-styleable>
 
     <!-- Styleable attributes for the ImageSelectorView. -->
