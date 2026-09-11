@@ -4,10 +4,13 @@ package io.github.vibhor1102.macrion.feature.smart.config.ui.action.click.offset
 import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
-import android.graphics.PointF
 import android.view.ViewGroup
-import android.widget.ImageView
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.drag
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -16,15 +19,22 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
-import androidx.core.graphics.toPoint
+import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
@@ -33,7 +43,7 @@ import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.core.ui.compose.macrionDoneKeyboardActions
 import io.github.vibhor1102.macrion.core.ui.compose.macrionDoneKeyboardOptions
-import io.github.vibhor1102.macrion.core.ui.views.clickoffset.ClickOffsetView
+import io.github.vibhor1102.macrion.core.ui.R as CoreUiR
 import io.github.vibhor1102.macrion.feature.smart.config.R
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
 
@@ -113,18 +123,65 @@ class ClickOffsetDialog : OverlayDialog(R.style.ScenarioConfigTheme) {
     }
 
     @Composable private fun OffsetCanvas(offsetState: ClickOffsetState?, image: Any?, modifier: Modifier) {
-        AndroidView(factory = { ClickOffsetView(it).apply {
-            scaleType = ImageView.ScaleType.CENTER_INSIDE
-            onOffsetChangedListener = { point -> viewModel.setClickOffset(PointF(point.x, point.y).toPoint(), ClickOffsetUpdateType.VIEW) }
-        } }, update = { view ->
-            offsetState?.takeIf { it.updateFrom != ClickOffsetUpdateType.VIEW }?.let {
-                view.offsetValue = PointF(it.offset.x.toFloat(), it.offset.y.toFloat())
-            }
+        val markerRadius = dimensionResource(CoreUiR.dimen.overlay_click_selector_radius)
+        val innerMarkerRadius = dimensionResource(CoreUiR.dimen.overlay_click_selector_inner_radius)
+        val markerThickness = dimensionResource(CoreUiR.dimen.overlay_click_selector_thickness)
+        val markerColor = colorResource(CoreUiR.color.overlayViewPrimary)
+        val markerBackground = colorResource(CoreUiR.color.overlayActionsBriefBackground)
+        val imageBitmap = remember(image) { (image as? Drawable)?.toBitmap()?.asImageBitmap() }
+        Box(
+            modifier = modifier.pointerInput(Unit) {
+                awaitEachGesture {
+                    val down = awaitFirstDown()
+                    fun updateOffset(position: Offset) {
+                        viewModel.setClickOffset(
+                            android.graphics.Point(
+                                (position.x - size.width / 2f).toInt(),
+                                (position.y - size.height / 2f).toInt(),
+                            ),
+                            ClickOffsetUpdateType.VIEW,
+                        )
+                    }
+                    updateOffset(down.position)
+                    drag(down.id) { change ->
+                        updateOffset(change.position)
+                        change.consume()
+                    }
+                }
+            },
+        ) {
             when (image) {
-                is Bitmap -> view.setImageBitmap(image)
-                is Drawable -> view.setImageDrawable(image)
-                else -> view.setImageResource(R.drawable.ic_image_condition_big)
+                is Bitmap -> Image(image.asImageBitmap(), null, Modifier.fillMaxSize(), contentScale = ContentScale.Fit)
+                else -> imageBitmap?.let {
+                    Image(it, null, Modifier.fillMaxSize(), contentScale = ContentScale.Fit)
+                } ?: Image(
+                    painter = painterResource(R.drawable.ic_image_condition_big),
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Fit,
+                )
             }
-        }, modifier = modifier)
+            offsetState?.let { state ->
+                Canvas(Modifier.fillMaxSize()) {
+                    val position = Offset(
+                        size.width / 2f + state.offset.x,
+                        size.height / 2f + state.offset.y,
+                    )
+                    drawCircle(
+                        color = markerBackground,
+                        radius = markerRadius.toPx() * 2f,
+                        center = position,
+                        alpha = 0.5f,
+                    )
+                    drawCircle(
+                        color = markerColor,
+                        radius = markerRadius.toPx(),
+                        center = position,
+                        style = Stroke(markerThickness.toPx()),
+                    )
+                    drawCircle(markerColor, innerMarkerRadius.toPx(), position)
+                }
+            }
+        }
     }
 }

@@ -27,7 +27,6 @@
 
     <attr format="reference" name="gestureRecordStyle"/>
 
-    <attr format="reference" name="clickOffsetStyle"/>
 
     <!-- Color for the inner part of an overlay selector. -->
     <attr name="colorInner" format="color" />
@@ -164,14 +163,4 @@
         <attr name="thickness"/>
     </declare-styleable>
 
-    <!-- Styleable attributes for the ClickOffsetView. -->
-    <declare-styleable name="ClickOffsetView">
-        <!-- The color of all things drawn by this view -->
-        <attr name="colorInner"/>
-        <attr name="colorOutlinePrimary"/>
-        <attr name="colorBackground"/>
-        <attr name="radius"/>
-        <attr name="innerRadius"/>
-        <attr name="thickness"/>
-    </declare-styleable>
 </resources>
