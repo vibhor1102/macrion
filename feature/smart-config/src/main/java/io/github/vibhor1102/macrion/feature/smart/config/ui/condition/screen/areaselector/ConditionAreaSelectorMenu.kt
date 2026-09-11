@@ -21,16 +21,20 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 
 import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.menu.OverlayMenu
-import io.github.vibhor1102.macrion.core.ui.views.areaselector.AreaSelectorView
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.feature.smart.config.R
 import io.github.vibhor1102.macrion.feature.smart.config.ui.createValidationOverlayToolbar
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
+import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.selector.SelectorController
+import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.selector.SelectorOverlay
 
 import kotlinx.coroutines.launch
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredOverlayType
@@ -48,11 +52,10 @@ class ConditionAreaSelectorMenu(
         creator = { imageConditionAreaSelectorViewModel() },
     )
 
-    /** The view displaying selector for the area. */
-    private lateinit var selectorView: AreaSelectorView
+    /** The Compose selector preserves the physical-screen coordinates used by conditions. */
+    private val selectorController = SelectorController(hasCapture = false)
 
     override fun onCreateMenu(layoutInflater: LayoutInflater): ViewGroup {
-        selectorView = AreaSelectorView(context, displayConfigManager)
         val menuView = createValidationOverlayToolbar(context)
 
         if (onHelpClicked == null) {
@@ -62,7 +65,10 @@ class ConditionAreaSelectorMenu(
         return menuView
     }
 
-    override fun onCreateOverlayView(): View = selectorView
+    override fun onCreateOverlayView(): View = ComposeView(context).apply {
+        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+        setContent { MacrionTheme { SelectorOverlay(selectorController) } }
+    }
 
     override fun onStart() {
         super.onStart()
@@ -70,7 +76,7 @@ class ConditionAreaSelectorMenu(
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.initialArea.collect { selectorState ->
-                    selectorView.setSelection(selectorState.initialArea, selectorState.minimalArea)
+                    selectorController.setAreaSelection(selectorState.initialArea, selectorState.minimalArea)
                 }
             }
         }
@@ -86,7 +92,7 @@ class ConditionAreaSelectorMenu(
 
     /** Called when the user press the confirmation button. */
     private fun onConfirm() {
-        onAreaSelected(selectorView.getSelection())
+        onAreaSelected(selectorController.getAreaSelection())
         back()
     }
 

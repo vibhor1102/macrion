@@ -17,9 +17,6 @@
 -->
 <resources>
 
-    <style name="ScenarioConfigTheme" parent="AppTheme">
-        <item name="areaSelectorStyle">@style/AppTheme.ScenarioConfig.Selector.Condition</item>
-        <item name="conditionSelectorStyle">@style/AppTheme.ScenarioConfig.Selector.Condition</item>
-    </style>
+    <style name="ScenarioConfigTheme" parent="AppTheme" />
 
 </resources>
