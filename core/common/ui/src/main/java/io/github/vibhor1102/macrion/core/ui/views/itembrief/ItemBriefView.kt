@@ -27,7 +27,9 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
@@ -71,7 +73,10 @@ class ItemBriefView @JvmOverloads constructor(
         style = context.getItemBriefStyle(attrs, defStyleAttr)
     }
 
-    private var renderer: ItemBriefRenderer<*>? = null
+    // The renderer is part of the Compose drawing state. Keeping it as an ordinary Kotlin field
+    // made Canvas retain the first renderer captured at composition, even though the legacy
+    // update pipeline was correctly supplying a new description for every carousel item.
+    private var renderer by mutableStateOf<ItemBriefRenderer<*>?>(null)
     private var description: ItemBriefDescription? = null
     private var renderVersion by mutableIntStateOf(0)
 
@@ -138,12 +143,14 @@ class ItemBriefView @JvmOverloads constructor(
 
     @Composable
     override fun Content() {
-        // Reading this state bridges the existing renderer invalidation contract into Compose's
-        // draw pass. It lets animation and configuration updates keep their exact timing while
-        // the surface itself is now a Compose Canvas.
-        renderVersion
-        Canvas(Modifier.fillMaxSize()) {
-            drawIntoCanvas { canvas -> renderer?.onDraw(canvas.nativeCanvas) }
+        val currentRenderer = renderer
+        // The legacy renderers mutate their own drawing state. Key the bridge on the renderer and
+        // its invalidation version so Compose cannot keep a Canvas draw node captured from an
+        // earlier selected item.
+        key(currentRenderer, renderVersion) {
+            Canvas(Modifier.fillMaxSize()) {
+                drawIntoCanvas { canvas -> currentRenderer?.onDraw(canvas.nativeCanvas) }
+            }
         }
     }
 
