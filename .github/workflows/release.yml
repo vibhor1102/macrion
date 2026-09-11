@@ -93,7 +93,7 @@ jobs:
           -PsigningKeyPassword="${{ secrets.SIGNING_KEY_PASSWORD }}" \
           :smartautoclicker:assembleFDroidRelease
       env:
-        JAVA_TOOL_OPTIONS: "-Djava.net.preferIPv4Stack=true"
+        JAVA_TOOL_OPTIONS: "-Djava.net.preferIPv4Stack=true -Dfile.encoding=UTF-8 -Duser.timezone=UTC"
 
     - name: Prepare Macrion APKs
       shell: bash

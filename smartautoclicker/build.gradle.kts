@@ -71,6 +71,18 @@ android {
         includeInBundle = false
     }
 
+    androidResources {
+        noCompress += listOf("bin", "param")
+    }
+
+    packaging {
+        resources {
+            excludes += listOf(
+                "META-INF/version-control-info.textproto",
+            )
+        }
+    }
+
     buildFeatures {
         viewBinding = true
         buildConfig = true
