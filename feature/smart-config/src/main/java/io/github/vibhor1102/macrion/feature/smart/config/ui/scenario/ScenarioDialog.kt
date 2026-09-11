@@ -28,6 +28,7 @@ import io.github.vibhor1102.macrion.core.ui.bindings.dialogs.DialogNavigationBut
 import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.navbar.NavBarDialog
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.navbar.NavBarDialogContent
+import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.navbar.DialogNavigationItem
 import io.github.vibhor1102.macrion.feature.smart.config.R
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.dialogs.showCloseWithoutSavingDialog
@@ -37,7 +38,6 @@ import io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.more.MoreCo
 import io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.triggerevents.TriggerEventListContent
 
 import com.google.android.material.bottomsheet.BottomSheetDialog
-import com.google.android.material.navigation.NavigationBarView
 
 import kotlinx.coroutines.launch
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredOverlayType
@@ -62,9 +62,12 @@ class ScenarioDialog(
         }
     }
 
-    override fun inflateMenu(navBarView: NavigationBarView) {
-        navBarView.inflateMenu(R.menu.menu_scenario_config)
-    }
+    override fun navigationItems(): List<DialogNavigationItem> = listOf(
+        DialogNavigationItem(R.id.page_image_events, R.drawable.ic_screen_event, R.string.menu_item_title_image_events),
+        DialogNavigationItem(R.id.page_trigger_events, R.drawable.ic_trigger_event, R.string.menu_item_title_trigger_events),
+        DialogNavigationItem(R.id.page_config, R.drawable.ic_settings, R.string.generic_config),
+        DialogNavigationItem(R.id.page_more, R.drawable.ic_more, R.string.menu_item_title_more),
+    )
 
     override fun onCreateContent(navItemId: Int): NavBarDialogContent = when (navItemId) {
         R.id.page_image_events -> ImageEventListContent(context.applicationContext)
@@ -95,7 +98,7 @@ class ScenarioDialog(
         viewModel.monitorViews(
             createEventButton = floatingActionButtons.primary,
             saveButton = topBarBinding.buttonSave,
-            triggerEventTab = navBarView.findViewById(R.id.page_trigger_events),
+            triggerEventTab = navigationItemAnchor(R.id.page_trigger_events),
         )
     }
 

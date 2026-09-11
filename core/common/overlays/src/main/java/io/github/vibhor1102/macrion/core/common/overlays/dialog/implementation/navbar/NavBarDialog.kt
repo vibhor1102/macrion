@@ -27,6 +27,8 @@ import android.view.WindowManager
 import android.widget.FrameLayout
 
 import androidx.annotation.CallSuper
+import androidx.annotation.DrawableRes
+import androidx.annotation.StringRes
 import androidx.annotation.StyleRes
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.view.ViewCompat
@@ -36,6 +38,7 @@ import androidx.lifecycle.Lifecycle
 
 import io.github.vibhor1102.macrion.core.common.overlays.R
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayDialog
+import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.DialogNavigation
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.NavBarDialogScaffold
 import io.github.vibhor1102.macrion.core.ui.bindings.dialogs.DialogNavigationButton
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
@@ -43,9 +46,15 @@ import io.github.vibhor1102.macrion.core.ui.bindings.dialogs.TopBarNavigationVie
 import io.github.vibhor1102.macrion.core.ui.bindings.dialogs.FloatingActionButtonsView
 
 import com.google.android.material.bottomsheet.BottomSheetDialog
-import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.google.android.material.navigation.NavigationBarView
-import com.google.android.material.navigationrail.NavigationRailView
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateMapOf
+
+/** The Compose-native description of a page in a navigation dialog. */
+data class DialogNavigationItem(
+    val id: Int,
+    @DrawableRes val iconRes: Int,
+    @StringRes val labelRes: Int,
+)
 
 abstract class NavBarDialog(@StyleRes theme: Int) : OverlayDialog(theme) {
 
@@ -60,11 +69,14 @@ abstract class NavBarDialog(@StyleRes theme: Int) : OverlayDialog(theme) {
 
     private lateinit var persistentHeader: FrameLayout
     private lateinit var contentContainer: FrameLayout
-    protected lateinit var navBarView: NavigationBarView
+    private lateinit var navigationHost: NavigationHostView
+    private val missingInputBadges = mutableStateMapOf<Int, Boolean>()
+    private var selectedNavigationItemId = mutableIntStateOf(View.NO_ID)
     lateinit var floatingActionButtons: FloatingActionButtonsView
     lateinit var topBarBinding: TopBarNavigationView
 
-    abstract fun inflateMenu(navBarView: NavigationBarView)
+    /** Navigation pages are data rather than an Android menu so the visible surface stays Compose-native. */
+    abstract fun navigationItems(): List<DialogNavigationItem>
 
     abstract fun onCreateContent(navItemId: Int): NavBarDialogContent
 
@@ -89,30 +101,28 @@ abstract class NavBarDialog(@StyleRes theme: Int) : OverlayDialog(theme) {
         // correctly handle the dialog scrolling behaviour without moving the navigation view from the bottom.
         // This issue does not occurs in landscape mode, as the NavigationBar is replaced by a NavigationRail, which
         // is sticky to the dialog start.
-        if (displayConfigManager.displayConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
-            navBarView = BottomNavigationView(context).apply {
-                id = View.generateViewId()
-                translationZ = 100 * resources.displayMetrics.density
-            }
-            floatingActionButtons = FloatingActionButtonsView(context)
-        } else {
-            navBarView = NavigationRailView(context).apply {
-                id = View.generateViewId()
-                labelVisibilityMode = NavigationBarView.LABEL_VISIBILITY_UNLABELED
-            }
-            floatingActionButtons = FloatingActionButtonsView(context)
-        }
-
-        // Generic setup of the navigation
-        navBarView.apply {
-            inflateMenu(this)
-            setOnItemSelectedListener { item ->
-                updateContentView(item.itemId)
-                true
-            }
-        }
-
+        val navigationItems = navigationItems()
+        require(navigationItems.isNotEmpty()) { "A navigation dialog must expose at least one page" }
+        selectedNavigationItemId.intValue = navigationItems.first().id
         val isPortrait = displayConfigManager.displayConfig.orientation == Configuration.ORIENTATION_PORTRAIT
+        navigationHost = NavigationHostView(context, isPortrait).apply {
+            id = View.generateViewId()
+            if (isPortrait) translationZ = 100 * resources.displayMetrics.density
+            setContent {
+                MacrionTheme {
+                    DialogNavigation(
+                        items = navigationItems,
+                        selectedItemId = selectedNavigationItemId.intValue,
+                        missingInputBadges = missingInputBadges,
+                        isPortrait = isPortrait,
+                        onItemSelected = ::updateContentView,
+                    )
+                }
+            }
+            setItemAnchors(navigationItems) { itemId -> updateContentView(itemId) }
+        }
+        floatingActionButtons = FloatingActionButtonsView(context)
+
         return ComposeView(context).apply {
             setContent {
                 MacrionTheme {
@@ -120,7 +130,7 @@ abstract class NavBarDialog(@StyleRes theme: Int) : OverlayDialog(theme) {
                         topBar = topBarBinding.root,
                         persistentHeader = persistentHeader,
                         content = contentContainer,
-                        navBar = navBarView.takeUnless { isPortrait },
+                        navBar = navigationHost.takeUnless { isPortrait },
                         floatingActions = floatingActionButtons.root.takeUnless { isPortrait },
                     )
                 }
@@ -143,19 +153,19 @@ abstract class NavBarDialog(@StyleRes theme: Int) : OverlayDialog(theme) {
         }
 
         updateContentView(
-            itemId = navBarView.selectedItemId,
+            itemId = selectedNavigationItemId.intValue,
             forceUpdate = true,
         )
     }
 
     override fun onStart() {
         super.onStart()
-        contentMap[navBarView.selectedItemId]?.resume()
+        contentMap[selectedNavigationItemId.intValue]?.resume()
     }
 
     override fun onStop() {
         super.onStop()
-        contentMap[navBarView.selectedItemId]?.pause()
+        contentMap[selectedNavigationItemId.intValue]?.pause()
     }
 
     override fun onDestroy() {
@@ -171,8 +181,11 @@ abstract class NavBarDialog(@StyleRes theme: Int) : OverlayDialog(theme) {
     }
 
     protected fun setMissingInputBadge(navItemId: Int, haveMissingInput: Boolean) {
-        navBarView.getOrCreateBadge(navItemId).isVisible = haveMissingInput
+        missingInputBadges[navItemId] = haveMissingInput
     }
+
+    /** Physical item anchor retained for the tutorial system's view-coordinate contract. */
+    protected fun navigationItemAnchor(navItemId: Int): View = navigationHost.itemAnchor(navItemId)
 
     /** Adds content that remains visible above every navigation page. */
     protected fun setPersistentHeader(view: View) {
@@ -187,7 +200,7 @@ abstract class NavBarDialog(@StyleRes theme: Int) : OverlayDialog(theme) {
         dialogCoordinatorLayout?.apply {
             // Add the navigation bar.
             addView(
-                navBarView,
+                navigationHost,
                 CoordinatorLayout.LayoutParams(
                     CoordinatorLayout.LayoutParams.MATCH_PARENT,
                     CoordinatorLayout.LayoutParams.WRAP_CONTENT,
@@ -212,7 +225,7 @@ abstract class NavBarDialog(@StyleRes theme: Int) : OverlayDialog(theme) {
             keyboardAdjustListener = ViewTreeObserver.OnGlobalLayoutListener {
                 val imeHeight = ViewCompat.getRootWindowInsets(this)
                     ?.getInsets(WindowInsetsCompat.Type.ime())?.bottom ?: 0
-                navBarView.translationY = imeHeight.toFloat()
+                navigationHost.translationY = imeHeight.toFloat()
                 floatingActionButtons.root.translationY = imeHeight.toFloat()
             }
             viewTreeObserver.addOnGlobalLayoutListener(keyboardAdjustListener)
@@ -225,10 +238,10 @@ abstract class NavBarDialog(@StyleRes theme: Int) : OverlayDialog(theme) {
         }
 
     private fun updateContentView(itemId: Int, forceUpdate: Boolean = false) {
-        if (!forceUpdate && navBarView.selectedItemId == itemId) return
+        if (!forceUpdate && selectedNavigationItemId.intValue == itemId) return
 
         // Get the current content and stop it, if any.
-        contentMap[navBarView.selectedItemId]?.apply {
+        contentMap[selectedNavigationItemId.intValue]?.apply {
             pause()
             stop()
         }
@@ -241,6 +254,7 @@ abstract class NavBarDialog(@StyleRes theme: Int) : OverlayDialog(theme) {
         }
 
         content.start()
+        selectedNavigationItemId.intValue = itemId
         onContentViewChanged(itemId)
 
         floatingActionButtons.root.visibility =

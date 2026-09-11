@@ -19,13 +19,24 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.Icon
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationRail
+import androidx.compose.material3.NavigationRailItem
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.viewinterop.AndroidView
 
 import io.github.vibhor1102.macrion.core.common.overlays.R
+import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.navbar.DialogNavigationItem
 
 @Composable
 internal fun ListDialogScaffold(
@@ -59,6 +70,51 @@ internal fun ListDialogScaffold(
                         Modifier
                     },
                 ),
+        )
+    }
+}
+
+@Composable
+internal fun DialogNavigation(
+    items: List<DialogNavigationItem>,
+    selectedItemId: Int,
+    missingInputBadges: Map<Int, Boolean>,
+    isPortrait: Boolean,
+    onItemSelected: (Int) -> Unit,
+) {
+    if (isPortrait) {
+        NavigationBar {
+            items.forEach { item ->
+                NavigationBarItem(
+                    selected = item.id == selectedItemId,
+                    onClick = { onItemSelected(item.id) },
+                    icon = { NavigationItemIcon(item, missingInputBadges[item.id] == true) },
+                    label = { androidx.compose.material3.Text(stringResource(item.labelRes)) },
+                    alwaysShowLabel = false,
+                )
+            }
+        }
+    } else {
+        NavigationRail(modifier = Modifier.fillMaxHeight()) {
+            Spacer(Modifier.weight(1f))
+            items.forEach { item ->
+                NavigationRailItem(
+                    selected = item.id == selectedItemId,
+                    onClick = { onItemSelected(item.id) },
+                    icon = { NavigationItemIcon(item, missingInputBadges[item.id] == true) },
+                )
+                Spacer(Modifier.weight(1f))
+            }
+        }
+    }
+}
+
+@Composable
+private fun NavigationItemIcon(item: DialogNavigationItem, hasMissingInput: Boolean) {
+    BadgedBox(badge = { if (hasMissingInput) Badge() }) {
+        Icon(
+            painter = painterResource(item.iconRes),
+            contentDescription = stringResource(item.labelRes),
         )
     }
 }

@@ -26,6 +26,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.navbar.NavBarDialog
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.navbar.NavBarDialogContent
+import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.navbar.DialogNavigationItem
 import io.github.vibhor1102.macrion.core.ui.bindings.dialogs.DialogNavigationButton
 import io.github.vibhor1102.macrion.feature.smart.debugging.R
 import io.github.vibhor1102.macrion.feature.smart.debugging.di.DebuggingViewModelsEntryPoint
@@ -34,7 +35,6 @@ import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.tim
 import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.conditions.ConditionPerformanceContent
 
 import com.google.android.material.bottomsheet.BottomSheetDialog
-import com.google.android.material.navigation.NavigationBarView
 import kotlinx.coroutines.launch
 
 
@@ -57,9 +57,11 @@ class DebugReportDialog : NavBarDialog(R.style.AppTheme) {
         }
     }
 
-    override fun inflateMenu(navBarView: NavigationBarView) {
-        navBarView.inflateMenu(R.menu.menu_debug_report)
-    }
+    override fun navigationItems(): List<DialogNavigationItem> = listOf(
+        DialogNavigationItem(R.id.page_overview, R.drawable.ic_debug_overview, R.string.menu_item_debug_report_overview),
+        DialogNavigationItem(R.id.page_conditions, R.drawable.ic_debug_conditions, R.string.menu_item_debug_report_conditions),
+        DialogNavigationItem(R.id.page_timeline, R.drawable.ic_debug_timeline, R.string.menu_item_debug_report_timeline),
+    )
 
     override fun onCreateContent(navItemId: Int): NavBarDialogContent = when (navItemId) {
         R.id.page_overview -> DebugReportOverviewContent(context.applicationContext)

@@ -28,6 +28,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.navbar.NavBarDialog
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.navbar.NavBarDialogContent
+import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.navbar.DialogNavigationItem
 import io.github.vibhor1102.macrion.core.smart.debugging.domain.model.report.DebugReportEventOccurrence
 import io.github.vibhor1102.macrion.core.ui.bindings.dialogs.DialogNavigationButton
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
@@ -40,7 +41,6 @@ import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.tim
 import io.github.vibhor1102.macrion.feature.smart.debugging.utils.formatDebugTimelineTimestamp
 
 import com.google.android.material.bottomsheet.BottomSheetDialog
-import com.google.android.material.navigation.NavigationBarView
 import kotlinx.coroutines.launch
 import kotlin.getValue
 
@@ -91,9 +91,11 @@ class DebugReportEventOccurrenceDetailsDialog(
         }
     }
 
-    override fun inflateMenu(navBarView: NavigationBarView) {
-        navBarView.inflateMenu(R.menu.menu_debug_event_occurence)
-    }
+    override fun navigationItems(): List<DialogNavigationItem> = listOf(
+        DialogNavigationItem(R.id.page_conditions, R.drawable.ic_condition, R.string.menu_item_debug_event_occurrence_conditions),
+        DialogNavigationItem(R.id.page_events_state, R.drawable.ic_toggle_event, R.string.menu_item_debug_event_occurrence_events_state),
+        DialogNavigationItem(R.id.page_counters, R.drawable.ic_change_counter, R.string.menu_item_debug_event_occurrence_counters),
+    )
 
     override fun onCreateContent(navItemId: Int): NavBarDialogContent =
         when (navItemId) {
