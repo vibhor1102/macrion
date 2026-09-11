@@ -140,6 +140,20 @@ ELSE()
         # Adds the CMakeLists.txt file located in the specified directory as a build dependency.
         add_subdirectory(${SOURCE_OPENCV_PATH})
 
+        # Sanitize OpenCV generated build metadata to ensure byte-for-byte reproducibility
+        if(DEFINED OPENCV_MODULE_opencv_core_BINARY_DIR)
+            file(WRITE "${OPENCV_MODULE_opencv_core_BINARY_DIR}/version_string.inc" "\"\"\n")
+        endif()
+        if(EXISTS "${CMAKE_BINARY_DIR}/opencv_data_config.hpp")
+            file(WRITE "${CMAKE_BINARY_DIR}/opencv_data_config.hpp"
+"#define OPENCV_INSTALL_PREFIX \"\"
+#define OPENCV_DATA_INSTALL_PATH \"\"
+#define OPENCV_BUILD_DIR \"\"
+#define OPENCV_DATA_BUILD_DIR_SEARCH_PATHS \"\"
+#define OPENCV_INSTALL_DATA_DIR_RELATIVE \"\"
+")
+        endif()
+
         # For a reason I'm missing, we have to set the correct output for opencv_core
         set_target_properties( opencv_core PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY} )
 

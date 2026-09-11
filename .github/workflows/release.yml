@@ -36,17 +36,11 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-    - name: Set up JDK 25 and restore Gradle cache
+    - name: Set up JDK 21
       uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c # v6.0.0
       with:
-        distribution: zulu
-        java-version: '25'
-        cache: gradle
-        cache-dependency-path: |
-          **/*.gradle
-          **/*.gradle.kts
-          gradle/libs.versions.toml
-          gradle/wrapper/gradle-wrapper.properties
+        distribution: temurin
+        java-version: '21'
 
     - name: Set up pinned Android NDK 28.2.13676358
       shell: bash
@@ -93,7 +87,7 @@ jobs:
 
     - name: Build with Gradle
       run: |
-        ./gradlew --no-daemon --max-workers=6 --parallel --build-cache \
+        ./gradlew --no-daemon --no-build-cache --max-workers=2 \
           -PsigningStorePassword="${{ secrets.SIGNING_STORE_PASSWORD }}" \
           -PsigningKeyAlias="${{ secrets.SIGNING_KEY_ALIAS }}" \
           -PsigningKeyPassword="${{ secrets.SIGNING_KEY_PASSWORD }}" \

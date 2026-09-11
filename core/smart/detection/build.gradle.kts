@@ -119,6 +119,7 @@ android {
                             "-DCMAKE_C_FLAGS=-ffile-prefix-map=${project.rootDir.absolutePath}=.",
                             "-DCMAKE_CXX_FLAGS=-ffile-prefix-map=${project.rootDir.absolutePath}=.",
                             "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON",
+                            "-DOPENCV_SKIP_STATUS_FINALIZATION=ON",
                             "-DOPENCV_ENABLE_NONFREE=OFF",
                             "-DBUILD_opencv_ittnotify=OFF",
                             "-DBUILD_ITT=OFF",
