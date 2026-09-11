@@ -2,7 +2,6 @@
 package io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.brief
 
 import android.content.res.Configuration
-import android.widget.ImageView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -10,15 +9,15 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import io.github.vibhor1102.macrion.core.domain.model.condition.ScreenCondition
-import io.github.vibhor1102.macrion.core.ui.utils.setColorIndicatorDrawable
 import io.github.vibhor1102.macrion.feature.smart.config.R
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.condition.UiScreenCondition
 
@@ -49,5 +48,32 @@ internal fun ScreenConditionBriefItem(details: UiScreenCondition, orientation: I
 }
 @Composable private fun Title(text: String, lines: Int, align: TextAlign? = null) = Text(text, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, maxLines = lines, overflow = TextOverflow.Ellipsis, textAlign = align)
 @Composable private fun SubText(text: String, modifier: Modifier = Modifier, textAlign: TextAlign? = null) = Text(text, modifier, style = MaterialTheme.typography.bodyMedium, fontStyle = FontStyle.Italic, maxLines = 2, overflow = TextOverflow.Ellipsis, textAlign = textAlign)
-@Composable private fun StateIcon(details: UiScreenCondition) { val tint = MaterialTheme.colorScheme.onPrimaryContainer.toArgb(); AndroidView(factory = { ImageView(it).apply { scaleType = ImageView.ScaleType.FIT_CENTER } }, update = { it.setImageResource(details.shouldBeVisibleIconRes); it.setColorFilter(tint) }, modifier = Modifier.size(16.dp)) }
-@Composable private fun ConditionIcon(details: UiScreenCondition, modifier: Modifier = Modifier) { val tint = MaterialTheme.colorScheme.onPrimaryContainer.toArgb(); AndroidView(factory = { ImageView(it).apply { scaleType = ImageView.ScaleType.FIT_CENTER } }, update = { view -> when (val condition = details.condition) { is ScreenCondition.Color -> { view.clearColorFilter(); view.setColorIndicatorDrawable(condition.color) }; is ScreenCondition.Image -> { view.setImageResource(details.detectionTypeIconRes); view.setColorFilter(tint) }; is ScreenCondition.Number -> { view.setImageResource(R.drawable.ic_number_condition); view.setColorFilter(tint) }; is ScreenCondition.Text -> { view.setImageResource(R.drawable.ic_text_condition); view.setColorFilter(tint) } } }, modifier = modifier.size(32.dp)) }
+@Composable private fun StateIcon(details: UiScreenCondition) = Icon(
+    painter = painterResource(details.shouldBeVisibleIconRes),
+    contentDescription = null,
+    modifier = Modifier.size(16.dp),
+    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+)
+
+@Composable private fun ConditionIcon(details: UiScreenCondition, modifier: Modifier = Modifier) = when (val condition = details.condition) {
+    is ScreenCondition.Color -> ColorIndicator(condition.color, modifier.size(32.dp))
+    is ScreenCondition.Image -> BriefConditionIcon(details.detectionTypeIconRes, modifier)
+    is ScreenCondition.Number -> BriefConditionIcon(R.drawable.ic_number_condition, modifier)
+    is ScreenCondition.Text -> BriefConditionIcon(R.drawable.ic_text_condition, modifier)
+}
+
+@Composable private fun BriefConditionIcon(icon: Int, modifier: Modifier) = Icon(
+    painter = painterResource(icon),
+    contentDescription = null,
+    modifier = modifier.size(32.dp),
+    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+)
+
+@Composable private fun ColorIndicator(color: Int, modifier: Modifier) {
+    val border = MaterialTheme.colorScheme.onSurfaceVariant
+    androidx.compose.foundation.Canvas(modifier) {
+        val radius = size.minDimension * 0.34f
+        drawCircle(Color(color), radius = radius)
+        drawCircle(border, radius = radius * 1.14f, style = Stroke(size.minDimension * 0.07f))
+    }
+}

@@ -2,23 +2,24 @@
 package io.github.vibhor1102.macrion.feature.smart.config.ui.action.brief
 
 import android.content.res.Configuration
-import android.widget.ImageView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.res.painterResource
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.action.UiAction
 
 @Composable
@@ -45,7 +46,12 @@ internal fun SmartActionBriefItem(details: UiAction, orientation: Int, onClick: 
 @Composable private fun BriefText(text: String, size: Int, title: Boolean, lines: Int, align: TextAlign? = null) = Text(text, fontSize = size.sp, fontWeight = if (title) FontWeight.Bold else FontWeight.Normal, fontStyle = if (title) FontStyle.Normal else FontStyle.Italic, maxLines = lines, overflow = TextOverflow.Ellipsis, textAlign = align)
 @Composable private fun BriefIcon(details: UiAction, modifier: Modifier = Modifier) {
     Box(modifier.size(32.dp)) {
-        AndroidView(factory = { ImageView(it).apply { scaleType = ImageView.ScaleType.FIT_CENTER } }, update = { it.setImageResource(details.icon) }, modifier = Modifier.fillMaxSize())
+        Icon(
+            painter = painterResource(details.icon),
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            tint = Color.Unspecified,
+        )
         if (details.haveError) Box(Modifier.align(Alignment.TopEnd).size(6.dp).background(MaterialTheme.colorScheme.error, CircleShape))
     }
 }

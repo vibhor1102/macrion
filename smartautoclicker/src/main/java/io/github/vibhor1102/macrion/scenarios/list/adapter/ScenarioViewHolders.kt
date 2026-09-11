@@ -2,7 +2,6 @@
 package io.github.vibhor1102.macrion.scenarios.list.adapter
 
 import android.graphics.Bitmap
-import android.widget.ImageView
 import androidx.compose.foundation.Image
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
@@ -44,6 +43,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -52,11 +52,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import io.github.vibhor1102.macrion.R
 import io.github.vibhor1102.macrion.core.domain.model.condition.ScreenCondition
 import io.github.vibhor1102.macrion.core.dumb.domain.model.DumbScenario as DumbScenarioModel
-import io.github.vibhor1102.macrion.core.ui.utils.setColorIndicatorDrawable
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.formatters.toEffectDescription
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.formatters.toNaturalDisplayString
 import io.github.vibhor1102.macrion.scenarios.list.model.ScenarioListUiState
@@ -255,11 +253,7 @@ private fun ConditionPreview(
     val context = LocalContext.current
     Box(modifier.background(MaterialTheme.colorScheme.surfaceVariant).padding(2.dp), Alignment.Center) {
         when (condition) {
-            is ScreenCondition.Color -> AndroidView(
-                factory = { ImageView(it).apply { scaleType = ImageView.ScaleType.CENTER_INSIDE } },
-                update = { it.setColorIndicatorDrawable(condition.color) },
-                modifier = Modifier.fillMaxSize(),
-            )
+            is ScreenCondition.Color -> ConditionColorPreview(condition.color)
             is ScreenCondition.Image -> {
                 var bitmap by remember(condition) { mutableStateOf<Bitmap?>(null) }
                 var loaded by remember(condition) { mutableStateOf(false) }
@@ -280,6 +274,16 @@ private fun ConditionPreview(
             is ScreenCondition.Text -> Text(condition.text, textAlign = TextAlign.Center)
             null -> ErrorPreview()
         }
+    }
+}
+
+@Composable
+private fun ConditionColorPreview(color: Int) {
+    val outline = MaterialTheme.colorScheme.onSurfaceVariant
+    androidx.compose.foundation.Canvas(Modifier.fillMaxSize()) {
+        val radius = size.minDimension * 0.3f
+        drawCircle(Color(color), radius = radius)
+        drawCircle(outline, radius = radius * 1.15f, style = Stroke(size.minDimension * 0.06f))
     }
 }
 
