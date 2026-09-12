@@ -85,8 +85,6 @@ abstract class ItemBriefMenu(
 
             setEmptyText(noItemText)
 
-            // Preserve the legacy host's timer reset for taps that are not consumed by a card.
-            root.setOnClickListener { showOrResetPanelTimer() }
             setControlCallbacks(
                 onMovePrevious = { debounceUserInteraction {
                     showOrResetPanelTimer()

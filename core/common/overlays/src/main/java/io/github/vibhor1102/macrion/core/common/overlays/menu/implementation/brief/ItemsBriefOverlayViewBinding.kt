@@ -33,14 +33,19 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.rememberSplineBasedDecay
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.snapping.SnapLayoutInfoProvider
 import androidx.compose.foundation.gestures.snapping.snapFlingBehavior
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
@@ -59,6 +64,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -213,6 +219,22 @@ class ItemsBriefOverlayViewBinding private constructor(
                 if (isPortrait) PortraitBriefPanel() else LandscapeBriefPanel()
             }
 
+            // The legacy root consumed a tap while its auto-hidden panel was away and used it to
+            // reveal that panel. Keep that explicit here, but never place a hit target over a
+            // visible brief card.
+            if (!isPanelVisible.value) {
+                val interactionSource = remember { MutableInteractionSource() }
+                Box(
+                    Modifier
+                        .fillMaxSize()
+                        .clickable(
+                            interactionSource = interactionSource,
+                            indication = null,
+                            onClick = ::showOrResetPanelTimer,
+                        ),
+                )
+            }
+
             AnimatedVisibility(
                 visible = isInstructionsVisible.value,
                 enter = slideInVertically { -it } + fadeIn(),
@@ -248,22 +270,41 @@ class ItemsBriefOverlayViewBinding private constructor(
 
     @Composable
     private fun PortraitBriefPanel() {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        0f to Color.Transparent,
-                        0.3f to Color.Black.copy(alpha = 0.53f),
-                        1f to Color.Black,
+        Box(Modifier.fillMaxSize()) {
+            PanelTimerResetSurface()
+            // The old ConstraintLayout began this surface at the controls minus 112dp. Its
+            // effective height is the 68dp controls row plus that offset, not the full screen.
+            Box(
+                Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .height(PORTRAIT_FADE_HEIGHT)
+                    .background(
+                        Brush.verticalGradient(
+                            0f to Color.Transparent,
+                            0.3f to Color.Black.copy(alpha = 0.53f),
+                            1f to Color.Black,
+                        ),
                     ),
-                ),
-        ) {
+            )
+            Column(Modifier.fillMaxSize()) {
             Spacer(Modifier.height(112.dp))
             Box(Modifier.weight(1f).fillMaxWidth().padding(bottom = 24.dp)) {
-                if (briefItems.value.isEmpty()) EmptyBriefCard(Modifier.fillMaxSize().padding(horizontal = 32.dp))
+                if (briefItems.value.isEmpty()) {
+                    EmptyBriefCard(
+                        Modifier
+                            .align(Alignment.BottomCenter)
+                            .fillMaxWidth()
+                            .height(80.dp)
+                            .padding(horizontal = 32.dp),
+                    )
+                }
                 else briefItemContent?.let { itemContent ->
                     BriefItemsCarousel(
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .fillMaxWidth()
+                            .height(80.dp),
                         items = briefItems.value,
                         orientation = orientation,
                         requestedIndex = requestedBriefItemIndex.intValue,
@@ -271,31 +312,51 @@ class ItemsBriefOverlayViewBinding private constructor(
                         onItemClicked = onItemClicked,
                         onFocusedItemChanged = onFocusedItemChanged,
                         onFirstItemViewChanged = onFirstItemViewChanged,
+                        onInteraction = ::showOrResetPanelTimer,
                     )
                 }
             }
             Controls()
+            }
         }
     }
 
     @Composable
     private fun LandscapeBriefPanel() {
-        Row(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    Brush.horizontalGradient(
-                        0f to Color.Black,
-                        0.7f to Color.Black.copy(alpha = 0.53f),
-                        1f to Color.Transparent,
+        Box(Modifier.fillMaxSize()) {
+            PanelTimerResetSurface()
+            // Legacy used a fade whose right edge ended 156dp beyond the controls.
+            Box(
+                Modifier
+                    .align(Alignment.CenterStart)
+                    .fillMaxHeight()
+                    .width(LANDSCAPE_FADE_WIDTH)
+                    .background(
+                        Brush.horizontalGradient(
+                            0f to Color.Black,
+                            0.7f to Color.Black.copy(alpha = 0.53f),
+                            1f to Color.Transparent,
+                        ),
                     ),
-                ),
-        ) {
+            )
+            Row(Modifier.fillMaxSize()) {
             Controls()
             Box(Modifier.weight(1f).fillMaxHeight().padding(start = 16.dp, end = 156.dp)) {
-                if (briefItems.value.isEmpty()) EmptyBriefCard(Modifier.fillMaxHeight().width(124.dp).padding(vertical = 64.dp))
+                if (briefItems.value.isEmpty()) {
+                    EmptyBriefCard(
+                        Modifier
+                            .align(Alignment.CenterStart)
+                            .fillMaxHeight()
+                            .width(124.dp)
+                            .padding(vertical = 64.dp),
+                    )
+                }
                 else briefItemContent?.let { itemContent ->
                     BriefItemsCarousel(
+                        modifier = Modifier
+                            .align(Alignment.CenterStart)
+                            .fillMaxHeight()
+                            .width(124.dp),
                         items = briefItems.value,
                         orientation = orientation,
                         requestedIndex = requestedBriefItemIndex.intValue,
@@ -303,8 +364,10 @@ class ItemsBriefOverlayViewBinding private constructor(
                         onItemClicked = onItemClicked,
                         onFocusedItemChanged = onFocusedItemChanged,
                         onFirstItemViewChanged = onFirstItemViewChanged,
+                        onInteraction = ::showOrResetPanelTimer,
                     )
                 }
+            }
             }
         }
     }
@@ -319,6 +382,24 @@ class ItemsBriefOverlayViewBinding private constructor(
         onPlay = onPlay,
         onMoveNext = onMoveNext,
     )
+
+    /**
+     * Equivalent of the legacy root click listener. This sits behind the actual controls and
+     * carousel, so only otherwise-unused panel space resets the auto-hide timer.
+     */
+    @Composable
+    private fun PanelTimerResetSurface() {
+        val interactionSource = remember { MutableInteractionSource() }
+        Box(
+            Modifier
+                .fillMaxSize()
+                .clickable(
+                    interactionSource = interactionSource,
+                    indication = null,
+                    onClick = ::showOrResetPanelTimer,
+                ),
+        )
+    }
 
     @Composable
     private fun EmptyBriefCard(modifier: Modifier) {
@@ -425,6 +506,7 @@ private fun PositionCard(state: ItemBriefControlsState, onClick: () -> Unit, mod
 
 @Composable
 private fun BriefItemsCarousel(
+    modifier: Modifier,
     items: List<ItemBrief>,
     orientation: Int,
     requestedIndex: Int,
@@ -432,6 +514,7 @@ private fun BriefItemsCarousel(
     onItemClicked: (Int, ItemBrief) -> Unit,
     onFocusedItemChanged: (Int) -> Unit,
     onFirstItemViewChanged: (View?) -> Unit,
+    onInteraction: () -> Unit,
 ) {
     val listState = rememberLazyListState()
 
@@ -450,7 +533,7 @@ private fun BriefItemsCarousel(
     val flingBehavior = rememberBriefCarouselFlingBehavior(listState)
     if (orientation == Configuration.ORIENTATION_PORTRAIT) {
         LazyRow(
-            modifier = Modifier.fillMaxSize(),
+            modifier = modifier,
             state = listState,
             flingBehavior = flingBehavior,
             contentPadding = PaddingValues(horizontal = 16.dp),
@@ -460,7 +543,7 @@ private fun BriefItemsCarousel(
                     modifier = Modifier.fillParentMaxSize(),
                     isFirstItem = index == 0,
                     onFirstItemViewChanged = onFirstItemViewChanged,
-                    onClick = { onItemClicked(index, brief) },
+                    onInteraction = onInteraction,
                 ) {
                     itemContent(brief, orientation) { onItemClicked(index, brief) }
                 }
@@ -468,7 +551,7 @@ private fun BriefItemsCarousel(
         }
     } else {
         LazyColumn(
-            modifier = Modifier.fillMaxSize(),
+            modifier = modifier,
             state = listState,
             flingBehavior = flingBehavior,
             contentPadding = PaddingValues(vertical = 64.dp),
@@ -478,7 +561,7 @@ private fun BriefItemsCarousel(
                     modifier = Modifier.fillParentMaxSize(),
                     isFirstItem = index == 0,
                     onFirstItemViewChanged = onFirstItemViewChanged,
-                    onClick = { onItemClicked(index, brief) },
+                    onInteraction = onInteraction,
                 ) {
                     itemContent(brief, orientation) { onItemClicked(index, brief) }
                 }
@@ -536,15 +619,25 @@ private fun BriefItemContainer(
     modifier: Modifier,
     isFirstItem: Boolean,
     onFirstItemViewChanged: (View?) -> Unit,
-    onClick: () -> Unit,
+    onInteraction: () -> Unit,
     content: @Composable () -> Unit,
 ) {
-    Box(modifier) {
+    Box(
+        modifier.pointerInput(onInteraction) {
+            awaitEachGesture {
+                awaitFirstDown(requireUnconsumed = false)
+                onInteraction()
+                waitForUpOrCancellation()
+            }
+        },
+    ) {
         if (isFirstItem) {
             val context = LocalContext.current
             AndroidView(
                 factory = {
-                    View(context).apply { setOnClickListener { onClick() } }.also(onFirstItemViewChanged)
+                    // This native child is a tutorial-monitoring anchor only. Card clicks are
+                    // handled by the actual composable ElevatedCard above it.
+                    View(context).also(onFirstItemViewChanged)
                 },
                 modifier = Modifier.matchParentSize(),
             )
@@ -567,3 +660,5 @@ private const val FLING_LINEAR_FACTOR = 2f
 private const val FLING_QUADRATIC_FACTOR = 2f
 private const val EXPRESSIVE_SNAP_DAMPING_RATIO = 0.8f
 private const val EXPRESSIVE_SNAP_STIFFNESS = 380f
+private val PORTRAIT_FADE_HEIGHT = 180.dp
+private val LANDSCAPE_FADE_WIDTH = 252.dp
