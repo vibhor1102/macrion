@@ -42,7 +42,6 @@ import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.OnConditio
 import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.areaselector.ConditionAreaSelectorMenu
 import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.image.MAX_THRESHOLD
 import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.text.alphabet.AlphabetActivity
-import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.text.alphabet.selection.AlphabetSelectionFragment
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
@@ -179,7 +178,7 @@ class TextConditionDialog(private val listener: OnConditionConfigCompleteListene
         ConditionAreaSelectorMenu(onHelpClicked = { context.getTutorialNavigator().showTipDialog(context, Tip.TEXT_DETECTION_AREA) },
             onAreaSelected = viewModel::setDetectionArea), true)
     private fun showAlphabetSelectionDialog() = context.startActivity(
-        AlphabetActivity.getStartIntent(context, AlphabetSelectionFragment.FRAGMENT_TAG))
+        AlphabetActivity.getStartIntent(context, AlphabetActivity.MODE_SELECTION))
 }
 
 private const val TAG = "TextConditionDialog"

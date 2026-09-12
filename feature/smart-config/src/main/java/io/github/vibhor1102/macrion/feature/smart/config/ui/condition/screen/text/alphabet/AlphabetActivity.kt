@@ -1,80 +1,118 @@
-/*
- * Copyright (C) 2026 Kevin Buzeau
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+/* Copyright (C) 2026 Kevin Buzeau; Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.text.alphabet
 
 import android.content.Context
 import android.content.Intent
-import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
-import android.widget.FrameLayout
-
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Surface
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.ComposeView
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dagger.hilt.EntryPoints
+import dagger.hilt.android.AndroidEntryPoint
 import io.github.vibhor1102.macrion.core.common.overlays.di.OverlaysEntryPoint
 import io.github.vibhor1102.macrion.core.common.overlays.manager.OverlayManager
-import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.text.alphabet.required.RequiredAlphabetFragment
-import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.text.alphabet.selection.AlphabetSelectionFragment
-import dagger.hilt.EntryPoints
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
+import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.text.alphabet.required.RequiredAlphabetViewModel
+import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.text.alphabet.selection.AlphabetSelectionViewModel
 
-import dagger.hilt.android.AndroidEntryPoint
-
-/** We use an activiy instead of an overlay here because the Play Asset Delivery requires a foreground Activity. */
+/** Foreground Activity required by Play Asset Delivery, with an Activity-owned Compose sheet. */
 @AndroidEntryPoint
 class AlphabetActivity : AppCompatActivity() {
 
     companion object {
-        private const val EXTRA_FRAGMENT_TAG =
-            "io.github.vibhor1102.macrion.feature.smart.config.ui.EXTRA_OCR_FRAGMENT_TAG"
+        const val MODE_SELECTION = 1
+        const val MODE_REQUIRED = 2
+        private const val EXTRA_MODE = "io.github.vibhor1102.macrion.feature.smart.config.ui.EXTRA_OCR_MODE"
 
-        fun getStartIntent(context: Context, fragmentTag: String): Intent =
+        fun getStartIntent(context: Context, mode: Int): Intent =
             Intent(context, AlphabetActivity::class.java)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                .putExtra(EXTRA_FRAGMENT_TAG, fragmentTag)
+                .putExtra(EXTRA_MODE, mode)
     }
 
+    private val selectionViewModel: AlphabetSelectionViewModel by viewModels()
+    private val requiredViewModel: RequiredAlphabetViewModel by viewModels()
     private val overlayManager: OverlayManager by lazy {
-        EntryPoints.get(applicationContext, OverlaysEntryPoint::class.java)
-            .overlayManager()
+        EntryPoints.get(applicationContext, OverlaysEntryPoint::class.java).overlayManager()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(FrameLayout(this).apply { setBackgroundColor(Color.TRANSPARENT) })
-
         overlayManager.hideAll()
+        val mode = intent?.getIntExtra(EXTRA_MODE, 0) ?: 0
+        if (mode != MODE_SELECTION && mode != MODE_REQUIRED) {
+            Log.e(TAG, "Invalid alphabet mode $mode")
+            finish()
+            return
+        }
+        setContentView(ComposeView(this).apply {
+            setContent {
+                MacrionTheme {
+                    Surface(Modifier.fillMaxSize(), color = Color.Transparent) { AlphabetSheet(mode) }
+                }
+            }
+        })
+    }
 
-        when (val tag = intent?.getStringExtra(EXTRA_FRAGMENT_TAG)) {
-            AlphabetSelectionFragment.FRAGMENT_TAG ->
-                AlphabetSelectionFragment().show(supportFragmentManager, AlphabetSelectionFragment.FRAGMENT_TAG)
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    private fun AlphabetSheet(mode: Int) {
+        ModalBottomSheet(
+            onDismissRequest = ::finish,
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+            sheetGesturesEnabled = false,
+            dragHandle = null,
+        ) {
+            if (mode == MODE_SELECTION) SelectionContent() else RequiredContent()
+        }
+    }
 
-            RequiredAlphabetFragment.FRAGMENT_TAG ->
-                RequiredAlphabetFragment().show(supportFragmentManager, RequiredAlphabetFragment.FRAGMENT_TAG)
-
-            else -> {
-                Log.e(TAG, "Invalid fragment tag $tag")
+    @Composable
+    private fun SelectionContent() {
+        val items = selectionViewModel.items.collectAsStateWithLifecycle(initialValue = emptyList()).value
+        val isEditing = selectionViewModel.isEditingCondition.collectAsStateWithLifecycle(initialValue = true).value
+        LaunchedEffect(isEditing) {
+            if (!isEditing) {
+                Log.e(TAG, "Closing alphabet selection because there is no condition edited")
                 finish()
+            }
+        }
+        AlphabetModelSheet(items, false, true, ::finish) { item ->
+            if (item !is AlphabetSelectionItem.Alphabet) return@AlphabetModelSheet
+            when (item.downloadState) {
+                AlphabetDownloadUiState.Downloaded -> selectionViewModel.selectModel(item.alphabet)
+                AlphabetDownloadUiState.NotDownloaded -> selectionViewModel.downloadModel(item.alphabet)
+                is AlphabetDownloadUiState.Downloading, AlphabetDownloadUiState.Error -> Unit
+            }
+        }
+    }
+
+    @Composable
+    private fun RequiredContent() {
+        val items = requiredViewModel.items.collectAsStateWithLifecycle(initialValue = emptyList()).value
+        val canContinue = requiredViewModel.canContinue.collectAsStateWithLifecycle(initialValue = false).value
+        AlphabetModelSheet(items, true, canContinue, ::finish) { item ->
+            if (item is AlphabetSelectionItem.Alphabet && item.downloadState == AlphabetDownloadUiState.NotDownloaded) {
+                requiredViewModel.downloadModel(item.alphabet)
             }
         }
     }
 
     override fun onDestroy() {
-        super.onDestroy()
         overlayManager.restoreVisibility()
+        super.onDestroy()
     }
 }
 
-private const val TAG = "OcrModelActivity"
+private const val TAG = "AlphabetActivity"

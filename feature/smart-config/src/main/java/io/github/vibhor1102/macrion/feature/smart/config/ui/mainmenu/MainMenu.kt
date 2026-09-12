@@ -45,7 +45,6 @@ import io.github.vibhor1102.macrion.feature.smart.config.R
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.starters.newRestartMediaProjectionStarterOverlay
 import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.text.alphabet.AlphabetActivity
-import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.text.alphabet.required.RequiredAlphabetFragment
 import io.github.vibhor1102.macrion.feature.smart.config.ui.mainmenu.debugging.LiveDebuggingUiState
 import io.github.vibhor1102.macrion.feature.smart.config.ui.mainmenu.debugging.LiveDebuggingViewModel
 import io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.ScenarioDialog
@@ -270,7 +269,7 @@ class MainMenu(
 
     private fun onPlayPauseClicked() {
         if (viewModel.shouldDownloadModels()) {
-            context.startActivity(AlphabetActivity.getStartIntent(context, RequiredAlphabetFragment.FRAGMENT_TAG))
+            context.startActivity(AlphabetActivity.getStartIntent(context, AlphabetActivity.MODE_REQUIRED))
             return
         }
 
