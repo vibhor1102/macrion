@@ -24,8 +24,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
@@ -33,6 +35,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionDialogSurface
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
@@ -40,6 +43,37 @@ import io.github.vibhor1102.macrion.core.ui.utils.getDynamicColorsContext
 import io.github.vibhor1102.macrion.feature.tutorial.R
 import io.github.vibhor1102.macrion.feature.tutorial.data.mapping.toTutorialSlideshow
 import io.github.vibhor1102.macrion.feature.tutorial.domain.model.TutorialSlideshow
+
+@Composable
+fun TutorialSlideshowDialog(
+    slideshowType: TutorialSlideshow.Type,
+    pageRange: IntRange? = null,
+    onDismiss: () -> Unit,
+) {
+    val slideshow = remember(slideshowType) { slideshowType.toTutorialSlideshow() }
+    val pages = pageRange ?: IntRange(0, slideshow.slideshowItems.lastIndex)
+    if (pageRange != null && (pageRange.first < 0 || pageRange.last > slideshow.slideshowItems.lastIndex)) {
+        Log.e(TAG, "Can't create slideshow dialog, page range is invalid: $pageRange; " +
+                "slideshowItems=${slideshow.slideshowItems.size}")
+        return
+    }
+
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            shape = MaterialTheme.shapes.extraLarge,
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            tonalElevation = 6.dp,
+        ) {
+            MacrionDialogSurface {
+                TutorialSlideshowDialogContent(
+                    slideshow = slideshow,
+                    pages = slideshow.slideshowItems.subList(pages.first, pages.last + 1),
+                    onDismiss = onDismiss,
+                )
+            }
+        }
+    }
+}
 
 internal fun Context.createTutorialSlideshowDialog(
     slideshowType: TutorialSlideshow.Type,

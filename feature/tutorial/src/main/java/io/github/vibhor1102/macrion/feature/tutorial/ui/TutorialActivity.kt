@@ -26,7 +26,6 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import androidx.appcompat.app.AlertDialog
 import io.github.vibhor1102.macrion.core.common.permissions.ui.PermissionsHost
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.tween
@@ -84,7 +83,7 @@ import io.github.vibhor1102.macrion.feature.tutorial.domain.model.TutorialCatego
 import io.github.vibhor1102.macrion.feature.tutorial.domain.model.TutorialCategoryUiItems
 import io.github.vibhor1102.macrion.feature.tutorial.domain.model.TutorialItem
 import io.github.vibhor1102.macrion.feature.tutorial.domain.model.TutorialSlideshow
-import io.github.vibhor1102.macrion.feature.tutorial.ui.dialogs.createTutorialSuccessDialog
+import io.github.vibhor1102.macrion.feature.tutorial.ui.dialogs.TutorialSuccessDialog
 import io.github.vibhor1102.macrion.feature.tutorial.ui.game.clickcount.ClickCountGameScreen
 import io.github.vibhor1102.macrion.feature.tutorial.ui.game.clickcount.ClickCountGameViewModel
 import io.github.vibhor1102.macrion.feature.tutorial.ui.game.timing.TimingGameScreen
@@ -386,11 +385,10 @@ private fun ClickCountGameHost(
     overlayManager: OverlayManager,
     onNavigateBack: () -> Unit,
 ) {
-    val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     var showOverlayMenuPlaceholder by remember { mutableStateOf(true) }
     var overlayMenuPosition by remember { mutableStateOf<IntOffset?>(null) }
-    var completionDialog by remember { mutableStateOf<AlertDialog?>(null) }
+    var showCompletionDialog by remember { mutableStateOf(false) }
 
     fun lockMenuPosition(position: IntOffset) {
         overlayManager.lockMenuPosition(Point(position.x, position.y))
@@ -421,8 +419,7 @@ private fun ClickCountGameHost(
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose {
             lifecycleOwner.lifecycle.removeObserver(observer)
-            completionDialog?.dismiss()
-            completionDialog = null
+            showCompletionDialog = false
             viewModel.stopDetection()
             if (viewModel.shouldDisplayFloatingUi.value) {
                 overlayManager.hideAll()
@@ -450,15 +447,7 @@ private fun ClickCountGameHost(
             }
             launch {
                 viewModel.shouldDisplayCompletionDialog.collect { show ->
-                    if (!show || completionDialog?.isShowing == true) return@collect
-                    completionDialog = context.createTutorialSuccessDialog {
-                        onNavigateBack()
-                    }.also { dialog ->
-                        dialog.setOnDismissListener {
-                            if (completionDialog === dialog) completionDialog = null
-                        }
-                        dialog.show()
-                    }
+                    if (show) showCompletionDialog = true
                 }
             }
             launch {
@@ -481,6 +470,16 @@ private fun ClickCountGameHost(
         onTargetHit = viewModel::onTargetHit,
         onStartGame = viewModel::startGame,
     )
+
+    if (showCompletionDialog) {
+        TutorialSuccessDialog(
+            onDismiss = { showCompletionDialog = false },
+            onClose = {
+                showCompletionDialog = false
+                onNavigateBack()
+            },
+        )
+    }
 }
 
 @Composable
@@ -489,11 +488,10 @@ private fun TimingGameHost(
     overlayManager: OverlayManager,
     onNavigateBack: () -> Unit,
 ) {
-    val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     var showOverlayMenuPlaceholder by remember { mutableStateOf(true) }
     var overlayMenuPosition by remember { mutableStateOf<IntOffset?>(null) }
-    var completionDialog by remember { mutableStateOf<AlertDialog?>(null) }
+    var showCompletionDialog by remember { mutableStateOf(false) }
 
     fun lockMenuPosition(position: IntOffset) {
         overlayManager.lockMenuPosition(Point(position.x, position.y))
@@ -524,8 +522,7 @@ private fun TimingGameHost(
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose {
             lifecycleOwner.lifecycle.removeObserver(observer)
-            completionDialog?.dismiss()
-            completionDialog = null
+            showCompletionDialog = false
             viewModel.stopDetection()
             if (viewModel.shouldDisplayFloatingUi.value) {
                 overlayManager.hideAll()
@@ -553,15 +550,7 @@ private fun TimingGameHost(
             }
             launch {
                 viewModel.shouldDisplayCompletionDialog.collect { show ->
-                    if (!show || completionDialog?.isShowing == true) return@collect
-                    completionDialog = context.createTutorialSuccessDialog {
-                        onNavigateBack()
-                    }.also { dialog ->
-                        dialog.setOnDismissListener {
-                            if (completionDialog === dialog) completionDialog = null
-                        }
-                        dialog.show()
-                    }
+                    if (show) showCompletionDialog = true
                 }
             }
             launch {
@@ -584,4 +573,14 @@ private fun TimingGameHost(
         onTimingClick = viewModel::onTimingButtonHit,
         onRetryClick = viewModel::resetGame,
     )
+
+    if (showCompletionDialog) {
+        TutorialSuccessDialog(
+            onDismiss = { showCompletionDialog = false },
+            onClose = {
+                showCompletionDialog = false
+                onNavigateBack()
+            },
+        )
+    }
 }

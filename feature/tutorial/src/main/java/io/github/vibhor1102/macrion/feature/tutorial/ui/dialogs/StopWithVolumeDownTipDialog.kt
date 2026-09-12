@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (C) 2024 Kevin Buzeau
  *
  * This program is free software: you can redistribute it and/or modify
@@ -31,10 +31,12 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -43,6 +45,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.TutorialRepository
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.Tip
@@ -51,6 +54,37 @@ import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.core.ui.utils.getDynamicColorsContext
 import io.github.vibhor1102.macrion.feature.tutorial.R
 import io.github.vibhor1102.macrion.core.ui.R as UiR
+
+@Composable
+fun StopWithVolumeDownTipDialog(
+    tutorialRepository: TutorialRepository,
+    onDismiss: () -> Unit,
+) {
+    var dontShowAgain by remember { mutableStateOf(false) }
+    Dialog(
+        onDismissRequest = {
+            if (dontShowAgain) tutorialRepository.dontShowTipAgain(Tip.STOP_WITH_VOLUME_DOWN)
+            onDismiss()
+        },
+    ) {
+        Surface(
+            shape = MaterialTheme.shapes.extraLarge,
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            tonalElevation = 6.dp,
+        ) {
+            MacrionDialogSurface {
+                StopWithVolumeDownTipContent(
+                    dontShowAgain = dontShowAgain,
+                    onDontShowAgainChanged = { dontShowAgain = it },
+                    onDismiss = {
+                        if (dontShowAgain) tutorialRepository.dontShowTipAgain(Tip.STOP_WITH_VOLUME_DOWN)
+                        onDismiss()
+                    },
+                )
+            }
+        }
+    }
+}
 
 
 internal fun Context.createStopWithVolumeDownTutorialDialog(

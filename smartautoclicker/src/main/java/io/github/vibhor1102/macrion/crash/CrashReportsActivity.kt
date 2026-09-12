@@ -8,9 +8,9 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.os.Bundle
+import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -49,7 +49,7 @@ import org.acra.builder.ReportBuilder
 import org.acra.config.CoreConfiguration
 
 /** Local viewer with explicit per-report copy, send, and discard actions. */
-class CrashReportsActivity : AppCompatActivity() {
+class CrashReportsActivity : ComponentActivity() {
     private var reports by mutableStateOf<List<CrashReportStore.Report>>(emptyList())
     private var failed by mutableStateOf(false)
     private var loading by mutableStateOf(true)

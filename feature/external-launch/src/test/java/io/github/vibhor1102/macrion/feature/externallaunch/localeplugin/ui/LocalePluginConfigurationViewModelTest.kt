@@ -8,7 +8,7 @@
  */
 package io.github.vibhor1102.macrion.feature.externallaunch.localeplugin.ui
 
-import androidx.appcompat.app.AppCompatActivity
+import androidx.activity.ComponentActivity
 import io.github.vibhor1102.macrion.core.common.permissions.PermissionsController
 import io.github.vibhor1102.macrion.core.common.permissions.model.Permission
 import io.github.vibhor1102.macrion.core.common.permissions.model.PermissionPostNotification
@@ -38,7 +38,7 @@ class LocalePluginConfigurationViewModelTest {
     fun `saving a Locale launch setup requests notification fallback permission`() {
         val permissions = slot<List<Permission>>()
 
-        viewModel.requestFallbackNotificationPermission(mockk<AppCompatActivity>(), onGranted = {})
+        viewModel.requestFallbackNotificationPermission(mockk<ComponentActivity>(), onGranted = {})
 
         verify {
             permissionsController.startPermissionsUiFlow(
