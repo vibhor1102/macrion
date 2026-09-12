@@ -17,8 +17,6 @@
 package io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.imageevents
 
 import android.content.Context
-import android.view.View
-
 import androidx.lifecycle.ViewModel
 
 import io.github.vibhor1102.macrion.core.domain.model.event.ScreenEvent
@@ -37,25 +35,20 @@ import javax.inject.Inject
 class ImageEventListViewModel @Inject constructor(
     isScreenEventCopyAvailableUseCase: IsScreenEventCopyAvailableUseCase,
     private val editionRepository: EditionRepository,
-    private val monitoredViewsManager: MonitoredViewsManager,
+    internal val monitoredViewsManager: MonitoredViewsManager,
 ) : ViewModel() {
 
     /** Currently configured events. */
     val eventsItems = editionRepository.editionState.editedScreenEventsState
         .mapNotNull { imageEventsState ->
-            imageEventsState.value?.map { imageEvent ->
-                imageEvent.toUiImageEvent(inError = !imageEvent.isComplete())
+            imageEventsState.value?.let { events ->
+                events.map { it.toUiImageEvent(inError = !it.isComplete()) }
             }
         }
 
-    /** Tells if the copy button should be visible or not. */
     val copyButtonIsVisible: Flow<Boolean> = isScreenEventCopyAvailableUseCase()
 
-    /**
-     * Creates a new event item.
-     * @param context the Android context.
-     * @return the new event item.
-     */
+    /** Create an event. */
     fun createNewEvent(context: Context): ScreenEvent =
         editionRepository.editedItemsBuilder.createNewImageEvent(context)
 
@@ -75,33 +68,4 @@ class ImageEventListViewModel @Inject constructor(
         editionRepository.updateImageEventsOrder(
             uiEvents.map { it.event }
         )
-
-    fun monitorEventView(index: Int, view: View) {
-        val type = when (index) {
-            0 -> MonitoredViewType.SCENARIO_DIALOG_ITEM_FIRST_EVENT
-            1 -> MonitoredViewType.SCENARIO_DIALOG_ITEM_SECOND_EVENT
-            2 -> MonitoredViewType.SCENARIO_DIALOG_ITEM_THIRD_EVENT
-            3 -> MonitoredViewType.SCENARIO_DIALOG_ITEM_FOURTH_EVENT
-            else -> return
-        }
-        monitoredViewsManager.attach(type, view)
-    }
-
-    fun stopEventViewMonitoring(index: Int) {
-        val type = when (index) {
-            0 -> MonitoredViewType.SCENARIO_DIALOG_ITEM_FIRST_EVENT
-            1 -> MonitoredViewType.SCENARIO_DIALOG_ITEM_SECOND_EVENT
-            2 -> MonitoredViewType.SCENARIO_DIALOG_ITEM_THIRD_EVENT
-            3 -> MonitoredViewType.SCENARIO_DIALOG_ITEM_FOURTH_EVENT
-            else -> return
-        }
-        monitoredViewsManager.detach(type)
-    }
-
-    fun stopViewMonitoring() {
-        monitoredViewsManager.detach(MonitoredViewType.SCENARIO_DIALOG_ITEM_FIRST_EVENT)
-        monitoredViewsManager.detach(MonitoredViewType.SCENARIO_DIALOG_ITEM_SECOND_EVENT)
-        monitoredViewsManager.detach(MonitoredViewType.SCENARIO_DIALOG_ITEM_THIRD_EVENT)
-        monitoredViewsManager.detach(MonitoredViewType.SCENARIO_DIALOG_ITEM_FOURTH_EVENT)
-    }
 }

@@ -21,12 +21,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dagger.hilt.android.EntryPointAccessors
+import io.github.vibhor1102.macrion.core.common.tutorial.di.TutorialEntryPoint
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.MonitoredViewsManager
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredViewType
 import kotlin.math.roundToInt
@@ -34,6 +38,21 @@ import kotlin.math.roundToInt
 import androidx.compose.runtime.staticCompositionLocalOf
 
 val LocalMonitoredViewsManager = staticCompositionLocalOf<MonitoredViewsManager?> { null }
+
+@Composable
+fun rememberMonitoredViewsManager(): MonitoredViewsManager? {
+    val local = LocalMonitoredViewsManager.current
+    if (local != null) return local
+    val context = LocalContext.current
+    return remember(context) {
+        runCatching {
+            EntryPointAccessors.fromApplication(
+                context.applicationContext,
+                TutorialEntryPoint::class.java,
+            ).monitoredViewsManager()
+        }.getOrNull()
+    }
+}
 
 /**
  * Attaches a Composable control to Macrion's Tutorial system.
@@ -47,7 +66,7 @@ val LocalMonitoredViewsManager = staticCompositionLocalOf<MonitoredViewsManager?
 @Composable
 fun Modifier.tutorialAnchor(
     type: MonitoredViewType,
-    monitoredViewsManager: MonitoredViewsManager? = LocalMonitoredViewsManager.current,
+    monitoredViewsManager: MonitoredViewsManager? = rememberMonitoredViewsManager(),
     onClick: (() -> Unit)? = null,
     enabled: Boolean = true,
 ): Modifier {
@@ -89,7 +108,7 @@ fun Modifier.tutorialAnchor(
 fun Modifier.tutorialTextAnchor(
     type: MonitoredViewType,
     text: String,
-    monitoredViewsManager: MonitoredViewsManager? = LocalMonitoredViewsManager.current,
+    monitoredViewsManager: MonitoredViewsManager? = rememberMonitoredViewsManager(),
 ): Modifier {
     val manager = monitoredViewsManager ?: return this
     val isMonitoring by manager.isViewMonitoringEnabled().collectAsStateWithLifecycle()

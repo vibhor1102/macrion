@@ -31,6 +31,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayDialog
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredOverlayType
+import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredViewType
 import io.github.vibhor1102.macrion.core.ui.bindings.dropdown.TimeUnitDropDownItem
 import io.github.vibhor1102.macrion.core.ui.bindings.dropdown.timeUnitDropdownItems
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTextField
@@ -39,8 +40,9 @@ import io.github.vibhor1102.macrion.core.ui.compose.macrionDoneKeyboardActions
 import io.github.vibhor1102.macrion.core.ui.compose.macrionDoneKeyboardOptions
 import io.github.vibhor1102.macrion.feature.smart.config.R
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
-import io.github.vibhor1102.macrion.feature.smart.config.ui.common.compose.TutorialClickAnchor
-import io.github.vibhor1102.macrion.feature.smart.config.ui.common.compose.TutorialViewAnchor
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.compose.LocalMonitoredViewsManager
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.compose.tutorialAnchor
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.compose.tutorialTextAnchor
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.dialogs.showCloseWithoutSavingDialog
 import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.OnConditionConfigCompleteListener
 import kotlinx.coroutines.launch
@@ -52,9 +54,6 @@ class TimerReachedConditionDialog(private val listener: OnConditionConfigComplet
         entryPoint = ScenarioConfigViewModelsEntryPoint::class.java,
         creator = { timerReachedConditionViewModel() },
     )
-    private var afterAnchor: View? = null
-    private var restartAnchor: View? = null
-    private var saveAnchor: View? = null
 
     override fun onCreateView(): ViewGroup = ComposeView(context).apply {
         setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
@@ -69,54 +68,58 @@ class TimerReachedConditionDialog(private val listener: OnConditionConfigComplet
         } }
     }
 
-    override fun onStart() {
-        super.onStart()
-        viewModel.monitorAfterView(afterAnchor)
-        viewModel.monitorRestartView(restartAnchor)
-        viewModel.monitorSaveView(saveAnchor)
-    }
-
-    override fun onStop() { viewModel.detachMonitoredViews(); super.onStop() }
-
     @Composable private fun Content() {
-        val initialName by viewModel.name.collectAsStateWithLifecycle(null)
-        val displayedDuration by viewModel.duration.collectAsStateWithLifecycle(null)
-        val unit by viewModel.selectedUnitItem.collectAsStateWithLifecycle(TimeUnitDropDownItem.Milliseconds)
-        val nameError by viewModel.nameError.collectAsStateWithLifecycle(false)
-        val durationError by viewModel.durationError.collectAsStateWithLifecycle(false)
-        val restart by viewModel.restartWhenReached.collectAsStateWithLifecycle(false)
-        val saveEnabled by viewModel.conditionCanBeSaved.collectAsStateWithLifecycle(false)
-        var name by rememberSaveable { mutableStateOf("") }
-        var duration by rememberSaveable { mutableStateOf("") }
-        val durationFocusRequester = remember { FocusRequester() }
-        LaunchedEffect(initialName) { initialName?.let { name = it } }
-        LaunchedEffect(displayedDuration) { displayedDuration?.let { duration = it } }
+        CompositionLocalProvider(LocalMonitoredViewsManager provides viewModel.monitoredViewsManager) {
+            val initialName by viewModel.name.collectAsStateWithLifecycle(null)
+            val displayedDuration by viewModel.duration.collectAsStateWithLifecycle(null)
+            val unit by viewModel.selectedUnitItem.collectAsStateWithLifecycle(TimeUnitDropDownItem.Milliseconds)
+            val nameError by viewModel.nameError.collectAsStateWithLifecycle(false)
+            val durationError by viewModel.durationError.collectAsStateWithLifecycle(false)
+            val restart by viewModel.restartWhenReached.collectAsStateWithLifecycle(false)
+            val saveEnabled by viewModel.conditionCanBeSaved.collectAsStateWithLifecycle(false)
+            var name by rememberSaveable { mutableStateOf("") }
+            var duration by rememberSaveable { mutableStateOf("") }
+            val durationFocusRequester = remember { FocusRequester() }
+            LaunchedEffect(initialName) { initialName?.let { name = it } }
+            LaunchedEffect(displayedDuration) { displayedDuration?.let { duration = it } }
 
-        Surface(Modifier.fillMaxWidth().heightIn(max = 600.dp), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
-            Column {
-                TopBar(saveEnabled)
-                Column(Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState())
-                    .padding(horizontal = 16.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    MacrionTextField(name, { name = it; viewModel.setName(it) }, context.getString(R.string.generic_name),
-                        isError = nameError, maxLength = context.resources.getInteger(R.integer.name_max_length))
-                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
-                        Box(Modifier.weight(0.7f)) {
-                            TutorialViewAnchor({ afterAnchor = it; viewModel.monitorAfterView(it) },
-                                durationFocusRequester::requestFocus, Modifier.matchParentSize())
-                            OutlinedTextField(duration, {
-                                val filtered = it.filter(Char::isDigit)
-                                duration = filtered
-                                viewModel.setDuration(filtered.toLongOrNull())
-                            }, Modifier.fillMaxWidth().focusRequester(durationFocusRequester),
+            Surface(Modifier.fillMaxWidth().heightIn(max = 600.dp), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
+                Column {
+                    TopBar(saveEnabled)
+                    Column(Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState())
+                        .padding(horizontal = 16.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        MacrionTextField(name, { name = it; viewModel.setName(it) }, context.getString(R.string.generic_name),
+                            isError = nameError, maxLength = context.resources.getInteger(R.integer.name_max_length))
+                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
+                            OutlinedTextField(
+                                duration,
+                                {
+                                    val filtered = it.filter(Char::isDigit)
+                                    duration = filtered
+                                    viewModel.setDuration(filtered.toLongOrNull())
+                                },
+                                Modifier
+                                    .weight(0.7f)
+                                    .focusRequester(durationFocusRequester)
+                                    .tutorialAnchor(
+                                        MonitoredViewType.TIMER_REACHED_CONDITION_FIELD_AFTER,
+                                        onClick = durationFocusRequester::requestFocus,
+                                    )
+                                    .tutorialTextAnchor(
+                                        MonitoredViewType.TIMER_REACHED_CONDITION_FIELD_AFTER,
+                                        duration,
+                                    ),
                                 label = { Text(context.getString(R.string.input_field_label_timer_duration_no_unit)) },
-                                isError = durationError, singleLine = true,
+                                isError = durationError,
+                                singleLine = true,
                                 keyboardOptions = macrionDoneKeyboardOptions(KeyboardType.Number),
-                                keyboardActions = macrionDoneKeyboardActions())
+                                keyboardActions = macrionDoneKeyboardActions()
+                            )
+                            Spacer(Modifier.width(16.dp))
+                            TimeUnitDropdown(unit, Modifier.weight(0.3f))
                         }
-                        Spacer(Modifier.width(16.dp))
-                        TimeUnitDropdown(unit, Modifier.weight(0.3f))
+                        RestartCard(restart)
                     }
-                    RestartCard(restart)
                 }
             }
         }
@@ -129,10 +132,15 @@ class TimerReachedConditionDialog(private val listener: OnConditionConfigComplet
                 style = MaterialTheme.typography.titleLarge, maxLines = 1, overflow = TextOverflow.Clip)
             FilledTonalIconButton(onClick = ::delete) { Icon(painterResource(R.drawable.ic_delete), null) }
             Spacer(Modifier.width(8.dp))
-            Box {
-                FilledIconButton(onClick = ::save, enabled = saveEnabled) { Icon(painterResource(R.drawable.ic_save_filled), null) }
-                TutorialClickAnchor({ saveAnchor = it; viewModel.monitorSaveView(it) }, ::save, saveEnabled)
-            }
+            FilledIconButton(
+                onClick = ::save,
+                enabled = saveEnabled,
+                modifier = Modifier.tutorialAnchor(
+                    MonitoredViewType.TIMER_REACHED_CONDITION_BUTTON_SAVE,
+                    onClick = ::save,
+                    enabled = saveEnabled,
+                ),
+            ) { Icon(painterResource(R.drawable.ic_save_filled), null) }
         }
     }
 
@@ -153,18 +161,23 @@ class TimerReachedConditionDialog(private val listener: OnConditionConfigComplet
     }
 
     @Composable private fun RestartCard(restart: Boolean) {
-        ElevatedCard(Modifier.fillMaxWidth().heightIn(min = 62.dp)) {
-            Box {
-                Row(Modifier.fillMaxWidth().clickable(onClick = viewModel::toggleRestartWhenReached)
-                    .padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text(context.getString(R.string.field_timer_restart_title), style = MaterialTheme.typography.titleSmall)
-                        Text(context.getString(if (restart) R.string.field_timer_restart_desc_on else R.string.field_timer_restart_desc_off),
-                            style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                    Switch(restart, { viewModel.toggleRestartWhenReached() })
+        ElevatedCard(
+            Modifier
+                .fillMaxWidth()
+                .heightIn(min = 62.dp)
+                .tutorialAnchor(
+                    MonitoredViewType.TIMER_REACHED_CONDITION_FIELD_RESTART,
+                    onClick = viewModel::toggleRestartWhenReached,
+                )
+        ) {
+            Row(Modifier.fillMaxWidth().clickable(onClick = viewModel::toggleRestartWhenReached)
+                .padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(context.getString(R.string.field_timer_restart_title), style = MaterialTheme.typography.titleSmall)
+                    Text(context.getString(if (restart) R.string.field_timer_restart_desc_on else R.string.field_timer_restart_desc_off),
+                        style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
-                TutorialClickAnchor({ restartAnchor = it; viewModel.monitorRestartView(it) }, viewModel::toggleRestartWhenReached)
+                Switch(restart, { viewModel.toggleRestartWhenReached() })
             }
         }
     }

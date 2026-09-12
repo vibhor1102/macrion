@@ -17,7 +17,6 @@
 package io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.imageevents
 
 import android.content.Context
-import android.view.View
 import android.view.ViewGroup
 import android.view.accessibility.AccessibilityManager
 import androidx.compose.foundation.layout.*
@@ -26,10 +25,10 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -47,14 +46,16 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.navbar.NavBarDialogContent
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.navbar.viewModels
+import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredViewType
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.core.domain.model.event.ScreenEvent
 import io.github.vibhor1102.macrion.feature.smart.config.R
 import io.github.vibhor1102.macrion.feature.smart.config.ui.event.EventDialog
 import io.github.vibhor1102.macrion.feature.smart.config.ui.copy.event.EventCopyDialog
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.compose.LocalMonitoredViewsManager
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.compose.tutorialAnchor
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.event.UiImageEvent
-import io.github.vibhor1102.macrion.feature.smart.config.ui.common.compose.TutorialClickAnchor
 import io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.common.EventListRow
 
 import sh.calvin.reorderable.ReorderableItem
@@ -87,11 +88,6 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
         }
     }
 
-    override fun onStop() {
-        super.onStop()
-        viewModel.stopViewMonitoring()
-    }
-
     override fun onPrimaryFloatingActionButtonClicked() {
         debounceUserInteraction {
             showEventConfigDialog(viewModel.createNewEvent(context))
@@ -110,58 +106,59 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
         }
     }
 
-    private fun onEventItemBound(index: Int, eventItemView: View?) {
-        if (index > 3) return
-
-        if (eventItemView != null) viewModel.monitorEventView(index, eventItemView)
-        else viewModel.stopEventViewMonitoring(index)
-    }
-
     @Composable private fun Content() {
-        val sourceItems = viewModel.eventsItems.collectAsStateWithLifecycle(null).value
-        var displayedItems by remember { mutableStateOf(emptyList<UiImageEvent>()) }
-        var isReordering by remember { mutableStateOf(false) }
-        val accessibilityManager = remember(context) {
-            context.getSystemService(AccessibilityManager::class.java)
-        }
-        var touchExplorationEnabled by remember(accessibilityManager) {
-            mutableStateOf(accessibilityManager?.isTouchExplorationEnabled == true)
-        }
-
-        DisposableEffect(accessibilityManager) {
-            val listener = AccessibilityManager.TouchExplorationStateChangeListener { enabled ->
-                touchExplorationEnabled = enabled
+        CompositionLocalProvider(LocalMonitoredViewsManager provides viewModel.monitoredViewsManager) {
+            val sourceItems = viewModel.eventsItems.collectAsStateWithLifecycle(null).value
+            var displayedItems by remember { mutableStateOf(emptyList<UiImageEvent>()) }
+            var isReordering by remember { mutableStateOf(false) }
+            val accessibilityManager = remember(context) {
+                context.getSystemService(AccessibilityManager::class.java)
             }
-            accessibilityManager?.addTouchExplorationStateChangeListener(listener)
-            onDispose { accessibilityManager?.removeTouchExplorationStateChangeListener(listener) }
-        }
-
-        LaunchedEffect(sourceItems) {
-            if (!isReordering) displayedItems = sourceItems ?: emptyList()
-        }
-
-        val lazyListState = rememberLazyListState()
-        val reorderableState = rememberReorderableLazyListState(lazyListState) { from, to ->
-            displayedItems = displayedItems.toMutableList().apply {
-                add(to.index, removeAt(from.index))
+            var touchExplorationEnabled by remember(accessibilityManager) {
+                mutableStateOf(accessibilityManager?.isTouchExplorationEnabled == true)
             }
-        }
 
-        Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
-            when {
-                sourceItems == null -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
-                displayedItems.isEmpty() -> EmptyState(R.string.message_empty_screen_event_title, R.string.message_empty_screen_event_desc)
-                else -> LazyColumn(Modifier.fillMaxSize(), state = lazyListState) {
-                    itemsIndexed(displayedItems, key = { _, item -> item.event.id.toLazyListKey() }) { index, item ->
-                        ReorderableItem(reorderableState, item.event.id.toLazyListKey()) { isBeingDragged ->
-                            Box {
-                                if (index <= 3) key(index) {
-                                    TutorialClickAnchor(
-                                        onViewChanged = { onEventItemBound(index, it) },
-                                        onClick = { onEventItemClicked(item.event) },
-                                    )
-                                }
-                                Column {
+            DisposableEffect(accessibilityManager) {
+                val listener = AccessibilityManager.TouchExplorationStateChangeListener { enabled ->
+                    touchExplorationEnabled = enabled
+                }
+                accessibilityManager?.addTouchExplorationStateChangeListener(listener)
+                onDispose { accessibilityManager?.removeTouchExplorationStateChangeListener(listener) }
+            }
+
+            LaunchedEffect(sourceItems) {
+                if (!isReordering) displayedItems = sourceItems ?: emptyList()
+            }
+
+            val lazyListState = rememberLazyListState()
+            val reorderableState = rememberReorderableLazyListState(lazyListState) { from, to ->
+                displayedItems = displayedItems.toMutableList().apply {
+                    add(to.index, removeAt(from.index))
+                }
+            }
+
+            Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
+                when {
+                    sourceItems == null -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+                    displayedItems.isEmpty() -> EmptyState(R.string.message_empty_screen_event_title, R.string.message_empty_screen_event_desc)
+                    else -> LazyColumn(Modifier.fillMaxSize(), state = lazyListState) {
+                        itemsIndexed(displayedItems, key = { _, item -> item.event.id.toLazyListKey() }) { index, item ->
+                            val anchorType = when (index) {
+                                0 -> MonitoredViewType.SCENARIO_DIALOG_ITEM_FIRST_EVENT
+                                1 -> MonitoredViewType.SCENARIO_DIALOG_ITEM_SECOND_EVENT
+                                2 -> MonitoredViewType.SCENARIO_DIALOG_ITEM_THIRD_EVENT
+                                3 -> MonitoredViewType.SCENARIO_DIALOG_ITEM_FOURTH_EVENT
+                                else -> null
+                            }
+                            val anchorModifier = if (anchorType != null) {
+                                Modifier.tutorialAnchor(
+                                    type = anchorType,
+                                    onClick = { onEventItemClicked(item.event) },
+                                )
+                            } else Modifier
+
+                            ReorderableItem(reorderableState, item.event.id.toLazyListKey()) { isBeingDragged ->
+                                Column(modifier = anchorModifier) {
                                     EventListRow(
                                         name = item.name,
                                         conditionsCount = item.conditionsCountText,

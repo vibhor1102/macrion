@@ -36,6 +36,7 @@ import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayDialog
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.Tip
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredOverlayType
+import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredViewType
 import io.github.vibhor1102.macrion.core.domain.model.EXACT
 import io.github.vibhor1102.macrion.core.domain.model.IN_AREA
 import io.github.vibhor1102.macrion.core.domain.model.WHOLE_SCREEN
@@ -43,7 +44,7 @@ import io.github.vibhor1102.macrion.core.ui.compose.MacrionTextField
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.feature.smart.config.R
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
-import io.github.vibhor1102.macrion.feature.smart.config.ui.common.compose.TutorialClickAnchor
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.compose.tutorialAnchor
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.dialogs.showCloseWithoutSavingDialog
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.dialogs.showDeleteConditionsWithAssociatedActionsDialog
 import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.OnConditionConfigCompleteListener
@@ -57,10 +58,6 @@ class ImageConditionDialog(private val listener: OnConditionConfigCompleteListen
         entryPoint = ScenarioConfigViewModelsEntryPoint::class.java,
         creator = { imageConditionViewModel() },
     )
-    private var saveAnchor: View? = null
-    private var inAreaAnchor: View? = null
-    private var areaAnchor: View? = null
-    private var visibilityAnchor: View? = null
 
     override fun onCreateView(): ViewGroup = ComposeView(context).apply {
         setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
@@ -71,11 +68,6 @@ class ImageConditionDialog(private val listener: OnConditionConfigCompleteListen
             viewModel.isEditingCondition.collect { if (!it) { Log.e(TAG, "Closing ImageConditionDialog because there is no condition edited"); finish() } }
         } }
     }
-    override fun onStart() {
-        super.onStart(); viewModel.monitorSaveButtonView(saveAnchor); viewModel.monitorDetectionTypeItemInAreaView(inAreaAnchor)
-        viewModel.monitorDetectionAreaSelector(areaAnchor); viewModel.monitorVisibilityView(visibilityAnchor)
-    }
-    override fun onStop() { viewModel.detachMonitoredViews(); super.onStop() }
 
     @Composable private fun Content() {
         val initialName by viewModel.name.collectAsStateWithLifecycle(null)
@@ -109,10 +101,15 @@ class ImageConditionDialog(private val listener: OnConditionConfigCompleteListen
                 style = MaterialTheme.typography.titleLarge, maxLines = 1, overflow = TextOverflow.Clip)
             FilledTonalIconButton(onClick = ::onDeleteClicked) { Icon(painterResource(R.drawable.ic_delete), null) }
             Spacer(Modifier.width(8.dp))
-            Box {
-                FilledIconButton(onClick = ::save, enabled = saveEnabled) { Icon(painterResource(R.drawable.ic_save_filled), null) }
-                TutorialClickAnchor({ saveAnchor = it; viewModel.monitorSaveButtonView(it) }, ::save, saveEnabled)
-            }
+            FilledIconButton(
+                onClick = ::save,
+                enabled = saveEnabled,
+                modifier = Modifier.tutorialAnchor(
+                    MonitoredViewType.SCREEN_CONDITION_DIALOG_BUTTON_SAVE,
+                    onClick = ::save,
+                    enabled = saveEnabled,
+                ),
+            ) { Icon(painterResource(R.drawable.ic_save_filled), null) }
         }
     }
 
@@ -124,16 +121,22 @@ class ImageConditionDialog(private val listener: OnConditionConfigCompleteListen
                 else Icon(painterResource(R.drawable.ic_cancel), null, Modifier.size(72.dp), tint = MaterialTheme.colorScheme.error)
             }
             HorizontalDivider()
-            Box {
-                VisibilityField(visible)
-                TutorialClickAnchor({ visibilityAnchor = it; viewModel.monitorVisibilityView(it) }, viewModel::toggleShouldBeDetected)
-            }
+            VisibilityField(visible)
         } }
     }
 
     @Composable private fun VisibilityField(visible: Boolean) {
-        Row(Modifier.fillMaxWidth().clickable(onClick = viewModel::toggleShouldBeDetected).padding(vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .tutorialAnchor(
+                    MonitoredViewType.SCREEN_CONDITION_DIALOG_FIELD_VISIBILITY,
+                    onClick = viewModel::toggleShouldBeDetected,
+                )
+                .clickable(onClick = viewModel::toggleShouldBeDetected)
+                .padding(vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(context.getString(R.string.field_condition_visibility_title), style = MaterialTheme.typography.titleSmall)
                 Text(context.getString(if (visible) R.string.field_condition_visibility_desc_present else R.string.field_condition_visibility_desc_absent),
@@ -155,11 +158,7 @@ class ImageConditionDialog(private val listener: OnConditionConfigCompleteListen
                 DetectionTypeButtons(state.type)
             }
             HorizontalDivider(Modifier.padding(top = 8.dp))
-            Box {
-                AreaSelector(state)
-                TutorialClickAnchor({ areaAnchor = it; viewModel.monitorDetectionAreaSelector(it) }, ::showDetectionAreaSelector,
-                    state.type == IN_AREA)
-            }
+            AreaSelector(state)
         } }
     }
 
@@ -170,11 +169,18 @@ class ImageConditionDialog(private val listener: OnConditionConfigCompleteListen
                 IN_AREA to R.drawable.ic_detect_in_area).forEachIndexed { index, item ->
                 if (index > 0) Box(Modifier.width(1.dp).fillMaxHeight().background(MaterialTheme.colorScheme.outline))
                 Box(Modifier.width(40.dp).fillMaxHeight().background(if (selected == item.first)
-                    MaterialTheme.colorScheme.secondaryContainer else Color.Transparent).clickable { viewModel.setDetectionType(item.first) },
+                    MaterialTheme.colorScheme.secondaryContainer else Color.Transparent)
+                    .then(
+                        if (item.first == IN_AREA) {
+                            Modifier.tutorialAnchor(
+                                MonitoredViewType.SCREEN_CONDITION_DIALOG_FIELD_TYPE_ITEM_IN_AREA,
+                                onClick = { viewModel.setDetectionType(IN_AREA) },
+                            )
+                        } else Modifier
+                    )
+                    .clickable { viewModel.setDetectionType(item.first) },
                     contentAlignment = Alignment.Center) {
                     Icon(painterResource(item.second), null, Modifier.size(18.dp))
-                    if (item.first == IN_AREA) TutorialClickAnchor({ inAreaAnchor = it; viewModel.monitorDetectionTypeItemInAreaView(it) },
-                        { viewModel.setDetectionType(IN_AREA) })
                 }
             }
         }
@@ -183,8 +189,22 @@ class ImageConditionDialog(private val listener: OnConditionConfigCompleteListen
     @Composable private fun AreaSelector(state: DetectionTypeState) {
         val enabled = state.type == IN_AREA
         val color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (enabled) 1f else 0.38f)
-        Row(Modifier.fillMaxWidth().heightIn(min = 62.dp).clickable(enabled, onClick = ::showDetectionAreaSelector)
-            .padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .heightIn(min = 62.dp)
+                .then(
+                    if (enabled) {
+                        Modifier.tutorialAnchor(
+                            MonitoredViewType.SCREEN_CONDITION_DIALOG_FIELD_AREA_SELECTOR,
+                            onClick = ::showDetectionAreaSelector,
+                        )
+                    } else Modifier
+                )
+                .clickable(enabled, onClick = ::showDetectionAreaSelector)
+                .padding(vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(context.getString(R.string.field_select_detection_area_title), style = MaterialTheme.typography.titleSmall, color = color)
                 Text(state.areaText, style = MaterialTheme.typography.bodySmall, color = color.copy(alpha = 0.75f))

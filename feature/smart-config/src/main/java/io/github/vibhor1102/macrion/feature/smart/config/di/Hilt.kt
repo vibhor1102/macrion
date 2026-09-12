@@ -19,7 +19,6 @@ package io.github.vibhor1102.macrion.feature.smart.config.di
 
 import io.github.vibhor1102.macrion.core.common.overlays.di.OverlayComponent
 import io.github.vibhor1102.macrion.feature.smart.config.ui.mainmenu.MainMenuModel
-import io.github.vibhor1102.macrion.feature.smart.config.ui.action.selection.ActionTypeSelectionViewModel
 import io.github.vibhor1102.macrion.feature.smart.config.ui.action.brief.SmartActionsBriefViewModel
 import io.github.vibhor1102.macrion.feature.smart.config.ui.action.changecounter.ChangeCounterViewModel
 import io.github.vibhor1102.macrion.feature.smart.config.ui.action.click.offset.ClickOffsetViewModel
@@ -79,7 +78,6 @@ import dagger.hilt.InstallIn
 interface ScenarioConfigViewModelsEntryPoint {
 
     fun actionCopyViewModel(): ActionCopyViewModel
-    fun actionTypeSelectionViewModel(): ActionTypeSelectionViewModel
     fun activitySelectionViewModel(): ActivitySelectionModel
     fun broadcastReceivedConditionViewModel(): BroadcastReceivedConditionViewModel
     fun captureViewModel(): CaptureViewModel

@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (C) 2026 Kevin Buzeau
  *
  * This program is free software: you can redistribute it and/or modify
@@ -41,4 +41,10 @@ object SmartTutorialModule {
     @Singleton
     internal fun providesMonitoredViewManager(impl: MonitoredViewsManagerImpl): MonitoredViewsManager =
         impl
+}
+
+@dagger.hilt.EntryPoint
+@InstallIn(SingletonComponent::class)
+interface TutorialEntryPoint {
+    fun monitoredViewsManager(): MonitoredViewsManager
 }

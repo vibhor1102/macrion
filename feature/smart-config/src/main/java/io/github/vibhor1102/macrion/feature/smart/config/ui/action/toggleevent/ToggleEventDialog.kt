@@ -26,12 +26,13 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayDialog
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredOverlayType
+import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredViewType
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTextField
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.feature.smart.config.R
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
 import io.github.vibhor1102.macrion.feature.smart.config.ui.action.OnActionConfigCompleteListener
-import io.github.vibhor1102.macrion.feature.smart.config.ui.common.compose.TutorialClickAnchor
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.compose.tutorialAnchor
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.dialogs.showCloseWithoutSavingDialog
 import kotlinx.coroutines.launch
 
@@ -41,7 +42,6 @@ class ToggleEventDialog(private val listener: OnActionConfigCompleteListener) : 
         entryPoint = ScenarioConfigViewModelsEntryPoint::class.java,
         creator = { toggleEventViewModel() },
     )
-    private var selectorAnchor: View? = null
 
     override fun onCreateView(): ViewGroup = ComposeView(context).apply {
         setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
@@ -55,9 +55,6 @@ class ToggleEventDialog(private val listener: OnActionConfigCompleteListener) : 
             }
         } }
     }
-
-    override fun onStart() { super.onStart(); viewModel.monitorSelectTogglesView(selectorAnchor) }
-    override fun onStop() { viewModel.monitorSelectTogglesView(null); super.onStop() }
 
     @Composable private fun Content() {
         val initialName = remember { viewModel.getEditedAction()?.name.orEmpty() }
@@ -119,19 +116,25 @@ class ToggleEventDialog(private val listener: OnActionConfigCompleteListener) : 
 
     @Composable private fun EventSelector(state: EventToggleSelectorState) {
         val openSelector = { if (state.isEnabled) showEventTogglesDialog() }
-        Box {
-            Row(Modifier.fillMaxWidth().clickable(enabled = state.isEnabled, onClick = openSelector)
-                .padding(top = 12.dp, bottom = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text(state.title, style = MaterialTheme.typography.titleSmall,
-                        color = if (state.isEnabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f))
-                    if (state.emptyText != null) Text(context.getString(state.emptyText), style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant) else ToggleCounts(state)
-                }
-                Icon(painterResource(R.drawable.ic_chevron_right), null)
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .tutorialAnchor(
+                    MonitoredViewType.TOGGLE_EVENT_DIALOG_SELECT_TOGGLES,
+                    onClick = openSelector,
+                    enabled = state.isEnabled,
+                )
+                .clickable(enabled = state.isEnabled, onClick = openSelector)
+                .padding(top = 12.dp, bottom = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(state.title, style = MaterialTheme.typography.titleSmall,
+                    color = if (state.isEnabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f))
+                if (state.emptyText != null) Text(context.getString(state.emptyText), style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant) else ToggleCounts(state)
             }
-            TutorialClickAnchor(onViewChanged = { selectorAnchor = it; viewModel.monitorSelectTogglesView(it) },
-                onClick = openSelector, enabled = state.isEnabled)
+            Icon(painterResource(R.drawable.ic_chevron_right), null)
         }
     }
 
