@@ -33,11 +33,12 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.AbstractComposeView
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.colorResource
@@ -53,23 +54,13 @@ data class OverlayMenuButton(
     @StringRes val contentDescription: Int? = null,
 )
 
-/** Stable native interaction/tutorial anchor; Compose owns its icon and placement. */
-class OverlayMenuButtonView(context: Context, icon: Int, content: (@Composable () -> Unit)? = null) : FrameLayout(context) {
+/** Stable native interaction/tutorial anchor; Compose owns the visual icon and placement. */
+class OverlayMenuButtonView(context: Context, icon: Int) : FrameLayout(context) {
     private var iconResource by mutableIntStateOf(icon)
     internal var composeVisibility by mutableIntStateOf(View.VISIBLE)
         private set
-
-    init {
-        addView(object : AbstractComposeView(context) {
-            @Composable override fun Content() {
-                if (content != null) content() else Icon(painterResource(iconResource), null, Modifier.fillMaxSize(),
-                    tint = colorResource(R.color.overlayMenuButtons))
-            }
-            override fun dispatchTouchEvent(event: MotionEvent) = false
-        }.apply {
-            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-        }, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT))
-    }
+    internal var composeAlpha by mutableFloatStateOf(1f)
+        private set
 
     fun setImageResource(@DrawableRes resource: Int) { iconResource = resource }
 
@@ -80,20 +71,38 @@ class OverlayMenuButtonView(context: Context, icon: Int, content: (@Composable (
         composeVisibility = visibility
     }
 
+    override fun setAlpha(alpha: Float) {
+        super.setAlpha(alpha)
+        composeAlpha = alpha
+    }
+
     // Keep one owner for the whole pointer sequence, including native tutorial monitoring.
     override fun onInterceptTouchEvent(event: MotionEvent) = true
 
 }
 
-private class OverlayMenuContentView(context: Context, content: View) : FrameLayout(context) {
-    var composeVisibility by mutableIntStateOf(content.visibility)
+/**
+ * Non-rendering compatibility anchor for a Compose content panel.
+ *
+ * OverlayMenu still exposes content items as [View]s because its controller and tutorial
+ * integration use visibility and bounds as a small imperative contract. The content itself is
+ * rendered by the parent Compose hierarchy; this anchor only carries that contract and therefore
+ * does not add another AndroidView layer to the visual tree.
+ */
+private class OverlayMenuContentAnchor(
+    context: Context,
+    initiallyVisible: Boolean,
+) : View(context) {
+
+    var composeVisibility by mutableIntStateOf(
+        if (initiallyVisible) View.VISIBLE else View.GONE,
+    )
         private set
+
     init {
-        id = content.id
-        visibility = content.visibility
-        content.visibility = View.VISIBLE
-        addView(content, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT))
+        super.setVisibility(if (initiallyVisible) View.VISIBLE else View.GONE)
     }
+
     override fun setVisibility(visibility: Int) {
         super.setVisibility(visibility)
         composeVisibility = visibility
@@ -114,14 +123,16 @@ fun <T : View> ViewGroup.findOverlayView(@IdRes id: Int): T =
 fun createOverlayMenuLayout(
     context: Context,
     buttons: List<OverlayMenuButton>,
-    content: View? = null,
-    contentLayoutParams: ViewGroup.LayoutParams? = null,
+    content: (@Composable () -> Unit)? = null,
+    contentWidthDp: Int = 0,
+    contentHeightDp: Int = 0,
+    contentInitiallyVisible: Boolean = true,
+    @IdRes contentId: Int? = null,
     buttonContent: (@Composable (OverlayMenuButton) -> Unit)? = null,
 ): ViewGroup {
     val root = ComposeOverlayMenuHost(context)
     buttons.forEach { button ->
-        val iconContent: (@Composable () -> Unit)? = buttonContent?.let { render -> { render(button) } }
-        val anchor = OverlayMenuButtonView(context, button.icon, iconContent).apply {
+        val anchor = OverlayMenuButtonView(context, button.icon).apply {
             id = button.id
             button.contentDescription?.let { contentDescription = context.getString(it) }
         }
@@ -145,12 +156,32 @@ fun createOverlayMenuLayout(
                         ) {
                             Box(Modifier.size(48.dp)) {
                                 if (visible) {
+                                    Box(Modifier.fillMaxSize().alpha(button.composeAlpha)) {
+                                        if (buttonContent != null) {
+                                            buttonContent(buttons[index])
+                                        } else {
+                                            Icon(
+                                                painterResource(button.currentIconResource),
+                                                null,
+                                                Modifier.fillMaxSize(),
+                                                tint = colorResource(R.color.overlayMenuButtons),
+                                            )
+                                        }
+                                    }
+                                    // Transparent native anchor layered over the visual content keeps
+                                    // clicks, move gestures, and tutorial coordinate reporting intact.
                                     AndroidView(factory = { button }, modifier = Modifier.fillMaxSize())
                                 } else if (buttonContent != null) {
-                                    buttonContent(buttons[index])
+                                    Box(Modifier.fillMaxSize().alpha(button.composeAlpha)) {
+                                        buttonContent(buttons[index])
+                                    }
                                 } else {
-                                    Icon(painterResource(button.currentIconResource), null, Modifier.fillMaxSize(),
-                                        tint = colorResource(R.color.overlayMenuButtons))
+                                    Icon(
+                                        painterResource(button.currentIconResource),
+                                        null,
+                                        Modifier.fillMaxSize().alpha(button.composeAlpha),
+                                        tint = colorResource(R.color.overlayMenuButtons),
+                                    )
                                 }
                             }
                         }
@@ -160,7 +191,11 @@ fun createOverlayMenuLayout(
         }
     }
     root.anchors[R.id.menu_items] = items
-    val contentAnchor = content?.let { OverlayMenuContentView(context, it) }
+    val contentAnchor = content?.let {
+        OverlayMenuContentAnchor(context, contentInitiallyVisible).apply {
+            id = contentId ?: View.generateViewId()
+        }
+    }
     contentAnchor?.let { root.anchors[it.id] = it }
     val background = ComposeView(context).apply {
         id = R.id.menu_background
@@ -168,8 +203,8 @@ fun createOverlayMenuLayout(
         setContent {
             val density = LocalDensity.current
             val panelVisible = contentAnchor != null && contentAnchor.composeVisibility != View.GONE
-            val panelWidthPx = if (panelVisible) contentLayoutParams?.width ?: 0 else 0
-            val panelHeightPx = if (panelVisible) contentLayoutParams?.height ?: 0 else 0
+            val panelWidthPx = if (panelVisible) with(density) { contentWidthDp.dp.roundToPx() } else 0
+            val panelHeightPx = if (panelVisible) with(density) { contentHeightDp.dp.roundToPx() } else 0
             val buttonHeightPx = with(density) { (8 + 48 * root.buttons.count { it.composeVisibility != View.GONE }).dp.roundToPx() }
             val buttonWidthPx = with(density) { 56.dp.roundToPx() }
             val targetSize = IntSize(buttonWidthPx + panelWidthPx, maxOf(buttonHeightPx, panelHeightPx))
@@ -189,11 +224,15 @@ fun createOverlayMenuLayout(
                 Row(Modifier.wrapContentSize(unbounded = true, align = Alignment.TopStart),
                     verticalAlignment = Alignment.CenterVertically) {
                     AndroidView(factory = { items })
-                    if (panelVisible && contentAnchor != null) {
-                        AndroidView(factory = { contentAnchor }, modifier = Modifier.size(
-                            with(density) { panelWidthPx.toDp() },
-                            with(density) { panelHeightPx.toDp() },
-                        ))
+                    if (panelVisible) {
+                        Box(
+                            Modifier.size(
+                                with(density) { panelWidthPx.toDp() },
+                                with(density) { panelHeightPx.toDp() },
+                            ),
+                        ) {
+                            content.invoke()
+                        }
                     }
                 }
             }

@@ -9,7 +9,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.ImageView
-import android.widget.LinearLayout
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -30,8 +29,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.PlatformTextStyle
@@ -67,12 +64,6 @@ internal fun createMainOverlayMenu(
     val density = context.resources.displayMetrics.density
     fun dp(value: Int) = (value * density).toInt()
 
-    val debugContainer = ComposeView(context).apply {
-        id = R.id.layout_debug
-        isVisible = false
-        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-        setContent { MacrionTheme { debugContent() } }
-    }
     val root = createOverlayMenuLayout(
         context = context,
         buttons = listOf(
@@ -83,8 +74,11 @@ internal fun createMainOverlayMenu(
             OverlayMenuButton(R.id.btn_open_home, R.drawable.ic_home, R.string.content_desc_open_home),
             OverlayMenuButton(R.id.btn_move, R.drawable.ic_move, R.string.content_desc_move_menu),
         ),
-        content = debugContainer,
-        contentLayoutParams = LinearLayout.LayoutParams(dp(200), dp(100)),
+        content = { MacrionTheme { debugContent() } },
+        contentWidthDp = 200,
+        contentHeightDp = 100,
+        contentInitiallyVisible = false,
+        contentId = R.id.layout_debug,
         buttonContent = { button ->
             MacrionTheme {
                 Box(Modifier.fillMaxWidth().fillMaxHeight(), contentAlignment = Alignment.Center) {
