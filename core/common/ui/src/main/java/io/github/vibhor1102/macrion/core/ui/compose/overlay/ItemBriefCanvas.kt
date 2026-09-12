@@ -13,18 +13,17 @@ import android.graphics.Color as AndroidColor
 import android.graphics.Paint as AndroidPaint
 import android.graphics.PointF
 import android.graphics.Rect as AndroidRect
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.keyframes
-import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -83,68 +82,82 @@ fun ItemBriefCanvas(
     innerRadiusPx: Float = with(LocalDensity.current) { dimensionResource(R.dimen.overlay_click_selector_inner_radius).toPx() },
     cornerRadiusPx: Float = with(LocalDensity.current) { 2.dp.toPx() },
 ) {
-    val infiniteTransition = rememberInfiniteTransition(label = "ItemBriefAnimations")
+    val clickScale = remember { Animatable(1f) }
+    LaunchedEffect(description, animate) {
+        if (!animate || description !is ClickDescription) {
+            clickScale.snapTo(1f)
+            return@LaunchedEffect
+        }
+        val pressDurationMs = max(description.pressDurationMs, 1L)
+        while (isActive) {
+            clickScale.snapTo(1f)
+            delay(250)
+            clickScale.animateTo(
+                targetValue = 0.75f,
+                animationSpec = tween(
+                    durationMillis = 250,
+                    easing = FastOutSlowInEasing,
+                ),
+            )
+            delay(pressDurationMs)
+            clickScale.animateTo(
+                targetValue = 1f,
+                animationSpec = tween(
+                    durationMillis = 250,
+                    easing = FastOutSlowInEasing,
+                ),
+            )
+            delay(500)
+        }
+    }
 
-    // Click pulsing animation
-    val clickScale by infiniteTransition.animateFloat(
-        initialValue = 1f,
-        targetValue = 0.75f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(
-                durationMillis = 250,
-                delayMillis = 250,
-                easing = FastOutSlowInEasing,
-            ),
-            repeatMode = RepeatMode.Reverse,
-        ),
-        label = "ClickPulse",
-    )
+    val swipeProgress = remember { Animatable(0f) }
+    LaunchedEffect(description, animate) {
+        if (!animate || description !is SwipeDescription || description.from == null || description.to == null) {
+            swipeProgress.snapTo(0f)
+            return@LaunchedEffect
+        }
+        val animDurationMs = max(description.swipeDurationMs, 250L).toInt()
+        while (isActive) {
+            swipeProgress.snapTo(0f)
+            delay(250)
+            swipeProgress.animateTo(
+                targetValue = 1f,
+                animationSpec = tween(
+                    durationMillis = animDurationMs,
+                    easing = LinearEasing,
+                ),
+            )
+            delay(500)
+        }
+    }
 
-    // Swipe progress animation (0f to 1f)
-    val swipeDurationMs = if (description is SwipeDescription) {
-        max(description.swipeDurationMs, 250L).toInt()
-    } else 250
-    val swipeProgress by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = keyframes {
-                durationMillis = 250 + swipeDurationMs + 500
-                0f at 0
-                0f at 250
-                1f at (250 + swipeDurationMs) using LinearEasing
-                1f at (250 + swipeDurationMs + 500)
-            },
-            repeatMode = RepeatMode.Restart,
-        ),
-        label = "SwipeProgress",
-    )
-
-    // Pause rotation animation (0° to 360°)
-    val pauseDurationMs = if (description is PauseDescription) {
-        max(description.pauseDurationMs, 500L).toInt()
-    } else 500
-    val pauseRotation by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 360f,
-        animationSpec = infiniteRepeatable(
-            animation = keyframes {
-                durationMillis = 250 + pauseDurationMs + 500
-                0f at 0
-                0f at 250
-                360f at (250 + pauseDurationMs) using LinearEasing
-                360f at (250 + pauseDurationMs + 500)
-            },
-            repeatMode = RepeatMode.Restart,
-        ),
-        label = "PauseRotation",
-    )
+    val pauseRotation = remember { Animatable(0f) }
+    LaunchedEffect(description, animate) {
+        if (!animate || description !is PauseDescription) {
+            pauseRotation.snapTo(0f)
+            return@LaunchedEffect
+        }
+        val animDurationMs = max(description.pauseDurationMs, 500L).toInt()
+        while (isActive) {
+            pauseRotation.snapTo(0f)
+            delay(250)
+            pauseRotation.animateTo(
+                targetValue = 360f,
+                animationSpec = tween(
+                    durationMillis = animDurationMs,
+                    easing = LinearEasing,
+                ),
+            )
+            delay(500)
+        }
+    }
 
     Canvas(modifier = modifier.fillMaxSize()) {
         when (description) {
             is ClickDescription -> drawClickIndicator(
                 description = description,
-                scale = if (animate) clickScale else 1f,
+                scale = if (animate) clickScale.value else 1f,
                 outerRadiusPx = outerRadiusPx,
                 innerRadiusPx = innerRadiusPx,
                 thicknessPx = thicknessPx,
@@ -155,7 +168,7 @@ fun ItemBriefCanvas(
 
             is SwipeDescription -> drawSwipeIndicator(
                 description = description,
-                progress = if (animate) swipeProgress else 0f,
+                progress = if (animate) swipeProgress.value else 0f,
                 outerRadiusPx = outerRadiusPx,
                 innerRadiusPx = innerRadiusPx,
                 thicknessPx = thicknessPx,
@@ -166,7 +179,7 @@ fun ItemBriefCanvas(
             )
 
             is PauseDescription -> drawPauseIndicator(
-                rotationDegrees = if (animate) pauseRotation else 0f,
+                rotationDegrees = if (animate) pauseRotation.value else 0f,
                 outerRadiusPx = outerRadiusPx,
                 thicknessPx = thicknessPx,
                 primaryColor = primaryColor,
