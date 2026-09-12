@@ -17,4 +17,11 @@
     <item name="btn_open_home" type="id" />
     <item name="layout_debug" type="id" />
     <item name="error_badge" type="id" />
+    <item name="page_config" type="id" />
+    <item name="page_actions" type="id" />
+    <item name="page_event" type="id" />
+    <item name="page_conditions" type="id" />
+    <item name="page_image_events" type="id" />
+    <item name="page_trigger_events" type="id" />
+    <item name="page_more" type="id" />
 </resources>

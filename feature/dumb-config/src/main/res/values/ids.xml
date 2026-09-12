@@ -8,4 +8,6 @@
     <item name="btn_back" type="id" />
     <item name="btn_record" type="id" />
     <item name="btn_add" type="id" />
+    <item name="page_config" type="id" />
+    <item name="page_actions" type="id" />
 </resources>

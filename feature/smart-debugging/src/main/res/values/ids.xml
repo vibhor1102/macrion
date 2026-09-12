@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (C) 2026 Vibhor Goel -->
+<resources>
+    <item name="page_conditions" type="id" />
+    <item name="page_events_state" type="id" />
+    <item name="page_counters" type="id" />
+    <item name="page_overview" type="id" />
+    <item name="page_timeline" type="id" />
+</resources>

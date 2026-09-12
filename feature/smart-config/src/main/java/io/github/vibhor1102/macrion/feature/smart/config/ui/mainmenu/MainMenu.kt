@@ -19,7 +19,6 @@ package io.github.vibhor1102.macrion.feature.smart.config.ui.mainmenu
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 
-import android.content.DialogInterface
 import android.graphics.Region
 import android.os.Build
 import android.view.KeyEvent
@@ -40,7 +39,7 @@ import io.github.vibhor1102.macrion.core.common.overlays.manager.OverlayManager.
 import io.github.vibhor1102.macrion.core.common.overlays.menu.OverlayMenu
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.Tip
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredOverlayType
-import io.github.vibhor1102.macrion.core.ui.utils.getDynamicColorsContext
+import io.github.vibhor1102.macrion.core.ui.compose.createMacrionMessageDialog
 import io.github.vibhor1102.macrion.feature.smart.config.R
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.starters.newRestartMediaProjectionStarterOverlay
@@ -49,8 +48,6 @@ import io.github.vibhor1102.macrion.feature.smart.config.ui.mainmenu.debugging.L
 import io.github.vibhor1102.macrion.feature.smart.config.ui.mainmenu.debugging.LiveDebuggingViewModel
 import io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.ScenarioDialog
 import io.github.vibhor1102.macrion.core.ui.compose.AnimatedPlayPauseIcon
-
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -238,13 +235,13 @@ class MainMenu(
                 return@launch
             }
 
-            MaterialAlertDialogBuilder(context.getDynamicColorsContext(R.style.AppTheme))
-                .setTitle(R.string.dialog_stop_confirmation_title)
-                .setMessage(R.string.dialog_stop_confirmation_message)
-                .setNegativeButton(android.R.string.cancel, null)
-                .setPositiveButton(R.string.dialog_stop_confirmation_stop) { _, _ -> onStopClicked() }
-                .create()
-                .showAsOverlay()
+            context.createMacrionMessageDialog(
+                title = R.string.dialog_stop_confirmation_title,
+                message = R.string.dialog_stop_confirmation_message,
+                confirmLabel = R.string.dialog_stop_confirmation_stop,
+                cancelLabel = android.R.string.cancel,
+                onConfirm = { onStopClicked() },
+            ).showAsOverlay()
         }
     }
 
@@ -415,17 +412,14 @@ class MainMenu(
         )
 
     private fun showScenarioSaveErrorDialog() {
-        MaterialAlertDialogBuilder(context.getDynamicColorsContext(R.style.AppTheme))
-            .setTitle(R.string.dialog_overlay_title_warning)
-            .setMessage(R.string.error_dialog_message_scenario_saving)
-            .setPositiveButton(R.string.generic_modify) { _: DialogInterface, _: Int ->
-                showScenarioConfigDialog()
-            }
-            .setNegativeButton(android.R.string.cancel) { _: DialogInterface, _: Int ->
-                viewModel.cancelScenarioChanges()
-            }
-            .create()
-            .showAsOverlay()
+        context.createMacrionMessageDialog(
+            title = R.string.dialog_overlay_title_warning,
+            message = R.string.error_dialog_message_scenario_saving,
+            confirmLabel = R.string.generic_modify,
+            cancelLabel = android.R.string.cancel,
+            onConfirm = { showScenarioConfigDialog() },
+            onCancel = { viewModel.cancelScenarioChanges() },
+        ).showAsOverlay()
     }
 
     private fun showStopVolumeDownTutorialDialog() {
@@ -437,27 +431,23 @@ class MainMenu(
     private fun showNativeLibErrorDialogIfNeeded(haveError: Boolean) {
         if (!haveError) return
 
-        MaterialAlertDialogBuilder(context.getDynamicColorsContext(R.style.AppTheme))
-            .setTitle(R.string.dialog_overlay_title_warning)
-            .setMessage(R.string.error_dialog_message_error_native_lib)
-            .setPositiveButton(android.R.string.ok) { _, _ ->
-                onStopClicked()
-            }
-            .create()
-            .showAsOverlay()
+        context.createMacrionMessageDialog(
+            title = R.string.dialog_overlay_title_warning,
+            message = R.string.error_dialog_message_error_native_lib,
+            confirmLabel = android.R.string.ok,
+            onConfirm = { onStopClicked() },
+        ).showAsOverlay()
     }
 
     private fun showScreenCaptureErrorDialogIfNeeded(haveError: Boolean) {
         if (!haveError) return
 
-        MaterialAlertDialogBuilder(context.getDynamicColorsContext(R.style.AppTheme))
-            .setTitle(R.string.dialog_overlay_title_warning)
-            .setMessage(R.string.error_dialog_message_screen_capture_unsupported)
-            .setPositiveButton(android.R.string.ok) { _, _ ->
-                onStopClicked()
-            }
-            .create()
-            .showAsOverlay()
+        context.createMacrionMessageDialog(
+            title = R.string.dialog_overlay_title_warning,
+            message = R.string.error_dialog_message_screen_capture_unsupported,
+            confirmLabel = android.R.string.ok,
+            onConfirm = { onStopClicked() },
+        ).showAsOverlay()
     }
 
     private fun showRestartMediaProjectionScreen() {

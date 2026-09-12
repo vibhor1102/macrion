@@ -16,6 +16,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.unit.dp
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import io.github.vibhor1102.macrion.core.ui.R
+import io.github.vibhor1102.macrion.core.ui.utils.getDynamicColorsContext
 
 /** A Compose message surface in an AlertDialog window, for callers that need Android dialog lifecycle hooks. */
 fun Context.createMacrionMessageDialog(
@@ -45,8 +47,9 @@ fun Context.createMacrionMessageDialog(
     onCancel: (() -> Unit)? = null,
     onDismiss: (() -> Unit)? = null,
 ): AlertDialog {
+    val themedContext = getDynamicColorsContext(R.style.AppTheme)
     lateinit var dialog: AlertDialog
-    val content = ComposeView(this).apply {
+    val content = ComposeView(themedContext).apply {
         setContent {
             MacrionTheme {
                 MacrionDialogSurface {
@@ -67,7 +70,13 @@ fun Context.createMacrionMessageDialog(
                             horizontalArrangement = Arrangement.End,
                         ) {
                             if (cancelLabel != null) {
-                                TextButton(onClick = { dialog.dismiss() }) { Text(context.getString(cancelLabel)) }
+                                TextButton(onClick = {
+                                    try {
+                                        onCancel?.invoke()
+                                    } finally {
+                                        dialog.dismiss()
+                                    }
+                                }) { Text(themedContext.getString(cancelLabel)) }
                             }
                             TextButton(onClick = {
                                 try {
@@ -75,14 +84,14 @@ fun Context.createMacrionMessageDialog(
                                 } finally {
                                     dialog.dismiss()
                                 }
-                            }) { Text(context.getString(confirmLabel)) }
+                            }) { Text(themedContext.getString(confirmLabel)) }
                         }
                     }
                 }
             }
         }
     }
-    dialog = MaterialAlertDialogBuilder(this)
+    dialog = MaterialAlertDialogBuilder(themedContext)
         .setView(content)
         .setOnCancelListener { onCancel?.invoke() }
         .setOnDismissListener { onDismiss?.invoke() }

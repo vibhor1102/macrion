@@ -48,13 +48,12 @@ import io.github.vibhor1102.macrion.core.common.overlays.menu.createOverlayMenuL
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.Tip
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.core.ui.compose.AnimatedPlayPauseIcon
-import io.github.vibhor1102.macrion.core.ui.utils.getDynamicColorsContext
 import io.github.vibhor1102.macrion.feature.dumb.config.R
 import io.github.vibhor1102.macrion.feature.dumb.config.di.DumbConfigViewModelsEntryPoint
 import io.github.vibhor1102.macrion.feature.dumb.config.ui.brief.DumbScenarioBriefMenu
 import io.github.vibhor1102.macrion.feature.dumb.config.ui.scenario.DumbScenarioDialog
 
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import io.github.vibhor1102.macrion.core.ui.compose.createMacrionMessageDialog
 
 import kotlinx.coroutines.launch
 
@@ -201,13 +200,13 @@ class DumbMainMenu(
                 return@launch
             }
 
-            MaterialAlertDialogBuilder(context.getDynamicColorsContext(R.style.AppTheme))
-                .setTitle(R.string.dialog_stop_confirmation_title)
-                .setMessage(R.string.dialog_stop_confirmation_message)
-                .setNegativeButton(android.R.string.cancel, null)
-                .setPositiveButton(R.string.dialog_stop_confirmation_stop) { _, _ -> onStopClicked() }
-                .create()
-                .showAsOverlay()
+            context.createMacrionMessageDialog(
+                title = R.string.dialog_stop_confirmation_title,
+                message = R.string.dialog_stop_confirmation_message,
+                confirmLabel = R.string.dialog_stop_confirmation_stop,
+                cancelLabel = android.R.string.cancel,
+                onConfirm = { onStopClicked() },
+            ).showAsOverlay()
         }
     }
 

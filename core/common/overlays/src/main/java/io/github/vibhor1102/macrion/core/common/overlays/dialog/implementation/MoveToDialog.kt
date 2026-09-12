@@ -21,14 +21,19 @@ import android.view.WindowManager
 
 import androidx.annotation.StyleRes
 import androidx.appcompat.app.AlertDialog
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -53,6 +58,7 @@ import androidx.compose.ui.unit.dp
 import io.github.vibhor1102.macrion.core.common.overlays.R
 import io.github.vibhor1102.macrion.core.common.overlays.base.BaseOverlay
 import io.github.vibhor1102.macrion.core.common.overlays.manager.OverlayManager
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionDialogSurface
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.core.ui.utils.getDynamicColorsContext
 import io.github.vibhor1102.macrion.core.ui.R as UiR
@@ -77,21 +83,48 @@ class MoveToDialog(
         val content = ComposeView(context).apply {
             setContent {
                 MacrionTheme {
-                    MoveToPositionField(
-                        value = currentValue,
-                        itemCount = itemCount,
-                        requestFocus = requestFieldFocus,
-                        onValueChanged = { value ->
-                            currentValue = value
-                            updatePositiveButtonState()
-                        },
-                    )
+                    MacrionDialogSurface {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 24.dp, bottom = 8.dp),
+                        ) {
+                            Text(
+                                text = stringResource(R.string.dialog_move_to_title),
+                                style = MaterialTheme.typography.headlineSmall,
+                                modifier = Modifier.padding(horizontal = 24.dp),
+                            )
+                            MoveToPositionField(
+                                value = currentValue,
+                                itemCount = itemCount,
+                                requestFocus = requestFieldFocus,
+                                onValueChanged = { value ->
+                                    currentValue = value
+                                },
+                            )
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp),
+                                horizontalArrangement = Arrangement.End,
+                            ) {
+                                TextButton(onClick = { back() }) {
+                                    Text(stringResource(android.R.string.cancel))
+                                }
+                                TextButton(
+                                    onClick = { validateCurrentValueAndClose() },
+                                    enabled = currentValue.toEditedValue() != null,
+                                ) {
+                                    Text(stringResource(android.R.string.ok))
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
 
         dialog = MaterialAlertDialogBuilder(context.getDynamicColorsContext(R.style.AppTheme))
-            .setTitle(R.string.dialog_move_to_title)
             .setView(content)
             .setOnKeyListener { _, keyCode, event ->
                 if (keyCode == KeyEvent.KEYCODE_BACK && event.action == KeyEvent.ACTION_UP) {
@@ -101,8 +134,6 @@ class MoveToDialog(
                     false
                 }
             }
-            .setPositiveButton(android.R.string.ok) { _, _ -> validateCurrentValueAndClose() }
-            .setNegativeButton(android.R.string.cancel) { _, _ -> back() }
             .setOnDismissListener {
                 dialog = null
                 destroy()
@@ -128,7 +159,6 @@ class MoveToDialog(
                 WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE,
         )
         requestFieldFocus = true
-        updatePositiveButtonState()
     }
 
     override fun onStop() {
@@ -142,11 +172,6 @@ class MoveToDialog(
     override fun onDestroy() {
         dialog?.dismiss()
         dialog = null
-    }
-
-    private fun updatePositiveButtonState() {
-        dialog?.getButton(AlertDialog.BUTTON_POSITIVE)?.isEnabled =
-            currentValue.toEditedValue() != null
     }
 
     private fun validateCurrentValueAndClose() {
