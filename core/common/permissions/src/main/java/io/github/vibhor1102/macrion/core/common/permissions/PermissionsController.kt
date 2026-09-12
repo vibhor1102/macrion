@@ -23,7 +23,7 @@ import androidx.appcompat.app.AppCompatActivity
 import io.github.vibhor1102.macrion.core.common.permissions.model.Permission
 import io.github.vibhor1102.macrion.core.common.permissions.ui.PermissionDialogFragment
 
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import io.github.vibhor1102.macrion.core.ui.compose.createMacrionMessageDialog
 
 import dagger.hilt.android.scopes.ActivityRetainedScoped
 
@@ -124,12 +124,12 @@ class PermissionsController @Inject constructor() {
     }
 
     private fun AppCompatActivity.showMandatoryPermissionDeniedDialog() {
-        MaterialAlertDialogBuilder(this)
-            .setTitle(R.string.dialog_title_permission_mandatory_denied)
-            .setMessage(R.string.message_permission_mandatory_denied)
-            .setPositiveButton(android.R.string.ok) { _, _ -> notifyMandatoryDenied() }
-            .setOnCancelListener { notifyMandatoryDenied() }
-            .create()
+        createMacrionMessageDialog(
+            title = R.string.dialog_title_permission_mandatory_denied,
+            message = R.string.message_permission_mandatory_denied,
+            onConfirm = ::notifyMandatoryDenied,
+            onCancel = ::notifyMandatoryDenied,
+        )
             .show()
     }
 

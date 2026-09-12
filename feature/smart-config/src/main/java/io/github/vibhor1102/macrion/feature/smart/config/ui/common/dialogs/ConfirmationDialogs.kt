@@ -17,13 +17,12 @@
 package io.github.vibhor1102.macrion.feature.smart.config.ui.common.dialogs
 
 import android.content.Context
-import android.content.DialogInterface
 import androidx.annotation.StringRes
 import io.github.vibhor1102.macrion.core.common.overlays.manager.OverlayManager.Companion.showAsOverlay
+import io.github.vibhor1102.macrion.core.ui.compose.createMacrionMessageDialog
 
 import io.github.vibhor1102.macrion.feature.smart.config.R
 
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
 
 internal fun Context.showCloseWithoutSavingDialog(onOkPressed: () -> Unit): Unit =
@@ -62,14 +61,11 @@ internal fun Context.showDeleteConfirmationDialog(onOkPressed: () -> Unit): Unit
     )
 
 private fun Context.showConfirmationDialog(@StringRes title: Int, @StringRes message: Int, onOkPressed: () -> Unit) {
-    MaterialAlertDialogBuilder(this)
-        .setTitle(title)
-        .setMessage(message)
-        .setPositiveButton(android.R.string.ok) { _: DialogInterface, _: Int ->
-            onOkPressed()
-        }
-        .setNegativeButton(android.R.string.cancel, null)
-        .create()
+    createMacrionMessageDialog(
+        title = title,
+        message = message,
+        cancelLabel = android.R.string.cancel,
+        onConfirm = onOkPressed,
+    )
         .showAsOverlay()
 }
-

@@ -20,13 +20,13 @@ import android.content.Context
 import androidx.appcompat.app.AlertDialog
 import io.github.vibhor1102.macrion.core.ui.R
 
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import io.github.vibhor1102.macrion.core.ui.compose.createMacrionMessageDialog
 
 
 fun Context.createNoMediaProjectionDialog(onValidated: () -> Unit): AlertDialog =
-    MaterialAlertDialogBuilder(this)
-        .setTitle(R.string.dialog_overlay_title_warning)
-        .setMessage(R.string.message_error_screen_capture_permission_dialog_not_found)
-        .setPositiveButton(android.R.string.ok, null)
-        .create()
-        .also { it.setOnDismissListener { onValidated() } }
+    createMacrionMessageDialog(
+        title = R.string.dialog_overlay_title_warning,
+        message = R.string.message_error_screen_capture_permission_dialog_not_found,
+        onConfirm = {},
+        onDismiss = onValidated,
+    )
