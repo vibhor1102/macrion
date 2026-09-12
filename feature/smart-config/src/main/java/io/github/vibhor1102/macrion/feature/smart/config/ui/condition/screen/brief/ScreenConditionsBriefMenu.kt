@@ -16,6 +16,8 @@
  */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.brief
 
+import io.github.vibhor1102.macrion.core.common.overlays.menu.findOverlayView
+
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -100,8 +102,8 @@ class ScreenConditionsBriefMenu(
     override fun onStart() {
         super.onStart()
         viewModel.monitorViews(
-            createMenuButton = menuView.findViewById(R.id.btn_add),
-            saveMenuButton = menuView.findViewById(R.id.btn_save),
+            createMenuButton = menuView.findOverlayView(R.id.btn_add),
+            saveMenuButton = menuView.findOverlayView(R.id.btn_save),
         )
     }
 

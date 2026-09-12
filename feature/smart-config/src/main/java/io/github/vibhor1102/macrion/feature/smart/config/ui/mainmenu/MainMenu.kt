@@ -16,11 +16,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.mainmenu
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 
 import android.content.DialogInterface
 import android.graphics.Region
 import android.os.Build
-import android.util.Size
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -48,21 +49,13 @@ import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.tex
 import io.github.vibhor1102.macrion.feature.smart.config.ui.mainmenu.debugging.LiveDebuggingUiState
 import io.github.vibhor1102.macrion.feature.smart.config.ui.mainmenu.debugging.LiveDebuggingViewModel
 import io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.ScenarioDialog
-import io.github.vibhor1102.macrion.core.ui.R as CoreUiR
+import io.github.vibhor1102.macrion.core.ui.compose.AnimatedPlayPauseIcon
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Icon
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.painterResource
 
 /**
  * [OverlayMenu] implementation for displaying the main menu overlay.
@@ -145,14 +138,7 @@ class MainMenu(
             context = context,
             debugContent = { MainLiveDebugPanel(liveDebugUiState) },
             playPauseContent = {
-                AnimatedContent(isDetecting, label = "playPause") { detecting ->
-                    Icon(
-                        painterResource(if (detecting) R.drawable.ic_pause else R.drawable.ic_play_arrow),
-                        contentDescription = null,
-                        modifier = Modifier.fillMaxSize(),
-                        tint = colorResource(CoreUiR.color.overlayMenuButtons),
-                    )
-                }
+                AnimatedPlayPauseIcon(isDetecting)
             },
         )
         viewBinding.btnSwitchScenario.isVisible = isSwitchButtonInitiallyVisible
@@ -263,22 +249,6 @@ class MainMenu(
         }
     }
 
-    override fun getWindowMaximumSize(backgroundView: ViewGroup): Size {
-        val buttons = backgroundView.findViewById<ViewGroup>(
-            io.github.vibhor1102.macrion.core.common.overlays.R.id.menu_items,
-        )
-        val buttonWidth = (0 until buttons.childCount).maxOfOrNull { index ->
-            buttons.getChildAt(index).layoutParams.width
-        } ?: 0
-        val buttonsHeight = (0 until buttons.childCount).sumOf { index ->
-            buttons.getChildAt(index).layoutParams.height
-        }
-        return Size(
-            buttonWidth + buttons.paddingLeft + buttons.paddingRight +
-                context.resources.getDimensionPixelSize(R.dimen.overlay_debug_panel_width),
-            buttonsHeight + buttons.paddingTop + buttons.paddingBottom,
-        )
-    }
 
     fun onMediaProjectionLost() {
         if (!lifecycle.currentState.isAtLeast(Lifecycle.State.CREATED)) return
@@ -342,6 +312,7 @@ class MainMenu(
     private fun updateDetectionState(newState: UiState) {
         val currentState = viewBinding.btnPlay.tag
         if (currentState == newState) return
+
 
         viewBinding.btnPlay.tag = newState
         isDetecting = newState is UiState.Detecting

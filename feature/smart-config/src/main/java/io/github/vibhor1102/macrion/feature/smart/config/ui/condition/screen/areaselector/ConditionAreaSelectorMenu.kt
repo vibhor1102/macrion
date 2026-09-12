@@ -16,6 +16,8 @@
  */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.areaselector
 
+import io.github.vibhor1102.macrion.core.common.overlays.menu.findOverlayView
+
 import android.graphics.Rect
 import android.view.LayoutInflater
 import android.view.View
@@ -59,7 +61,7 @@ class ConditionAreaSelectorMenu(
         val menuView = createValidationOverlayToolbar(context)
 
         if (onHelpClicked == null) {
-            menuView.findViewById<View>(R.id.btn_help).visibility = View.GONE
+            menuView.findOverlayView<View>(R.id.btn_help).visibility = View.GONE
         }
 
         return menuView

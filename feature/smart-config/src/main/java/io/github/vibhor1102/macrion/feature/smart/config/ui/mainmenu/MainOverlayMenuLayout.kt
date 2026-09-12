@@ -1,15 +1,15 @@
 /* Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.mainmenu
 
+import io.github.vibhor1102.macrion.core.common.overlays.menu.findOverlayView
+
 import android.content.Context
 import android.view.Gravity
-import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -31,7 +31,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.platform.AbstractComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -50,13 +49,13 @@ import io.github.vibhor1102.macrion.feature.smart.config.R
 import io.github.vibhor1102.macrion.feature.smart.config.ui.mainmenu.debugging.LiveDebuggingUiState
 
 internal class MainMenuViews(val root: ViewGroup) {
-    val menuItems: ViewGroup = root.findViewById(R.id.menu_items)
-    val btnPlay: View = root.findViewById(R.id.btn_play)
-    val btnStop: View = root.findViewById(R.id.btn_stop)
-    val btnClickList: View = root.findViewById(R.id.btn_click_list)
-    val btnSwitchScenario: View = root.findViewById(R.id.btn_switch_scenario)
-    val btnOpenHome: View = root.findViewById(R.id.btn_open_home)
-    val layoutDebug: View = root.findViewById(R.id.layout_debug)
+    val menuItems: ViewGroup = root.findOverlayView(R.id.menu_items)
+    val btnPlay: View = root.findOverlayView(R.id.btn_play)
+    val btnStop: View = root.findOverlayView(R.id.btn_stop)
+    val btnClickList: View = root.findOverlayView(R.id.btn_click_list)
+    val btnSwitchScenario: View = root.findOverlayView(R.id.btn_switch_scenario)
+    val btnOpenHome: View = root.findOverlayView(R.id.btn_open_home)
+    val layoutDebug: View = root.findOverlayView(R.id.layout_debug)
     val errorBadge: ImageView = root.findViewById(R.id.error_badge)
 }
 
@@ -68,27 +67,11 @@ internal fun createMainOverlayMenu(
     val density = context.resources.displayMetrics.density
     fun dp(value: Int) = (value * density).toInt()
 
-    val debugContainer = FrameLayout(context).apply {
+    val debugContainer = ComposeView(context).apply {
         id = R.id.layout_debug
         isVisible = false
-        var contentInstalled = false
-        addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
-            override fun onViewAttachedToWindow(view: View) {
-                if (contentInstalled) return
-                contentInstalled = true
-                addView(
-                    ComposeView(context).apply {
-                        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-                        setContent { MacrionTheme { debugContent() } }
-                    },
-                    FrameLayout.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                    ),
-                )
-            }
-            override fun onViewDetachedFromWindow(view: View) = Unit
-        })
+        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+        setContent { MacrionTheme { debugContent() } }
     }
     val root = createOverlayMenuLayout(
         context = context,
@@ -102,32 +85,20 @@ internal fun createMainOverlayMenu(
         ),
         content = debugContainer,
         contentLayoutParams = LinearLayout.LayoutParams(dp(200), dp(100)),
-        buttonViewFactory = { button ->
-            OverlayButtonFrameLayout(context).apply {
-                addView(TouchTransparentComposeView(context) {
-                    MacrionTheme {
-                        Box(Modifier.fillMaxWidth().fillMaxHeight(), contentAlignment = Alignment.Center) {
-                            if (button.id == R.id.btn_play) playPauseContent()
-                            else Icon(
-                                painterResource(button.icon),
-                                contentDescription = null,
-                                modifier = Modifier.fillMaxWidth().fillMaxHeight(),
-                                tint = colorResource(io.github.vibhor1102.macrion.core.ui.R.color.overlayMenuButtons),
-                            )
-                        }
-                    }
-                }.apply {
-                    layoutParams = FrameLayout.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.MATCH_PARENT,
+        buttonContent = { button ->
+            MacrionTheme {
+                Box(Modifier.fillMaxWidth().fillMaxHeight(), contentAlignment = Alignment.Center) {
+                    if (button.id == R.id.btn_play) playPauseContent()
+                    else Icon(
+                        painterResource(button.icon), null, Modifier.fillMaxWidth().fillMaxHeight(),
+                        tint = colorResource(io.github.vibhor1102.macrion.core.ui.R.color.overlayMenuButtons),
                     )
-                    setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-                })
+                }
             }
         },
     )
-    root.findViewById<View>(R.id.btn_switch_scenario).isVisible = false
-    root.findViewById<View>(R.id.btn_open_home).isVisible = false
+    root.findOverlayView<View>(R.id.btn_switch_scenario).isVisible = false
+    root.findOverlayView<View>(R.id.btn_open_home).isVisible = false
     root.addView(ImageView(context).apply {
         id = R.id.error_badge
         setImageResource(R.drawable.ic_badge_error)
@@ -144,17 +115,6 @@ internal fun createMainOverlayMenu(
     return MainMenuViews(root)
 }
 
-private class TouchTransparentComposeView(
-    context: Context,
-    private val content: @Composable () -> Unit,
-) : AbstractComposeView(context) {
-    @Composable override fun Content() = content()
-    override fun dispatchTouchEvent(event: MotionEvent): Boolean = false
-}
-
-private class OverlayButtonFrameLayout(context: Context) : FrameLayout(context) {
-    override fun onInterceptTouchEvent(event: MotionEvent): Boolean = true
-}
 
 @Composable
 internal fun MainLiveDebugPanel(state: LiveDebuggingUiState?) {

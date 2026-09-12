@@ -26,7 +26,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.ViewTreeObserver
 import android.view.WindowManager
-import android.widget.ImageButton
 import androidx.annotation.IdRes
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.github.vibhor1102.macrion.core.common.overlays.di.OverlaysEntryPoint
@@ -133,7 +132,7 @@ class OverlayMenuTests {
      * @param items the menu items
      */
     private fun createMockMenuView(items: Sequence<View>) : ViewGroup {
-        val menuView = mock(ViewGroup::class.java)
+        val menuView = mock(ComposeOverlayMenuHost::class.java)
 
         mockWhen(menuView.childCount).thenReturn(items.count())
         items.forEachIndexed { index, item ->
@@ -149,7 +148,7 @@ class OverlayMenuTests {
      *
      * @param viewId the view identifier for the menu item.
      */
-    private fun createMockMenuItemView(@IdRes viewId: Int = 0): ImageButton = mock(ImageButton::class.java).also {
+    private fun createMockMenuItemView(@IdRes viewId: Int = 0): OverlayMenuButtonView = mock(OverlayMenuButtonView::class.java).also {
         mockWhen(it.id).thenReturn(viewId)
     }
 
@@ -159,7 +158,11 @@ class OverlayMenuTests {
      * @param mockMenu the view for the overlay menu.
      * @param mockOverlay the overlay view.
      */
-    private fun mockViewsFromImpl(mockMenu: ViewGroup = mock(ViewGroup::class.java), mockOverlay: View? = null) {
+    private fun mockViewsFromImpl(mockMenu: ViewGroup = mock(ComposeOverlayMenuHost::class.java), mockOverlay: View? = null) {
+        val host = mockMenu as ComposeOverlayMenuHost
+        val buttons = (0 until host.childCount).map { host.getChildAt(it) as OverlayMenuButtonView }.toMutableList()
+        mockWhen(host.buttons).thenReturn(buttons)
+        mockWhen(host.anchors).thenReturn(mutableMapOf())
         mockWhen(mockMenu.findViewById<ViewGroup>(R.id.menu_items)).thenReturn(mockMenu)
         mockWhen(mockMenu.findViewById<ViewGroup>(R.id.menu_background)).thenReturn(mockMenu)
         mockWhen(mockMenu.context).thenReturn(mockContext)
@@ -217,7 +220,7 @@ class OverlayMenuTests {
     @Test
     fun createAddMenuView() {
         overlayMenuController = OverlayMenuTestImpl(overlayMenuControllerImpl)
-        val menuView = mock(ViewGroup::class.java)
+        val menuView = mock(ComposeOverlayMenuHost::class.java)
         mockViewsFromImpl(menuView)
 
         overlayMenuController.create(mockContext)
@@ -230,7 +233,7 @@ class OverlayMenuTests {
     @Test
     fun createAddViews() {
         overlayMenuController = OverlayMenuTestImpl(overlayMenuControllerImpl)
-        val menuView = mock(ViewGroup::class.java)
+        val menuView = mock(ComposeOverlayMenuHost::class.java)
         val overlayView = mock(View::class.java)
         mockViewsFromImpl(menuView, overlayView)
 
@@ -335,7 +338,7 @@ class OverlayMenuTests {
     @Test
     fun destroy_removeView() {
         overlayMenuController = OverlayMenuTestImpl(overlayMenuControllerImpl)
-        val menuView = mock(ViewGroup::class.java)
+        val menuView = mock(ComposeOverlayMenuHost::class.java)
         mockViewsFromImpl(menuView)
         overlayMenuController.create(mockContext)
 
@@ -347,7 +350,7 @@ class OverlayMenuTests {
     @Test
     fun destroy_removeAllViews() {
         overlayMenuController = OverlayMenuTestImpl(overlayMenuControllerImpl)
-        val menuView = mock(ViewGroup::class.java)
+        val menuView = mock(ComposeOverlayMenuHost::class.java)
         val overlayView = mock(View::class.java)
         mockViewsFromImpl(menuView, overlayView)
         overlayMenuController.create(mockContext)

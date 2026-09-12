@@ -16,6 +16,8 @@
  */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.action.brief
 
+import io.github.vibhor1102.macrion.core.common.overlays.menu.findOverlayView
+
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
@@ -95,8 +97,8 @@ class SmartActionsBriefMenu(initialItemIndex: Int) : ItemBriefMenu(
     override fun onStart() {
         super.onStart()
         viewModel.monitorViews(
-            createMenuButton = menuView.findViewById(R.id.btn_add_other),
-            saveMenuButton = menuView.findViewById(R.id.btn_back),
+            createMenuButton = menuView.findOverlayView(R.id.btn_add_other),
+            saveMenuButton = menuView.findOverlayView(R.id.btn_back),
         )
     }
 
@@ -141,7 +143,7 @@ class SmartActionsBriefMenu(initialItemIndex: Int) : ItemBriefMenu(
 
     override fun onScreenOverlayVisibilityChanged(isVisible: Boolean) {
         super.onScreenOverlayVisibilityChanged(isVisible)
-        setMenuItemViewEnabled(menuView.findViewById(R.id.btn_record), isVisible)
+        setMenuItemViewEnabled(menuView.findOverlayView(R.id.btn_record), isVisible)
     }
 
     override fun onMoveItemClicked(from: Int, to: Int) {
@@ -188,27 +190,27 @@ class SmartActionsBriefMenu(initialItemIndex: Int) : ItemBriefMenu(
 
     private fun updateRecordingState(isRecording: Boolean) {
         if (isRecording) {
-            setMenuItemViewEnabled(menuView.findViewById(R.id.btn_back), true)
-            setMenuItemViewEnabled(menuView.findViewById(R.id.btn_add_other), false)
-            setMenuItemViewEnabled(menuView.findViewById(R.id.btn_hide_overlay), false)
-            setMenuItemViewEnabled(menuView.findViewById(R.id.btn_move), true)
-            setMenuItemViewEnabled(menuView.findViewById(R.id.btn_record), false)
+            setMenuItemViewEnabled(menuView.findOverlayView(R.id.btn_back), true)
+            setMenuItemViewEnabled(menuView.findOverlayView(R.id.btn_add_other), false)
+            setMenuItemViewEnabled(menuView.findOverlayView(R.id.btn_hide_overlay), false)
+            setMenuItemViewEnabled(menuView.findOverlayView(R.id.btn_move), true)
+            setMenuItemViewEnabled(menuView.findOverlayView(R.id.btn_record), false)
         } else {
-            setMenuItemViewEnabled(menuView.findViewById(R.id.btn_back), true)
-            setMenuItemViewEnabled(menuView.findViewById(R.id.btn_add_other), true)
-            setMenuItemViewEnabled(menuView.findViewById(R.id.btn_hide_overlay), true)
-            setMenuItemViewEnabled(menuView.findViewById(R.id.btn_move), true)
-            setMenuItemViewEnabled(menuView.findViewById(R.id.btn_record), true)
+            setMenuItemViewEnabled(menuView.findOverlayView(R.id.btn_back), true)
+            setMenuItemViewEnabled(menuView.findOverlayView(R.id.btn_add_other), true)
+            setMenuItemViewEnabled(menuView.findOverlayView(R.id.btn_hide_overlay), true)
+            setMenuItemViewEnabled(menuView.findOverlayView(R.id.btn_move), true)
+            setMenuItemViewEnabled(menuView.findOverlayView(R.id.btn_record), true)
         }
     }
 
     private fun updateReplayingState(isReplaying: Boolean) {
         setOverlayViewVisibility(!isReplaying)
-        setMenuItemViewEnabled(menuView.findViewById(R.id.btn_back), !isReplaying)
-        setMenuItemViewEnabled(menuView.findViewById(R.id.btn_add_other), !isReplaying)
-        setMenuItemViewEnabled(menuView.findViewById(R.id.btn_hide_overlay), !isReplaying)
-        setMenuItemViewEnabled(menuView.findViewById(R.id.btn_move), !isReplaying)
-        setMenuItemViewEnabled(menuView.findViewById(R.id.btn_record), !isReplaying)
+        setMenuItemViewEnabled(menuView.findOverlayView(R.id.btn_back), !isReplaying)
+        setMenuItemViewEnabled(menuView.findOverlayView(R.id.btn_add_other), !isReplaying)
+        setMenuItemViewEnabled(menuView.findOverlayView(R.id.btn_hide_overlay), !isReplaying)
+        setMenuItemViewEnabled(menuView.findOverlayView(R.id.btn_move), !isReplaying)
+        setMenuItemViewEnabled(menuView.findOverlayView(R.id.btn_record), !isReplaying)
     }
 
     private fun updateActionVisualisation(visualization: ItemBriefDescription?) {

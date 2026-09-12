@@ -21,20 +21,16 @@ import android.content.res.Configuration
 import android.graphics.PixelFormat
 import android.graphics.Point
 import android.util.Log
-import android.util.Size
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
-import android.view.View.MeasureSpec
 import android.view.ViewGroup
 import android.view.WindowManager
-import android.widget.ImageButton
 
 import androidx.annotation.CallSuper
 import androidx.annotation.IdRes
 import androidx.annotation.StyleRes
-import androidx.core.view.forEach
 import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.setViewTreeLifecycleOwner
@@ -54,7 +50,6 @@ import io.github.vibhor1102.macrion.core.common.overlays.manager.OverlayManager
 import io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.common.OverlayMenuAnimations
 import io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.common.OverlayMenuMoveTouchEventHandler
 import io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.common.OverlayMenuPositionDataSource
-import io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.common.OverlayMenuResizeController
 
 import dagger.hilt.EntryPoints
 import java.io.PrintWriter
@@ -67,14 +62,12 @@ import java.io.PrintWriter
  * management and the moving of the menu by pressing the move item. It also provides the management of an overlay view,
  * a view that can be shown/hide as an overlay over the currently displayed activity.
  *
- * Using this class impose some restrictions on the provided views:
- * - The root layout must be a FrameLayout with the size set to wrap content.
- * - The root layout must have only one child. This child should show the background of the overlay window and should
- * have the view id [R.id.menu_background].
- * - The layout containing all menu buttons should have the view id [R.id.menu_items].
+ * Create the menu with [createOverlayMenuLayout]. Its registry supplies stable interaction and
+ * tutorial anchors before the Compose hierarchy attaches. Compose owns layout and resizing;
+ * this controller owns the platform windows, lifecycle and saved position.
  *
  * Two menu items are supported by default and are not mandatory (if you don't need it, don't declare it in your layout).
- * Those items must be a direct child of [R.id.menu_items]:
+ * Include these items in the menu's button definitions to enable their behavior:
  * - [R.id.btn_move]: the button allowing the move the overlay menu when drag and drop by the user.
  * - [R.id.btn_hide_overlay]: the button allowing to show/hide the overlay view on the screen. When hidden, the user can
  * click on the activity overlaid.
@@ -121,10 +114,6 @@ abstract class OverlayMenu(
     private lateinit var menuLayout: ViewGroup
     /** The view displaying the background of the overlay. */
     private lateinit var menuBackground: ViewGroup
-    /** The view containing the buttons as direct children. */
-    private lateinit var buttonsContainer: ViewGroup
-    /** Handles the window size computing when animating a resize of the overlay. */
-    private lateinit var resizeController: OverlayMenuResizeController
     /** Handles the touch events on the move button. */
     private lateinit var moveTouchEventHandler: OverlayMenuMoveTouchEventHandler
 
@@ -138,7 +127,7 @@ abstract class OverlayMenu(
     private var disabledItemAlpha: Float = 1f
 
     /** The hide overlay button, if provided. */
-    private var hideOverlayButton: ImageButton? = null
+    private var hideOverlayButton: OverlayMenuButtonView? = null
     /** The move button, if provided. */
     private var moveButton: View? = null
 
@@ -158,8 +147,7 @@ abstract class OverlayMenu(
      *
      * @param layoutInflater the Android layout inflater.
      *
-     * @return the menu root view. It MUST contains a view group within a depth of 2 that contains all menu items in
-     *         order for move and hide to work as expected.
+     * @return the window host returned by [createOverlayMenuLayout].
      */
     protected abstract fun onCreateMenu(layoutInflater: LayoutInflater): ViewGroup
 
@@ -206,9 +194,8 @@ abstract class OverlayMenu(
         screenOverlayView?.installOverlayViewTreeOwners()
 
         // Set the clicks listener on the menu items
-        menuBackground = menuLayout.findViewById(R.id.menu_background)
-        buttonsContainer = menuLayout.findViewById(R.id.menu_items)
-        setupButtons(buttonsContainer)
+        menuBackground = menuLayout.findOverlayView(R.id.menu_background)
+        setupButtons()
 
         // Setup the touch event handler for the move button
         moveTouchEventHandler = OverlayMenuMoveTouchEventHandler(::updateMenuPosition)
@@ -238,14 +225,7 @@ abstract class OverlayMenu(
             return
         }
 
-        // Handle window resize animations only after attachment. Measuring an unattached
-        // ComposeView forces composition before a window recomposer exists and crashes.
-        resizeController = OverlayMenuResizeController(
-            backgroundViewGroup = menuBackground,
-            resizedContainer = buttonsContainer,
-            maximumSize = getWindowMaximumSize(menuBackground),
-            windowResizer = ::onNewWindowSize,
-        )
+        // Compose measures and animates the content; WindowManager follows its wrap-content size.
         if (animateOverlayView()) menuBackground.visibility = View.GONE
     }
 
@@ -255,8 +235,8 @@ abstract class OverlayMenu(
         setViewTreeViewModelStoreOwner(this@OverlayMenu)
     }
 
-    private fun setupButtons(buttonsContainer: ViewGroup) {
-        buttonsContainer.forEach { view ->
+    private fun setupButtons() {
+        (menuLayout as ComposeOverlayMenuHost).buttons.forEach { view ->
             @SuppressLint("ClickableViewAccessibility") // View is only drag and drop, no click
             when (view.id) {
                 R.id.btn_move -> {
@@ -264,12 +244,11 @@ abstract class OverlayMenu(
                     view.setOnTouchListener { _: View, event: MotionEvent -> onMoveTouched(event) }
                 }
                 R.id.btn_hide_overlay -> {
-                    hideOverlayButton = (view as ImageButton)
+                    hideOverlayButton = view
                     setOverlayViewVisibility(true)
                     view.setOnClickListener { onToggleOverlayVisibilityClicked() }
                 }
                 else -> view.setDebouncedOnClickListener { v ->
-                    if (resizeController.isAnimating) return@setDebouncedOnClickListener
                     onMenuItemClicked(v.id)
                 }
             }
@@ -377,7 +356,7 @@ abstract class OverlayMenu(
         screenOverlayView?.let { windowManager.safeRemoveView(it) }
         screenOverlayView = null
 
-        resizeController.release()
+        animations.release()
         super@OverlayMenu.destroy()
     }
 
@@ -460,14 +439,6 @@ abstract class OverlayMenu(
      */
     protected open fun onScreenOverlayVisibilityChanged(isVisible: Boolean): Unit = Unit
 
-    /**
-     * Get the maximum size the window can take.
-     * @param backgroundView the background view.
-     */
-    protected open fun getWindowMaximumSize(backgroundView: ViewGroup): Size {
-        backgroundView.measure(MeasureSpec.UNSPECIFIED, MeasureSpec.UNSPECIFIED)
-        return Size(backgroundView.measuredWidth, backgroundView.measuredHeight)
-    }
 
     /**
      * Change the menu view visibility.
@@ -526,41 +497,29 @@ abstract class OverlayMenu(
     }
 
     /**
-     * Animates the provided layout changes.
-     * Allow to use the xml property animateLayoutChanges. All changes triggering a window resize should be made using
-     * this method.
+     * Applies a group of state changes. Compose coalesces them and animates the resulting size.
      *
      * @param layoutChanges the changes triggering a resize.
      */
     protected fun animateLayoutChanges(layoutChanges: () -> Unit) {
-        resizeController.animateLayoutChanges(layoutChanges)
+        layoutChanges()
     }
 
     private fun canResizeWindow(): Boolean =
-        !resizeController.isAnimating && !animations.showAnimationIsRunning
+        !animations.showAnimationIsRunning
                 && !animations.hideAnimationIsRunning && menuBackground.width > 0
 
     private fun forceWindowResize() {
         Log.d(TAG, "Force window resize")
-        onNewWindowSize(resizeController.measureMenuSize())
+        menuLayout.requestLayout()
     }
 
-    private fun onNewWindowSize(size: Size) {
-        menuLayoutParams.width = size.width
-        menuLayoutParams.height = size.height
-
-        if (lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
-            Log.d(TAG, "Updating menu window size: ${size.width}/${size.height}")
-            windowManager.safeUpdateViewLayout(menuLayout, menuLayoutParams)
-        }
-    }
 
     /**
      * Handle the click on the hide overlay button.
      * Toggle the visible state of the overlay view.
      */
     private fun onToggleOverlayVisibilityClicked() {
-        if (resizeController.isAnimating) return
 
         screenOverlayView?.let { view ->
             setOverlayViewVisibility(view.visibility != View.VISIBLE)
@@ -599,7 +558,6 @@ abstract class OverlayMenu(
      * @return true if the event is handled, false if not.
      */
     private fun onMoveTouched(event: MotionEvent) : Boolean {
-        if (resizeController.isAnimating) return false
 
         return moveTouchEventHandler.onTouchEvent(menuLayout, event)
     }

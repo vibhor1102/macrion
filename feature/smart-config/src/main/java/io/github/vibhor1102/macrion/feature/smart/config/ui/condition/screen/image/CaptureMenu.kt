@@ -16,11 +16,13 @@
  */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.image
 
+import io.github.vibhor1102.macrion.core.common.overlays.menu.findOverlayView
+
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageButton
+import io.github.vibhor1102.macrion.core.common.overlays.menu.OverlayMenuButtonView
 import android.widget.Toast
 
 import androidx.annotation.IntDef
@@ -78,10 +80,10 @@ class CaptureMenu(
     )
 
     private lateinit var menuView: ViewGroup
-    private val confirmButton get() = menuView.findViewById<ImageButton>(R.id.btn_confirm)
-    private val cancelButton get() = menuView.findViewById<ImageButton>(R.id.btn_cancel)
-    private val helpButton get() = menuView.findViewById<ImageButton>(R.id.btn_help)
-    private val hideButton get() = menuView.findViewById<ImageButton>(R.id.btn_hide_overlay)
+    private val confirmButton get() = menuView.findOverlayView<OverlayMenuButtonView>(R.id.btn_confirm)
+    private val cancelButton get() = menuView.findOverlayView<OverlayMenuButtonView>(R.id.btn_cancel)
+    private val helpButton get() = menuView.findOverlayView<OverlayMenuButtonView>(R.id.btn_help)
+    private val hideButton get() = menuView.findOverlayView<OverlayMenuButtonView>(R.id.btn_hide_overlay)
     /** Compose selector state retained across the menu and overlay view lifecycles. */
     private val selectorController = SelectorController(hasCapture = true, ::onSelectorValidityChanged)
 

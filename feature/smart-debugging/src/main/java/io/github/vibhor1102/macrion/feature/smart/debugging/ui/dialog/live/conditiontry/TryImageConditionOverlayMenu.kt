@@ -1,7 +1,8 @@
 /* Copyright (C) 2025 Kevin Buzeau; Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.live.conditiontry
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 
-import android.util.Size
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
@@ -19,9 +20,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -76,10 +75,6 @@ class TryImageConditionOverlayMenu(
         viewModel.startTry(context, scenario, imageCondition)
     }
     override fun onStop() { viewModel.stopTry(); onNewThresholdSelected(viewModel.getSelectedThreshold()) }
-    override fun getWindowMaximumSize(backgroundView: ViewGroup): Size =
-        super.getWindowMaximumSize(backgroundView).let { Size(
-            it.width + context.resources.getDimensionPixelSize(R.dimen.overlay_debug_text_width), it.height,
-        ) }
     override fun onMenuItemClicked(viewId: Int) {
         if (viewId == R.id.btn_back) { viewModel.stopTry(); back() }
     }

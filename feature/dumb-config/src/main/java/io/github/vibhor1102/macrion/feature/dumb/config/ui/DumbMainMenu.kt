@@ -15,27 +15,20 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package io.github.vibhor1102.macrion.feature.dumb.config.ui
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 
-import android.util.Size
+import io.github.vibhor1102.macrion.core.common.overlays.menu.findOverlayView
+
 import android.view.KeyEvent
 import android.view.LayoutInflater
-import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
-import android.widget.FrameLayout
 
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Icon
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.AbstractComposeView
-import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 
@@ -54,6 +47,7 @@ import io.github.vibhor1102.macrion.core.common.overlays.menu.OverlayMenuButton
 import io.github.vibhor1102.macrion.core.common.overlays.menu.createOverlayMenuLayout
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.Tip
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
+import io.github.vibhor1102.macrion.core.ui.compose.AnimatedPlayPauseIcon
 import io.github.vibhor1102.macrion.core.ui.utils.getDynamicColorsContext
 import io.github.vibhor1102.macrion.feature.dumb.config.R
 import io.github.vibhor1102.macrion.feature.dumb.config.di.DumbConfigViewModelsEntryPoint
@@ -81,10 +75,10 @@ class DumbMainMenu(
     }
 
     private lateinit var menuView: ViewGroup
-    private val playButton get() = menuView.findViewById<View>(R.id.btn_play)
-    private val stopButton get() = menuView.findViewById<View>(R.id.btn_stop)
-    private val showActionsButton get() = menuView.findViewById<View>(R.id.btn_show_actions)
-    private val actionListButton get() = menuView.findViewById<View>(R.id.btn_action_list)
+    private val playButton get() = menuView.findOverlayView<View>(R.id.btn_play)
+    private val stopButton get() = menuView.findOverlayView<View>(R.id.btn_stop)
+    private val showActionsButton get() = menuView.findOverlayView<View>(R.id.btn_show_actions)
+    private val actionListButton get() = menuView.findOverlayView<View>(R.id.btn_action_list)
     private var isPlaying by mutableStateOf(false)
 
     /**
@@ -112,90 +106,23 @@ class DumbMainMenu(
             OverlayMenuButton(R.id.btn_action_list, R.drawable.ic_settings_filled, R.string.content_desc_open_action_list),
             OverlayMenuButton(R.id.btn_move, R.drawable.ic_move, R.string.content_desc_move_menu),
         )
-        menuView = createOverlayMenuLayout(context, buttons, buttonViewFactory = { button ->
-            OverlayButtonFrameLayout(context).apply {
-                addView(TouchTransparentComposeView(context) {
-                    MacrionTheme {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            if (button.id == R.id.btn_play) {
-                                AnimatedContent(targetState = isPlaying, label = "playPause") { playing ->
-                                    Icon(
-                                        painter = painterResource(
-                                            if (playing) R.drawable.ic_pause else R.drawable.ic_play_arrow,
-                                        ),
-                                        contentDescription = null,
-                                        modifier = Modifier.fillMaxSize(),
-                                        tint = colorResource(
-                                            io.github.vibhor1102.macrion.core.ui.R.color.overlayMenuButtons,
-                                        ),
-                                    )
-                                }
-                            } else {
-                                Icon(
-                                    painter = painterResource(button.icon),
-                                    contentDescription = null,
-                                    modifier = Modifier.fillMaxSize(),
-                                    tint = colorResource(
-                                        io.github.vibhor1102.macrion.core.ui.R.color.overlayMenuButtons,
-                                    ),
-                                )
-                            }
-                        }
-                    }
-                }.apply {
-                    layoutParams = FrameLayout.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.MATCH_PARENT,
+        menuView = createOverlayMenuLayout(context, buttons, buttonContent = { button ->
+            MacrionTheme {
+                if (button.id == R.id.btn_play) {
+                    AnimatedPlayPauseIcon(isPlaying)
+                } else {
+                    Icon(
+                        painterResource(button.icon), null, Modifier.fillMaxSize(),
+                        tint = colorResource(io.github.vibhor1102.macrion.core.ui.R.color.overlayMenuButtons),
                     )
-                    setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-                })
+                }
             }
         })
 
         return menuView
     }
 
-    /**
-     * Compose renders the button, while its containing Android view remains the interaction
-     * surface expected by [OverlayMenu]. The renderer must decline touch events so the parent can
-     * retain the original click debouncing, resize guard, enabled state, and move handling.
-     */
-    private class TouchTransparentComposeView(
-        context: android.content.Context,
-        private val content: @Composable () -> Unit,
-    ) : AbstractComposeView(context) {
-        @Composable
-        override fun Content() = content()
 
-        override fun dispatchTouchEvent(event: MotionEvent): Boolean = false
-    }
-
-    /**
-     * Behaves like the leaf ImageButton used before migration: this direct menu item owns the
-     * complete pointer sequence, and its renderer never becomes a touch target.
-     */
-    private class OverlayButtonFrameLayout(context: android.content.Context) : FrameLayout(context) {
-        override fun onInterceptTouchEvent(event: MotionEvent): Boolean = true
-    }
-
-    override fun getWindowMaximumSize(backgroundView: ViewGroup): Size {
-        val buttonContainer = backgroundView.findViewById<ViewGroup>(
-            io.github.vibhor1102.macrion.core.common.overlays.R.id.menu_items,
-        )
-        val contentWidth = (0 until buttonContainer.childCount).maxOfOrNull { index ->
-            buttonContainer.getChildAt(index).layoutParams.width
-        } ?: 0
-        val contentHeight = (0 until buttonContainer.childCount).sumOf { index ->
-            buttonContainer.getChildAt(index).layoutParams.height
-        }
-        return Size(
-            contentWidth + buttonContainer.paddingLeft + buttonContainer.paddingRight,
-            contentHeight + buttonContainer.paddingTop + buttonContainer.paddingBottom,
-        )
-    }
 
     override fun onDestroy() {
         super.onDestroy()

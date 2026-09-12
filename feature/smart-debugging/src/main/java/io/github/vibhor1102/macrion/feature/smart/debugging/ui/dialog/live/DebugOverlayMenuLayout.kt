@@ -2,9 +2,7 @@
 package io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.live
 
 import android.content.Context
-import android.view.View
 import android.view.ViewGroup
-import android.widget.FrameLayout
 import android.widget.LinearLayout
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.ComposeView
@@ -23,25 +21,9 @@ internal fun createDebugOverlayMenu(
     val density = context.resources.displayMetrics.density
     fun dp(value: Int) = (value * density).toInt()
 
-    val contentContainer = FrameLayout(context).apply {
-        var contentInstalled = false
-        addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
-            override fun onViewAttachedToWindow(view: View) {
-                if (contentInstalled) return
-                contentInstalled = true
-                addView(
-                    ComposeView(context).apply {
-                        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-                        setContent { MacrionTheme { content() } }
-                    },
-                    FrameLayout.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                    ),
-                )
-            }
-            override fun onViewDetachedFromWindow(view: View) = Unit
-        })
+    val contentContainer = ComposeView(context).apply {
+        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+        setContent { MacrionTheme { content() } }
     }
     return createOverlayMenuLayout(
         context = context,

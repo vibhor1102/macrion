@@ -16,6 +16,8 @@
  */
 package io.github.vibhor1102.macrion.core.common.overlays.menu.implementation
 
+import io.github.vibhor1102.macrion.core.common.overlays.menu.findOverlayView
+
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -79,7 +81,7 @@ class PositionSelectorMenu(
                 OverlayMenuButton(R.id.btn_hide_overlay, R.drawable.ic_visible_on, R.string.content_desc_go_back),
                 OverlayMenuButton(R.id.btn_move, R.drawable.ic_move, R.string.content_desc_move_menu),
             ),
-        ).also { menu -> confirmButton = menu.findViewById(R.id.btn_confirm) }
+        ).also { menu -> confirmButton = menu.findOverlayView(R.id.btn_confirm) }
     }
 
     override fun onCreateOverlayView(): View {

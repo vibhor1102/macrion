@@ -16,6 +16,8 @@
  */
 package io.github.vibhor1102.macrion.feature.dumb.config.ui.brief
 
+import io.github.vibhor1102.macrion.core.common.overlays.menu.findOverlayView
+
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
@@ -57,11 +59,11 @@ class DumbScenarioBriefMenu(
     )
 
     private lateinit var menuView: ViewGroup
-    private val backButton get() = menuView.findViewById<View>(R.id.btn_back)
-    private val recordButton get() = menuView.findViewById<View>(R.id.btn_record)
-    private val addButton get() = menuView.findViewById<View>(R.id.btn_add)
-    private val hideButton get() = menuView.findViewById<View>(R.id.btn_hide_overlay)
-    private val moveButtonView get() = menuView.findViewById<View>(R.id.btn_move)
+    private val backButton get() = menuView.findOverlayView<View>(R.id.btn_back)
+    private val recordButton get() = menuView.findOverlayView<View>(R.id.btn_record)
+    private val addButton get() = menuView.findOverlayView<View>(R.id.btn_add)
+    private val hideButton get() = menuView.findOverlayView<View>(R.id.btn_hide_overlay)
+    private val moveButtonView get() = menuView.findOverlayView<View>(R.id.btn_move)
 
     private lateinit var dumbActionCreator: DumbActionCreator
     private lateinit var createCopyActionUiFlowListener: DumbActionUiFlowListener

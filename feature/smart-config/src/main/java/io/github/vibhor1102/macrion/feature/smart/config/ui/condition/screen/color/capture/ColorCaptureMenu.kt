@@ -15,6 +15,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.color.capture
+import androidx.compose.runtime.setValue
+
+import io.github.vibhor1102.macrion.core.common.overlays.menu.findOverlayView
 
 import android.content.res.Configuration
 import android.graphics.Bitmap
@@ -22,7 +25,7 @@ import android.graphics.PointF
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageButton
+import io.github.vibhor1102.macrion.core.common.overlays.menu.OverlayMenuButtonView
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
@@ -43,7 +46,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
@@ -89,7 +91,7 @@ class ColorCaptureMenu (
     )
 
     private lateinit var menuView: ViewGroup
-    private val confirmButton get() = menuView.findViewById<ImageButton>(R.id.btn_confirm)
+    private val confirmButton get() = menuView.findOverlayView<OverlayMenuButtonView>(R.id.btn_confirm)
     private var pixelSelectionState by mutableStateOf<PixelSelectionUiState?>(null)
 
     /** Orientation of the device. */
@@ -157,7 +159,7 @@ class ColorCaptureMenu (
 
         confirmButton.setImageResource(uiState.topButtonIcon)
         setMenuItemViewEnabled(confirmButton, uiState.topButtonEnabled)
-        setMenuItemViewEnabled(menuView.findViewById(R.id.btn_hide_overlay), uiState.showHideButtonEnabled)
+        setMenuItemViewEnabled(menuView.findOverlayView(R.id.btn_hide_overlay), uiState.showHideButtonEnabled)
     }
 
     private fun updateOverlay(uiState: PixelSelectionUiState) {
