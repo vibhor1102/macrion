@@ -64,6 +64,9 @@ class TryImageConditionOverlayMenu(
         createDebugOverlayMenu(context, contentWidthDp = 287, contentHeightDp = 152) { ResultPanel() }
     override fun onCreateOverlayView(): View = DebugOverlayView(context)
 
+    override fun getMenuWindowWidth(): Int =
+        (343 * context.resources.displayMetrics.density).toInt()
+
     override fun onStart() {
         lifecycleScope.launch { repeatOnLifecycle(Lifecycle.State.STARTED) {
             launch { viewModel.displayResults.collect { state ->

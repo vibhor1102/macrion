@@ -151,6 +151,9 @@ abstract class OverlayMenu(
      */
     protected abstract fun onCreateMenu(layoutInflater: LayoutInflater): ViewGroup
 
+    /** Optional exact width for menus whose content exceeds WindowManager's wrap-content limit. */
+    protected open fun getMenuWindowWidth(): Int = WindowManager.LayoutParams.WRAP_CONTENT
+
     /**
      * Creates the view to be displayed between the current activity and the overlay menu.
      * It can be shown/hidden by pressing on the menu item with the id [R.id.btn_hide_overlay]. If null, pressing this
@@ -185,6 +188,7 @@ abstract class OverlayMenu(
 
         // First, call implementation methods to check what we should display
         menuLayout = onCreateMenu(context.getSystemService(LayoutInflater::class.java))
+        menuLayoutParams.width = getMenuWindowWidth()
         screenOverlayView = onCreateOverlayView()
         overlayLayoutParams = onCreateOverlayViewLayoutParams()
 
