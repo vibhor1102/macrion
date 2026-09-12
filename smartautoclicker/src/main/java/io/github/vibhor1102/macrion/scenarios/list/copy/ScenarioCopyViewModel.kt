@@ -54,6 +54,10 @@ class ScenarioCopyViewModel @Inject constructor(
         _copyName.value = name
     }
 
+    fun reset() {
+        _copyName.value = null
+    }
+
     fun copyScenario(scenarioId: Long, isSmart: Boolean, onCompleted: () -> Unit) {
         val name = _copyName.value
         if (name.isNullOrEmpty()) return

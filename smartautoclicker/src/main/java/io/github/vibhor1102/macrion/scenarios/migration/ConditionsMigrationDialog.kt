@@ -1,65 +1,51 @@
 /* Copyright (C) 2025 Kevin Buzeau; Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.scenarios.migration
 
-import android.app.Dialog
-import android.os.Bundle
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.DialogFragment
-import androidx.fragment.app.setFragmentResult
-import androidx.fragment.app.viewModels
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import dagger.hilt.android.AndroidEntryPoint
 import io.github.vibhor1102.macrion.R
 import io.github.vibhor1102.macrion.core.ui.bindings.buttons.LoadableButtonState
-import io.github.vibhor1102.macrion.core.ui.compose.MacrionLoadableButton
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionDialogSurface
-import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionLoadableButton
 
-@AndroidEntryPoint
-class ConditionsMigrationFragment : DialogFragment() {
-    companion object {
-        const val FRAGMENT_TAG_CONDITION_MIGRATION_DIALOG = "ConditionsMigrationDialog"
-        const val FRAGMENT_RESULT_KEY_COMPLETED = ":$FRAGMENT_TAG_CONDITION_MIGRATION_DIALOG:state"
-        fun newInstance() = ConditionsMigrationFragment()
+@Composable
+fun ConditionsMigrationDialog(
+    viewModel: ConditionsMigrationViewModel,
+    onDismiss: () -> Unit,
+) {
+    Dialog(
+        onDismissRequest = {},
+        properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false),
+    ) {
+        Surface(
+            shape = MaterialTheme.shapes.extraLarge,
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            tonalElevation = 6.dp,
+        ) {
+            MacrionDialogSurface {
+                ConditionsMigrationContent(
+                    viewModel = viewModel,
+                    onFinished = onDismiss,
+                )
+            }
+        }
     }
-
-    private val viewModel: ConditionsMigrationViewModel by viewModels()
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        isCancelable = false
-    }
-
-    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog =
-        MaterialAlertDialogBuilder(requireContext())
-            .setView(ComposeView(requireContext()).apply {
-                setContent {
-                    MacrionTheme {
-                        MacrionDialogSurface {
-                            ConditionsMigrationContent(viewModel) {
-                                setFragmentResult(FRAGMENT_RESULT_KEY_COMPLETED, Bundle.EMPTY)
-                                dismiss()
-                            }
-                        }
-                    }
-                }
-            })
-            .create()
 }
 
 @Composable

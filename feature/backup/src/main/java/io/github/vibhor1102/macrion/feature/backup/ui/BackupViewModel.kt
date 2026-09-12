@@ -43,7 +43,7 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 /**
- * View model for the [BackupDialogFragment].
+ * View model for the [BackupDialog].
  * Handle the state of a backup, import or export.
  */
 @HiltViewModel
@@ -70,6 +70,12 @@ class BackupViewModel @Inject constructor(
 
         isImportMode = isImport
         _backupState.value = getInitialState(context, isImport)
+    }
+
+    fun reset() {
+        _backupState.value = null
+        preparedKlickrExport = null
+        klickrCompatibleExport = false
     }
 
     fun setKlickrCompatibleExport(context: Context, enabled: Boolean) {

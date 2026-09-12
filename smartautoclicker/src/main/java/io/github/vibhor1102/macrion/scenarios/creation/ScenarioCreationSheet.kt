@@ -1,9 +1,6 @@
 /* Copyright (C) 2023 Kevin Buzeau; Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.scenarios.creation
 
-import android.app.Dialog
-import android.os.Bundle
-import android.view.KeyEvent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -18,59 +15,55 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.DialogFragment
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.google.android.material.bottomsheet.BottomSheetDialog
-import dagger.hilt.android.AndroidEntryPoint
 import io.github.vibhor1102.macrion.R
-import io.github.vibhor1102.macrion.core.ui.compose.MacrionTextField
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionDialogSurface
-import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTextField
 import io.github.vibhor1102.macrion.core.ui.R as UiR
 
-@AndroidEntryPoint
-class ScenarioCreationDialog : DialogFragment() {
-    companion object { const val FRAGMENT_TAG = "ScenarioCreationDialog" }
-    private val viewModel: ScenarioCreationViewModel by viewModels()
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ScenarioCreationSheet(
+    viewModel: ScenarioCreationViewModel,
+    onDismiss: () -> Unit,
+) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog =
-        BottomSheetDialog(requireContext()).apply {
-            setCancelable(false)
-            setContentView(ComposeView(context).apply {
-                setContent {
-                    MacrionTheme {
-                        MacrionDialogSurface { ScenarioCreationContent(viewModel, ::dismiss) }
-                    }
-                }
-            })
-            setOnKeyListener { _, keyCode, event ->
-                if (keyCode == KeyEvent.KEYCODE_BACK && event.action == KeyEvent.ACTION_UP) {
-                    dismiss(); true
-                } else false
-            }
-            create()
-            behavior.state = BottomSheetBehavior.STATE_EXPANDED
+    fun dismiss() {
+        viewModel.reset()
+        onDismiss()
+    }
+
+    ModalBottomSheet(
+        onDismissRequest = ::dismiss,
+        sheetState = sheetState,
+        dragHandle = null,
+        containerColor = MaterialTheme.colorScheme.surface,
+    ) {
+        MacrionDialogSurface {
+            ScenarioCreationContent(viewModel, ::dismiss)
         }
+    }
 }
 
 @Composable

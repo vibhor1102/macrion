@@ -27,12 +27,12 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.withResumed
-import androidx.fragment.app.DialogFragment
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentManager
-import io.github.vibhor1102.macrion.crash.CrashReportPrompt
 import io.github.vibhor1102.macrion.crash.crashReportStore
 import io.github.vibhor1102.macrion.core.base.crash.CrashDiagnostics
+import io.github.vibhor1102.macrion.feature.backup.ui.BackupViewModel
+import io.github.vibhor1102.macrion.scenarios.creation.ScenarioCreationViewModel
+import io.github.vibhor1102.macrion.scenarios.list.copy.ScenarioCopyViewModel
+import io.github.vibhor1102.macrion.scenarios.migration.ConditionsMigrationViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.CompletableDeferred
@@ -49,7 +49,6 @@ import io.github.vibhor1102.macrion.core.dumb.domain.model.DumbScenario
 import io.github.vibhor1102.macrion.core.ui.errors.createNoMediaProjectionDialog
 import io.github.vibhor1102.macrion.feature.revenue.UserConsentState
 import io.github.vibhor1102.macrion.scenarios.viewmodel.ScenarioViewModel
-import io.github.vibhor1102.macrion.core.common.quality.ui.BackgroundLaunchTroubleshootingDialog
 import io.github.vibhor1102.macrion.feature.externallaunch.localeplugin.domain.LocalePluginLaunchFailureStore
 import io.github.vibhor1102.macrion.feature.externallaunch.localeplugin.notification.LocalePluginNotificationController
 
@@ -68,6 +67,10 @@ class ScenarioActivity : AppCompatActivity() {
     /** ViewModel providing the click scenarios data to the UI. */
     private val scenarioViewModel: ScenarioViewModel by viewModels()
     private val scenarioListViewModel: ScenarioListViewModel by viewModels()
+    private val scenarioCreationViewModel: ScenarioCreationViewModel by viewModels()
+    private val scenarioCopyViewModel: ScenarioCopyViewModel by viewModels()
+    private val backupViewModel: BackupViewModel by viewModels()
+    private val conditionsMigrationViewModel: ConditionsMigrationViewModel by viewModels()
     private lateinit var scenarioListHost: ScenarioListHost
     @Inject lateinit var localePluginLaunchFailureStore: LocalePluginLaunchFailureStore
     @Inject lateinit var localePluginNotifications: LocalePluginNotificationController
@@ -87,12 +90,16 @@ class ScenarioActivity : AppCompatActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         CrashDiagnostics.record(CrashDiagnostics.Event.HOME_OPENED)
-        supportFragmentManager.registerFragmentLifecycleCallbacks(object : FragmentManager.FragmentLifecycleCallbacks() {
-            override fun onFragmentDetached(fm: FragmentManager, f: Fragment) {
-                if (f is DialogFragment) window.decorView.post { offerLocalCrashReport() }
-            }
-        }, false)
-        scenarioListHost = ScenarioListHost(this, scenarioListViewModel, ::launchScenario)
+        scenarioListHost = ScenarioListHost(
+            activity = this,
+            scenarioListViewModel = scenarioListViewModel,
+            scenarioCreationViewModel = scenarioCreationViewModel,
+            scenarioCopyViewModel = scenarioCopyViewModel,
+            backupViewModel = backupViewModel,
+            conditionsMigrationViewModel = conditionsMigrationViewModel,
+            onLaunchScenario = ::launchScenario,
+            onDialogDismissed = { window.decorView.post { offerLocalCrashReport() } },
+        )
         setContentView(scenarioListHost.createView())
         scenarioListHost.start()
 
@@ -140,8 +147,7 @@ class ScenarioActivity : AppCompatActivity() {
     private fun canOfferCrashReport() = startupHelpChecked && !crashPromptOffered &&
         !isFinishing && requestedItem == null && hasWindowFocus() &&
         lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED) &&
-        !supportFragmentManager.isStateSaved &&
-        supportFragmentManager.fragments.none { it is DialogFragment }
+        !scenarioListHost.hasActiveDialog()
 
     private fun offerLocalCrashReport() {
         if (checkingCrashReport || !canOfferCrashReport()) return
@@ -152,7 +158,7 @@ class ScenarioActivity : AppCompatActivity() {
                 val report = withContext(Dispatchers.IO) { runCatching { store.pending().firstOrNull { !it.prompted } }.getOrNull() }
                 if (report != null && canOfferCrashReport()) {
                     crashPromptOffered = true
-                    CrashReportPrompt.newInstance(report.id).showNow(supportFragmentManager, CrashReportPrompt.TAG)
+                    scenarioListHost.showCrashReportDialog(report.id)
                     withContext(Dispatchers.IO) { runCatching { store.markPrompted(report.id) } }
                 }
             } finally { checkingCrashReport = false }
@@ -160,12 +166,8 @@ class ScenarioActivity : AppCompatActivity() {
     }
 
     private fun showLocalePluginBackgroundLaunchHelp() {
-        if (supportFragmentManager.findFragmentByTag(BackgroundLaunchTroubleshootingDialog.FRAGMENT_TAG) != null) return
-        BackgroundLaunchTroubleshootingDialog.newInstance(
-            getString(R.string.dialog_title_locale_plugin_background_launch),
-            getString(R.string.message_locale_plugin_background_launch),
-            DONT_KILL_MY_APP_URL,
-        ).show(supportFragmentManager, BackgroundLaunchTroubleshootingDialog.FRAGMENT_TAG)
+        if (scenarioListHost.isShowingBackgroundLaunchHelp()) return
+        scenarioListHost.showLocalePluginBackgroundLaunchHelp()
     }
 
     private fun launchScenario(item: ScenarioListUiState.Item.ScenarioItem) {
