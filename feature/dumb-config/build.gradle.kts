@@ -31,7 +31,6 @@ dependencies {
     val composeBom = platform(libs.androidx.compose.bom)
     implementation(libs.kotlinx.coroutines.core)
 
-    implementation(libs.androidx.appCompat)
     implementation(composeBom)
     implementation(libs.androidx.compose.foundation)
     implementation(libs.androidx.compose.material3)

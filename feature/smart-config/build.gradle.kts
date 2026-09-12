@@ -32,7 +32,6 @@ dependencies {
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.reorderable)
 
-    implementation(libs.androidx.appCompat)
     implementation(composeBom)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.compose.foundation)

@@ -16,14 +16,14 @@
  */
 package io.github.vibhor1102.macrion.core.ui.errors
 
+import android.app.Dialog
 import android.content.Context
-import androidx.appcompat.app.AlertDialog
 import io.github.vibhor1102.macrion.core.ui.R
 
 import io.github.vibhor1102.macrion.core.ui.compose.createMacrionMessageDialog
 
 
-fun Context.createNoMediaProjectionDialog(onValidated: () -> Unit): AlertDialog =
+fun Context.createNoMediaProjectionDialog(onValidated: () -> Unit): Dialog =
     createMacrionMessageDialog(
         title = R.string.dialog_overlay_title_warning,
         message = R.string.message_error_screen_capture_permission_dialog_not_found,

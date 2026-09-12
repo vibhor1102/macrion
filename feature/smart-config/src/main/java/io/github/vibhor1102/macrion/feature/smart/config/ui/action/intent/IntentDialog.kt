@@ -306,7 +306,7 @@ class IntentDialog(
                 readOnly = true,
                 label = { Text(label) },
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
-                modifier = Modifier.menuAnchor().fillMaxWidth(),
+                modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable).fillMaxWidth(),
             )
             ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                 items.forEach { item ->

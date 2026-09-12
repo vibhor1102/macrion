@@ -167,7 +167,7 @@ class NotificationDialog(
                 label = { Text(context.getString(R.string.field_dropdown_notification_importance_title)) },
                 supportingText = { selected.helperText?.let { Text(stringResource(it)) } },
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
-                modifier = Modifier.menuAnchor().fillMaxWidth(),
+                modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable).fillMaxWidth(),
             )
             ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                 notificationImportanceItems.forEach { item ->

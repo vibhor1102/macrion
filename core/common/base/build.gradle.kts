@@ -31,7 +31,6 @@ dependencies {
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlin.reflect)
 
-    implementation(libs.androidx.appCompat)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.datastore)
     implementation(libs.androidx.room.ktx)

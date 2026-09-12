@@ -118,7 +118,7 @@ class SystemActionDialog(
                 value = stringResource(selected.title), onValueChange = {}, readOnly = true,
                 label = { Text(context.getString(R.string.field_dropdown_system_action_type_title)) },
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
-                modifier = Modifier.menuAnchor().fillMaxWidth(),
+                modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable).fillMaxWidth(),
             )
             ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                 systemActionTypeItems.forEach { item ->

@@ -37,7 +37,6 @@ dependencies {
     implementation(libs.kotlinx.coroutines.core)
 
     implementation(libs.androidx.annotation)
-    implementation(libs.androidx.appCompat)
     implementation(composeBom)
     implementation(libs.androidx.compose.foundation)
     implementation(libs.androidx.compose.material3)

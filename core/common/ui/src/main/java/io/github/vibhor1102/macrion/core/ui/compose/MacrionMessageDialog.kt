@@ -1,6 +1,7 @@
 /* Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.core.ui.compose
 
+import android.app.Dialog
 import android.content.Context
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AlertDialog
@@ -28,7 +29,7 @@ fun Context.createMacrionMessageDialog(
     onConfirm: () -> Unit,
     onCancel: (() -> Unit)? = null,
     onDismiss: (() -> Unit)? = null,
-): AlertDialog = createMacrionMessageDialog(
+): Dialog = createMacrionMessageDialog(
     title = getString(title),
     message = getString(message),
     confirmLabel = confirmLabel,
@@ -46,9 +47,9 @@ fun Context.createMacrionMessageDialog(
     onConfirm: () -> Unit,
     onCancel: (() -> Unit)? = null,
     onDismiss: (() -> Unit)? = null,
-): AlertDialog {
+): Dialog {
     val themedContext = getDynamicColorsContext(R.style.AppTheme)
-    lateinit var dialog: AlertDialog
+    lateinit var dialog: Dialog
     val content = ComposeView(themedContext).apply {
         setContent {
             MacrionTheme {

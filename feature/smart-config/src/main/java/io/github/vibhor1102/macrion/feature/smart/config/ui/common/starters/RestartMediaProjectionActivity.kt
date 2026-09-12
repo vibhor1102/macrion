@@ -25,7 +25,6 @@ import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.viewModels
-import androidx.appcompat.app.AlertDialog
 
 import io.github.vibhor1102.macrion.core.common.overlays.manager.OverlayManager
 import io.github.vibhor1102.macrion.core.display.recorder.MediaProjectionRequest
@@ -52,8 +51,6 @@ class RestartMediaProjectionActivity : ComponentActivity() {
     /** The result launcher for the projection permission dialog. */
     private val mediaProjectionRequest: MediaProjectionRequest = MediaProjectionRequest()
 
-    private var dialog: AlertDialog? = null
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(FrameLayout(this).apply { setBackgroundColor(Color.TRANSPARENT) })
@@ -69,9 +66,6 @@ class RestartMediaProjectionActivity : ComponentActivity() {
     }
 
     private fun finishActivity() {
-        dialog?.dismiss()
-        dialog = null
-
         overlayManager.navigateUp(this)
         finish()
     }

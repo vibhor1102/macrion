@@ -17,12 +17,12 @@
  */
 package io.github.vibhor1102.macrion.core.common.overlays.manager
 
+import android.app.Dialog
 import android.content.Context
 import android.graphics.Point
 import android.util.Log
 import android.view.KeyEvent
 import android.view.WindowManager
-import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.Lifecycle
 
 import io.github.vibhor1102.macrion.core.base.Dumpable
@@ -61,7 +61,7 @@ class OverlayManager @Inject internal constructor(
         /** The type of window used for the overlays. */
         const val OVERLAY_WINDOW_TYPE: Int = WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY
 
-        fun AlertDialog.showAsOverlay() {
+        fun Dialog.showAsOverlay() {
             window?.setType(OVERLAY_WINDOW_TYPE)
             show()
         }

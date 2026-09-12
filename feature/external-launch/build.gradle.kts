@@ -38,7 +38,6 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
 
     implementation(libs.androidx.datastore)
-    implementation(libs.androidx.appCompat)
     implementation(libs.androidx.activity.compose)
     implementation(composeBom)
     implementation(libs.androidx.compose.foundation)
