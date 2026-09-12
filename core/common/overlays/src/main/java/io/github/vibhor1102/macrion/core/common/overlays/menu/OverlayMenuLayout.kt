@@ -2,9 +2,11 @@
 package io.github.vibhor1102.macrion.core.common.overlays.menu
 
 import android.content.Context
+import android.graphics.Outline
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewOutlineProvider
 import android.widget.FrameLayout
 import androidx.annotation.DrawableRes
 import androidx.annotation.IdRes
@@ -25,7 +27,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
@@ -199,6 +200,18 @@ fun createOverlayMenuLayout(
     contentAnchor?.let { root.anchors[it.id] = it }
     val background = ComposeView(context).apply {
         id = R.id.menu_background
+        val cornerRadius = 10 * context.resources.displayMetrics.density
+        outlineProvider = object : ViewOutlineProvider() {
+            override fun getOutline(view: View, outline: Outline) {
+                outline.setRoundRect(0, 0, view.width, view.height, cornerRadius)
+            }
+        }
+        clipToOutline = true
+        addOnLayoutChangeListener { view, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom ->
+            if (right - left != oldRight - oldLeft || bottom - top != oldBottom - oldTop) {
+                view.invalidateOutline()
+            }
+        }
         setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
         setContent {
             val density = LocalDensity.current
@@ -221,7 +234,7 @@ fun createOverlayMenuLayout(
                 ).clip(RoundedCornerShape(10.dp))
                     .background(colorResource(R.color.overlayMenuBackground)),
             ) {
-                Row(Modifier.wrapContentSize(unbounded = true, align = Alignment.TopStart),
+                Row(Modifier.fillMaxSize(),
                     verticalAlignment = Alignment.CenterVertically) {
                     AndroidView(factory = { items })
                     if (panelVisible) {
