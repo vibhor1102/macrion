@@ -54,10 +54,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Brush
@@ -73,29 +76,69 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.material3.Icon
+import androidx.compose.ui.graphics.graphicsLayer
 import io.github.vibhor1102.macrion.core.common.overlays.R
-import io.github.vibhor1102.macrion.core.ui.views.gesturerecord.GestureRecordView
-import io.github.vibhor1102.macrion.core.ui.views.itembrief.ItemBriefView
+import io.github.vibhor1102.macrion.core.display.config.DisplayConfig
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
+import io.github.vibhor1102.macrion.core.ui.compose.overlay.GestureRecordOverlay
+import io.github.vibhor1102.macrion.core.ui.compose.overlay.ItemBriefCanvas
+import io.github.vibhor1102.macrion.core.ui.views.gesturerecord.RecordedGesture
+import io.github.vibhor1102.macrion.core.ui.views.itembrief.ItemBriefDescription
 import io.github.vibhor1102.macrion.core.ui.R as UiR
+
+interface ItemBriefViewFacade {
+    fun setDescription(newDescription: ItemBriefDescription?, animate: Boolean = true)
+}
+
+interface GestureRecordViewFacade {
+    var isVisible: Boolean
+    var gestureCaptureListener: ((gesture: RecordedGesture?, isFinished: Boolean) -> Unit)?
+    fun clearAndHide()
+}
 
 class ItemsBriefOverlayViewBinding private constructor(
     val root: ComposeView,
-    val viewBrief: ItemBriefView,
-    val viewRecorder: GestureRecordView,
     private val orientation: Int,
+    private val displayConfig: DisplayConfig,
 ) {
+    val currentDescription = mutableStateOf<ItemBriefDescription?>(null)
+    private val isAnimateEnabled = mutableStateOf(true)
+    private var internalGestureCaptureListener: ((gesture: RecordedGesture?, isFinished: Boolean) -> Unit)? = null
 
-    val recordingIcon = ImageView(root.context).apply {
-        setImageResource(UiR.drawable.ic_recording)
+    val viewBrief: ItemBriefViewFacade = object : ItemBriefViewFacade {
+        override fun setDescription(newDescription: ItemBriefDescription?, animate: Boolean) {
+            currentDescription.value = newDescription
+            isAnimateEnabled.value = animate
+        }
     }
+
+    val viewRecorder: GestureRecordViewFacade = object : GestureRecordViewFacade {
+        override var isVisible: Boolean
+            get() = isGestureRecording.value
+            set(value) { isGestureRecording.value = value }
+
+        override var gestureCaptureListener: ((gesture: RecordedGesture?, isFinished: Boolean) -> Unit)?
+            get() = internalGestureCaptureListener
+            set(value) { internalGestureCaptureListener = value }
+
+        override fun clearAndHide() {
+            isGestureRecording.value = false
+            internalGestureCaptureListener = null
+        }
+    }
+
     private val emptyText = mutableIntStateOf(0)
     private val controlState = mutableStateOf(ItemBriefControlsState())
     private val briefItems = mutableStateOf<List<ItemBrief>>(emptyList())
     private val requestedBriefItemIndex = mutableIntStateOf(0)
     private val isPanelVisible = mutableStateOf(false)
-    private val isGestureRecording = mutableStateOf(false)
+    val isGestureRecording = mutableStateOf(false)
     private val isInstructionsVisible = mutableStateOf(false)
     private val isPanelAutoHideEnabled = mutableStateOf(true)
 
@@ -118,14 +161,14 @@ class ItemsBriefOverlayViewBinding private constructor(
 
         private const val AUTO_HIDE_DELAY_MS = 3_000L
 
-        fun inflate(inflater: LayoutInflater, orientation: Int): ItemsBriefOverlayViewBinding {
+        fun inflate(
+            inflater: LayoutInflater,
+            orientation: Int,
+            displayConfig: DisplayConfig,
+        ): ItemsBriefOverlayViewBinding {
             val context = inflater.context
-            val viewRecorder = GestureRecordView(context).apply {
-                visibility = View.GONE
-            }
-            val viewBrief = ItemBriefView(context)
             val root = ComposeView(context)
-            return ItemsBriefOverlayViewBinding(root, viewBrief, viewRecorder, orientation).apply {
+            return ItemsBriefOverlayViewBinding(root, orientation, displayConfig).apply {
                 root.setContent { MacrionTheme { OverlayContent() } }
             }
         }
@@ -215,8 +258,20 @@ class ItemsBriefOverlayViewBinding private constructor(
     private fun OverlayContent() {
         val isPortrait = orientation == Configuration.ORIENTATION_PORTRAIT
         Box(Modifier.fillMaxSize()) {
-            AndroidView(factory = { viewBrief }, modifier = Modifier.fillMaxSize())
-            AndroidView(factory = { viewRecorder }, modifier = Modifier.fillMaxSize())
+            ItemBriefCanvas(
+                description = currentDescription.value,
+                displayConfig = displayConfig,
+                animate = isAnimateEnabled.value,
+                modifier = Modifier.fillMaxSize(),
+            )
+            GestureRecordOverlay(
+                displayConfig = displayConfig,
+                isRecording = isGestureRecording.value,
+                onGestureCaptured = { gesture, isFinished ->
+                    internalGestureCaptureListener?.invoke(gesture, isFinished)
+                },
+                modifier = Modifier.fillMaxSize(),
+            )
 
             // An exiting panel still owns pointer input during its animation. Recording must
             // expose the entire gesture surface immediately, not just hide the panel visually.
@@ -264,7 +319,24 @@ class ItemsBriefOverlayViewBinding private constructor(
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    AndroidView(factory = { recordingIcon }, modifier = Modifier.size(24.dp))
+                    val blinkingTransition = rememberInfiniteTransition(label = "BlinkingRecordingIcon")
+                    val blinkingAlpha by blinkingTransition.animateFloat(
+                        initialValue = 1f,
+                        targetValue = 0.5f,
+                        animationSpec = infiniteRepeatable(
+                            animation = tween(500),
+                            repeatMode = RepeatMode.Reverse,
+                        ),
+                        label = "RecordingAlpha",
+                    )
+                    Icon(
+                        painter = painterResource(UiR.drawable.ic_recording),
+                        contentDescription = null,
+                        tint = Color.Unspecified,
+                        modifier = Modifier
+                            .size(24.dp)
+                            .graphicsLayer { alpha = blinkingAlpha },
+                    )
                     Spacer(Modifier.width(if (isPortrait) 8.dp else 16.dp))
                     Text(
                         text = stringResource(R.string.overlay_instructions_gesture_record),

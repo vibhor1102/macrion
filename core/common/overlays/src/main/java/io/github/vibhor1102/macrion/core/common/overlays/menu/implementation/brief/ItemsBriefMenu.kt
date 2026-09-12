@@ -16,8 +16,6 @@
  */
 package io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.brief
 
-import android.animation.Animator
-import android.animation.AnimatorInflater
 import android.annotation.SuppressLint
 import android.content.res.Configuration
 import android.view.LayoutInflater
@@ -31,7 +29,6 @@ import io.github.vibhor1102.macrion.core.common.overlays.R
 import io.github.vibhor1102.macrion.core.common.overlays.menu.OverlayMenu
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.ItemBriefDescription
 import io.github.vibhor1102.macrion.core.ui.views.gesturerecord.toActionDescription
-import androidx.core.view.isVisible
 
 abstract class ItemBriefMenu(
     @StyleRes theme: Int? = null,
@@ -45,8 +42,6 @@ abstract class ItemBriefMenu(
     /** Items currently displayed by the Compose carousel. */
     private var briefItems: List<ItemBrief> = emptyList()
     private var focusedItemIndex: Int = 0
-
-    private lateinit var blinkingAnimator: Animator
 
     protected open fun onOverlayViewCreated(binding: ItemsBriefOverlayViewBinding): Unit = Unit
 
@@ -64,10 +59,10 @@ abstract class ItemBriefMenu(
         briefViewBinding = ItemsBriefOverlayViewBinding.inflate(
             inflater = context.getSystemService(LayoutInflater::class.java),
             orientation = displayConfigManager.displayConfig.orientation,
+            displayConfig = displayConfigManager.displayConfig,
         )
 
         briefViewBinding.apply {
-            blinkingAnimator = AnimatorInflater.loadAnimator(context, R.animator.blinking)
 
             setBriefItemsContent(
                 initialItemIndex = initialItemIndex,
@@ -168,15 +163,11 @@ abstract class ItemBriefMenu(
     @SuppressLint("ClickableViewAccessibility")
     protected fun startGestureCapture(onNewAction: (gesture: ItemBriefDescription?, isFinished: Boolean) -> Unit) {
         briefViewBinding.setGestureRecording(true)
-
-        blinkingAnimator.setTarget(briefViewBinding.recordingIcon)
-        blinkingAnimator.start()
         briefViewBinding.showOrResetInstructionsTimer()
-
         briefViewBinding.viewBrief.setDescription(null)
 
         briefViewBinding.viewRecorder.apply {
-            visibility = View.VISIBLE
+            isVisible = true
 
             var isCaptureStarted = false
             gestureCaptureListener = { gesture, isFinished ->
@@ -198,8 +189,6 @@ abstract class ItemBriefMenu(
     }
 
     protected fun stopGestureCapture() {
-        blinkingAnimator.end()
-
         briefViewBinding.viewRecorder.clearAndHide()
         briefViewBinding.setGestureRecording(false)
         briefViewBinding.hideInstructions()
