@@ -19,7 +19,6 @@ package io.github.vibhor1102.macrion.feature.smart.config.ui.mainmenu
 
 import android.content.Context
 import android.util.Log
-import android.view.View
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -29,9 +28,6 @@ import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.Tip
 import io.github.vibhor1102.macrion.core.processing.domain.SmartProcessingRepository
 import io.github.vibhor1102.macrion.core.processing.domain.model.DetectionState
 import io.github.vibhor1102.macrion.core.smart.debugging.domain.DebuggingRepository
-import io.github.vibhor1102.macrion.core.common.tutorial.domain.MonitoredViewsManager
-import io.github.vibhor1102.macrion.core.common.tutorial.impl.monitoring.ViewPositioningType
-import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredViewType
 import io.github.vibhor1102.macrion.feature.revenue.IRevenueRepository
 import io.github.vibhor1102.macrion.feature.revenue.UserBillingState
 import io.github.vibhor1102.macrion.feature.smart.config.domain.EditionRepository
@@ -46,6 +42,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
@@ -63,7 +60,6 @@ class MainMenuModel @Inject constructor(
     private val editionRepository: EditionRepository,
     private val tutorialRepository: TutorialRepository,
     private val revenueRepository: IRevenueRepository,
-    private val monitoredViewsManager: MonitoredViewsManager,
     private val debuggingRepository: DebuggingRepository,
     areRequiredAlphabetModelsInstalledUseCase: AreRequiredAlphabetModelsInstalledUseCase,
 ) : ViewModel() {
@@ -214,20 +210,6 @@ class MainMenuModel @Inject constructor(
     fun cancelScenarioChanges() {
         viewModelScope.launch(Dispatchers.IO) {
             editionRepository.stopEdition()
-        }
-    }
-
-    fun monitorViews(playMenuButton: View, configMenuButton: View) {
-        monitoredViewsManager.apply {
-            attach(MonitoredViewType.MAIN_MENU_BUTTON_PLAY, playMenuButton, ViewPositioningType.SCREEN)
-            attach(MonitoredViewType.MAIN_MENU_BUTTON_CONFIG, configMenuButton, ViewPositioningType.SCREEN)
-        }
-    }
-
-    fun stopViewMonitoring() {
-        monitoredViewsManager.apply {
-            detach(MonitoredViewType.MAIN_MENU_BUTTON_PLAY)
-            detach(MonitoredViewType.MAIN_MENU_BUTTON_CONFIG)
         }
     }
 

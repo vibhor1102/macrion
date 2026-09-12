@@ -25,6 +25,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -65,6 +66,15 @@ class TopBarNavigationView(context: Context) : FrameLayout(context) {
     }
     fun setButtonVisibility(type: DialogNavigationButton, visibility: Int) = update(type) { copy(visible = visibility == View.VISIBLE) }
     fun setButtonClickListener(type: DialogNavigationButton, callback: () -> Unit) { callbacks[type] = callback }
+    fun performButtonClick(type: DialogNavigationButton) { callbacks[type]?.invoke() }
+
+    private val buttonModifiers = DialogNavigationButton.entries.associateWith {
+        mutableStateOf<@Composable () -> Modifier>({ Modifier })
+    }
+
+    fun setButtonModifier(type: DialogNavigationButton, modifier: @Composable () -> Modifier) {
+        buttonModifiers.getValue(type).value = modifier
+    }
 
     @androidx.compose.runtime.Composable
     private fun DialogTopBarContent() {
@@ -91,15 +101,22 @@ class TopBarNavigationView(context: Context) : FrameLayout(context) {
     private fun DialogTopBarButton(type: DialogNavigationButton, icon: Int) {
         val state = states.getValue(type).value
         if (!state.visible) return
+        val modifier = buttonModifiers.getValue(type).value()
         when (type) {
             DialogNavigationButton.DISMISS -> IconButton(
-                onClick = { callbacks[type]?.invoke() }, enabled = state.enabled,
+                onClick = { callbacks[type]?.invoke() },
+                enabled = state.enabled,
+                modifier = modifier,
             ) { Icon(painterResource(icon), contentDescription = null, tint = MaterialTheme.colorScheme.onSurface) }
             DialogNavigationButton.DELETE -> FilledTonalIconButton(
-                onClick = { callbacks[type]?.invoke() }, enabled = state.enabled,
+                onClick = { callbacks[type]?.invoke() },
+                enabled = state.enabled,
+                modifier = modifier,
             ) { Icon(painterResource(icon), contentDescription = null) }
             DialogNavigationButton.SAVE -> FilledIconButton(
-                onClick = { callbacks[type]?.invoke() }, enabled = state.enabled,
+                onClick = { callbacks[type]?.invoke() },
+                enabled = state.enabled,
+                modifier = modifier,
             ) { Icon(painterResource(icon), contentDescription = null) }
         }
     }

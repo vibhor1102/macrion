@@ -39,8 +39,11 @@ import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewMo
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.action.UiAction
 
 import kotlinx.coroutines.launch
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredOverlayType
-
+import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredViewType
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.compose.tutorialAnchor
 
 class SmartActionsBriefMenu(initialItemIndex: Int) : ItemBriefMenu(
     theme = R.style.ScenarioConfigTheme,
@@ -80,7 +83,22 @@ class SmartActionsBriefMenu(initialItemIndex: Int) : ItemBriefMenu(
     }
 
     override fun onCreateMenu(layoutInflater: LayoutInflater): ViewGroup {
-        menuView = createActionsOverlayToolbar(context)
+        menuView = createActionsOverlayToolbar(
+            context = context,
+            buttonModifier = { button, performClick ->
+                when (button.id) {
+                    R.id.btn_add_other -> Modifier.tutorialAnchor(
+                        MonitoredViewType.ACTIONS_BRIEF_MENU_BUTTON_CREATE_ACTION,
+                        onClick = performClick,
+                    )
+                    R.id.btn_back -> Modifier.tutorialAnchor(
+                        MonitoredViewType.ACTIONS_BRIEF_MENU_BUTTON_SAVE,
+                        onClick = performClick,
+                    )
+                    else -> Modifier
+                }
+            },
+        )
         return menuView
     }
 
@@ -89,23 +107,9 @@ class SmartActionsBriefMenu(initialItemIndex: Int) : ItemBriefMenu(
         SmartActionBriefItem(item.data as UiAction, orientation, onClick)
     }
 
-    override fun onFirstBriefItemViewChanged(itemView: View?) {
-        if (itemView != null) viewModel.monitorBriefFirstItemView(itemView)
-        else viewModel.stopBriefFirstItemMonitoring()
-    }
-
-    override fun onStart() {
-        super.onStart()
-        viewModel.monitorViews(
-            createMenuButton = menuView.findOverlayView(R.id.btn_add_other),
-            saveMenuButton = menuView.findOverlayView(R.id.btn_back),
-        )
-    }
-
-    override fun onStop() {
-        super.onStop()
-        viewModel.stopAllViewMonitoring()
-    }
+    @Composable
+    override fun firstBriefItemModifier(): Modifier =
+        Modifier.tutorialAnchor(MonitoredViewType.ACTIONS_BRIEF_FIRST_ITEM)
 
     override fun onItemBriefClicked(index: Int, item: ItemBrief) {
         showActionConfigDialog((item.data as UiAction).action)

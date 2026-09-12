@@ -22,6 +22,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -30,9 +32,11 @@ import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.MoveToDialog
 import io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.brief.ItemBrief
 import io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.brief.ItemBriefMenu
+import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredViewType
 import io.github.vibhor1102.macrion.core.domain.model.condition.ScreenCondition
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.ItemBriefDescription
 import io.github.vibhor1102.macrion.feature.smart.config.R
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.compose.tutorialAnchor
 import io.github.vibhor1102.macrion.feature.smart.config.ui.createScreenConditionsOverlayToolbar
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.dialogs.showDeleteConditionsWithAssociatedActionsDialog
@@ -85,7 +89,22 @@ class ScreenConditionsBriefMenu(
     }
 
     override fun onCreateMenu(layoutInflater: LayoutInflater): ViewGroup {
-        menuView = createScreenConditionsOverlayToolbar(context)
+        menuView = createScreenConditionsOverlayToolbar(
+            context = context,
+            buttonModifier = { button, performClick ->
+                when (button.id) {
+                    R.id.btn_add -> Modifier.tutorialAnchor(
+                        MonitoredViewType.CONDITIONS_BRIEF_MENU_BUTTON_CREATE,
+                        onClick = performClick,
+                    )
+                    R.id.btn_save -> Modifier.tutorialAnchor(
+                        MonitoredViewType.CONDITIONS_BRIEF_MENU_BUTTON_SAVE,
+                        onClick = performClick,
+                    )
+                    else -> Modifier
+                }
+            },
+        )
         return menuView
     }
 
@@ -94,23 +113,9 @@ class ScreenConditionsBriefMenu(
         ScreenConditionBriefItem(item.data as UiScreenCondition, orientation, onClick)
     }
 
-    override fun onFirstBriefItemViewChanged(itemView: View?) {
-        if (itemView != null) viewModel.monitorBriefFirstItemView(itemView)
-        else viewModel.stopBriefFirstItemMonitoring()
-    }
-
-    override fun onStart() {
-        super.onStart()
-        viewModel.monitorViews(
-            createMenuButton = menuView.findOverlayView(R.id.btn_add),
-            saveMenuButton = menuView.findOverlayView(R.id.btn_save),
-        )
-    }
-
-    override fun onStop() {
-        super.onStop()
-        viewModel.stopAllViewMonitoring()
-    }
+    @Composable
+    override fun firstBriefItemModifier(): Modifier =
+        Modifier.tutorialAnchor(MonitoredViewType.CONDITIONS_BRIEF_FIRST_ITEM)
 
     override fun onMenuItemClicked(viewId: Int) {
         when (viewId) {

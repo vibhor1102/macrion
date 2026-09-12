@@ -175,18 +175,12 @@ class MainMenu(
     override fun onStart() {
         super.onStart()
 
-        viewModel.monitorViews(
-            playMenuButton = viewBinding.btnPlay,
-            configMenuButton = viewBinding.btnClickList,
-        )
-
         // Start loading advertisement if needed
         viewModel.loadAdIfNeeded(context)
     }
 
     override fun onStop() {
         super.onStop()
-        viewModel.stopViewMonitoring()
         viewBinding.btnPlay.tag = null
     }
 

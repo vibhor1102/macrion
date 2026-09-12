@@ -16,14 +16,11 @@
  */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.scenario
 
-import android.view.View
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 
 import io.github.vibhor1102.macrion.feature.smart.config.R
 import io.github.vibhor1102.macrion.feature.smart.config.domain.EditionRepository
-import io.github.vibhor1102.macrion.core.common.tutorial.domain.MonitoredViewsManager
-import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredViewType
 
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.filterNotNull
@@ -41,7 +38,6 @@ import javax.inject.Inject
 @OptIn(FlowPreview::class)
 class ScenarioDialogViewModel @Inject constructor(
     editionRepository: EditionRepository,
-    private val monitoredViewsManager: MonitoredViewsManager,
 ): ViewModel() {
 
     private val editedScenarioHasChanged: StateFlow<Boolean> =
@@ -81,20 +77,4 @@ class ScenarioDialogViewModel @Inject constructor(
 
     fun hasUnsavedModifications(): Boolean =
         editedScenarioHasChanged.value
-
-    fun monitorViews(createEventButton: View, saveButton: View, triggerEventTab: View) {
-        monitoredViewsManager.apply {
-            attach(MonitoredViewType.SCENARIO_DIALOG_BUTTON_CREATE_EVENT, createEventButton)
-            attach(MonitoredViewType.SCENARIO_DIALOG_BUTTON_SAVE, saveButton)
-            attach(MonitoredViewType.SCENARIO_DIALOG_TRIGGER_EVENT_TAB, triggerEventTab)
-        }
-    }
-
-    fun stopViewMonitoring() {
-        monitoredViewsManager.apply {
-            detach(MonitoredViewType.SCENARIO_DIALOG_BUTTON_CREATE_EVENT)
-            detach(MonitoredViewType.SCENARIO_DIALOG_BUTTON_SAVE)
-            detach(MonitoredViewType.SCENARIO_DIALOG_TRIGGER_EVENT_TAB)
-        }
-    }
 }

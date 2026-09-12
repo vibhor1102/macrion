@@ -33,6 +33,7 @@ import androidx.annotation.StyleRes
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.lifecycle.Lifecycle
 
@@ -116,10 +117,10 @@ abstract class NavBarDialog(@StyleRes theme: Int) : OverlayDialog(theme) {
                         missingInputBadges = missingInputBadges,
                         isPortrait = isPortrait,
                         onItemSelected = ::updateContentView,
+                        itemModifier = ::navigationItemModifier,
                     )
                 }
             }
-            setItemAnchors(navigationItems) { itemId -> updateContentView(itemId) }
         }
         floatingActionButtons = FloatingActionButtonsView(context)
 
@@ -184,8 +185,13 @@ abstract class NavBarDialog(@StyleRes theme: Int) : OverlayDialog(theme) {
         missingInputBadges[navItemId] = haveMissingInput
     }
 
-    /** Physical item anchor retained for the tutorial system's view-coordinate contract. */
-    protected fun navigationItemAnchor(navItemId: Int): View = navigationHost.itemAnchor(navItemId)
+    protected fun selectNavigationItem(itemId: Int) {
+        updateContentView(itemId)
+    }
+
+    /** Compose modifier hook for attaching tutorial anchors to navigation bar/rail items. */
+    @androidx.compose.runtime.Composable
+    open fun navigationItemModifier(item: DialogNavigationItem): Modifier = Modifier
 
     /** Adds content that remains visible above every navigation page. */
     protected fun setPersistentHeader(view: View) {

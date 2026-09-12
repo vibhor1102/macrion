@@ -24,6 +24,8 @@ import android.view.View
 import androidx.annotation.CallSuper
 import androidx.annotation.StringRes
 import androidx.annotation.StyleRes
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 
 import io.github.vibhor1102.macrion.core.common.overlays.R
 import io.github.vibhor1102.macrion.core.common.overlays.menu.OverlayMenu
@@ -47,7 +49,8 @@ abstract class ItemBriefMenu(
 
     @androidx.compose.runtime.Composable
     protected abstract fun ItemBriefContent(item: ItemBrief, orientation: Int, onClick: () -> Unit)
-    protected open fun onFirstBriefItemViewChanged(itemView: View?): Unit = Unit
+    @Composable
+    protected open fun firstBriefItemModifier(): Modifier = Modifier
 
     protected open fun onItemBriefClicked(index: Int, item: ItemBrief): Unit = Unit
     protected open fun onItemPositionCardClicked(index: Int, itemCount: Int): Unit = Unit
@@ -75,7 +78,7 @@ abstract class ItemBriefMenu(
                     onFocusedItemChanged(index)
                     showOrResetPanelTimer()
                 },
-                onFirstItemViewChanged = ::onFirstBriefItemViewChanged,
+                firstItemModifier = { firstBriefItemModifier() },
             )
 
             setEmptyText(noItemText)

@@ -48,11 +48,13 @@ internal fun DialogNavigation(
     missingInputBadges: Map<Int, Boolean>,
     isPortrait: Boolean,
     onItemSelected: (Int) -> Unit,
+    itemModifier: @Composable (DialogNavigationItem) -> Modifier = { Modifier },
 ) {
     if (isPortrait) {
         NavigationBar {
             items.forEach { item ->
                 NavigationBarItem(
+                    modifier = itemModifier(item),
                     selected = item.id == selectedItemId,
                     onClick = { onItemSelected(item.id) },
                     icon = { NavigationItemIcon(item, missingInputBadges[item.id] == true) },
@@ -66,6 +68,7 @@ internal fun DialogNavigation(
             Spacer(Modifier.weight(1f))
             items.forEach { item ->
                 NavigationRailItem(
+                    modifier = itemModifier(item),
                     selected = item.id == selectedItemId,
                     onClick = { onItemSelected(item.id) },
                     icon = { NavigationItemIcon(item, missingInputBadges[item.id] == true) },

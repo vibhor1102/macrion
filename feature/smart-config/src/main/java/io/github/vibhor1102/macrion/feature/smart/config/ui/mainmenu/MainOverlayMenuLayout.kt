@@ -41,8 +41,10 @@ import androidx.compose.ui.unit.sp
 import androidx.core.view.isVisible
 import io.github.vibhor1102.macrion.core.common.overlays.menu.OverlayMenuButton
 import io.github.vibhor1102.macrion.core.common.overlays.menu.createOverlayMenuLayout
+import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredViewType
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.feature.smart.config.R
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.compose.tutorialAnchor
 import io.github.vibhor1102.macrion.feature.smart.config.ui.mainmenu.debugging.LiveDebuggingUiState
 
 internal class MainMenuViews(val root: ViewGroup) {
@@ -79,6 +81,19 @@ internal fun createMainOverlayMenu(
         contentHeightDp = 100,
         contentInitiallyVisible = false,
         contentId = R.id.layout_debug,
+        buttonModifier = { button, performClick ->
+            when (button.id) {
+                R.id.btn_play -> Modifier.tutorialAnchor(
+                    MonitoredViewType.MAIN_MENU_BUTTON_PLAY,
+                    onClick = performClick,
+                )
+                R.id.btn_click_list -> Modifier.tutorialAnchor(
+                    MonitoredViewType.MAIN_MENU_BUTTON_CONFIG,
+                    onClick = performClick,
+                )
+                else -> Modifier
+            }
+        },
         buttonContent = { button ->
             MacrionTheme {
                 Box(Modifier.fillMaxWidth().fillMaxHeight(), contentAlignment = Alignment.Center) {

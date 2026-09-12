@@ -24,8 +24,11 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
@@ -55,6 +58,7 @@ class FloatingActionButtonsView(context: Context) : FrameLayout(context) {
     private val secondaryIcon = mutableIntStateOf(R.drawable.ic_copy)
     private val badgeText = mutableStateOf<String?>(null)
     private val secondaryVisible = mutableStateOf(false)
+    var primaryModifier by mutableStateOf<@Composable () -> Modifier>({ Modifier })
     private var onPrimary: () -> Unit = {}
     private var onSecondary: () -> Unit = {}
 
@@ -78,6 +82,9 @@ class FloatingActionButtonsView(context: Context) : FrameLayout(context) {
         this.onPrimary = onPrimary
         this.onSecondary = onSecondary
     }
+
+    fun performPrimaryClick() { onPrimary() }
+    fun performSecondaryClick() { onSecondary() }
 
     fun setSecondaryVisible(visible: Boolean) {
         if (secondaryVisible.value == visible) return
@@ -118,7 +125,10 @@ class FloatingActionButtonsView(context: Context) : FrameLayout(context) {
                     Spacer(Modifier.height(16.dp))
                 }
                 Box(Modifier.size(PRIMARY_CONTAINER_SIZE_DP.dp), contentAlignment = Alignment.Center) {
-                    FloatingActionButton(onClick = onPrimary, modifier = Modifier.size(56.dp)) {
+                    FloatingActionButton(
+                        onClick = onPrimary,
+                        modifier = Modifier.size(56.dp).then(primaryModifier()),
+                    ) {
                         Icon(
                             painterResource(primaryIcon.intValue),
                             contentDescription = primaryDescription.value?.toString(),

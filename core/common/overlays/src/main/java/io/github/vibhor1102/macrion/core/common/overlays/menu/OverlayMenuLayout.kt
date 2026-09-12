@@ -129,6 +129,7 @@ fun createOverlayMenuLayout(
     contentHeightDp: Int = 0,
     contentInitiallyVisible: Boolean = true,
     @IdRes contentId: Int? = null,
+    buttonModifier: (@Composable (OverlayMenuButton, performClick: () -> Unit) -> Modifier)? = null,
     buttonContent: (@Composable (OverlayMenuButton) -> Unit)? = null,
 ): ViewGroup {
     val root = ComposeOverlayMenuHost(context)
@@ -155,7 +156,11 @@ fun createOverlayMenuLayout(
                             exit = shrinkVertically(animationSpec = tween(300, easing = OverlayMenuResizeEasing)) +
                                 fadeOut(animationSpec = tween(300)),
                         ) {
-                            Box(Modifier.size(48.dp)) {
+                            Box(
+                                Modifier
+                                    .size(48.dp)
+                                    .then(buttonModifier?.invoke(buttons[index]) { button.performClick() } ?: Modifier),
+                            ) {
                                 if (visible) {
                                     Box(Modifier.fillMaxSize().alpha(button.composeAlpha)) {
                                         if (buttonContent != null) {

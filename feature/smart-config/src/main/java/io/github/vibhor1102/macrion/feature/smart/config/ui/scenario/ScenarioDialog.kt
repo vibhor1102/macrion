@@ -40,7 +40,11 @@ import io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.triggereven
 import com.google.android.material.bottomsheet.BottomSheetDialog
 
 import kotlinx.coroutines.launch
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredOverlayType
+import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredViewType
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.compose.tutorialAnchor
 
 class ScenarioDialog(
     private val onConfigSaved: () -> Unit,
@@ -59,6 +63,30 @@ class ScenarioDialog(
         return super.onCreateView().also {
             topBarBinding.setButtonVisibility(DialogNavigationButton.SAVE, View.VISIBLE)
             topBarBinding.setTitle(R.string.dialog_title_scenario_config)
+            topBarBinding.setButtonModifier(DialogNavigationButton.SAVE) {
+                Modifier.tutorialAnchor(
+                    MonitoredViewType.SCENARIO_DIALOG_BUTTON_SAVE,
+                    onClick = { topBarBinding.performButtonClick(DialogNavigationButton.SAVE) },
+                )
+            }
+            floatingActionButtons.primaryModifier = {
+                Modifier.tutorialAnchor(
+                    MonitoredViewType.SCENARIO_DIALOG_BUTTON_CREATE_EVENT,
+                    onClick = { floatingActionButtons.performPrimaryClick() },
+                )
+            }
+        }
+    }
+
+    @Composable
+    override fun navigationItemModifier(item: DialogNavigationItem): Modifier {
+        return if (item.id == R.id.page_trigger_events) {
+            Modifier.tutorialAnchor(
+                MonitoredViewType.SCENARIO_DIALOG_TRIGGER_EVENT_TAB,
+                onClick = { selectNavigationItem(item.id) },
+            )
+        } else {
+            Modifier
         }
     }
 
@@ -91,20 +119,6 @@ class ScenarioDialog(
                 launch { viewModel.scenarioCanBeSaved.collect(::updateSaveButtonState) }
             }
         }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        viewModel.monitorViews(
-            createEventButton = floatingActionButtons.primary,
-            saveButton = topBarBinding.buttonSave,
-            triggerEventTab = navigationItemAnchor(R.id.page_trigger_events),
-        )
-    }
-
-    override fun onPause() {
-        super.onPause()
-        viewModel.stopViewMonitoring()
     }
 
     override fun onDialogButtonPressed(buttonType: DialogNavigationButton) {

@@ -60,7 +60,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Brush
@@ -149,7 +148,7 @@ class ItemsBriefOverlayViewBinding private constructor(
     private var briefItemContent: (@Composable (ItemBrief, Int, () -> Unit) -> Unit)? = null
     private var onItemClicked: (Int, ItemBrief) -> Unit = { _, _ -> }
     private var onFocusedItemChanged: (Int) -> Unit = {}
-    private var onFirstItemViewChanged: (View?) -> Unit = {}
+    private var firstItemModifier by mutableStateOf<@Composable () -> Modifier>({ Modifier })
 
     private var onMovePrevious: () -> Unit = {}
     private var onDelete: () -> Unit = {}
@@ -201,14 +200,13 @@ class ItemsBriefOverlayViewBinding private constructor(
         itemContent: @Composable (ItemBrief, Int, () -> Unit) -> Unit,
         onItemClicked: (Int, ItemBrief) -> Unit,
         onFocusedItemChanged: (Int) -> Unit,
-        onFirstItemViewChanged: (View?) -> Unit,
+        firstItemModifier: @Composable () -> Modifier = { Modifier },
     ) {
         this.briefItemContent = itemContent
         this.onItemClicked = onItemClicked
         this.onFocusedItemChanged = onFocusedItemChanged
-        this.onFirstItemViewChanged = onFirstItemViewChanged
+        this.firstItemModifier = firstItemModifier
         requestedBriefItemIndex.intValue = initialItemIndex
-
     }
 
     fun updateBriefItems(items: List<ItemBrief>, focusedIndex: Int) {
@@ -392,7 +390,7 @@ class ItemsBriefOverlayViewBinding private constructor(
                         itemContent = itemContent,
                         onItemClicked = onItemClicked,
                         onFocusedItemChanged = onFocusedItemChanged,
-                        onFirstItemViewChanged = onFirstItemViewChanged,
+                        firstItemModifier = firstItemModifier(),
                         onInteraction = ::showOrResetPanelTimer,
                     )
                 }
@@ -444,7 +442,7 @@ class ItemsBriefOverlayViewBinding private constructor(
                         itemContent = itemContent,
                         onItemClicked = onItemClicked,
                         onFocusedItemChanged = onFocusedItemChanged,
-                        onFirstItemViewChanged = onFirstItemViewChanged,
+                        firstItemModifier = firstItemModifier(),
                         onInteraction = ::showOrResetPanelTimer,
                     )
                 }
@@ -594,15 +592,13 @@ private fun BriefItemsCarousel(
     itemContent: @Composable (ItemBrief, Int, () -> Unit) -> Unit,
     onItemClicked: (Int, ItemBrief) -> Unit,
     onFocusedItemChanged: (Int) -> Unit,
-    onFirstItemViewChanged: (View?) -> Unit,
+    firstItemModifier: Modifier,
     onInteraction: () -> Unit,
 ) {
     val listState = rememberLazyListState()
 
     LaunchedEffect(items, requestedIndex) {
-        if (items.isEmpty()) {
-            onFirstItemViewChanged(null)
-        } else {
+        if (items.isNotEmpty()) {
             listState.scrollToItem(requestedIndex.coerceIn(0, items.lastIndex))
         }
     }
@@ -622,8 +618,8 @@ private fun BriefItemsCarousel(
             itemsIndexed(items, key = { _, brief -> brief.id.toString() }) { index, brief ->
                 BriefItemContainer(
                     modifier = Modifier.fillParentMaxSize(),
+                    firstItemModifier = firstItemModifier,
                     isFirstItem = index == 0,
-                    onFirstItemViewChanged = onFirstItemViewChanged,
                     onInteraction = onInteraction,
                 ) {
                     itemContent(brief, orientation) { onItemClicked(index, brief) }
@@ -640,8 +636,8 @@ private fun BriefItemsCarousel(
             itemsIndexed(items, key = { _, brief -> brief.id.toString() }) { index, brief ->
                 BriefItemContainer(
                     modifier = Modifier.fillParentMaxSize(),
+                    firstItemModifier = firstItemModifier,
                     isFirstItem = index == 0,
-                    onFirstItemViewChanged = onFirstItemViewChanged,
                     onInteraction = onInteraction,
                 ) {
                     itemContent(brief, orientation) { onItemClicked(index, brief) }
@@ -698,31 +694,22 @@ private fun rememberBriefCarouselFlingBehavior(listState: LazyListState): androi
 @Composable
 private fun BriefItemContainer(
     modifier: Modifier,
+    firstItemModifier: Modifier,
     isFirstItem: Boolean,
-    onFirstItemViewChanged: (View?) -> Unit,
     onInteraction: () -> Unit,
     content: @Composable () -> Unit,
 ) {
     Box(
-        modifier.pointerInput(onInteraction) {
-            awaitEachGesture {
-                awaitFirstDown(requireUnconsumed = false)
-                onInteraction()
-                waitForUpOrCancellation()
-            }
-        },
+        modifier
+            .then(if (isFirstItem) firstItemModifier else Modifier)
+            .pointerInput(onInteraction) {
+                awaitEachGesture {
+                    awaitFirstDown(requireUnconsumed = false)
+                    onInteraction()
+                    waitForUpOrCancellation()
+                }
+            },
     ) {
-        if (isFirstItem) {
-            val context = LocalContext.current
-            AndroidView(
-                factory = {
-                    // This native child is a tutorial-monitoring anchor only. Card clicks are
-                    // handled by the actual composable ElevatedCard above it.
-                    View(context).also(onFirstItemViewChanged)
-                },
-                modifier = Modifier.matchParentSize(),
-            )
-        }
         content()
     }
 }
