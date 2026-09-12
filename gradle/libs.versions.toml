@@ -130,7 +130,6 @@ androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-co
 # Plugins from external providers
 androidApplication = { id = "com.android.application", version.ref = "androidGradlePlugin" }
 androidLibrary = { id = "com.android.library", version.ref = "androidGradlePlugin" }
-androidxNavigationSafeArgs = { id = "androidx.navigation.safeargs.kotlin", version.ref = "androidxNavigation" }
 androidxRoom = { id = "androidx.room", version.ref = "androidxRoom" }
 googleDaggerHiltAndroid = { id = "com.google.dagger.hilt.android", version.ref = "googleDaggerHilt" }
 googleKsp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
