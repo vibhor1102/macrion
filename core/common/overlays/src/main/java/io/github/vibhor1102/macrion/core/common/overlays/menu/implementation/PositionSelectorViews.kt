@@ -19,7 +19,8 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -76,8 +77,32 @@ internal class PositionSelectorViews(
                     modifier = Modifier
                         .fillMaxSize()
                         .pointerInput(Unit) {
-                            detectTapGestures { offset ->
-                                onTouchListener?.invoke(PointF(offset.x, offset.y))
+                            awaitEachGesture {
+                                val down = awaitFirstDown(requireUnconsumed = false)
+                                val pointerId = down.id
+                                val width = size.width.toFloat()
+                                val height = size.height.toFloat()
+
+                                onTouchListener?.invoke(
+                                    PointF(
+                                        down.position.x.coerceIn(0f, width),
+                                        down.position.y.coerceIn(0f, height),
+                                    )
+                                )
+
+                                while (true) {
+                                    val event = awaitPointerEvent()
+                                    val change = event.changes.firstOrNull { it.id == pointerId } ?: break
+                                    if (!change.pressed) break
+
+                                    onTouchListener?.invoke(
+                                        PointF(
+                                            change.position.x.coerceIn(0f, width),
+                                            change.position.y.coerceIn(0f, height),
+                                        )
+                                    )
+                                    change.consume()
+                                }
                             }
                         },
                 ) {
