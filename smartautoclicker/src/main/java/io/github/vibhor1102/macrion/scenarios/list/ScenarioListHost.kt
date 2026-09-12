@@ -17,13 +17,8 @@
  */
 package io.github.vibhor1102.macrion.scenarios.list
 
-import android.content.DialogInterface
 import android.content.Intent
-import android.os.Bundle
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import android.view.WindowManager
 
 import androidx.appcompat.app.AlertDialog
@@ -47,8 +42,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -58,6 +51,7 @@ import io.github.vibhor1102.macrion.core.common.navigation.TutorialNavigator
 import io.github.vibhor1102.macrion.core.common.navigation.getTutorialNavigator
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionDialogSurface
+import io.github.vibhor1102.macrion.core.ui.compose.createMacrionMessageDialog
 import io.github.vibhor1102.macrion.feature.backup.ui.BackupDialogFragment
 import io.github.vibhor1102.macrion.feature.backup.ui.BackupDialogFragment.Companion.FRAGMENT_TAG_BACKUP_DIALOG
 import io.github.vibhor1102.macrion.scenarios.migration.ConditionsMigrationFragment
@@ -67,30 +61,25 @@ import io.github.vibhor1102.macrion.scenarios.list.copy.ScenarioCopyDialog.Compa
 import io.github.vibhor1102.macrion.scenarios.list.model.ScenarioListUiState
 import io.github.vibhor1102.macrion.scenarios.migration.ConditionsMigrationFragment.Companion.FRAGMENT_RESULT_KEY_COMPLETED
 import io.github.vibhor1102.macrion.scenarios.migration.ConditionsMigrationFragment.Companion.FRAGMENT_TAG_CONDITION_MIGRATION_DIALOG
+import io.github.vibhor1102.macrion.scenarios.ScenarioActivity
 import io.github.vibhor1102.macrion.settings.SettingsActivity
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import dagger.hilt.android.AndroidEntryPoint
 
 import kotlinx.coroutines.launch
 
 /**
- * Fragment displaying the list of click scenario and the creation dialog.
- * If the list is empty, it will hide the list and displays the empty list view.
+ * Activity-owned host for the Compose scenario list and its dialog/navigation callbacks.
  */
-@AndroidEntryPoint
-class ScenarioListFragment : Fragment() {
-
-    interface Listener {
-        fun launchScenario(item: ScenarioListUiState.Item.ScenarioItem)
-    }
+class ScenarioListHost(
+    private val activity: ScenarioActivity,
+    private val scenarioListViewModel: ScenarioListViewModel,
+    private val onLaunchScenario: (ScenarioListUiState.Item.ScenarioItem) -> Unit,
+) {
 
     private val tutorialNavigator: TutorialNavigator by lazy {
-        requireContext().getTutorialNavigator()
+        activity.getTutorialNavigator()
     }
-
-    /** ViewModel providing the scenarios data to the UI. */
-    private val scenarioListViewModel: ScenarioListViewModel by viewModels()
 
     private var uiState by mutableStateOf<ScenarioListUiState?>(null)
     private var searchQuery by mutableStateOf("")
@@ -99,8 +88,8 @@ class ScenarioListFragment : Fragment() {
     /** The current dialog being displayed. Null if not displayed. */
     private var dialog: AlertDialog? = null
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-        return ComposeView(requireContext()).apply {
+    fun createView(): ComposeView {
+        return ComposeView(activity).apply {
             setContent {
                 MacrionTheme {
                     ComposeScenarioList(
@@ -123,7 +112,7 @@ class ScenarioListFragment : Fragment() {
                         },
                         onSelectAll = scenarioListViewModel::toggleAllScenarioSelectionForBackup,
                         onImportExport = ::onImportExportClicked,
-                        onTutorials = { tutorialNavigator.startTutorialActivity(requireContext()) },
+                        onTutorials = { tutorialNavigator.startTutorialActivity(activity) },
                         onSettings = ::startSettingsActivity,
                         onCreate = ::onCreateClicked,
                         onLaunch = ::onStartClicked,
@@ -141,15 +130,18 @@ class ScenarioListFragment : Fragment() {
         }
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+    fun start() {
+        activity.lifecycleScope.launch {
+            activity.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch { scenarioListViewModel.uiState.collect(::updateUiState) }
                 launch { scenarioListViewModel.needsConditionMigration.collect(::onConditionMigrationRequired) }
             }
         }
+    }
+
+    fun destroy() {
+        dialog?.dismiss()
+        dialog = null
     }
 
     private fun onImportExportClicked() {
@@ -173,11 +165,11 @@ class ScenarioListFragment : Fragment() {
 
     private fun onConditionMigrationRequired(isRequired: Boolean) {
         if (!isRequired) return
-        if (requireActivity().supportFragmentManager.findFragmentByTag(FRAGMENT_TAG_CONDITION_MIGRATION_DIALOG) != null)
+        if (activity.supportFragmentManager.findFragmentByTag(FRAGMENT_TAG_CONDITION_MIGRATION_DIALOG) != null)
             return
 
-        val fragmentManager = requireActivity().supportFragmentManager
-        fragmentManager.setFragmentResultListener(FRAGMENT_RESULT_KEY_COMPLETED, this) { _, _ ->
+        val fragmentManager = activity.supportFragmentManager
+        fragmentManager.setFragmentResultListener(FRAGMENT_RESULT_KEY_COMPLETED, activity) { _, _ ->
             // Nothing to do
         }
         ConditionsMigrationFragment
@@ -208,7 +200,7 @@ class ScenarioListFragment : Fragment() {
      * @param scenario the scenario clicked.
      */
     private fun onStartClicked(scenario: ScenarioListUiState.Item.ScenarioItem) {
-        (requireActivity() as? Listener)?.launchScenario(scenario)
+        onLaunchScenario(scenario)
     }
 
     /**
@@ -226,7 +218,7 @@ class ScenarioListFragment : Fragment() {
      */
     private fun onCreateClicked() {
         ScenarioCreationDialog()
-            .show(requireActivity().supportFragmentManager, ScenarioCreationDialog.FRAGMENT_TAG)
+            .show(activity.supportFragmentManager, ScenarioCreationDialog.FRAGMENT_TAG)
     }
 
     /**
@@ -236,18 +228,16 @@ class ScenarioListFragment : Fragment() {
      * @param item the scenario to delete.
      */
     private fun onDeleteClicked(item: ScenarioListUiState.Item.ScenarioItem) {
-        showDialog(MaterialAlertDialogBuilder(requireContext())
-            .setTitle(R.string.dialog_title_delete_scenario)
-            .setMessage(resources.getString(R.string.message_delete_scenario, item.displayName))
-            .setPositiveButton(android.R.string.ok) { _: DialogInterface, _: Int ->
-                scenarioListViewModel.deleteScenario(item)
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .create())
+        showDialog(activity.createMacrionMessageDialog(
+            title = activity.getString(R.string.dialog_title_delete_scenario),
+            message = activity.getString(R.string.message_delete_scenario, item.displayName),
+            cancelLabel = android.R.string.cancel,
+            onConfirm = { scenarioListViewModel.deleteScenario(item) },
+        ))
     }
 
     private fun showImportExportDialog() {
-        val dialogContext = requireContext()
+        val dialogContext = activity
         val composeView = ComposeView(dialogContext)
         val dialog = MaterialAlertDialogBuilder(dialogContext)
             .setView(composeView)
@@ -308,7 +298,7 @@ class ScenarioListFragment : Fragment() {
     ) {
         BackupDialogFragment
             .newInstance(isImport, smartScenariosToBackup, dumbScenariosToBackup)
-            .show(requireActivity().supportFragmentManager, FRAGMENT_TAG_BACKUP_DIALOG)
+            .show(activity.supportFragmentManager, FRAGMENT_TAG_BACKUP_DIALOG)
         scenarioListViewModel.setUiState(ScenarioListUiState.Type.SELECTION)
     }
 
@@ -319,13 +309,13 @@ class ScenarioListFragment : Fragment() {
                 isSmart = scenarioItem is ScenarioListUiState.Item.ScenarioItem.Valid.Smart,
                 defaultName = scenarioItem.displayName,
             )
-            .show(requireActivity().supportFragmentManager, FRAGMENT_TAG_COPY_DIALOG)
+            .show(activity.supportFragmentManager, FRAGMENT_TAG_COPY_DIALOG)
     }
 
     private fun startSettingsActivity() {
-        requireContext().startActivity(Intent(context, SettingsActivity::class.java))
+        activity.startActivity(Intent(activity, SettingsActivity::class.java))
     }
 }
 
 /** Tag for logs. */
-private const val TAG = "ScenarioListFragment"
+private const val TAG = "ScenarioListHost"

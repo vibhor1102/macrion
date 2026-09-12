@@ -14,7 +14,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
@@ -22,6 +21,24 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 fun Context.createMacrionMessageDialog(
     @StringRes title: Int,
     @StringRes message: Int,
+    @StringRes confirmLabel: Int = android.R.string.ok,
+    @StringRes cancelLabel: Int? = null,
+    onConfirm: () -> Unit,
+    onCancel: (() -> Unit)? = null,
+    onDismiss: (() -> Unit)? = null,
+): AlertDialog = createMacrionMessageDialog(
+    title = getString(title),
+    message = getString(message),
+    confirmLabel = confirmLabel,
+    cancelLabel = cancelLabel,
+    onConfirm = onConfirm,
+    onCancel = onCancel,
+    onDismiss = onDismiss,
+)
+
+fun Context.createMacrionMessageDialog(
+    title: String,
+    message: String,
     @StringRes confirmLabel: Int = android.R.string.ok,
     @StringRes cancelLabel: Int? = null,
     onConfirm: () -> Unit,
@@ -35,12 +52,12 @@ fun Context.createMacrionMessageDialog(
                 MacrionDialogSurface {
                     Column(Modifier.fillMaxWidth().padding(top = 24.dp, bottom = 8.dp)) {
                         Text(
-                            text = stringResource(title),
+                            text = title,
                             style = MaterialTheme.typography.headlineSmall,
                             modifier = Modifier.padding(horizontal = 24.dp),
                         )
                         Text(
-                            text = stringResource(message),
+                            text = message,
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(start = 24.dp, top = 16.dp, end = 24.dp, bottom = 16.dp),
@@ -50,7 +67,7 @@ fun Context.createMacrionMessageDialog(
                             horizontalArrangement = Arrangement.End,
                         ) {
                             if (cancelLabel != null) {
-                                TextButton(onClick = { dialog.dismiss() }) { Text(stringResource(cancelLabel)) }
+                                TextButton(onClick = { dialog.dismiss() }) { Text(context.getString(cancelLabel)) }
                             }
                             TextButton(onClick = {
                                 try {
@@ -58,7 +75,7 @@ fun Context.createMacrionMessageDialog(
                                 } finally {
                                     dialog.dismiss()
                                 }
-                            }) { Text(stringResource(confirmLabel)) }
+                            }) { Text(context.getString(confirmLabel)) }
                         }
                     }
                 }

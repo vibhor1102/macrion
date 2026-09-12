@@ -20,13 +20,10 @@ package io.github.vibhor1102.macrion.scenarios
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
-import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.fragment.app.FragmentContainerView
-import androidx.fragment.app.commitNow
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.withResumed
@@ -42,7 +39,8 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Job
 
 import io.github.vibhor1102.macrion.R
-import io.github.vibhor1102.macrion.scenarios.list.ScenarioListFragment
+import io.github.vibhor1102.macrion.scenarios.list.ScenarioListHost
+import io.github.vibhor1102.macrion.scenarios.list.ScenarioListViewModel
 import io.github.vibhor1102.macrion.scenarios.list.model.ScenarioListUiState
 import io.github.vibhor1102.macrion.core.base.extensions.delayDrawUntil
 import io.github.vibhor1102.macrion.core.display.recorder.MediaProjectionRequest
@@ -65,10 +63,12 @@ import javax.inject.Inject
  * available scenarios, if any.
  */
 @AndroidEntryPoint
-class ScenarioActivity : AppCompatActivity(), ScenarioListFragment.Listener {
+class ScenarioActivity : AppCompatActivity() {
 
     /** ViewModel providing the click scenarios data to the UI. */
     private val scenarioViewModel: ScenarioViewModel by viewModels()
+    private val scenarioListViewModel: ScenarioListViewModel by viewModels()
+    private lateinit var scenarioListHost: ScenarioListHost
     @Inject lateinit var localePluginLaunchFailureStore: LocalePluginLaunchFailureStore
     @Inject lateinit var localePluginNotifications: LocalePluginNotificationController
 
@@ -92,20 +92,9 @@ class ScenarioActivity : AppCompatActivity(), ScenarioListFragment.Listener {
                 if (f is DialogFragment) window.decorView.post { offerLocalCrashReport() }
             }
         }, false)
-        setContentView(
-            FragmentContainerView(this).apply {
-                id = R.id.fragment
-                layoutParams = ViewGroup.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                )
-            },
-        )
-        if (savedInstanceState == null) {
-            supportFragmentManager.commitNow {
-                replace(R.id.fragment, ScenarioListFragment(), "ScenarioList")
-            }
-        }
+        scenarioListHost = ScenarioListHost(this, scenarioListViewModel, ::launchScenario)
+        setContentView(scenarioListHost.createView())
+        scenarioListHost.start()
 
         scenarioViewModel.stopScenario()
         scenarioViewModel.requestUserConsentIfNeeded(this) { startupConsentFinished.complete(Unit) }
@@ -121,6 +110,11 @@ class ScenarioActivity : AppCompatActivity(), ScenarioListFragment.Listener {
     override fun onResume() {
         super.onResume()
         scenarioViewModel.refreshPurchaseState()
+    }
+
+    override fun onDestroy() {
+        scenarioListHost.destroy()
+        super.onDestroy()
     }
 
     override fun onPostResume() {
@@ -174,7 +168,7 @@ class ScenarioActivity : AppCompatActivity(), ScenarioListFragment.Listener {
         ).show(supportFragmentManager, BackgroundLaunchTroubleshootingDialog.FRAGMENT_TAG)
     }
 
-    override fun launchScenario(item: ScenarioListUiState.Item.ScenarioItem) {
+    private fun launchScenario(item: ScenarioListUiState.Item.ScenarioItem) {
         requestedItem = item
 
         scenarioViewModel.startPermissionFlowIfNeeded(
