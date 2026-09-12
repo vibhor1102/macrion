@@ -40,41 +40,6 @@ import androidx.compose.ui.viewinterop.AndroidView
 import io.github.vibhor1102.macrion.core.common.overlays.R
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.navbar.DialogNavigationItem
 
-@Composable
-internal fun ListDialogScaffold(
-    topBar: View,
-    list: View,
-    enforceMinimumHeight: Boolean,
-    listBottomPadding: Boolean,
-) {
-    val minimumHeight = if (enforceMinimumHeight) {
-        Modifier.heightIn(min = dimensionResource(R.dimen.bottom_sheet_min_height))
-    } else {
-        Modifier
-    }
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .then(minimumHeight)
-            .background(MaterialTheme.colorScheme.surfaceContainerLowest),
-    ) {
-        AndroidView(factory = { topBar }, modifier = Modifier.fillMaxWidth())
-        AndroidView(
-            factory = { list },
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .then(
-                    if (listBottomPadding) {
-                        Modifier.padding(bottom = dimensionResource(R.dimen.margin_vertical_default))
-                    } else {
-                        Modifier
-                    },
-                ),
-        )
-    }
-}
 
 @Composable
 internal fun DialogNavigation(
