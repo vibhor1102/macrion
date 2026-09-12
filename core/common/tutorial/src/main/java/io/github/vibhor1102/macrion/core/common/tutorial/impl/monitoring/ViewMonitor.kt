@@ -114,7 +114,7 @@ internal class ViewMonitor(private val displayConfigManager: DisplayConfigManage
 
     /**
      * The view's/its parents' geometry keeps shifting for a short while after attach (e.g. attach() called from
-     * RecyclerView.onBindViewHolder before the item is positioned, async content resizing a card, IME insets
+     * list item binding before the item is positioned, async content resizing a card, IME insets
      * settling), so re-check visibility a bit after each layout pass instead of only once, until things settle.
      */
     private fun scheduleSettledVisibilityCheck() {

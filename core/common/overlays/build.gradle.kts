@@ -25,7 +25,7 @@ plugins {
 
 android {
     namespace = "io.github.vibhor1102.macrion.core.common.overlays"
-    buildFeatures { compose = true; viewBinding = true }
+    buildFeatures { compose = true }
 }
 
 dependencies {

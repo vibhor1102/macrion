@@ -28,7 +28,6 @@ android {
     namespace = "io.github.vibhor1102.macrion.feature.tutorial"
     buildFeatures {
         compose = true
-        viewBinding = true
     }
 }
 
@@ -47,7 +46,6 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.navigation.fragment.ktx)
     implementation(libs.androidx.navigation.ui.ktx)
-    implementation(libs.androidx.recyclerView)
     implementation(libs.androidx.viewpager2)
     implementation(libs.androidx.room.ktx)
 

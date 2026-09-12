@@ -84,7 +84,6 @@ android {
     }
 
     buildFeatures {
-        viewBinding = true
         buildConfig = true
         compose = true
     }
@@ -170,7 +169,6 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.core.splashscreen)
     implementation(libs.androidx.datastore)
-    implementation(libs.androidx.recyclerView)
     implementation(libs.androidx.fragment.ktx)
 
     implementation(libs.androidx.lifecycle.extensions)

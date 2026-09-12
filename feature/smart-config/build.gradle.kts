@@ -24,7 +24,7 @@ plugins {
 
 android {
     namespace = "io.github.vibhor1102.macrion.feature.smart.config"
-    buildFeatures { compose = true; viewBinding = true }
+    buildFeatures { compose = true }
 }
 
 dependencies {
@@ -41,8 +41,6 @@ dependencies {
     implementation(libs.androidx.datastore)
     implementation(libs.androidx.fragment.ktx)
     implementation(libs.androidx.lifecycle.runtime.compose)
-    implementation(libs.androidx.recyclerView)
-
     implementation(libs.google.material)
 
     implementation(project(":core:common:actions"))

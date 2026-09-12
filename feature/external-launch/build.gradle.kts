@@ -28,7 +28,6 @@ android {
     namespace = "io.github.vibhor1102.macrion.feature.externallaunch"
     buildFeatures {
         compose = true
-        viewBinding = true
     }
 }
 

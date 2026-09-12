@@ -294,8 +294,8 @@ private fun ConditionColorPreview(color: Int) {
 /**
  * Shared scenario-row content for Compose screens.
  *
- * The RecyclerView holders above use the same building blocks while the scenario list is being
- * migrated. Keeping this dispatch here ensures the card layout has one source of truth.
+ * Keeping this dispatch here ensures the scenario card layout has one source of truth for the
+ * Compose scenario list.
  */
 @Composable
 internal fun ScenarioListItem(

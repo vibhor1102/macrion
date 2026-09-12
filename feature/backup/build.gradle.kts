@@ -28,7 +28,6 @@ android {
     namespace = "io.github.vibhor1102.macrion.feature.backup"
     buildFeatures {
         compose = true
-        viewBinding = true
     }
 }
 
