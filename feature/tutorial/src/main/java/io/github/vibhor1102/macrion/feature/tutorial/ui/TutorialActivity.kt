@@ -17,16 +17,18 @@
 package io.github.vibhor1102.macrion.feature.tutorial.ui
 
 import android.os.Bundle
-import android.view.ViewGroup
 import android.view.WindowManager
-import android.widget.LinearLayout
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -36,11 +38,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.fragment.app.FragmentContainerView
 import androidx.fragment.app.commitNow
 import androidx.navigation.fragment.NavHostFragment
@@ -63,43 +65,61 @@ class TutorialActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContentView(createContentView())
-        if (savedInstanceState == null) {
-            val navHost = NavHostFragment.create(R.navigation.nav_graph)
-            supportFragmentManager.commitNow {
-                replace(R.id.nav_host_fragment, navHost)
-                setPrimaryNavigationFragment(navHost)
+        setContentView(
+            ComposeView(this).apply {
+                setContent {
+                    MacrionTheme {
+                        TutorialActivityContent(
+                            createNavigationHost = savedInstanceState == null,
+                        )
+                    }
+                }
             }
-        }
+        )
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
 
-    private fun createContentView(): LinearLayout =
-        LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            fitsSystemWindows = true
-
-            addView(
-                ComposeView(context).apply {
-                    setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-                    setContent { MacrionTheme { TutorialToolbar() } }
-                },
-                LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 56.dpToPx()),
-            )
-
-            addView(
-                FragmentContainerView(context).apply {
-                    id = R.id.nav_host_fragment
-                    tag = "TutorialGame"
-                },
-                LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f),
-            )
-
+    @Composable
+    private fun TutorialActivityContent(createNavigationHost: Boolean) {
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.surface,
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .systemBarsPadding(),
+            ) {
+                TutorialToolbar(Modifier.fillMaxWidth().height(56.dp))
+                AndroidView(
+                    factory = { context ->
+                        FragmentContainerView(context).apply {
+                            id = R.id.nav_host_fragment
+                            tag = "TutorialGame"
+                            if (createNavigationHost) {
+                                post {
+                                    if (supportFragmentManager.findFragmentById(id) == null) {
+                                        val navHost = NavHostFragment.create(R.navigation.nav_graph)
+                                        supportFragmentManager.commitNow {
+                                            replace(id, navHost)
+                                            setPrimaryNavigationFragment(navHost)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                )
+            }
         }
+    }
 
     @Composable
-    private fun TutorialToolbar() {
-        Surface(color = MaterialTheme.colorScheme.surface, shadowElevation = 3.dp) {
+    private fun TutorialToolbar(modifier: Modifier = Modifier) {
+        Surface(modifier = modifier, color = MaterialTheme.colorScheme.surface, shadowElevation = 3.dp) {
             Row(
                 modifier = Modifier.fillMaxSize(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -123,6 +143,4 @@ class TutorialActivity : AppCompatActivity() {
             }
         }
     }
-
-    private fun Int.dpToPx(): Int = (this * resources.displayMetrics.density).toInt()
 }
