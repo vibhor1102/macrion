@@ -46,15 +46,40 @@ internal class MonitoredViewsManagerImpl @Inject constructor(
     private val coroutineScopeIo: CoroutineScope = CoroutineScope(SupervisorJob() + ioDispatcher)
     private val monitoredViews: MutableMap<MonitoredViewType, ViewMonitor> = mutableMapOf()
     private val monitoredClicks: MutableMap<MonitoredViewType, () -> Unit> = mutableMapOf()
+    private val composePositions: MutableMap<MonitoredViewType, MutableStateFlow<Rect>> = mutableMapOf()
+    private val composeTexts: MutableMap<MonitoredViewType, MutableStateFlow<String?>> = mutableMapOf()
+    private val composeClickHandlers: MutableMap<MonitoredViewType, () -> Unit> = mutableMapOf()
 
     private var textMonitoringJob: Job? = null
     private var numberMonitoringJob: Job? = null
 
     private var isViewMonitoringEnabled: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
-
     internal fun setViewMonitoringState(isEnabled: Boolean) {
         isViewMonitoringEnabled.update { isEnabled }
+    }
+
+    override fun isViewMonitoringEnabled(): StateFlow<Boolean> = isViewMonitoringEnabled
+
+    override fun updatePosition(type: MonitoredViewType, position: Rect) {
+        val safeInset = displayConfigManager.displayConfig.safeInsetTopPx
+        val adjusted = if (position.isEmpty) position else Rect(
+            position.left,
+            position.top - safeInset,
+            position.right,
+            position.bottom - safeInset,
+        )
+        val flow = composePositions.getOrPut(type) { MutableStateFlow(Rect()) }
+        flow.value = adjusted
+    }
+
+    override fun setClickHandler(type: MonitoredViewType, onClick: () -> Unit) {
+        composeClickHandlers[type] = onClick
+    }
+
+    override fun updateText(type: MonitoredViewType, text: String?) {
+        val flow = composeTexts.getOrPut(type) { MutableStateFlow(null) }
+        flow.value = text
     }
 
     override fun attach(
@@ -64,12 +89,27 @@ internal class MonitoredViewsManagerImpl @Inject constructor(
     ) {
         if (!isViewMonitoringEnabled.value) return
 
-        if (!monitoredViews.contains(type)) monitoredViews[type] = ViewMonitor(displayConfigManager)
-        monitoredViews[type]?.attachView(monitoredView, positioningType)
+        val monitor = monitoredViews.getOrPut(type) { ViewMonitor(displayConfigManager) }
+        monitor.attachView(monitoredView, positioningType)
+
+        coroutineScopeIo.launch {
+            monitor.position.collect { pos ->
+                val flow = composePositions.getOrPut(type) { MutableStateFlow(Rect()) }
+                flow.value = pos
+            }
+        }
+        coroutineScopeIo.launch {
+            monitor.text.collect { txt ->
+                updateText(type, txt)
+            }
+        }
     }
 
     override fun detach(type: MonitoredViewType) {
         monitoredViews[type]?.detachView()
+        composeClickHandlers.remove(type)
+        composePositions[type]?.value = Rect()
+        composeTexts[type]?.value = null
     }
 
     override fun notifyClick(type: MonitoredViewType) {
@@ -77,21 +117,31 @@ internal class MonitoredViewsManagerImpl @Inject constructor(
     }
 
     override fun getViewPosition(type: MonitoredViewType): StateFlow<Rect>? =
-        monitoredViews[type]?.position
+        composePositions.getOrPut(type) {
+            monitoredViews[type]?.position as? MutableStateFlow<Rect> ?: MutableStateFlow(Rect())
+        }
 
     override fun performClick(type: MonitoredViewType): Boolean {
         notifyClick(type)
+        composeClickHandlers[type]?.let { handler ->
+            handler.invoke()
+            return true
+        }
         return monitoredViews[type]?.performClick() ?: false
     }
 
     fun setExpectedViews(types: Set<MonitoredViewType>) {
         types.forEach { type ->
+            if (!composePositions.contains(type)) composePositions[type] = MutableStateFlow(Rect())
             if (!monitoredViews.contains(type)) monitoredViews[type] = ViewMonitor(displayConfigManager)
         }
     }
 
     fun clearExpectedViews() {
         monitoredViews.clear()
+        composePositions.clear()
+        composeTexts.clear()
+        composeClickHandlers.clear()
     }
 
     fun monitorNextClick(type: MonitoredViewType, listener: () -> Unit) {
@@ -107,7 +157,8 @@ internal class MonitoredViewsManagerImpl @Inject constructor(
 
     fun monitorText(type: MonitoredViewType, text: String, listener: () -> Unit) {
         textMonitoringJob = coroutineScopeIo.launch {
-            monitoredViews[type]?.text?.collect { viewText ->
+            val flow = composeTexts.getOrPut(type) { MutableStateFlow(null) }
+            flow.collect { viewText ->
                 if (text != viewText) return@collect
 
                 monitoredClicks.remove(type)
@@ -121,7 +172,8 @@ internal class MonitoredViewsManagerImpl @Inject constructor(
 
     fun monitorNumber(type: MonitoredViewType, number: Double, listener: () -> Unit) {
         numberMonitoringJob = coroutineScopeIo.launch {
-            monitoredViews[type]?.text?.collect { viewText ->
+            val flow = composeTexts.getOrPut(type) { MutableStateFlow(null) }
+            flow.collect { viewText ->
                 val value = viewText?.toDoubleOrNull()
                 if (value != number) return@collect
 

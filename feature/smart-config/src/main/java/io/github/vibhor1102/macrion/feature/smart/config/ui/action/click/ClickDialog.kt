@@ -53,7 +53,9 @@ import io.github.vibhor1102.macrion.feature.smart.config.R
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
 import io.github.vibhor1102.macrion.feature.smart.config.ui.action.OnActionConfigCompleteListener
 import io.github.vibhor1102.macrion.feature.smart.config.ui.action.click.offset.ClickOffsetDialog
-import io.github.vibhor1102.macrion.feature.smart.config.ui.common.compose.TutorialClickAnchor
+import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredViewType
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.compose.LocalMonitoredViewsManager
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.compose.tutorialAnchor
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.dialogs.showCloseWithoutSavingDialog
 import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.selection.ScreenConditionSelectionDialog
 import kotlinx.coroutines.launch
@@ -64,9 +66,6 @@ class ClickDialog(private val listener: OnActionConfigCompleteListener) : Overla
         entryPoint = ScenarioConfigViewModelsEntryPoint::class.java,
         creator = { clickViewModel() },
     )
-    private var conditionTypeAnchor: View? = null
-    private var selectorAnchor: View? = null
-    private var saveAnchor: View? = null
 
     override fun onCreateView(): ViewGroup = ComposeView(context).apply {
         setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
@@ -77,36 +76,33 @@ class ClickDialog(private val listener: OnActionConfigCompleteListener) : Overla
             viewModel.isEditingAction.collect { if (!it) { Log.e(TAG, "Closing ClickDialog because there is no action edited"); finish() } }
         } }
     }
-    override fun onStart() {
-        super.onStart(); viewModel.monitorConditionTypeView(conditionTypeAnchor)
-        viewModel.monitorSelectorView(selectorAnchor); viewModel.monitorSaveView(saveAnchor)
-    }
-    override fun onStop() { viewModel.detachMonitoredViews(); super.onStop() }
 
     @Composable private fun Content() {
-        val ui by viewModel.uiState.collectAsStateWithLifecycle()
-        val state = ui ?: return
-        var name by rememberSaveable { mutableStateOf(state.name.orEmpty()) }
-        var duration by rememberSaveable { mutableStateOf(state.pressDuration.orEmpty()) }
-        LaunchedEffect(state.name) { if (state.name != name) name = state.name.orEmpty() }
-        LaunchedEffect(state.pressDuration) { if (state.pressDuration != duration) duration = state.pressDuration.orEmpty() }
-        Surface(Modifier.fillMaxWidth().heightIn(max = 600.dp), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
-            Column {
-                TopBar(state.canBeSaved)
-                Column(Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState())
-                    .padding(horizontal = 16.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    MacrionTextField(name, { name = it; viewModel.setName(it) }, context.getString(R.string.generic_name),
-                        isError = state.nameError, maxLength = context.resources.getInteger(R.integer.name_max_length))
-                    OutlinedTextField(duration, { input ->
-                        val filtered = input.filter(Char::isDigit)
-                        if (filtered.isEmpty() || (filtered.toLongOrNull() ?: Long.MAX_VALUE) <= GESTURE_DURATION_MAX_VALUE) {
-                            duration = filtered; viewModel.setPressDuration(filtered.toLongOrNull())
-                        }
-                    }, Modifier.fillMaxWidth(), label = { Text(context.getString(R.string.input_field_label_click_press_duration)) },
-                        isError = state.pressDurationError, singleLine = true,
-                        keyboardOptions = macrionDoneKeyboardOptions(KeyboardType.Number),
-                        keyboardActions = macrionDoneKeyboardActions())
-                    state.positionState?.let { PositionCard(it) }
+        CompositionLocalProvider(LocalMonitoredViewsManager provides viewModel.monitoredViewsManager) {
+            val ui by viewModel.uiState.collectAsStateWithLifecycle()
+            val state = ui ?: return@CompositionLocalProvider
+            var name by rememberSaveable { mutableStateOf(state.name.orEmpty()) }
+            var duration by rememberSaveable { mutableStateOf(state.pressDuration.orEmpty()) }
+            LaunchedEffect(state.name) { if (state.name != name) name = state.name.orEmpty() }
+            LaunchedEffect(state.pressDuration) { if (state.pressDuration != duration) duration = state.pressDuration.orEmpty() }
+            Surface(Modifier.fillMaxWidth().heightIn(max = 600.dp), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
+                Column {
+                    TopBar(state.canBeSaved)
+                    Column(Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState())
+                        .padding(horizontal = 16.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        MacrionTextField(name, { name = it; viewModel.setName(it) }, context.getString(R.string.generic_name),
+                            isError = state.nameError, maxLength = context.resources.getInteger(R.integer.name_max_length))
+                        OutlinedTextField(duration, { input ->
+                            val filtered = input.filter(Char::isDigit)
+                            if (filtered.isEmpty() || (filtered.toLongOrNull() ?: Long.MAX_VALUE) <= GESTURE_DURATION_MAX_VALUE) {
+                                duration = filtered; viewModel.setPressDuration(filtered.toLongOrNull())
+                            }
+                        }, Modifier.fillMaxWidth(), label = { Text(context.getString(R.string.input_field_label_click_press_duration)) },
+                            isError = state.pressDurationError, singleLine = true,
+                            keyboardOptions = macrionDoneKeyboardOptions(KeyboardType.Number),
+                            keyboardActions = macrionDoneKeyboardActions())
+                        state.positionState?.let { PositionCard(it) }
+                    }
                 }
             }
         }
@@ -119,10 +115,15 @@ class ClickDialog(private val listener: OnActionConfigCompleteListener) : Overla
                 style = MaterialTheme.typography.titleLarge, maxLines = 1, overflow = TextOverflow.Clip)
             FilledTonalIconButton(onClick = ::delete) { Icon(painterResource(R.drawable.ic_delete), null) }
             Spacer(Modifier.width(8.dp))
-            Box {
-                FilledIconButton(onClick = ::save, enabled = saveEnabled) { Icon(painterResource(R.drawable.ic_save_filled), null) }
-                TutorialClickAnchor({ saveAnchor = it; viewModel.monitorSaveView(it) }, ::save, saveEnabled)
-            }
+            FilledIconButton(
+                onClick = ::save,
+                enabled = saveEnabled,
+                modifier = Modifier.tutorialAnchor(
+                    MonitoredViewType.CLICK_DIALOG_BUTTON_SAVE,
+                    onClick = ::save,
+                    enabled = saveEnabled,
+                ),
+            ) { Icon(painterResource(R.drawable.ic_save_filled), null) }
         }
     }
 
@@ -157,32 +158,48 @@ class ClickDialog(private val listener: OnActionConfigCompleteListener) : Overla
             listOf(Click.PositionType.USER_SELECTED to R.drawable.ic_click_on_condition,
                 Click.PositionType.ON_DETECTED_CONDITION to R.drawable.ic_condition).forEachIndexed { index, item ->
                 if (index > 0) Box(Modifier.width(1.dp).fillMaxHeight().background(MaterialTheme.colorScheme.outline))
-                Box(Modifier.width(44.dp).fillMaxHeight().background(if (positionType == item.first)
-                    MaterialTheme.colorScheme.secondaryContainer else Color.Transparent)
-                    .clickable { viewModel.setClickOnCondition(item.first) }, contentAlignment = Alignment.Center) {
+                val isConditionType = item.first == Click.PositionType.ON_DETECTED_CONDITION
+                Box(
+                    Modifier.width(44.dp).fillMaxHeight()
+                        .background(if (positionType == item.first) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent)
+                        .then(
+                            if (isConditionType) {
+                                Modifier.tutorialAnchor(
+                                    MonitoredViewType.CLICK_DIALOG_FIELD_POSITION_TYPE_ITEM_ON_CONDITION,
+                                    onClick = { viewModel.setClickOnCondition(Click.PositionType.ON_DETECTED_CONDITION) },
+                                )
+                            } else Modifier
+                        )
+                        .clickable { viewModel.setClickOnCondition(item.first) },
+                    contentAlignment = Alignment.Center,
+                ) {
                     Icon(painterResource(item.second), null, Modifier.size(18.dp))
-                    if (item.first == Click.PositionType.ON_DETECTED_CONDITION) TutorialClickAnchor(
-                        { conditionTypeAnchor = it; viewModel.monitorConditionTypeView(it) },
-                        { viewModel.setClickOnCondition(Click.PositionType.ON_DETECTED_CONDITION) })
                 }
             }
         }
     }
 
     @Composable private fun SelectorField(state: ClickPositionUiState) {
-        Box {
-            SelectorRow(state.selectorTitle, state.selectorDescription, state.isSelectorEnabled, state.isSelectorInError,
-                state.selectorVisualization, if (state.positionType == Click.PositionType.USER_SELECTED) ::showPositionSelector else ::showConditionSelector)
-            TutorialClickAnchor({ selectorAnchor = it; viewModel.monitorSelectorView(it) },
-                if (state.positionType == Click.PositionType.USER_SELECTED) ::showPositionSelector else ::showConditionSelector,
-                state.isSelectorEnabled)
-        }
+        val onSelect = if (state.positionType == Click.PositionType.USER_SELECTED) ::showPositionSelector else ::showConditionSelector
+        SelectorRow(
+            title = state.selectorTitle,
+            description = state.selectorDescription,
+            enabled = state.isSelectorEnabled,
+            error = state.isSelectorInError,
+            visualization = state.selectorVisualization,
+            onClick = onSelect,
+            modifier = Modifier.tutorialAnchor(
+                MonitoredViewType.CLICK_DIALOG_FIELD_SELECT_POSITION_OR_CONDITION,
+                onClick = onSelect,
+                enabled = state.isSelectorEnabled,
+            ),
+        )
     }
 
     @Composable private fun SelectorRow(title: String, description: String?, enabled: Boolean, error: Boolean,
-        visualization: Any?, onClick: () -> Unit) {
+        visualization: Any?, onClick: () -> Unit, modifier: Modifier = Modifier) {
         val contentColor = if (enabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-        Row(Modifier.fillMaxWidth().heightIn(min = 62.dp).clickable(enabled = enabled, onClick = onClick).padding(vertical = 8.dp),
+        Row(modifier.fillMaxWidth().heightIn(min = 62.dp).clickable(enabled = enabled, onClick = onClick).padding(vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically) {
             visualization?.let { value ->
                 val bitmap = remember(value) { when (value) { is Bitmap -> value; is Drawable -> value.toBitmap(); else -> null } }

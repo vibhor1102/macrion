@@ -54,7 +54,7 @@ import kotlinx.coroutines.flow.combine
 class ChangeCounterViewModel @Inject constructor(
     @ApplicationContext context: Context,
     private val editionRepository: EditionRepository,
-    private val monitoredViewsManager: MonitoredViewsManager,
+    internal val monitoredViewsManager: MonitoredViewsManager,
 ) : ViewModel() {
 
     /** The action being configured by the user. */

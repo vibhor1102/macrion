@@ -68,7 +68,7 @@ class ClickViewModel @Inject constructor(
     @ApplicationContext context: Context,
     private val bitmapRepository: BitmapRepository,
     private val editionRepository: EditionRepository,
-    private val monitoredViewsManager: MonitoredViewsManager,
+    internal val monitoredViewsManager: MonitoredViewsManager,
 ) : ViewModel() {
 
     /** Event configuration shared preferences. */

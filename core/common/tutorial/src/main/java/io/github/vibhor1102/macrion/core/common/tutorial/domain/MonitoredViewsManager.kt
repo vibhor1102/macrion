@@ -38,4 +38,12 @@ interface MonitoredViewsManager {
     fun getViewPosition(type: MonitoredViewType): StateFlow<Rect>?
 
     fun performClick(type: MonitoredViewType): Boolean
+
+    fun updatePosition(type: MonitoredViewType, position: Rect)
+
+    fun setClickHandler(type: MonitoredViewType, onClick: () -> Unit)
+
+    fun updateText(type: MonitoredViewType, text: String?)
+
+    fun isViewMonitoringEnabled(): StateFlow<Boolean>
 }
