@@ -44,7 +44,7 @@ fun AccessibilityTroubleshootingDialog(
                     title = stringResource(R.string.dialog_title_permission_issue),
                     message = stringResource(R.string.message_accessibility_issues),
                     onOpenWebsite = {
-                        context.safeStartWebBrowserActivity("https://dontkillmyapp.com?app=macrion")
+                        context.safeStartWebBrowserActivity("https://dontkillmyapp.com?app=Macrion")
                     },
                     onDismiss = onDismiss,
                 )

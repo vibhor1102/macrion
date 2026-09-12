@@ -234,4 +234,4 @@ class ScenarioActivity : ComponentActivity() {
     }
 }
 
-private const val DONT_KILL_MY_APP_URL = "https://dontkillmyapp.com/?app=Klick%27r"
+private const val DONT_KILL_MY_APP_URL = "https://dontkillmyapp.com/?app=Macrion"
