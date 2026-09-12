@@ -114,8 +114,7 @@ class ScenarioViewModel @Inject constructor(
             if (foregroundPermission != PermissionChecker.PERMISSION_GRANTED) return false
         }
 
-        serviceConnection.getLocalService()?.launchSmartScenario(resultCode, data, scenario)
-        return true
+        return serviceConnection.getLocalService()?.launchSmartScenario(resultCode, data, scenario) == true
     }
 
     fun loadDumbScenario(context: Context, scenario: DumbScenario): Boolean {
@@ -124,8 +123,7 @@ class ScenarioViewModel @Inject constructor(
             if (foregroundPermission != PermissionChecker.PERMISSION_GRANTED) return false
         }
 
-        serviceConnection.getLocalService()?.launchDumbScenario(scenario)
-        return true
+        return serviceConnection.getLocalService()?.launchDumbScenario(scenario) == true
     }
 
     /** Stop the overlay UI and release all associated resources. */

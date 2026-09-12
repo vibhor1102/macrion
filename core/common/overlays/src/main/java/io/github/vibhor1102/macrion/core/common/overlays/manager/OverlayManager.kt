@@ -105,6 +105,9 @@ class OverlayManager @Inject internal constructor(
     fun getBackStackTop(): Overlay? =
         overlayBackStack.top
 
+    /** Whether no overlay from a previous scenario session remains. */
+    fun isEmpty(): Boolean = topOverlay == null && overlayBackStack.isEmpty()
+
     /** Display the provided overlay and pause the current one, if any. */
     fun navigateTo(context: Context, newOverlay: Overlay, hideCurrent: Boolean = false) {
         Log.d(

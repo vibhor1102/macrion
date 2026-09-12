@@ -268,6 +268,12 @@ class MainMenu(
     }
 
     private fun onPlayPauseClicked() {
+        // Stop is always valid while detecting; start-only prerequisites must not intercept Pause.
+        if (viewModel.detectionState.value is UiState.Detecting) {
+            viewModel.stopDetection()
+            return
+        }
+
         if (viewModel.shouldDownloadModels()) {
             context.startActivity(AlphabetActivity.getStartIntent(context, AlphabetActivity.MODE_REQUIRED))
             return

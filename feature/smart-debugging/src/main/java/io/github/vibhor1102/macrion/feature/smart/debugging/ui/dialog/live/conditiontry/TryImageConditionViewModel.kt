@@ -32,6 +32,7 @@ import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.live.uista
 import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.live.uistate.mapping.toConditionUiState
 
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -48,6 +49,8 @@ class TryImageConditionViewModel @Inject constructor(
     detectionResultUseCase: GetDebugLiveDetectionResultUseCase,
     private val smartProcessingRepository: SmartProcessingRepository,
 ) : ViewModel() {
+
+    private var tryStartJob: Job? = null
 
     private val isPlaying: Flow<Boolean> = smartProcessingRepository.detectionState
         .map { state -> state == DetectionState.DETECTING }
@@ -83,7 +86,8 @@ class TryImageConditionViewModel @Inject constructor(
     }
 
     fun startTry(context: Context, scenario: Scenario, screenCondition: ScreenCondition) {
-        viewModelScope.launch {
+        tryStartJob?.cancel()
+        tryStartJob = viewModelScope.launch {
             useUserThreshold.value = screenCondition !is ScreenCondition.Number
             userThreshold.value = screenCondition.threshold
 
@@ -93,9 +97,9 @@ class TryImageConditionViewModel @Inject constructor(
     }
 
     fun stopTry() {
-        viewModelScope.launch {
-            smartProcessingRepository.stopDetection()
-        }
+        tryStartJob?.cancel()
+        tryStartJob = null
+        smartProcessingRepository.stopDetection()
     }
 
     fun getSelectedThreshold(): Int = userThreshold.value

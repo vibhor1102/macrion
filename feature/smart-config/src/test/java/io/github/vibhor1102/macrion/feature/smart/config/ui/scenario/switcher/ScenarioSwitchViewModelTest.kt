@@ -175,6 +175,7 @@ private class TestProcessingRepository(
     override fun getScenarioId() = scenarioId.value
     override fun isRunning() = false
     override fun isScreenRecordActive() = false
+    override fun isFullyStopped() = true
     override fun setScenarioId(identifier: Identifier, markAsUsed: Boolean) = Unit
     override suspend fun setScenarioIdAndMarkAsUsed(identifier: Identifier) = Unit
     override fun setProjectionErrorHandler(handler: () -> Unit) = Unit

@@ -53,6 +53,7 @@ import io.github.vibhor1102.macrion.core.domain.model.action.ExternalAction
 
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -72,6 +73,8 @@ class TryElementViewModel @Inject constructor(
     private val smartProcessingRepository: SmartProcessingRepository,
 ) : ViewModel() {
 
+    private var tryStartJob: Job? = null
+
     private val isPlaying: Flow<Boolean> = smartProcessingRepository.detectionState
         .map { state -> state == DetectionState.DETECTING }
         .distinctUntilChanged()
@@ -84,16 +87,17 @@ class TryElementViewModel @Inject constructor(
         }
 
     fun startTry(context: Context, scenario: Scenario, screenEvent: ScreenEvent) {
-        viewModelScope.launch {
+        tryStartJob?.cancel()
+        tryStartJob = viewModelScope.launch {
             delay(500)
             smartProcessingRepository.tryEvent(context, scenario, screenEvent)
         }
     }
 
     fun stopTry() {
-        viewModelScope.launch {
-            smartProcessingRepository.stopDetection()
-        }
+        tryStartJob?.cancel()
+        tryStartJob = null
+        smartProcessingRepository.stopDetection()
     }
 }
 

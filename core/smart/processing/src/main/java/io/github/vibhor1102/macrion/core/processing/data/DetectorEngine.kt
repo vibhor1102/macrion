@@ -97,8 +97,12 @@ class DetectorEngine @Inject constructor(
     private var processingScope: CoroutineScope? = null
     /** Coroutine job for the image currently processed. */
     private var processingJob: Job? = null
+    /** Coroutine job starting the media projection. Teardown must wait for it before releasing the projection. */
+    private var recordingStartJob: Job? = null
     /** Coroutine job for the cleaning of the detection once stopped. */
     private var processingShutdownJob: Job? = null
+    /** Prevent repeated teardown callbacks from scheduling competing projection shutdowns. */
+    private var recordingStopJob: Job? = null
     /** Coroutine job for the debounced orientation change handler. */
     private var orientationChangeJob: Job? = null
 
@@ -166,7 +170,7 @@ class DetectorEngine @Inject constructor(
 
         displayConfigManager.addOrientationListener(screenOrientationListener)
 
-        processingScope?.launch {
+        recordingStartJob = processingScope?.launch {
             displayRecorder.apply {
                 startProjection(resultCode, data) {
                     Log.w(TAG, "projection lost")
@@ -376,20 +380,31 @@ class DetectorEngine @Inject constructor(
      * resources.
      */
     internal fun stopScreenRecord() {
-        if (_state.value == DetectorState.DETECTING) {
-            stopDetection()
-            stopRecording()
-        } else if (_state.value == DetectorState.RECORDING) {
-            stopRecording()
-        }
+        if (_state.value == DetectorState.CREATED) return
+        if (_state.value == DetectorState.DETECTING) stopDetection()
+        stopRecording()
     }
 
     private fun stopRecording() {
+        if (recordingStopJob?.isActive == true) return
         Log.i(TAG, "stopScreenRecord")
         _state.value = DetectorState.TRANSITIONING
 
-        processingScope?.launch {
+        recordingStopJob = processingScope?.launch {
+            recordingStartJob?.join()
+            recordingStartJob = null
             processingShutdownJob?.join()
+
+            // Error and interrupted-transition states can bypass the ordinary stopDetection cleanup.
+            processingJob?.cancelAndJoin()
+            processingJob = null
+            imageDetector?.close()
+            imageDetector = null
+            scenarioProcessor?.onScenarioEnd()
+            scenarioProcessor = null
+            activeDebugReportTimingListener = null
+            debugReportSessionStartNs = null
+            scalingManager.stopScaling()
 
             displayConfigManager.removeOrientationListener(screenOrientationListener)
             displayRecorder.stopProjection()
@@ -397,6 +412,7 @@ class DetectorEngine @Inject constructor(
 
             processingScope?.cancel()
             processingScope = null
+            recordingStopJob = null
         }
     }
 

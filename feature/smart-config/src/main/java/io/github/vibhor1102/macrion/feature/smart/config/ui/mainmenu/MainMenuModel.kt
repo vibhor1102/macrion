@@ -120,9 +120,10 @@ class MainMenuModel @Inject constructor(
     val isStartButtonEnabled: Flow<Boolean> = combine(
         smartProcessingRepository.canStartDetection,
         editionRepository.isEditionSynchronized,
-        isMediaProjectionStarted
-    ) { canStartDetection, isSynchronized, isProjectionStarted ->
-        (canStartDetection || !isProjectionStarted) && isSynchronized
+        isMediaProjectionStarted,
+        detectionState,
+    ) { canStartDetection, isSynchronized, isProjectionStarted, state ->
+        canUsePlayPauseButton(state, canStartDetection, isSynchronized, isProjectionStarted)
     }
 
     /** Tells if the detector can't work due to a native library load error. */
@@ -247,5 +248,12 @@ sealed class UiState {
     data object Detecting: UiState()
     data object Idle: UiState()
 }
+
+internal fun canUsePlayPauseButton(
+    state: UiState,
+    canStartDetection: Boolean,
+    isSynchronized: Boolean,
+    isProjectionStarted: Boolean,
+): Boolean = state == UiState.Detecting || (canStartDetection || !isProjectionStarted) && isSynchronized
 
 private const val TAG = "MainMenuViewModel"
