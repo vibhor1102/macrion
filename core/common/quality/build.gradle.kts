@@ -37,7 +37,6 @@ dependencies {
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.androidx.datastore)
 
-    implementation(libs.androidx.fragment.ktx)
     implementation(composeBom)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.ui)

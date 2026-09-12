@@ -40,6 +40,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Shape
@@ -49,6 +52,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.vibhor1102.macrion.R
+import io.github.vibhor1102.macrion.core.common.quality.ui.AccessibilityTroubleshootingDialog
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionActionField
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionSwitchField
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
@@ -66,7 +70,6 @@ internal fun SettingsRoute(
     onNavigateBack: () -> Unit,
     onShowPrivacySettings: () -> Unit,
     onShowPurchase: () -> Unit,
-    onShowTroubleshooting: () -> Unit,
     onShowCrashReports: () -> Unit,
     onOpenGithub: () -> Unit,
     onJoinDiscord: () -> Unit,
@@ -84,6 +87,7 @@ internal fun SettingsRoute(
     val shouldShowInputBlockWorkaround by viewModel.shouldShowInputBlockWorkaround.collectAsStateWithLifecycle(false)
     val shouldShowPrivacySettings by viewModel.shouldShowPrivacySettings.collectAsStateWithLifecycle(false)
     val shouldShowPurchase by viewModel.shouldShowPurchase.collectAsStateWithLifecycle(false)
+    var showTroubleshooting by rememberSaveable { mutableStateOf(false) }
 
     MacrionTheme {
         SettingsScreen(
@@ -125,7 +129,7 @@ internal fun SettingsRoute(
                     SettingsSection(
                         R.string.settings_section_help,
                         listOf(
-                            SettingsItem.Action(R.string.field_troubleshooting, onShowTroubleshooting),
+                            SettingsItem.Action(R.string.field_troubleshooting) { showTroubleshooting = true },
                             SettingsItem.Action(R.string.crash_reports_title, onShowCrashReports),
                         ),
                     ),
@@ -136,6 +140,12 @@ internal fun SettingsRoute(
             onJoinDiscord = onJoinDiscord,
             onReportBug = onReportBug,
         )
+
+        if (showTroubleshooting) {
+            AccessibilityTroubleshootingDialog(
+                onDismiss = { showTroubleshooting = false },
+            )
+        }
     }
 }
 

@@ -17,57 +17,38 @@
  */
 package io.github.vibhor1102.macrion.core.common.quality.ui
 
-import android.app.Dialog
-import android.content.DialogInterface
-import android.os.Bundle
-import androidx.compose.ui.platform.ComposeView
-import androidx.fragment.app.DialogFragment
-import androidx.fragment.app.setFragmentResult
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import io.github.vibhor1102.macrion.core.base.extensions.safeStartWebBrowserActivity
 import io.github.vibhor1102.macrion.core.common.quality.R
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionDialogSurface
-import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 
-class AccessibilityTroubleshootingDialog : DialogFragment() {
-
-    internal companion object {
-        /** Tag for dialog fragment. */
-        internal const val FRAGMENT_TAG_TROUBLESHOOTING_DIALOG = "AccessibilityTroubleshootingDialog"
-        /** Fragment result key for notifying the dialog is closed. */
-        internal const val FRAGMENT_RESULT_KEY_TROUBLESHOOTING = ":$FRAGMENT_TAG_TROUBLESHOOTING_DIALOG:result"
-    }
-
-    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        val content = ComposeView(requireContext()).apply {
-            setContent {
-                MacrionTheme {
-                    MacrionDialogSurface {
-                        TroubleshootingContent(
-                            title = context.getString(R.string.dialog_title_permission_issue),
-                            message = context.getString(R.string.message_accessibility_issues),
-                            onOpenWebsite = ::showDontKillMyApp,
-                            onDismiss = ::dismiss,
-                        )
-                    }
-                }
+@Composable
+fun AccessibilityTroubleshootingDialog(
+    onDismiss: () -> Unit,
+) {
+    val context = LocalContext.current
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            shape = MaterialTheme.shapes.extraLarge,
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            tonalElevation = 6.dp,
+        ) {
+            MacrionDialogSurface {
+                TroubleshootingContent(
+                    title = stringResource(R.string.dialog_title_permission_issue),
+                    message = stringResource(R.string.message_accessibility_issues),
+                    onOpenWebsite = {
+                        context.safeStartWebBrowserActivity("https://dontkillmyapp.com?app=macrion")
+                    },
+                    onDismiss = onDismiss,
+                )
             }
         }
-
-        return MaterialAlertDialogBuilder(requireContext())
-            .setView(content)
-            .create()
-    }
-
-    override fun onDismiss(dialog: DialogInterface) {
-        super.onDismiss(dialog)
-        setFragmentResult(
-            requestKey = FRAGMENT_RESULT_KEY_TROUBLESHOOTING,
-            result = Bundle.EMPTY,
-        )
-    }
-
-    private fun showDontKillMyApp() {
-        context?.safeStartWebBrowserActivity("https://dontkillmyapp.com?app=macrion")
     }
 }

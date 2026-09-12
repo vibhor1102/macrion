@@ -16,8 +16,8 @@
  */
 package io.github.vibhor1102.macrion.feature.tutorial.ui.list
 
+import android.content.Context
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 
@@ -44,7 +44,7 @@ import javax.inject.Inject
 class TutorialListViewModel @Inject constructor(
     private val appComponentsProvider: AppComponentsProvider,
     private val accessibilityServiceConnection: LocalAccessibilityServiceConnection,
-    private val permissionsController: PermissionsController,
+    val permissionsController: PermissionsController,
     private val tutorialRepository: TutorialRepository,
     private val getTutorialCategoryUseCase: GetTutorialCategoryUseCase,
 ) : ViewModel() {
@@ -57,7 +57,7 @@ class TutorialListViewModel @Inject constructor(
                 .stateIn(viewModelScope, SharingStarted.WhileSubscribed(3_000), TutorialCategoryUiState.Loading)
         }
 
-    fun startPermissionFlowIfNeeded(activity: AppCompatActivity, onAllGranted: () -> Unit) {
+    fun startPermissionFlowIfNeeded(activity: Context, onAllGranted: () -> Unit) {
         permissionsController.startPermissionsUiFlow(
             activity = activity,
             permissions = listOf(

@@ -21,9 +21,9 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
+import androidx.activity.ComponentActivity
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.withResumed
@@ -62,7 +62,7 @@ import javax.inject.Inject
  * available scenarios, if any.
  */
 @AndroidEntryPoint
-class ScenarioActivity : AppCompatActivity() {
+class ScenarioActivity : ComponentActivity() {
 
     /** ViewModel providing the click scenarios data to the UI. */
     private val scenarioViewModel: ScenarioViewModel by viewModels()
@@ -97,6 +97,7 @@ class ScenarioActivity : AppCompatActivity() {
             scenarioCopyViewModel = scenarioCopyViewModel,
             backupViewModel = backupViewModel,
             conditionsMigrationViewModel = conditionsMigrationViewModel,
+            permissionsController = scenarioViewModel.permissionController,
             onLaunchScenario = ::launchScenario,
             onDialogDismissed = { window.decorView.post { offerLocalCrashReport() } },
         )
@@ -180,7 +181,9 @@ class ScenarioActivity : AppCompatActivity() {
     }
 
     private fun onMandatoryPermissionsGranted() {
-        scenarioViewModel.startTroubleshootingFlowIfNeeded(this) {
+        scenarioViewModel.startTroubleshootingFlowIfNeeded(
+            showTroubleshooting = scenarioListHost::showAccessibilityTroubleshootingDialog,
+        ) {
             when (val scenario = requestedItem?.scenario) {
                 is DumbScenario -> launchDumbScenario(scenario)
                 is Scenario -> mediaProjectionRequest.showMediaProjectionWarning(

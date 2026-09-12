@@ -50,6 +50,9 @@ import androidx.lifecycle.repeatOnLifecycle
 import io.github.vibhor1102.macrion.R
 import io.github.vibhor1102.macrion.core.common.navigation.TutorialNavigator
 import io.github.vibhor1102.macrion.core.common.navigation.getTutorialNavigator
+import io.github.vibhor1102.macrion.core.common.permissions.PermissionsController
+import io.github.vibhor1102.macrion.core.common.permissions.ui.PermissionsHost
+import io.github.vibhor1102.macrion.core.common.quality.ui.AccessibilityTroubleshootingDialog
 import io.github.vibhor1102.macrion.core.common.quality.ui.BackgroundLaunchTroubleshootingDialog
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionDialogSurface
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
@@ -81,6 +84,7 @@ sealed interface ActiveScenarioDialog {
     data object ConditionsMigration : ActiveScenarioDialog
     data class CrashReport(val reportId: String) : ActiveScenarioDialog
     data object BackgroundLaunchHelp : ActiveScenarioDialog
+    data class AccessibilityTroubleshooting(val onDismissed: () -> Unit) : ActiveScenarioDialog
 }
 
 /**
@@ -93,6 +97,7 @@ class ScenarioListHost(
     private val scenarioCopyViewModel: ScenarioCopyViewModel,
     private val backupViewModel: BackupViewModel,
     private val conditionsMigrationViewModel: ConditionsMigrationViewModel,
+    private val permissionsController: PermissionsController,
     private val onLaunchScenario: (ScenarioListUiState.Item.ScenarioItem) -> Unit,
     private val onDialogDismissed: () -> Unit = {},
 ) {
@@ -115,6 +120,10 @@ class ScenarioListHost(
 
     fun showLocalePluginBackgroundLaunchHelp() {
         activeDialog = ActiveScenarioDialog.BackgroundLaunchHelp
+    }
+
+    fun showAccessibilityTroubleshootingDialog(onDismissed: () -> Unit) {
+        activeDialog = ActiveScenarioDialog.AccessibilityTroubleshooting(onDismissed)
     }
 
     private fun dismissActiveDialog() {
@@ -259,8 +268,19 @@ class ScenarioListHost(
                                 onDismiss = ::dismissActiveDialog,
                             )
                         }
+                        is ActiveScenarioDialog.AccessibilityTroubleshooting -> {
+                            AccessibilityTroubleshootingDialog(
+                                onDismiss = {
+                                    val onDismissed = currentDialog.onDismissed
+                                    dismissActiveDialog()
+                                    onDismissed()
+                                },
+                            )
+                        }
                         null -> Unit
                     }
+
+                    PermissionsHost(permissionsController = permissionsController)
                 }
             }
         }

@@ -21,12 +21,13 @@ import android.graphics.Point
 import android.os.Bundle
 import android.view.WindowManager
 import android.widget.Toast
+import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.app.AppCompatActivity
+import io.github.vibhor1102.macrion.core.common.permissions.ui.PermissionsHost
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -99,7 +100,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class TutorialActivity : AppCompatActivity() {
+class TutorialActivity : ComponentActivity() {
 
     @Inject lateinit var overlayManager: OverlayManager
 
@@ -118,6 +119,7 @@ class TutorialActivity : AppCompatActivity() {
         setContent {
             MacrionTheme {
                 TutorialActivityContent()
+                PermissionsHost(tutorialListViewModel.permissionsController)
             }
         }
     }

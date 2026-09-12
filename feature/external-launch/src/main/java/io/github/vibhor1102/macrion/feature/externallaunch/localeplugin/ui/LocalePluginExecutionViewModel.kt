@@ -8,8 +8,8 @@
  */
 package io.github.vibhor1102.macrion.feature.externallaunch.localeplugin.ui
 
+import android.content.Context
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.github.vibhor1102.macrion.core.base.data.AppComponentsProvider
@@ -29,7 +29,7 @@ import javax.inject.Inject
 internal class LocalePluginExecutionViewModel @Inject constructor(
     private val codec: LocalePluginConfigurationCodec,
     private val executor: LocalePluginActionExecutor,
-    private val permissionController: PermissionsController,
+    val permissionController: PermissionsController,
     private val externalLaunchRepository: ExternalLaunchRepository,
     private val appComponentsProvider: AppComponentsProvider,
     private val settingsRepository: SettingsRepository,
@@ -45,7 +45,7 @@ internal class LocalePluginExecutionViewModel @Inject constructor(
     }
 
     fun requestPermissions(
-        activity: AppCompatActivity,
+        activity: Context,
         onAllGranted: () -> Unit,
         onMandatoryDenied: () -> Unit,
     ) {
