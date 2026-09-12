@@ -167,7 +167,7 @@ abstract class ItemBriefMenu(
 
     @SuppressLint("ClickableViewAccessibility")
     protected fun startGestureCapture(onNewAction: (gesture: ItemBriefDescription?, isFinished: Boolean) -> Unit) {
-        briefViewBinding.hidePanel()
+        briefViewBinding.setGestureRecording(true)
 
         blinkingAnimator.setTarget(briefViewBinding.recordingIcon)
         blinkingAnimator.start()
@@ -201,7 +201,7 @@ abstract class ItemBriefMenu(
         blinkingAnimator.end()
 
         briefViewBinding.viewRecorder.clearAndHide()
-        briefViewBinding.showOrResetPanelTimer()
+        briefViewBinding.setGestureRecording(false)
         briefViewBinding.hideInstructions()
     }
 

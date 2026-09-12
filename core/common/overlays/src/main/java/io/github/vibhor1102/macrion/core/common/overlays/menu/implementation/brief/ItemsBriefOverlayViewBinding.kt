@@ -95,6 +95,7 @@ class ItemsBriefOverlayViewBinding private constructor(
     private val briefItems = mutableStateOf<List<ItemBrief>>(emptyList())
     private val requestedBriefItemIndex = mutableIntStateOf(0)
     private val isPanelVisible = mutableStateOf(false)
+    private val isGestureRecording = mutableStateOf(false)
     private val isInstructionsVisible = mutableStateOf(false)
     private val isPanelAutoHideEnabled = mutableStateOf(true)
 
@@ -174,6 +175,7 @@ class ItemsBriefOverlayViewBinding private constructor(
 
     /** Mirrors the legacy brief panel's immediate reveal and three-second auto-hide timer. */
     fun showOrResetPanelTimer() {
+        if (isGestureRecording.value) return
         isPanelVisible.value = true
         mainHandler.removeCallbacks(hidePanelRunnable)
         if (isPanelAutoHideEnabled.value) mainHandler.postDelayed(hidePanelRunnable, AUTO_HIDE_DELAY_MS)
@@ -182,6 +184,11 @@ class ItemsBriefOverlayViewBinding private constructor(
     fun hidePanel() {
         mainHandler.removeCallbacks(hidePanelRunnable)
         isPanelVisible.value = false
+    }
+
+    fun setGestureRecording(recording: Boolean) {
+        isGestureRecording.value = recording
+        if (recording) hidePanel() else showOrResetPanelTimer()
     }
 
     fun setPanelAutoHideEnabled(enabled: Boolean) {
@@ -208,10 +215,12 @@ class ItemsBriefOverlayViewBinding private constructor(
     private fun OverlayContent() {
         val isPortrait = orientation == Configuration.ORIENTATION_PORTRAIT
         Box(Modifier.fillMaxSize()) {
-            AndroidView(factory = { viewRecorder }, modifier = Modifier.fillMaxSize())
             AndroidView(factory = { viewBrief }, modifier = Modifier.fillMaxSize())
+            AndroidView(factory = { viewRecorder }, modifier = Modifier.fillMaxSize())
 
-            AnimatedVisibility(
+            // An exiting panel still owns pointer input during its animation. Recording must
+            // expose the entire gesture surface immediately, not just hide the panel visually.
+            if (!isGestureRecording.value) AnimatedVisibility(
                 visible = isPanelVisible.value,
                 enter = if (isPortrait) slideInVertically { it } + fadeIn() else slideInHorizontally { -it } + fadeIn(),
                 exit = if (isPortrait) slideOutVertically { it } + fadeOut() else slideOutHorizontally { -it } + fadeOut(),
@@ -222,7 +231,7 @@ class ItemsBriefOverlayViewBinding private constructor(
             // The legacy root consumed a tap while its auto-hidden panel was away and used it to
             // reveal that panel. Keep that explicit here, but never place a hit target over a
             // visible brief card.
-            if (!isPanelVisible.value) {
+            if (!isPanelVisible.value && !isGestureRecording.value) {
                 val interactionSource = remember { MutableInteractionSource() }
                 Box(
                     Modifier
