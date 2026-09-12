@@ -115,11 +115,7 @@ class PositionSelectorMenu(
     }
 
     private fun setSwipeDescription(description: SwipeDescription) {
-        if (description.from == null) {
-            toSelectSwipeFromState(description)
-        } else {
-            toSelectSwipeToState(description)
-        }
+        toSelectSwipeFromState(description)
     }
 
     private fun toSelectSwipeFromState(description: SwipeDescription) {
