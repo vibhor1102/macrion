@@ -174,8 +174,6 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.lifecycle.common.java8)
-
-    implementation(libs.airbnb.lottie)
     implementation(libs.google.material)
 
     implementation(project(":core:common:accessibility"))

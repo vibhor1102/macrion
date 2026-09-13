@@ -25,8 +25,6 @@ androidxSplashScreen = "1.2.0"
 androidxVectorDrawable = "1.2.0"
 androidxComposeBom = "2026.08.00"
 
-# Other
-airbnbLottie = "6.7.1"
 googleMaterial = "1.14.0"
 kotlinSerializationJson = "1.11.0"
 openCv = "4.12.0"
@@ -89,8 +87,6 @@ androidx-compose-material3 = { group = "androidx.compose.material3", name = "mat
 androidx-compose-ui = { group = "androidx.compose.ui", name = "ui" }
 androidx-lifecycle-runtime-compose = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "androidxLifecycle" }
 
-# Other
-airbnb-lottie = { group = "com.airbnb.android", name = "lottie", version.ref = "airbnbLottie" }
 google-material = { group = "com.google.android.material", name = "material", version.ref = "googleMaterial" }
 kotlin-reflect = { group = "org.jetbrains.kotlin", name = "kotlin-reflect", version.ref = "kotlin" }
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }

@@ -40,6 +40,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import android.app.Dialog
+import io.github.vibhor1102.macrion.core.ui.compose.ColorIndicator
 import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayDialog
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredOverlayType
@@ -341,14 +342,6 @@ private fun EventImageConditionCard(
     }
 }
 
-@Composable
-private fun ColorIndicator(color: Int) {
-    val border = MaterialTheme.colorScheme.onSurfaceVariant
-    androidx.compose.foundation.Canvas(Modifier.size(48.dp)) {
-        drawCircle(Color(color), radius = 20.dp.toPx(), center = center)
-        drawCircle(border, radius = 22.dp.toPx(), center = center, style = androidx.compose.ui.graphics.drawscope.Stroke(4.dp.toPx()))
-    }
-}
 
 @Composable
 private fun EventChildCard(item: EventChildrenItem, onClick: () -> Unit) {

@@ -18,6 +18,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import io.github.vibhor1102.macrion.core.domain.model.condition.ScreenCondition
+import io.github.vibhor1102.macrion.core.ui.compose.ColorIndicator
 import io.github.vibhor1102.macrion.feature.smart.config.R
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.condition.UiScreenCondition
 
@@ -68,12 +69,3 @@ internal fun ScreenConditionBriefItem(details: UiScreenCondition, orientation: I
     modifier = modifier.size(32.dp),
     tint = MaterialTheme.colorScheme.onPrimaryContainer,
 )
-
-@Composable private fun ColorIndicator(color: Int, modifier: Modifier) {
-    val border = MaterialTheme.colorScheme.onSurfaceVariant
-    androidx.compose.foundation.Canvas(modifier) {
-        val radius = size.minDimension * 0.34f
-        drawCircle(Color(color), radius = radius)
-        drawCircle(border, radius = radius * 1.14f, style = Stroke(size.minDimension * 0.07f))
-    }
-}

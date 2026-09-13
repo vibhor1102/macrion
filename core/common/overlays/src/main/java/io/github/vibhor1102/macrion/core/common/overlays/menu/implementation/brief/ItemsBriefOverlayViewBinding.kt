@@ -17,12 +17,9 @@
 package io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.brief
 
 import android.content.res.Configuration
-import android.os.Handler
-import android.os.Looper
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewConfiguration
-import android.widget.ImageView
+import kotlinx.coroutines.delay
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.fadeIn
@@ -141,9 +138,8 @@ class ItemsBriefOverlayViewBinding private constructor(
     private val isInstructionsVisible = mutableStateOf(false)
     private val isPanelAutoHideEnabled = mutableStateOf(true)
 
-    private val mainHandler = Handler(Looper.getMainLooper())
-    private val hidePanelRunnable = Runnable { isPanelVisible.value = false }
-    private val hideInstructionsRunnable = Runnable { isInstructionsVisible.value = false }
+    private val panelTimerTrigger = mutableIntStateOf(0)
+    private val instructionsTimerTrigger = mutableIntStateOf(0)
 
     private var briefItemContent: (@Composable (ItemBrief, Int, () -> Unit) -> Unit)? = null
     private var onItemClicked: (Int, ItemBrief) -> Unit = { _, _ -> }
@@ -218,12 +214,11 @@ class ItemsBriefOverlayViewBinding private constructor(
     fun showOrResetPanelTimer() {
         if (isGestureRecording.value) return
         isPanelVisible.value = true
-        mainHandler.removeCallbacks(hidePanelRunnable)
-        if (isPanelAutoHideEnabled.value) mainHandler.postDelayed(hidePanelRunnable, AUTO_HIDE_DELAY_MS)
+        panelTimerTrigger.intValue++
     }
 
     fun hidePanel() {
-        mainHandler.removeCallbacks(hidePanelRunnable)
+        panelTimerTrigger.intValue = 0
         isPanelVisible.value = false
     }
 
@@ -234,26 +229,40 @@ class ItemsBriefOverlayViewBinding private constructor(
 
     fun setPanelAutoHideEnabled(enabled: Boolean) {
         isPanelAutoHideEnabled.value = enabled
-        if (!enabled) mainHandler.removeCallbacks(hidePanelRunnable)
+        if (!enabled) {
+            panelTimerTrigger.intValue = 0
+        }
     }
 
     fun showOrResetInstructionsTimer() {
         isInstructionsVisible.value = true
-        mainHandler.removeCallbacks(hideInstructionsRunnable)
-        mainHandler.postDelayed(hideInstructionsRunnable, AUTO_HIDE_DELAY_MS)
+        instructionsTimerTrigger.intValue++
     }
 
     fun hideInstructions() {
-        mainHandler.removeCallbacks(hideInstructionsRunnable)
+        instructionsTimerTrigger.intValue = 0
         isInstructionsVisible.value = false
     }
 
     fun dispose() {
-        mainHandler.removeCallbacksAndMessages(null)
+        panelTimerTrigger.intValue = 0
+        instructionsTimerTrigger.intValue = 0
     }
 
     @Composable
     private fun OverlayContent() {
+        LaunchedEffect(panelTimerTrigger.intValue, isPanelAutoHideEnabled.value) {
+            if (panelTimerTrigger.intValue > 0 && isPanelAutoHideEnabled.value) {
+                delay(AUTO_HIDE_DELAY_MS)
+                isPanelVisible.value = false
+            }
+        }
+        LaunchedEffect(instructionsTimerTrigger.intValue) {
+            if (instructionsTimerTrigger.intValue > 0) {
+                delay(AUTO_HIDE_DELAY_MS)
+                isInstructionsVisible.value = false
+            }
+        }
         val isPortrait = orientation == Configuration.ORIENTATION_PORTRAIT
         Box(Modifier.fillMaxSize()) {
             ItemBriefCanvas(

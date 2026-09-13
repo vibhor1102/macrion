@@ -38,7 +38,7 @@ import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.con
 import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.conditions.adapter.ConditionPerformanceRow
 import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.conditions.adapter.ConditionPerformanceRowState
 import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.sort.DebugReportSortOption
-import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.sort.DebugReportSortPopup
+import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.sort.DebugReportSortMenu
 import io.github.vibhor1102.macrion.core.domain.model.condition.ScreenCondition
 import kotlinx.coroutines.Job
 
@@ -47,7 +47,7 @@ class ConditionPerformanceContent(appContext: Context) : NavBarDialogContent(app
         entryPoint = DebuggingViewModelsEntryPoint::class.java,
         creator = { conditionPerformanceViewModel() },
     )
-    private var sortPopup: DebugReportSortPopup<ConditionPerformanceSort>? = null
+    private var isSortMenuExpanded by mutableStateOf(false)
 
     override fun floatingActionButtonsAreAvailable() = true
     override fun primaryFloatingActionButtonIcon() = R.drawable.ic_sort
@@ -60,7 +60,7 @@ class ConditionPerformanceContent(appContext: Context) : NavBarDialogContent(app
         dialogController.floatingActionButtons.primary.contentDescription =
             context.getString(R.string.content_desc_condition_performance_sort)
     }
-    override fun onStop() { sortPopup?.dismiss(); sortPopup = null }
+    override fun onStop() { isSortMenuExpanded = false }
 
     @Composable private fun Content() {
         val state = viewModel.uiState.collectAsStateWithLifecycle().value
@@ -68,35 +68,42 @@ class ConditionPerformanceContent(appContext: Context) : NavBarDialogContent(app
             dialogController.floatingActionButtons.root.visibility =
                 if (state is ConditionPerformanceUiState.Available) View.VISIBLE else View.GONE
         }
-        when (state) {
-            ConditionPerformanceUiState.Loading -> ReportLoading()
-            ConditionPerformanceUiState.NotAvailable -> ReportEmptyMessage(
-                context.getString(R.string.title_condition_performance_unavailable),
-            )
-            is ConditionPerformanceUiState.Available -> ConditionPerformanceList(
-                entries = state.entries,
-                bitmapProvider = viewModel::getConditionBitmap,
-            )
+        Box(Modifier.fillMaxSize()) {
+            when (state) {
+                ConditionPerformanceUiState.Loading -> ReportLoading()
+                ConditionPerformanceUiState.NotAvailable -> ReportEmptyMessage(
+                    context.getString(R.string.title_condition_performance_unavailable),
+                )
+                is ConditionPerformanceUiState.Available -> ConditionPerformanceList(
+                    entries = state.entries,
+                    bitmapProvider = viewModel::getConditionBitmap,
+                )
+            }
+            Box(Modifier.align(Alignment.BottomEnd).padding(end = 16.dp, bottom = 16.dp)) {
+                val selected = viewModel.getSort()
+                DebugReportSortMenu(
+                    expanded = isSortMenuExpanded,
+                    onDismissRequest = { isSortMenuExpanded = false },
+                    options = ConditionPerformanceSort.entries.map { sort ->
+                        DebugReportSortOption(
+                            sort,
+                            when (sort) {
+                                ConditionPerformanceSort.TOTAL_TIME -> R.string.condition_performance_sort_total_time
+                                ConditionPerformanceSort.AVERAGE_PER_CHECK -> R.string.condition_performance_sort_average
+                                ConditionPerformanceSort.CHECKS -> R.string.condition_performance_sort_checks
+                                ConditionPerformanceSort.SCENARIO_ORDER -> R.string.condition_performance_sort_scenario_order
+                            },
+                            sort == selected,
+                        )
+                    },
+                    onSelected = viewModel::setSort,
+                )
+            }
         }
     }
 
     override fun onPrimaryFloatingActionButtonClicked() {
-        val selected = viewModel.getSort()
-        sortPopup?.dismiss()
-        sortPopup = DebugReportSortPopup(
-            dialogController.floatingActionButtons.primary,
-            ConditionPerformanceSort.entries.map { sort -> DebugReportSortOption(
-                sort,
-                when (sort) {
-                    ConditionPerformanceSort.TOTAL_TIME -> R.string.condition_performance_sort_total_time
-                    ConditionPerformanceSort.AVERAGE_PER_CHECK -> R.string.condition_performance_sort_average
-                    ConditionPerformanceSort.CHECKS -> R.string.condition_performance_sort_checks
-                    ConditionPerformanceSort.SCENARIO_ORDER -> R.string.condition_performance_sort_scenario_order
-                },
-                sort == selected,
-            ) },
-            viewModel::setSort,
-        ).also { it.show() }
+        isSortMenuExpanded = true
     }
 }
 

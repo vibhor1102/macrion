@@ -8,12 +8,6 @@
  */
 package io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.sort
 
-import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
-import android.view.Gravity
-import android.view.View
-import android.widget.PopupWindow
-
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -21,7 +15,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.selection.selectable
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -29,66 +25,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
-
-import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.feature.smart.debugging.R
-
-/** Compact sort chooser which keeps the report visible behind it. */
-internal class DebugReportSortPopup<T>(
-    private val anchor: View,
-    private val options: List<DebugReportSortOption<T>>,
-    private val onSelected: (T) -> Unit,
-) {
-    private val density = anchor.resources.displayMetrics.density
-    private val width = minOf(
-        (280 * density).toInt(),
-        anchor.resources.displayMetrics.widthPixels - (32 * density).toInt(),
-    )
-    private val height = ((SORT_MENU_VERTICAL_PADDING_DP * 2 + SORT_OPTION_HEIGHT_DP * options.size) * density).toInt()
-
-    private val popup = PopupWindow(anchor.context).apply {
-        contentView = ComposeView(anchor.context).apply {
-            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
-            setContent {
-                MacrionTheme {
-                    SortMenu(options) { value ->
-                        dismiss()
-                        onSelected(value)
-                    }
-                }
-            }
-        }
-        this.width = this@DebugReportSortPopup.width
-        this.height = this@DebugReportSortPopup.height
-        isFocusable = true
-        isOutsideTouchable = true
-        inputMethodMode = PopupWindow.INPUT_METHOD_NOT_NEEDED
-        setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
-        elevation = 8 * density
-    }
-
-    fun show() {
-        val location = IntArray(2)
-        anchor.getLocationOnScreen(location)
-        val displayHeight = anchor.resources.displayMetrics.heightPixels
-        val gap = (8 * density).toInt()
-        val x = (location[0] + anchor.width - width).coerceAtLeast((16 * density).toInt())
-        val y = if (location[1] + anchor.height + gap + height <= displayHeight) {
-            location[1] + anchor.height + gap
-        } else {
-            (location[1] - height - gap).coerceAtLeast((16 * density).toInt())
-        }
-        popup.showAtLocation(anchor.rootView, Gravity.TOP or Gravity.START, x, y)
-    }
-
-    fun dismiss() = popup.dismiss()
-}
 
 internal data class DebugReportSortOption<T>(
     val value: T,
@@ -96,15 +37,30 @@ internal data class DebugReportSortOption<T>(
     val selected: Boolean,
 )
 
+/** Compact sort chooser which keeps the report visible behind it. */
 @Composable
-private fun <T> SortMenu(options: List<DebugReportSortOption<T>>, onSelected: (T) -> Unit) {
-    Surface(
-        color = MaterialTheme.colorScheme.surfaceContainer,
+internal fun <T> DebugReportSortMenu(
+    expanded: Boolean,
+    onDismissRequest: () -> Unit,
+    options: List<DebugReportSortOption<T>>,
+    onSelected: (T) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    DropdownMenu(
+        expanded = expanded,
+        onDismissRequest = onDismissRequest,
+        modifier = modifier.widthIn(min = 200.dp, max = 280.dp),
         shape = MaterialTheme.shapes.extraLarge,
+        containerColor = MaterialTheme.colorScheme.surfaceContainer,
         shadowElevation = 8.dp,
     ) {
         Column(Modifier.padding(vertical = SORT_MENU_VERTICAL_PADDING_DP.dp)) {
-            options.forEach { option -> SortOption(option, onSelected) }
+            options.forEach { option ->
+                SortOption(option) { value ->
+                    onDismissRequest()
+                    onSelected(value)
+                }
+            }
         }
     }
 }

@@ -10,8 +10,6 @@ package io.github.vibhor1102.macrion.core.common.overlays.menu.implementation
 
 import android.content.Context
 import android.graphics.PointF
-import android.os.Handler
-import android.os.Looper
 import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -28,6 +26,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -42,6 +41,7 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.delay
 
 import io.github.vibhor1102.macrion.core.common.overlays.R
 import io.github.vibhor1102.macrion.core.display.config.DisplayConfig
@@ -60,9 +60,7 @@ internal class PositionSelectorViews(
     private var currentDescription by mutableStateOf<ItemBriefDescription?>(null)
     private var instructionText by mutableIntStateOf(R.string.toast_configure_single_click)
     private var isInstructionsVisible by mutableStateOf(true)
-
-    private val mainHandler = Handler(Looper.getMainLooper())
-    private val hideInstructionsRunnable = Runnable { isInstructionsVisible = false }
+    private var instructionsTimerTrigger by mutableIntStateOf(0)
 
     companion object {
         private const val AUTO_HIDE_DELAY_MS = 3_000L
@@ -72,6 +70,13 @@ internal class PositionSelectorViews(
         val safeInsetTopDp = (displayConfig.safeInsetTopPx / context.resources.displayMetrics.density).dp
 
         root.setContent {
+            LaunchedEffect(instructionsTimerTrigger) {
+                if (instructionsTimerTrigger > 0) {
+                    isInstructionsVisible = true
+                    delay(AUTO_HIDE_DELAY_MS)
+                    isInstructionsVisible = false
+                }
+            }
             MacrionTheme {
                 Box(
                     modifier = Modifier
@@ -167,16 +172,13 @@ internal class PositionSelectorViews(
 
     fun showOrResetInstructionsTimer() {
         isInstructionsVisible = true
-        mainHandler.removeCallbacks(hideInstructionsRunnable)
-        mainHandler.postDelayed(hideInstructionsRunnable, AUTO_HIDE_DELAY_MS)
+        instructionsTimerTrigger++
     }
 
     fun hideInstructions() {
-        mainHandler.removeCallbacks(hideInstructionsRunnable)
+        instructionsTimerTrigger = 0
         isInstructionsVisible = false
     }
 
-    fun dispose() {
-        mainHandler.removeCallbacksAndMessages(null)
-    }
+    fun dispose() = Unit
 }
