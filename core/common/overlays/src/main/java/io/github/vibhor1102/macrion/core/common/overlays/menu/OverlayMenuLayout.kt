@@ -27,6 +27,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
@@ -79,16 +80,10 @@ class OverlayMenuButtonView(context: Context, icon: Int) : FrameLayout(context) 
 
     // Keep one owner for the whole pointer sequence, including native tutorial monitoring.
     override fun onInterceptTouchEvent(event: MotionEvent) = true
-
 }
 
 /**
  * Non-rendering compatibility anchor for a Compose content panel.
- *
- * OverlayMenu still exposes content items as [View]s because its controller and tutorial
- * integration use visibility and bounds as a small imperative contract. The content itself is
- * rendered by the parent Compose hierarchy; this anchor only carries that contract and therefore
- * does not add another AndroidView layer to the visual tree.
  */
 class OverlayMenuContentAnchor(
     context: Context,
@@ -141,68 +136,19 @@ fun createOverlayMenuLayout(
         root.buttons += anchor
         root.anchors[button.id] = anchor
     }
-    val items = ComposeView(context).apply {
+
+    val itemsAnchor = View(context).apply {
         id = R.id.menu_items
-        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-        setContent {
-            Column(Modifier.padding(4.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                root.buttons.forEachIndexed { index, button ->
-                    key(button.id) {
-                        val visible = button.composeVisibility != View.GONE
-                        AnimatedVisibility(
-                            visible = visible,
-                            enter = expandVertically(animationSpec = tween(300, easing = OverlayMenuResizeEasing)) +
-                                fadeIn(animationSpec = tween(300)),
-                            exit = shrinkVertically(animationSpec = tween(300, easing = OverlayMenuResizeEasing)) +
-                                fadeOut(animationSpec = tween(300)),
-                        ) {
-                            Box(
-                                Modifier
-                                    .size(48.dp)
-                                    .then(buttonModifier?.invoke(buttons[index]) { button.performClick() } ?: Modifier),
-                            ) {
-                                if (visible) {
-                                    Box(Modifier.fillMaxSize().alpha(button.composeAlpha)) {
-                                        if (buttonContent != null) {
-                                            buttonContent(buttons[index])
-                                        } else {
-                                            Icon(
-                                                painterResource(button.currentIconResource),
-                                                null,
-                                                Modifier.fillMaxSize(),
-                                                tint = colorResource(R.color.overlayMenuButtons),
-                                            )
-                                        }
-                                    }
-                                    // Transparent native anchor layered over the visual content keeps
-                                    // clicks, move gestures, and tutorial coordinate reporting intact.
-                                    AndroidView(factory = { button }, modifier = Modifier.fillMaxSize())
-                                } else if (buttonContent != null) {
-                                    Box(Modifier.fillMaxSize().alpha(button.composeAlpha)) {
-                                        buttonContent(buttons[index])
-                                    }
-                                } else {
-                                    Icon(
-                                        painterResource(button.currentIconResource),
-                                        null,
-                                        Modifier.fillMaxSize().alpha(button.composeAlpha),
-                                        tint = colorResource(R.color.overlayMenuButtons),
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
     }
-    root.anchors[R.id.menu_items] = items
+    root.anchors[R.id.menu_items] = itemsAnchor
+
     val contentAnchor = content?.let {
         OverlayMenuContentAnchor(context, contentInitiallyVisible).apply {
             id = contentId ?: View.generateViewId()
         }
     }
     contentAnchor?.let { root.anchors[it.id] = it }
+
     val background = ComposeView(context).apply {
         id = R.id.menu_background
         val cornerRadius = 10 * context.resources.displayMetrics.density
@@ -239,9 +185,60 @@ fun createOverlayMenuLayout(
                 ).clip(RoundedCornerShape(10.dp))
                     .background(colorResource(R.color.overlayMenuBackground)),
             ) {
-                Row(Modifier.fillMaxSize(),
-                    verticalAlignment = Alignment.CenterVertically) {
-                    AndroidView(factory = { items })
+                Row(
+                    Modifier.fillMaxSize(),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Box(Modifier.wrapContentSize()) {
+                        AndroidView(factory = { itemsAnchor }, modifier = Modifier.matchParentSize())
+                        Column(Modifier.padding(4.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                            root.buttons.forEachIndexed { index, button ->
+                                key(button.id) {
+                                    val visible = button.composeVisibility != View.GONE
+                                    AnimatedVisibility(
+                                        visible = visible,
+                                        enter = expandVertically(animationSpec = tween(300, easing = OverlayMenuResizeEasing)) +
+                                            fadeIn(animationSpec = tween(300)),
+                                        exit = shrinkVertically(animationSpec = tween(300, easing = OverlayMenuResizeEasing)) +
+                                            fadeOut(animationSpec = tween(300)),
+                                    ) {
+                                        Box(
+                                            Modifier
+                                                .size(48.dp)
+                                                .then(buttonModifier?.invoke(buttons[index]) { button.performClick() } ?: Modifier),
+                                        ) {
+                                            if (visible) {
+                                                Box(Modifier.fillMaxSize().alpha(button.composeAlpha)) {
+                                                    if (buttonContent != null) {
+                                                        buttonContent(buttons[index])
+                                                    } else {
+                                                        Icon(
+                                                            painterResource(button.currentIconResource),
+                                                            null,
+                                                            Modifier.fillMaxSize(),
+                                                            tint = colorResource(R.color.overlayMenuButtons),
+                                                        )
+                                                    }
+                                                }
+                                                AndroidView(factory = { button }, modifier = Modifier.fillMaxSize())
+                                            } else if (buttonContent != null) {
+                                                Box(Modifier.fillMaxSize().alpha(button.composeAlpha)) {
+                                                    buttonContent(buttons[index])
+                                                }
+                                            } else {
+                                                Icon(
+                                                    painterResource(button.currentIconResource),
+                                                    null,
+                                                    Modifier.fillMaxSize().alpha(button.composeAlpha),
+                                                    tint = colorResource(R.color.overlayMenuButtons),
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                     if (panelVisible) {
                         Box(
                             Modifier.size(
