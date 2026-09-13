@@ -62,10 +62,16 @@ internal fun EventListRow(
     isBeingDragged: Boolean = false,
     accessibilityActions: List<CustomAccessibilityAction> = emptyList(),
 ) {
+    val rowBackground by animateColorAsState(
+        if (isBeingDragged) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f) else Color.Transparent,
+        label = "event_row_drag_bg",
+    )
+
     Row(
         modifier
             .fillMaxWidth()
             .height(62.dp)
+            .background(rowBackground)
             .then(
                 if (accessibilityActions.isEmpty()) Modifier
                 else Modifier.semantics { customActions = accessibilityActions },
@@ -119,7 +125,7 @@ private fun DragHandle(
         label = "handle_tint",
     )
     val containerColor by animateColorAsState(
-        if (isActive) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent,
+        if (isActive) MaterialTheme.colorScheme.primary.copy(alpha = 0.16f) else Color.Transparent,
         label = "handle_container",
     )
 

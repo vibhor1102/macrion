@@ -46,10 +46,16 @@ internal fun DumbActionListItem(
     isBeingDragged: Boolean = false,
     onClick: () -> Unit,
 ) {
+    val rowBackground by animateColorAsState(
+        if (isBeingDragged) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f) else androidx.compose.ui.graphics.Color.Transparent,
+        label = "dumb_row_drag_bg",
+    )
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .height(80.dp)
+            .background(rowBackground)
             .padding(end = 24.dp)
             .clickable(onClick = onClick),
         verticalAlignment = Alignment.CenterVertically,
@@ -64,7 +70,7 @@ internal fun DumbActionListItem(
                 label = "dumb_handle_tint",
             )
             val containerColor by animateColorAsState(
-                if (isActive) MaterialTheme.colorScheme.secondaryContainer else androidx.compose.ui.graphics.Color.Transparent,
+                if (isActive) MaterialTheme.colorScheme.primary.copy(alpha = 0.16f) else androidx.compose.ui.graphics.Color.Transparent,
                 label = "dumb_handle_container",
             )
 

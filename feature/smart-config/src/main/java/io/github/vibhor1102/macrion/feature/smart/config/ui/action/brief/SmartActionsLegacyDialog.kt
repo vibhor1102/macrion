@@ -167,10 +167,15 @@ private fun ActionRow(
     onClick: () -> Unit,
 ) {
     val details = item.data as UiAction
+    val rowBackground by animateColorAsState(
+        if (isBeingDragged) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f) else Color.Transparent,
+        label = "action_row_drag_bg",
+    )
     Row(
         Modifier
             .fillMaxWidth()
             .height(80.dp)
+            .background(rowBackground)
             .clickable(onClick = onClick)
             .padding(start = 8.dp, end = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -184,7 +189,7 @@ private fun ActionRow(
             label = "action_handle_tint",
         )
         val containerColor by animateColorAsState(
-            if (isActive) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent,
+            if (isActive) MaterialTheme.colorScheme.primary.copy(alpha = 0.16f) else Color.Transparent,
             label = "action_handle_container",
         )
 
