@@ -17,10 +17,6 @@
 -->
 <resources>
 
-    <!-- Style for the collapsible search view. -->
-    <style name="AppTheme.Widget.SearchView" parent="Widget.AppCompat.AutoCompleteTextView">
-        <item name="android:textColor">?attr/colorOnSurface</item>
-    </style>
 
     <!-- Style for the bottom sheets dialogs search view. -->
     <style name="AppTheme.Widget.BottomSheetDialog" parent="@style/ThemeOverlay.Material3.BottomSheetDialog">

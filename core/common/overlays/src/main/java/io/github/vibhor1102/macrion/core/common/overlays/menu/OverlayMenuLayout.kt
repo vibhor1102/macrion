@@ -90,9 +90,9 @@ class OverlayMenuButtonView(context: Context, icon: Int) : FrameLayout(context) 
  * rendered by the parent Compose hierarchy; this anchor only carries that contract and therefore
  * does not add another AndroidView layer to the visual tree.
  */
-private class OverlayMenuContentAnchor(
+class OverlayMenuContentAnchor(
     context: Context,
-    initiallyVisible: Boolean,
+    initiallyVisible: Boolean = true,
 ) : View(context) {
 
     var composeVisibility by mutableIntStateOf(
@@ -111,7 +111,7 @@ private class OverlayMenuContentAnchor(
 }
 
 /** WindowManager needs a View root. Lookups must work before composition attaches. */
-internal class ComposeOverlayMenuHost(context: Context) : FrameLayout(context) {
+class ComposeOverlayMenuHost(context: Context) : FrameLayout(context) {
     val anchors = mutableMapOf<Int, View>()
     val buttons = mutableListOf<OverlayMenuButtonView>()
 }

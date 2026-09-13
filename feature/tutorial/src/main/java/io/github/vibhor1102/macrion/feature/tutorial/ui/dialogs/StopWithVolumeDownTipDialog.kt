@@ -17,7 +17,6 @@
 package io.github.vibhor1102.macrion.feature.tutorial.ui.dialogs
 
 import android.content.Context
-import androidx.appcompat.app.AlertDialog
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -46,7 +45,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.TutorialRepository
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.Tip
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionDialogSurface
@@ -90,10 +88,10 @@ fun StopWithVolumeDownTipDialog(
 internal fun Context.createStopWithVolumeDownTutorialDialog(
     tutorialRepository: TutorialRepository,
     onDismissed: (() -> Unit)?,
-): AlertDialog {
+): android.app.Dialog {
     val dialogContext = getDynamicColorsContext(R.style.AppTheme)
     var dontShowAgain by mutableStateOf(false)
-    lateinit var dialog: AlertDialog
+    lateinit var dialog: android.app.Dialog
     val content = ComposeView(dialogContext).apply {
         setContent {
             MacrionTheme {
@@ -108,13 +106,14 @@ internal fun Context.createStopWithVolumeDownTutorialDialog(
         }
     }
 
-    dialog = MaterialAlertDialogBuilder(dialogContext)
-        .setView(content)
-        .setOnDismissListener {
+    dialog = android.app.Dialog(dialogContext).apply {
+        setContentView(content)
+        window?.setBackgroundDrawableResource(android.R.color.transparent)
+        setOnDismissListener {
             if (dontShowAgain) tutorialRepository.dontShowTipAgain(Tip.STOP_WITH_VOLUME_DOWN)
             onDismissed?.invoke()
         }
-        .create()
+    }
     return dialog
 }
 

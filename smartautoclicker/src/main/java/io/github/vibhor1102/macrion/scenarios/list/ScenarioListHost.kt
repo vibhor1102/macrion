@@ -37,7 +37,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -131,12 +130,11 @@ class ScenarioListHost(
         onDialogDismissed()
     }
 
-    fun createView(): ComposeView {
-        return ComposeView(activity).apply {
-            setContent {
-                MacrionTheme {
-                    ComposeScenarioList(
-                        uiState = uiState,
+    @Composable
+    fun Content() {
+        MacrionTheme {
+            ComposeScenarioList(
+                uiState = uiState,
                         searchQuery = searchQuery,
                         bitmapProvider = scenarioListViewModel::getConditionBitmap,
                         onSearchQueryChanged = { query ->
@@ -281,8 +279,6 @@ class ScenarioListHost(
                     }
 
                     PermissionsHost(permissionsController = permissionsController)
-                }
-            }
         }
     }
 

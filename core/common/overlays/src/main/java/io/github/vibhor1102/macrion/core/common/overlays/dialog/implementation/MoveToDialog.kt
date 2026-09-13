@@ -16,11 +16,11 @@
  */
 package io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation
 
+import android.app.Dialog
 import android.view.KeyEvent
 import android.view.WindowManager
 
 import androidx.annotation.StyleRes
-import androidx.appcompat.app.AlertDialog
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -58,13 +58,10 @@ import androidx.compose.ui.unit.dp
 import io.github.vibhor1102.macrion.core.common.overlays.R
 import io.github.vibhor1102.macrion.core.common.overlays.base.BaseOverlay
 import io.github.vibhor1102.macrion.core.common.overlays.manager.OverlayManager
+import io.github.vibhor1102.macrion.core.ui.R as UiR
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionDialogSurface
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.core.ui.utils.getDynamicColorsContext
-import io.github.vibhor1102.macrion.core.ui.R as UiR
-
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
-
 class MoveToDialog(
     @StyleRes theme: Int,
     private val defaultValue: Int,
@@ -77,7 +74,7 @@ class MoveToDialog(
 
     /** Tells if the dialog is visible. */
     private var isShown = false
-    private var dialog: AlertDialog? = null
+    private var dialog: Dialog? = null
 
     override fun onCreate() {
         val content = ComposeView(context).apply {
@@ -124,9 +121,9 @@ class MoveToDialog(
             }
         }
 
-        dialog = MaterialAlertDialogBuilder(context.getDynamicColorsContext(R.style.AppTheme))
-            .setView(content)
-            .setOnKeyListener { _, keyCode, event ->
+        dialog = Dialog(context.getDynamicColorsContext(R.style.AppTheme)).apply {
+            setContentView(content)
+            setOnKeyListener { _, keyCode, event ->
                 if (keyCode == KeyEvent.KEYCODE_BACK && event.action == KeyEvent.ACTION_UP) {
                     this@MoveToDialog.back()
                     true
@@ -134,18 +131,14 @@ class MoveToDialog(
                     false
                 }
             }
-            .setOnDismissListener {
+            setOnDismissListener {
                 dialog = null
                 destroy()
             }
-            .create()
-
-        // Install AlertController's content before clearing its inferred no-editor flag.
-        // Its View-tree scan cannot see the text editor inside an unattached ComposeView.
-        dialog?.create()
-        dialog?.window?.apply {
-            setType(OverlayManager.OVERLAY_WINDOW_TYPE)
-            clearFlags(WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM)
+            window?.apply {
+                setBackgroundDrawableResource(android.R.color.transparent)
+                setType(OverlayManager.OVERLAY_WINDOW_TYPE)
+            }
         }
     }
 

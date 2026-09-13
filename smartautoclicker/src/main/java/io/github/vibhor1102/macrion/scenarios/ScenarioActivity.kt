@@ -19,11 +19,12 @@ package io.github.vibhor1102.macrion.scenarios
 
 import android.content.Intent
 import android.os.Bundle
-import android.view.View
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.withResumed
@@ -42,7 +43,6 @@ import io.github.vibhor1102.macrion.R
 import io.github.vibhor1102.macrion.scenarios.list.ScenarioListHost
 import io.github.vibhor1102.macrion.scenarios.list.ScenarioListViewModel
 import io.github.vibhor1102.macrion.scenarios.list.model.ScenarioListUiState
-import io.github.vibhor1102.macrion.core.base.extensions.delayDrawUntil
 import io.github.vibhor1102.macrion.core.display.recorder.MediaProjectionRequest
 import io.github.vibhor1102.macrion.core.domain.model.scenario.Scenario
 import io.github.vibhor1102.macrion.core.dumb.domain.model.DumbScenario
@@ -87,6 +87,10 @@ class ScenarioActivity : ComponentActivity() {
     private val startupConsentFinished = CompletableDeferred<Unit>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        val splashScreen = installSplashScreen()
+        splashScreen.setKeepOnScreenCondition {
+            scenarioViewModel.userConsentState.value == UserConsentState.UNKNOWN
+        }
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         CrashDiagnostics.record(CrashDiagnostics.Event.HOME_OPENED)
@@ -101,18 +105,15 @@ class ScenarioActivity : ComponentActivity() {
             onLaunchScenario = ::launchScenario,
             onDialogDismissed = { window.decorView.post { offerLocalCrashReport() } },
         )
-        setContentView(scenarioListHost.createView())
+        setContent {
+            scenarioListHost.Content()
+        }
         scenarioListHost.start()
 
         scenarioViewModel.stopScenario()
         scenarioViewModel.requestUserConsentIfNeeded(this) { startupConsentFinished.complete(Unit) }
 
         mediaProjectionRequest.registerForActivityResult(this)
-
-        // Splash screen is dismissed on first frame drawn, delay it until we have a user consent status
-        findViewById<View>(android.R.id.content).delayDrawUntil {
-            scenarioViewModel.userConsentState.value != UserConsentState.UNKNOWN
-        }
     }
 
     override fun onResume() {

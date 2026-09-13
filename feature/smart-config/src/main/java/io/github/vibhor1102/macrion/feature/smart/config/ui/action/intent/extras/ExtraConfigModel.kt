@@ -16,13 +16,9 @@
  */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.action.intent.extras
 
-import android.text.InputFilter
-import android.text.InputType
-
 import androidx.lifecycle.ViewModel
 
 import io.github.vibhor1102.macrion.core.ui.bindings.dropdown.DropdownItem
-import io.github.vibhor1102.macrion.core.ui.utils.NumberInputFilter
 import io.github.vibhor1102.macrion.core.domain.model.action.intent.IntentExtra
 import io.github.vibhor1102.macrion.feature.smart.config.R
 import io.github.vibhor1102.macrion.feature.smart.config.domain.EditionRepository
@@ -65,16 +61,11 @@ class ExtraConfigModel @Inject constructor(
                     BOOLEAN_ITEM,
                     if (value == true) BOOLEAN_ITEM_TRUE else BOOLEAN_ITEM_FALSE,
                 )
-                else -> {
-                    val inputInfo = getInputInfo(value)
-                    ExtraValueInputState.TextInputTypeSelected(
-                        value::class.getTypeItem(),
-                        inputInfo.second,
-                        inputInfo.first,
-                        value.toString(),
-                        value,
-                    )
-                }
+                else -> ExtraValueInputState.TextInputTypeSelected(
+                    value::class.getTypeItem(),
+                    value.toString(),
+                    value,
+                )
             }
         }
 
@@ -149,33 +140,6 @@ class ExtraConfigModel @Inject constructor(
         }
     }
 
-    /**
-     * Get the configuration for the IME for a given type.
-     * @param type the type to get the configuration of.
-     *
-     * @return a pair of InputFilter to InputType.
-     */
-    private fun getInputInfo(type: Any): Pair<InputFilter?, Int> =
-        when (type) {
-            is Byte -> NumberInputFilter(Byte::class) to
-                    (InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_SIGNED)
-            is Short -> NumberInputFilter(Short::class) to
-                    (InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_SIGNED)
-            is Int -> NumberInputFilter(Int::class) to
-                    (InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_SIGNED)
-            is Long -> NumberInputFilter(Long::class) to
-                    (InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_SIGNED)
-
-            is Double -> NumberInputFilter(Double::class) to
-                    (InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_SIGNED or InputType.TYPE_NUMBER_FLAG_DECIMAL)
-            is Float -> NumberInputFilter(Float::class) to
-                    (InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_SIGNED or InputType.TYPE_NUMBER_FLAG_DECIMAL)
-
-            is Char -> InputFilter.LengthFilter(1) to InputType.TYPE_CLASS_TEXT
-            is String -> null to InputType.TYPE_CLASS_TEXT
-
-            else -> throw IllegalArgumentException("Unsupported value type")
-        }
 }
 
 /** Copy a IntentExtra and change its value but keep its type. */
@@ -200,15 +164,11 @@ sealed class ExtraValueInputState {
     /**
      * Selected type requires a text input with the IME.
      *
-     * @param inputType the flags to be applied to the edit text.
-     * @param inputFilter the filter to be applied to the edit text.
      * @param valueStr the value to be displayed in the edit text.
      * @param value the raw current value.
      */
     data class TextInputTypeSelected(
         override val typeItem: DropdownItem,
-        val inputType: Int,
-        val inputFilter: InputFilter?,
         val valueStr: String,
         val value: Any,
     ): ExtraValueInputState()

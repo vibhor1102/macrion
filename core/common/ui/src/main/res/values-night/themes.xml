@@ -45,7 +45,6 @@
         <item name="colorSurfaceInverse">@color/md_theme_dark_inverseSurface</item>
         <item name="colorPrimaryInverse">@color/md_theme_dark_inversePrimary</item>
 
-        <item name="autoCompleteTextViewStyle">@style/AppTheme.Widget.SearchView</item>
 
         <item name="android:windowLightStatusBar">false</item>
     </style>

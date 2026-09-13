@@ -1,14 +1,13 @@
 /* Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.mainmenu
 
+import io.github.vibhor1102.macrion.core.common.overlays.menu.ComposeOverlayMenuHost
+import io.github.vibhor1102.macrion.core.common.overlays.menu.OverlayMenuContentAnchor
 import io.github.vibhor1102.macrion.core.common.overlays.menu.findOverlayView
 
 import android.content.Context
-import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
-import android.widget.FrameLayout
-import android.widget.ImageView
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -22,8 +21,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -55,7 +56,7 @@ internal class MainMenuViews(val root: ViewGroup) {
     val btnSwitchScenario: View = root.findOverlayView(R.id.btn_switch_scenario)
     val btnOpenHome: View = root.findOverlayView(R.id.btn_open_home)
     val layoutDebug: View = root.findOverlayView(R.id.layout_debug)
-    val errorBadge: ImageView = root.findViewById(R.id.error_badge)
+    val errorBadge: View = root.findOverlayView(R.id.error_badge)
 }
 
 internal fun createMainOverlayMenu(
@@ -63,8 +64,9 @@ internal fun createMainOverlayMenu(
     debugContent: @Composable () -> Unit,
     playPauseContent: @Composable () -> Unit,
 ): MainMenuViews {
-    val density = context.resources.displayMetrics.density
-    fun dp(value: Int) = (value * density).toInt()
+    val errorBadgeAnchor = OverlayMenuContentAnchor(context, initiallyVisible = false).apply {
+        id = R.id.error_badge
+    }
 
     val root = createOverlayMenuLayout(
         context = context,
@@ -97,30 +99,30 @@ internal fun createMainOverlayMenu(
         buttonContent = { button ->
             MacrionTheme {
                 Box(Modifier.fillMaxWidth().fillMaxHeight(), contentAlignment = Alignment.Center) {
-                    if (button.id == R.id.btn_play) playPauseContent()
-                    else Icon(
-                        painterResource(button.icon), null, Modifier.fillMaxWidth().fillMaxHeight(),
-                        tint = colorResource(io.github.vibhor1102.macrion.core.ui.R.color.overlayMenuButtons),
-                    )
+                    if (button.id == R.id.btn_play) {
+                        playPauseContent()
+                        if (errorBadgeAnchor.composeVisibility == View.VISIBLE) {
+                            Box(
+                                Modifier
+                                    .align(Alignment.TopEnd)
+                                    .padding(top = 8.dp, end = 10.dp)
+                                    .size(6.dp)
+                                    .background(MaterialTheme.colorScheme.error, CircleShape),
+                            )
+                        }
+                    } else {
+                        Icon(
+                            painterResource(button.icon), null, Modifier.fillMaxWidth().fillMaxHeight(),
+                            tint = colorResource(io.github.vibhor1102.macrion.core.ui.R.color.overlayMenuButtons),
+                        )
+                    }
                 }
             }
         },
     )
+    (root as? ComposeOverlayMenuHost)?.anchors?.put(R.id.error_badge, errorBadgeAnchor)
     root.findOverlayView<View>(R.id.btn_switch_scenario).isVisible = false
     root.findOverlayView<View>(R.id.btn_open_home).isVisible = false
-    root.addView(ImageView(context).apply {
-        id = R.id.error_badge
-        setImageResource(R.drawable.ic_badge_error)
-        scaleType = ImageView.ScaleType.FIT_CENTER
-        isVisible = false
-    }, FrameLayout.LayoutParams(
-        ViewGroup.LayoutParams.WRAP_CONTENT,
-        ViewGroup.LayoutParams.WRAP_CONTENT,
-        Gravity.TOP or Gravity.START,
-    ).apply {
-        leftMargin = dp(32)
-        topMargin = dp(8)
-    })
     return MainMenuViews(root)
 }
 

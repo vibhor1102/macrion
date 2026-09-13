@@ -4,19 +4,19 @@ package io.github.vibhor1102.macrion.core.ui.compose
 import android.app.Dialog
 import android.content.Context
 import androidx.annotation.StringRes
-import androidx.appcompat.app.AlertDialog
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.unit.dp
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.github.vibhor1102.macrion.core.ui.R
 import io.github.vibhor1102.macrion.core.ui.utils.getDynamicColorsContext
 
@@ -92,10 +92,39 @@ fun Context.createMacrionMessageDialog(
             }
         }
     }
-    dialog = MaterialAlertDialogBuilder(themedContext)
-        .setView(content)
-        .setOnCancelListener { onCancel?.invoke() }
-        .setOnDismissListener { onDismiss?.invoke() }
-        .create()
+    dialog = Dialog(themedContext).apply {
+        setContentView(content)
+        window?.setBackgroundDrawableResource(android.R.color.transparent)
+        setOnCancelListener { onCancel?.invoke() }
+        setOnDismissListener { onDismiss?.invoke() }
+    }
     return dialog
+}
+
+@Composable
+fun MacrionMessageAlertDialog(
+    title: String,
+    message: String,
+    @StringRes confirmLabel: Int = android.R.string.ok,
+    @StringRes cancelLabel: Int? = null,
+    onConfirm: () -> Unit,
+    onDismissRequest: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismissRequest,
+        title = { Text(title, style = MaterialTheme.typography.headlineSmall) },
+        text = { Text(message, style = MaterialTheme.typography.bodyMedium) },
+        confirmButton = {
+            TextButton(onClick = onConfirm) {
+                Text(androidx.compose.ui.res.stringResource(confirmLabel))
+            }
+        },
+        dismissButton = cancelLabel?.let {
+            {
+                TextButton(onClick = onDismissRequest) {
+                    Text(androidx.compose.ui.res.stringResource(it))
+                }
+            }
+        },
+    )
 }
