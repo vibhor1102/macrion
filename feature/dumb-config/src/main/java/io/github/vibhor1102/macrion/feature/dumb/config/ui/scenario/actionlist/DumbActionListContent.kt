@@ -161,6 +161,7 @@ class DumbActionListContent(appContext: Context) : NavBarDialogContent(appContex
                                     isReordering = true
                                 },
                                 onDragStopped = { viewModel.updateDumbActionOrder(displayedItems); isReordering = false },
+                                dragGestureDetector = io.github.vibhor1102.macrion.feature.dumb.config.ui.actions.DualDragGestureDetector,
                             ).clearAndSetSemantics { },
                             isBeingDragged = dragging,
                             onClick = { onDumbActionClicked(item) },

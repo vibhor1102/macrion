@@ -5,6 +5,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -52,11 +53,6 @@ internal fun DumbActionListItem(
     val elevation by animateDpAsState(if (isBeingDragged) 8.dp else 0.dp, label = "dumb_drag_elevation")
     val scale by animateFloatAsState(if (isBeingDragged) 1.02f else 1f, label = "dumb_drag_scale")
     val backgroundColor = if (isBeingDragged) MaterialTheme.colorScheme.surfaceVariant else androidx.compose.ui.graphics.Color.Transparent
-    val handleTint by animateColorAsState(
-        if (isBeingDragged) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-        label = "dumb_handle_tint",
-    )
-
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -74,10 +70,24 @@ internal fun DumbActionListItem(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (showHandle) {
+            val handleInteractionSource = remember { MutableInteractionSource() }
+            val isPressed by handleInteractionSource.collectIsPressedAsState()
+            val isActive = isPressed || isBeingDragged
+
+            val animatedHandleTint by animateColorAsState(
+                if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                label = "dumb_handle_tint",
+            )
+            val containerColor by animateColorAsState(
+                if (isActive) MaterialTheme.colorScheme.secondaryContainer else androidx.compose.ui.graphics.Color.Transparent,
+                label = "dumb_handle_container",
+            )
+
             Box(
                 Modifier.size(48.dp)
+                    .background(containerColor, CircleShape)
                     .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
+                        interactionSource = handleInteractionSource,
                         indication = null,
                         onClick = {},
                     )
@@ -88,7 +98,7 @@ internal fun DumbActionListItem(
                     painter = painterResource(R.drawable.ic_reorder),
                     contentDescription = stringResource(R.string.content_desc_drag_and_drop),
                     modifier = Modifier.size(24.dp),
-                    tint = handleTint,
+                    tint = animatedHandleTint,
                 )
             }
         }

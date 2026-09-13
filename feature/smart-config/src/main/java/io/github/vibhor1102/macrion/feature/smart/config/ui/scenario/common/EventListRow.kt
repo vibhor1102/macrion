@@ -13,6 +13,7 @@ import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -125,15 +126,25 @@ private fun DragHandle(
     reorderHandleModifier: Modifier,
     isBeingDragged: Boolean,
 ) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val isActive = isPressed || isBeingDragged
+
     val handleTint by animateColorAsState(
-        if (isBeingDragged) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+        if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
         label = "handle_tint",
     )
+    val containerColor by animateColorAsState(
+        if (isActive) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent,
+        label = "handle_container",
+    )
+
     Box(
         modifier = Modifier
             .size(48.dp)
+            .background(containerColor, CircleShape)
             .clickable(
-                interactionSource = remember { MutableInteractionSource() },
+                interactionSource = interactionSource,
                 indication = null,
                 onClick = {},
             )

@@ -20,6 +20,7 @@ import android.view.ViewGroup
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -138,6 +139,7 @@ private fun onCreateButtonClicked() {
                                                 viewModel.updateActionOrder(displayedItems)
                                                 isReordering = false
                                             },
+                                            dragGestureDetector = io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.common.DualDragGestureDetector,
                                         ),
                                         onClick = { onActionClicked(item) },
                                     )
@@ -172,11 +174,6 @@ private fun ActionRow(
     val elevation by animateDpAsState(if (isBeingDragged) 8.dp else 0.dp, label = "action_drag_elevation")
     val scale by animateFloatAsState(if (isBeingDragged) 1.02f else 1f, label = "action_drag_scale")
     val backgroundColor = if (isBeingDragged) MaterialTheme.colorScheme.surfaceVariant else Color.Transparent
-    val handleTint by animateColorAsState(
-        if (isBeingDragged) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-        label = "action_handle_tint",
-    )
-
     Row(
         Modifier
             .fillMaxWidth()
@@ -193,16 +190,30 @@ private fun ActionRow(
             .padding(start = 8.dp, end = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        val handleInteractionSource = remember { MutableInteractionSource() }
+        val isPressed by handleInteractionSource.collectIsPressedAsState()
+        val isActive = isPressed || isBeingDragged
+
+        val animatedHandleTint by animateColorAsState(
+            if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+            label = "action_handle_tint",
+        )
+        val containerColor by animateColorAsState(
+            if (isActive) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent,
+            label = "action_handle_container",
+        )
+
         Box(
             Modifier.size(48.dp)
+                .background(containerColor, CircleShape)
                 .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
+                    interactionSource = handleInteractionSource,
                     indication = null,
                     onClick = {},
                 )
                 .then(reorderHandleModifier),
             contentAlignment = Alignment.Center,
-        ) { Icon(painterResource(R.drawable.ic_reorder), null, Modifier.size(24.dp), tint = handleTint) }
+        ) { Icon(painterResource(R.drawable.ic_reorder), null, Modifier.size(24.dp), tint = animatedHandleTint) }
         Column(Modifier.weight(1f).padding(start = 8.dp, end = 12.dp)) {
             Text(details.name, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
             Text(details.description, style = MaterialTheme.typography.bodySmall, fontStyle = FontStyle.Italic, maxLines = 1, overflow = TextOverflow.Ellipsis)

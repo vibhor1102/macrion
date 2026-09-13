@@ -181,6 +181,7 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
                                                     viewModel.updateEventsPriority(displayedItems)
                                                     isReordering = false
                                                 },
+                                                dragGestureDetector = io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.common.DualDragGestureDetector,
                                             )
                                             .clearAndSetSemantics { },
                                         accessibilityActions = if (touchExplorationEnabled) {
