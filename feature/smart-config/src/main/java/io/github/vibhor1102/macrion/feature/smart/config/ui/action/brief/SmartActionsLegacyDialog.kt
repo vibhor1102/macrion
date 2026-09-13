@@ -19,6 +19,7 @@ package io.github.vibhor1102.macrion.feature.smart.config.ui.action.brief
 import android.view.ViewGroup
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -128,7 +129,7 @@ private fun onCreateButtonClicked() {
                                     ActionRow(
                                         item = item,
                                         isBeingDragged = dragging,
-                                        reorderHandleModifier = Modifier.longPressDraggableHandle(
+                                        reorderHandleModifier = Modifier.draggableHandle(
                                             onDragStarted = {
                                                 haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
                                                 isReordering = true
@@ -193,7 +194,13 @@ private fun ActionRow(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(
-            Modifier.size(48.dp).then(reorderHandleModifier),
+            Modifier.size(48.dp)
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    onClick = {},
+                )
+                .then(reorderHandleModifier),
             contentAlignment = Alignment.Center,
         ) { Icon(painterResource(R.drawable.ic_reorder), null, Modifier.size(24.dp), tint = handleTint) }
         Column(Modifier.weight(1f).padding(start = 8.dp, end = 12.dp)) {

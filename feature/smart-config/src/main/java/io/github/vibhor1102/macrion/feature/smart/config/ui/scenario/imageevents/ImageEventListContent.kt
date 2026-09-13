@@ -172,7 +172,7 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
                                         onClick = { onEventItemClicked(item.event) },
                                         isBeingDragged = isBeingDragged,
                                         reorderHandleModifier = Modifier
-                                            .longPressDraggableHandle(
+                                            .draggableHandle(
                                                 onDragStarted = {
                                                     haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
                                                     isReordering = true

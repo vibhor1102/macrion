@@ -155,7 +155,7 @@ class DumbActionListContent(appContext: Context) : NavBarDialogContent(appContex
                         DumbActionListItem(
                             details = item,
                             showHandle = true,
-                            reorderHandleModifier = Modifier.longPressDraggableHandle(
+                            reorderHandleModifier = Modifier.draggableHandle(
                                 onDragStarted = {
                                     haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
                                     isReordering = true
