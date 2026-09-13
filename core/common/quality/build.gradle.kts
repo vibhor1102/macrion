@@ -40,7 +40,6 @@ dependencies {
     implementation(composeBom)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.ui)
-    implementation(libs.google.material)
 
     implementation(project(":core:common:base"))
     implementation(project(":core:common:ui"))

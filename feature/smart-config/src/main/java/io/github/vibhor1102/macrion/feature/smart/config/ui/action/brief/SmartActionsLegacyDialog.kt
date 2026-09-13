@@ -45,7 +45,6 @@ import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewMo
 import io.github.vibhor1102.macrion.feature.smart.config.ui.action.selection.ActionTypeSelectionDialog
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.action.UiAction
 
-import com.google.android.material.bottomsheet.BottomSheetDialog
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredOverlayType
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
@@ -69,9 +68,7 @@ class SmartActionsLegacyDialog : OverlayDialog(R.style.ScenarioConfigTheme) {
         }
     }
 
-    override fun onDialogCreated(dialog: BottomSheetDialog) = Unit
-
-    private fun onCreateButtonClicked() {
+private fun onCreateButtonClicked() {
         overlayManager.navigateTo(
             context = context,
             newOverlay = ActionTypeSelectionDialog(

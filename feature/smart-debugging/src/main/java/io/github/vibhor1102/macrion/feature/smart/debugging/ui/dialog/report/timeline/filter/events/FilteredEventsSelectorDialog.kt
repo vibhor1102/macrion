@@ -28,7 +28,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.google.android.material.bottomsheet.BottomSheetDialog
 import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayDialog
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
@@ -54,9 +53,7 @@ class FilteredEventsSelectorDialog(
         }
     }
 
-    override fun onDialogCreated(dialog: BottomSheetDialog) = Unit
-
-    @Composable private fun Content() {
+@Composable private fun Content() {
         val items = viewModel.eventsItems.collectAsStateWithLifecycle(initialValue = emptyList()).value
         Surface(Modifier.fillMaxSize().heightIn(min = 600.dp)) {
             Column {

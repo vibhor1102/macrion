@@ -49,9 +49,6 @@ import io.github.vibhor1102.macrion.feature.dumb.config.ui.actions.DumbActionLis
 import io.github.vibhor1102.macrion.feature.dumb.config.R
 import io.github.vibhor1102.macrion.feature.dumb.config.di.DumbConfigViewModelsEntryPoint
 
-import com.google.android.material.bottomsheet.BottomSheetDialog
-
-
 /**
  * [CopyDialog] implementation for displaying the whole list of actions for a copy.
  *
@@ -76,9 +73,7 @@ class DumbActionCopyDialog(
         setContent { MacrionTheme { CopyContent() } }
     }
 
-    override fun onDialogCreated(dialog: BottomSheetDialog) = Unit
-
-    override fun onSearchQueryChanged(newText: String?) {
+override fun onSearchQueryChanged(newText: String?) {
         viewModel.updateSearchQuery(newText)
     }
 

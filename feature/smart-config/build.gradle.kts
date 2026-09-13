@@ -40,7 +40,6 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.datastore)
     implementation(libs.androidx.lifecycle.runtime.compose)
-    implementation(libs.google.material)
 
     implementation(project(":core:common:actions"))
     implementation(project(":core:common:android"))

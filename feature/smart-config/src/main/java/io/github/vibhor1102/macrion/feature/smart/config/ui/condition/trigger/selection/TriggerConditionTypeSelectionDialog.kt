@@ -4,7 +4,6 @@ package io.github.vibhor1102.macrion.feature.smart.config.ui.condition.trigger.s
 import android.view.ViewGroup
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
-import com.google.android.material.bottomsheet.BottomSheetDialog
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayDialog
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredOverlayType
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredViewType
@@ -37,6 +36,5 @@ class TriggerConditionTypeSelectionDialog(
             )
         } }
     }
-    override fun onDialogCreated(dialog: BottomSheetDialog) = Unit
-    private fun cancel() { onCancelledListener?.invoke(); back() }
+private fun cancel() { onCancelledListener?.invoke(); back() }
 }

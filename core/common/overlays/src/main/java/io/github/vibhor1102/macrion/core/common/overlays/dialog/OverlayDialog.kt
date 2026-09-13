@@ -16,6 +16,8 @@
  */
 package io.github.vibhor1102.macrion.core.common.overlays.dialog
 
+import android.app.Dialog
+import android.view.Gravity
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
@@ -25,13 +27,10 @@ import android.view.inputmethod.InputMethodManager
 
 import androidx.annotation.CallSuper
 import androidx.annotation.StyleRes
-import androidx.coordinatorlayout.widget.CoordinatorLayout
 
 import io.github.vibhor1102.macrion.core.base.addDumpTabulationLvl
 import io.github.vibhor1102.macrion.core.common.overlays.base.BaseOverlay
 import io.github.vibhor1102.macrion.core.common.overlays.manager.OverlayManager
-import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.google.android.material.bottomsheet.BottomSheetDialog
 
 import java.io.PrintWriter
 
@@ -61,14 +60,7 @@ abstract class OverlayDialog(@StyleRes theme: Int? = null) : BaseOverlay(theme, 
      * The dialog currently displayed by this controller.
      * Null until [onDialogCreated] is called, or if it has been dismissed.
      */
-    protected var dialog: BottomSheetDialog? = null
-        private set
-
-    /**
-     * The coordinator layout of the dialog.
-     * Null until [onDialogCreated] is called, or if the dialog has been dismissed.
-     */
-    protected var dialogCoordinatorLayout: CoordinatorLayout? = null
+    protected var dialog: Dialog? = null
         private set
 
     /**
@@ -86,12 +78,13 @@ abstract class OverlayDialog(@StyleRes theme: Int? = null) : BaseOverlay(theme, 
      *
      * @param dialog the newly created dialog.
      */
-    protected abstract fun onDialogCreated(dialog: BottomSheetDialog)
+    open fun onDialogCreated(dialog: Dialog) = Unit
 
     final override fun onCreate() {
         inputMethodManager = context.getSystemService(InputMethodManager::class.java)
 
-        dialog = BottomSheetDialog(context).apply {
+        val dialogTheme = theme ?: io.github.vibhor1102.macrion.core.ui.R.style.AppTheme
+        dialog = Dialog(context, dialogTheme).apply {
             val view = onCreateView()
 
             setContentView(view)
@@ -108,18 +101,16 @@ abstract class OverlayDialog(@StyleRes theme: Int? = null) : BaseOverlay(theme, 
 
             window?.apply {
                 setType(OverlayManager.OVERLAY_WINDOW_TYPE)
+                setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+                setGravity(Gravity.BOTTOM)
+                setBackgroundDrawableResource(android.R.color.transparent)
+                setDimAmount(0.6f)
+                addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
                 setSoftInputMode(
                     WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN or
-                        WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE,
+                        WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN,
                 )
                 decorView.setOnTouchListener(hideSoftInputTouchListener)
-            }
-
-            dialogCoordinatorLayout = (view.parent.parent as CoordinatorLayout)
-
-            behavior.apply {
-                state = BottomSheetBehavior.STATE_EXPANDED
-                isDraggable = false
             }
         }
 

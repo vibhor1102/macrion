@@ -22,8 +22,8 @@ import android.content.res.Configuration
 import android.hardware.display.DisplayManager
 import android.view.Display
 
+import android.view.ContextThemeWrapper
 import androidx.annotation.StyleRes
-import androidx.appcompat.view.ContextThemeWrapper
 
 import com.google.android.material.color.DynamicColors
 

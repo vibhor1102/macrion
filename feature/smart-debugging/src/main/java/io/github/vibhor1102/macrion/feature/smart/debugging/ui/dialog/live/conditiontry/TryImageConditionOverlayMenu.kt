@@ -35,7 +35,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import com.google.android.material.color.MaterialColors
+import androidx.compose.material3.MaterialTheme
 import io.github.vibhor1102.macrion.core.base.isStopScenarioKey
 import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.menu.OverlayMenu
@@ -90,13 +90,7 @@ class TryImageConditionOverlayMenu(
     @Composable private fun ResultPanel() {
         val textColor = colorResource(R.color.textTitle)
         val controlColor = colorResource(R.color.overlayMenuButtons)
-        val dividerColor = Color(
-            MaterialColors.getColor(
-                context,
-                com.google.android.material.R.attr.colorOutlineVariant,
-                android.graphics.Color.TRANSPARENT,
-            ),
-        )
+        val dividerColor = MaterialTheme.colorScheme.outlineVariant
         Column(Modifier.width(287.dp).height(152.dp).padding(start = 8.dp, end = 4.dp, top = 12.dp, bottom = 4.dp)) {
             Box(Modifier.fillMaxWidth().weight(1f)) {
                 Row(Modifier.fillMaxWidth().fillMaxHeight()) {

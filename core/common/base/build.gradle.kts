@@ -35,8 +35,6 @@ dependencies {
     implementation(libs.androidx.datastore)
     implementation(libs.androidx.room.ktx)
 
-    implementation(libs.google.material)
-
     testImplementation(libs.kotlinx.coroutines.test)
 
 }

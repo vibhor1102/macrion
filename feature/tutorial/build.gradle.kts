@@ -36,7 +36,6 @@ dependencies {
     implementation(libs.kotlinx.coroutines.core)
 
     implementation(libs.androidx.activity.compose)
-    implementation(libs.androidx.appCompat)
     implementation(composeBom)
     implementation(libs.androidx.compose.foundation)
     implementation(libs.androidx.compose.material3)
@@ -44,8 +43,6 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.room.ktx)
-
-    implementation(libs.google.material)
 
     implementation(project(":core:common:accessibility"))
     implementation(project(":core:common:navigation"))

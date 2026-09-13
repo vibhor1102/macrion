@@ -34,7 +34,7 @@ import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.ove
 import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.timeline.DebugReportTimelineContent
 import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.conditions.ConditionPerformanceContent
 
-import com.google.android.material.bottomsheet.BottomSheetDialog
+import android.app.Dialog
 import kotlinx.coroutines.launch
 
 
@@ -70,7 +70,7 @@ class DebugReportDialog : NavBarDialog(R.style.AppTheme) {
         else -> throw IllegalArgumentException("Unknown menu id $navItemId")
     }
 
-    override fun onDialogCreated(dialog: BottomSheetDialog) {
+    override fun onDialogCreated(dialog: Dialog) {
         super.onDialogCreated(dialog)
 
         lifecycleScope.launch {

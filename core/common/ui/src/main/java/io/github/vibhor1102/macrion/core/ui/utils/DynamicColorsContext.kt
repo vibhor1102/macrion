@@ -17,8 +17,8 @@
 package io.github.vibhor1102.macrion.core.ui.utils
 
 import android.content.Context
+import android.view.ContextThemeWrapper
 import androidx.annotation.StyleRes
-import androidx.appcompat.view.ContextThemeWrapper
 import com.google.android.material.color.DynamicColors
 
 

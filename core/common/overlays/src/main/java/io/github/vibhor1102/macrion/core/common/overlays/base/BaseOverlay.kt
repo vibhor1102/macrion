@@ -63,7 +63,7 @@ import java.io.PrintWriter
  * show the overlay ui object.
  */
 abstract class BaseOverlay internal constructor(
-    private val theme: Int? = null,
+    protected val theme: Int? = null,
     private val recreateOnRotation: Boolean = false,
 ) : Overlay(), Dumpable, SavedStateRegistryOwner {
 

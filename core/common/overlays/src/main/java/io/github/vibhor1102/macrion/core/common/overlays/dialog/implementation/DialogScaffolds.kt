@@ -21,7 +21,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Icon
@@ -30,6 +32,7 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
@@ -95,39 +98,60 @@ internal fun NavBarDialogScaffold(
     topBar: View,
     persistentHeader: View,
     content: View,
-    navBar: View?,
-    floatingActions: View?,
+    navBar: View,
+    floatingActions: View,
+    isPortrait: Boolean,
 ) {
-    Column(
+    Surface(
+        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerLowest,
         modifier = Modifier
-            .fillMaxSize()
-            .heightIn(min = dimensionResource(R.dimen.bottom_sheet_min_height))
-            .background(MaterialTheme.colorScheme.surfaceContainerLowest),
+            .fillMaxWidth()
+            .heightIn(min = dimensionResource(R.dimen.bottom_sheet_min_height)),
     ) {
-        AndroidView(factory = { topBar }, modifier = Modifier.fillMaxWidth())
-
-        if (navBar == null) {
-            AndroidView(factory = { persistentHeader }, modifier = Modifier.fillMaxWidth())
-            AndroidView(
-                factory = { content },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-                    .padding(bottom = dimensionResource(R.dimen.android_bottom_navigation_height)),
-            )
+        if (isPortrait) {
+            Box(modifier = Modifier.fillMaxSize()) {
+                Column(modifier = Modifier.fillMaxSize()) {
+                    AndroidView(factory = { topBar }, modifier = Modifier.fillMaxWidth())
+                    AndroidView(factory = { persistentHeader }, modifier = Modifier.fillMaxWidth())
+                    AndroidView(
+                        factory = { content },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f)
+                            .padding(bottom = dimensionResource(R.dimen.android_bottom_navigation_height)),
+                    )
+                }
+                AndroidView(
+                    factory = { floatingActions },
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(
+                            end = dimensionResource(R.dimen.margin_horizontal_default),
+                            bottom = dimensionResource(R.dimen.dialog_create_copy_buttons_bottom_margin),
+                        ),
+                )
+                AndroidView(
+                    factory = { navBar },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.BottomCenter),
+                )
+            }
         } else {
-            Row(modifier = Modifier.fillMaxWidth().weight(1f)) {
-                AndroidView(factory = { navBar }, modifier = Modifier.fillMaxHeight())
-                Box(modifier = Modifier.weight(1f).fillMaxSize()) {
-                    Column(modifier = Modifier.fillMaxSize()) {
-                        AndroidView(factory = { persistentHeader }, modifier = Modifier.fillMaxWidth())
-                        AndroidView(factory = { content }, modifier = Modifier.fillMaxWidth().weight(1f))
-                    }
-                    floatingActions?.let { actions ->
+            Column(modifier = Modifier.fillMaxSize()) {
+                AndroidView(factory = { topBar }, modifier = Modifier.fillMaxWidth())
+                Row(modifier = Modifier.fillMaxWidth().weight(1f)) {
+                    AndroidView(factory = { navBar }, modifier = Modifier.fillMaxHeight())
+                    Box(modifier = Modifier.weight(1f).fillMaxSize()) {
+                        Column(modifier = Modifier.fillMaxSize()) {
+                            AndroidView(factory = { persistentHeader }, modifier = Modifier.fillMaxWidth())
+                            AndroidView(factory = { content }, modifier = Modifier.fillMaxWidth().weight(1f))
+                        }
                         AndroidView(
-                            factory = { actions },
+                            factory = { floatingActions },
                             modifier = Modifier
-                                .align(androidx.compose.ui.Alignment.BottomEnd)
+                                .align(Alignment.BottomEnd)
                                 .padding(
                                     end = dimensionResource(R.dimen.margin_horizontal_default),
                                     bottom = dimensionResource(R.dimen.margin_vertical_extra_large),

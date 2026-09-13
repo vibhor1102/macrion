@@ -33,7 +33,7 @@ import io.github.vibhor1102.macrion.feature.dumb.config.di.DumbConfigViewModelsE
 import io.github.vibhor1102.macrion.feature.dumb.config.ui.scenario.actionlist.DumbActionListContent
 import io.github.vibhor1102.macrion.feature.dumb.config.ui.scenario.config.DumbScenarioConfigContent
 
-import com.google.android.material.bottomsheet.BottomSheetDialog
+import android.app.Dialog
 
 import kotlinx.coroutines.launch
 
@@ -66,7 +66,7 @@ class DumbScenarioDialog(
         else -> throw IllegalArgumentException("Unknown menu id $navItemId")
     }
 
-    override fun onDialogCreated(dialog: BottomSheetDialog) {
+    override fun onDialogCreated(dialog: Dialog) {
         super.onDialogCreated(dialog)
 
         lifecycleScope.launch {

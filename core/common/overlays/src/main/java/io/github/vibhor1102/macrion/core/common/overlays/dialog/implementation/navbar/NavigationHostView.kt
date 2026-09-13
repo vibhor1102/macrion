@@ -15,7 +15,7 @@ import android.widget.FrameLayout
 import androidx.compose.ui.platform.ComposeView
 
 /**
- * A Compose navigation surface hosted for BottomSheetDialog / CoordinatorLayout compatibility.
+ * A Compose navigation surface hosted with fixed M3 dimension constraints.
  */
 internal class NavigationHostView(
     context: Context,
@@ -33,8 +33,7 @@ internal class NavigationHostView(
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        // A CoordinatorLayout measures its bottom child with an effectively unbounded height. Compose's navigation
-        // primitives then accept that full space unless the Android host supplies their M3 fixed axis explicitly.
+        // Supply the M3 fixed dimension explicitly for portrait bottom bar and landscape rail.
         val constrainedWidthSpec = if (isPortrait) widthMeasureSpec else {
             MeasureSpec.makeMeasureSpec(navigationSizePx, MeasureSpec.EXACTLY)
         }

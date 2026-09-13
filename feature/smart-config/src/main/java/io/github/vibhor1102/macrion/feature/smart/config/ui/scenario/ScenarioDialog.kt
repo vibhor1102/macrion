@@ -37,7 +37,7 @@ import io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.imageevents
 import io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.more.MoreContent
 import io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.triggerevents.TriggerEventListContent
 
-import com.google.android.material.bottomsheet.BottomSheetDialog
+import android.app.Dialog
 
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.Composable
@@ -105,7 +105,7 @@ class ScenarioDialog(
         else -> throw IllegalArgumentException("Unknown menu id $navItemId")
     }
 
-    override fun onDialogCreated(dialog: BottomSheetDialog) {
+    override fun onDialogCreated(dialog: Dialog) {
         super.onDialogCreated(dialog)
 
         lifecycleScope.launch {

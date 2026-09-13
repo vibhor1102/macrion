@@ -34,7 +34,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.google.android.material.bottomsheet.BottomSheetDialog
 import io.github.vibhor1102.macrion.core.common.overlays.R
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayDialog
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
@@ -62,7 +61,6 @@ open class MultiChoiceDialog<T : DialogChoice>(
         }
     }
 
-    override fun onDialogCreated(dialog: BottomSheetDialog) = Unit
 }
 
 @Composable

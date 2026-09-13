@@ -17,7 +17,6 @@ ksp = "2.3.11"
 # Androidx
 androidxAnnotation = "1.10.0"
 androidxActivity = "1.13.0"
-androidxAppCompat = "1.8.0"
 androidxCoreKtx = "1.19.0"
 androidxDatastore = "1.2.1"
 androidxLifecycle = "2.10.0"
@@ -72,7 +71,6 @@ robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "
 # Androidx
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "androidxActivity" }
 androidx-annotation = { group = "androidx.annotation", name = "annotation", version.ref = "androidxAnnotation" }
-androidx-appCompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "androidxAppCompat" }
 androidx-core = { group = "androidx.core", name = "core", version.ref = "androidxCoreKtx" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "androidxCoreKtx" }
 androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "androidxSplashScreen" }
