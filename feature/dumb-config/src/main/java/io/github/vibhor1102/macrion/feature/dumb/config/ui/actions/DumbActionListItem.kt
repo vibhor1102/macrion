@@ -37,10 +37,6 @@ import io.github.vibhor1102.macrion.feature.dumb.config.R
 import io.github.vibhor1102.macrion.feature.dumb.config.ui.actions.copy.DumbActionDetails
 
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.ui.graphics.graphicsLayer
 
 @Composable
 internal fun DumbActionListItem(
@@ -50,21 +46,10 @@ internal fun DumbActionListItem(
     isBeingDragged: Boolean = false,
     onClick: () -> Unit,
 ) {
-    val elevation by animateDpAsState(if (isBeingDragged) 8.dp else 0.dp, label = "dumb_drag_elevation")
-    val scale by animateFloatAsState(if (isBeingDragged) 1.02f else 1f, label = "dumb_drag_scale")
-    val backgroundColor = if (isBeingDragged) MaterialTheme.colorScheme.surfaceVariant else androidx.compose.ui.graphics.Color.Transparent
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .height(80.dp)
-            .graphicsLayer {
-                scaleX = scale
-                scaleY = scale
-                shadowElevation = elevation.toPx()
-                shape = RoundedCornerShape(12.dp)
-                clip = false
-            }
-            .background(backgroundColor, RoundedCornerShape(12.dp))
             .padding(end = 24.dp)
             .clickable(onClick = onClick),
         verticalAlignment = Alignment.CenterVertically,

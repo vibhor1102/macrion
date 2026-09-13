@@ -45,10 +45,6 @@ import androidx.compose.ui.unit.sp
 import io.github.vibhor1102.macrion.feature.smart.config.R
 
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.ui.graphics.graphicsLayer
 
 @Composable
 internal fun EventListRow(
@@ -66,22 +62,10 @@ internal fun EventListRow(
     isBeingDragged: Boolean = false,
     accessibilityActions: List<CustomAccessibilityAction> = emptyList(),
 ) {
-    val elevation by animateDpAsState(if (isBeingDragged) 8.dp else 0.dp, label = "event_drag_elevation")
-    val scale by animateFloatAsState(if (isBeingDragged) 1.02f else 1f, label = "event_drag_scale")
-    val backgroundColor = if (isBeingDragged) MaterialTheme.colorScheme.surfaceVariant else Color.Transparent
-
     Row(
         modifier
             .fillMaxWidth()
             .height(62.dp)
-            .graphicsLayer {
-                scaleX = scale
-                scaleY = scale
-                shadowElevation = elevation.toPx()
-                shape = RoundedCornerShape(12.dp)
-                clip = false
-            }
-            .background(backgroundColor, RoundedCornerShape(12.dp))
             .then(
                 if (accessibilityActions.isEmpty()) Modifier
                 else Modifier.semantics { customActions = accessibilityActions },

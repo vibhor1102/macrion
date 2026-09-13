@@ -36,11 +36,7 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
@@ -171,21 +167,10 @@ private fun ActionRow(
     onClick: () -> Unit,
 ) {
     val details = item.data as UiAction
-    val elevation by animateDpAsState(if (isBeingDragged) 8.dp else 0.dp, label = "action_drag_elevation")
-    val scale by animateFloatAsState(if (isBeingDragged) 1.02f else 1f, label = "action_drag_scale")
-    val backgroundColor = if (isBeingDragged) MaterialTheme.colorScheme.surfaceVariant else Color.Transparent
     Row(
         Modifier
             .fillMaxWidth()
             .height(80.dp)
-            .graphicsLayer {
-                scaleX = scale
-                scaleY = scale
-                shadowElevation = elevation.toPx()
-                shape = RoundedCornerShape(12.dp)
-                clip = false
-            }
-            .background(backgroundColor, RoundedCornerShape(12.dp))
             .clickable(onClick = onClick)
             .padding(start = 8.dp, end = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
