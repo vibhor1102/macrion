@@ -3,6 +3,7 @@ package io.github.vibhor1102.macrion.core.ui.compose
 
 import android.app.Dialog
 import android.content.Context
+import androidx.activity.ComponentDialog
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -49,7 +50,7 @@ fun Context.createMacrionMessageDialog(
     onDismiss: (() -> Unit)? = null,
 ): Dialog {
     val themedContext = getDynamicColorsContext(R.style.AppTheme)
-    lateinit var dialog: Dialog
+    lateinit var dialog: ComponentDialog
     val content = ComposeView(themedContext).apply {
         setContent {
             MacrionTheme {
@@ -63,14 +64,13 @@ fun Context.createMacrionMessageDialog(
                         Text(
                             text = message,
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(start = 24.dp, top = 16.dp, end = 24.dp, bottom = 16.dp),
+                            modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 16.dp, bottom = 24.dp),
                         )
                         Row(
-                            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                            Modifier.fillMaxWidth().padding(horizontal = 16.dp),
                             horizontalArrangement = Arrangement.End,
                         ) {
-                            if (cancelLabel != null) {
+                            cancelLabel?.let { cancelLabel ->
                                 TextButton(onClick = {
                                     try {
                                         onCancel?.invoke()
@@ -92,7 +92,7 @@ fun Context.createMacrionMessageDialog(
             }
         }
     }
-    dialog = Dialog(themedContext).apply {
+    dialog = ComponentDialog(themedContext).apply {
         setContentView(content)
         window?.setBackgroundDrawableResource(android.R.color.transparent)
         setOnCancelListener { onCancel?.invoke() }

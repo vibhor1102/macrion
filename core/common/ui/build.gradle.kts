@@ -34,6 +34,7 @@ dependencies {
 
     implementation(libs.kotlinx.coroutines.core)
 
+    implementation(libs.androidx.activity.compose)
     implementation(composeBom)
     implementation(libs.androidx.compose.animation.graphics)
     implementation(libs.androidx.compose.material3)

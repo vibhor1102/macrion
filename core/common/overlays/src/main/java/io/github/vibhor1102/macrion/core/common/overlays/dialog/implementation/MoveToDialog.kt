@@ -54,6 +54,9 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.setViewTreeLifecycleOwner
+import androidx.lifecycle.setViewTreeViewModelStoreOwner
+import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 
 import io.github.vibhor1102.macrion.core.common.overlays.R
 import io.github.vibhor1102.macrion.core.common.overlays.base.BaseOverlay
@@ -121,6 +124,10 @@ class MoveToDialog(
             }
         }
 
+        content.setViewTreeLifecycleOwner(this)
+        content.setViewTreeSavedStateRegistryOwner(this)
+        content.setViewTreeViewModelStoreOwner(this)
+
         dialog = Dialog(context.getDynamicColorsContext(R.style.AppTheme)).apply {
             setContentView(content)
             setOnKeyListener { _, keyCode, event ->
@@ -135,7 +142,11 @@ class MoveToDialog(
                 dialog = null
                 destroy()
             }
+            create()
             window?.apply {
+                decorView.setViewTreeLifecycleOwner(this@MoveToDialog)
+                decorView.setViewTreeSavedStateRegistryOwner(this@MoveToDialog)
+                decorView.setViewTreeViewModelStoreOwner(this@MoveToDialog)
                 setBackgroundDrawableResource(android.R.color.transparent)
                 setType(OverlayManager.OVERLAY_WINDOW_TYPE)
             }

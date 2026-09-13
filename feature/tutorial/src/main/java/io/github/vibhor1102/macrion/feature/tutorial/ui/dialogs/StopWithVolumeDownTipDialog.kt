@@ -17,6 +17,7 @@
 package io.github.vibhor1102.macrion.feature.tutorial.ui.dialogs
 
 import android.content.Context
+import androidx.activity.ComponentDialog
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -91,7 +92,7 @@ internal fun Context.createStopWithVolumeDownTutorialDialog(
 ): android.app.Dialog {
     val dialogContext = getDynamicColorsContext(R.style.AppTheme)
     var dontShowAgain by mutableStateOf(false)
-    lateinit var dialog: android.app.Dialog
+    lateinit var dialog: ComponentDialog
     val content = ComposeView(dialogContext).apply {
         setContent {
             MacrionTheme {
@@ -106,7 +107,7 @@ internal fun Context.createStopWithVolumeDownTutorialDialog(
         }
     }
 
-    dialog = android.app.Dialog(dialogContext).apply {
+    dialog = ComponentDialog(dialogContext).apply {
         setContentView(content)
         window?.setBackgroundDrawableResource(android.R.color.transparent)
         setOnDismissListener {

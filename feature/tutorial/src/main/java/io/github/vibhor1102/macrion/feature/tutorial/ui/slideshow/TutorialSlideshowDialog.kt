@@ -18,6 +18,7 @@ package io.github.vibhor1102.macrion.feature.tutorial.ui.slideshow
 
 import android.app.Dialog
 import android.content.Context
+import androidx.activity.ComponentDialog
 import android.util.Log
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -100,7 +101,7 @@ private fun Context.createDialog(
     }
 
     val dialogContext = getDynamicColorsContext(R.style.AppTheme)
-    lateinit var dialog: Dialog
+    lateinit var dialog: ComponentDialog
     val content = ComposeView(dialogContext).apply {
         setContent {
             MacrionTheme {
@@ -120,7 +121,7 @@ private fun Context.createDialog(
             }
         }
     }
-    dialog = Dialog(dialogContext).apply {
+    dialog = ComponentDialog(dialogContext).apply {
         setContentView(content)
         window?.setBackgroundDrawableResource(android.R.color.transparent)
         setOnDismissListener { onDismissed?.invoke() }

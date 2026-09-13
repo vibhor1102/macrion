@@ -27,6 +27,9 @@ import android.view.inputmethod.InputMethodManager
 
 import androidx.annotation.CallSuper
 import androidx.annotation.StyleRes
+import androidx.lifecycle.setViewTreeLifecycleOwner
+import androidx.lifecycle.setViewTreeViewModelStoreOwner
+import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 
 import io.github.vibhor1102.macrion.core.base.addDumpTabulationLvl
 import io.github.vibhor1102.macrion.core.common.overlays.base.BaseOverlay
@@ -84,9 +87,15 @@ abstract class OverlayDialog(@StyleRes theme: Int? = null) : BaseOverlay(theme, 
         inputMethodManager = context.getSystemService(InputMethodManager::class.java)
 
         val dialogTheme = theme ?: io.github.vibhor1102.macrion.core.ui.R.style.AppTheme
-        dialog = Dialog(context, dialogTheme).apply {
-            val view = onCreateView()
+        val view = onCreateView()
 
+        // WindowManager overlay roots don't inherit Activity view-tree owners. Install this
+        // overlay's owners before attaching the view so Compose can create its recomposer safely.
+        view.setViewTreeLifecycleOwner(this)
+        view.setViewTreeSavedStateRegistryOwner(this)
+        view.setViewTreeViewModelStoreOwner(this)
+
+        dialog = Dialog(context, dialogTheme).apply {
             setContentView(view)
             setCancelable(false)
             setOnKeyListener { _, keyCode, event ->
@@ -100,6 +109,10 @@ abstract class OverlayDialog(@StyleRes theme: Int? = null) : BaseOverlay(theme, 
             create()
 
             window?.apply {
+                decorView.setViewTreeLifecycleOwner(this@OverlayDialog)
+                decorView.setViewTreeSavedStateRegistryOwner(this@OverlayDialog)
+                decorView.setViewTreeViewModelStoreOwner(this@OverlayDialog)
+
                 setType(OverlayManager.OVERLAY_WINDOW_TYPE)
                 setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
                 setGravity(Gravity.BOTTOM)
