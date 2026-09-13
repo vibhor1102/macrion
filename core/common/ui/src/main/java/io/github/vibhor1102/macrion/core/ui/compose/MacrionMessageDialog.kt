@@ -3,6 +3,7 @@ package io.github.vibhor1102.macrion.core.ui.compose
 
 import android.app.Dialog
 import android.content.Context
+import android.view.WindowManager
 import androidx.activity.ComponentDialog
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
@@ -10,8 +11,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -54,38 +57,46 @@ fun Context.createMacrionMessageDialog(
     val content = ComposeView(themedContext).apply {
         setContent {
             MacrionTheme {
-                MacrionDialogSurface {
-                    Column(Modifier.fillMaxWidth().padding(top = 24.dp, bottom = 8.dp)) {
-                        Text(
-                            text = title,
-                            style = MaterialTheme.typography.headlineSmall,
-                            modifier = Modifier.padding(horizontal = 24.dp),
-                        )
-                        Text(
-                            text = message,
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 16.dp, bottom = 24.dp),
-                        )
-                        Row(
-                            Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-                            horizontalArrangement = Arrangement.End,
-                        ) {
-                            cancelLabel?.let { cancelLabel ->
+                Surface(
+                    shape = MaterialTheme.shapes.extraLarge,
+                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    tonalElevation = 6.dp,
+                    modifier = Modifier.widthIn(min = 280.dp, max = 560.dp),
+                ) {
+                    MacrionDialogSurface {
+                        Column(Modifier.fillMaxWidth().padding(top = 24.dp, bottom = 8.dp)) {
+                            Text(
+                                text = title,
+                                style = MaterialTheme.typography.headlineSmall,
+                                modifier = Modifier.padding(horizontal = 24.dp),
+                            )
+                            Text(
+                                text = message,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 16.dp, bottom = 24.dp),
+                            )
+                            Row(
+                                Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                                horizontalArrangement = Arrangement.End,
+                            ) {
+                                cancelLabel?.let { cancelLabel ->
+                                    TextButton(onClick = {
+                                        try {
+                                            onCancel?.invoke()
+                                        } finally {
+                                            dialog.dismiss()
+                                        }
+                                    }) { Text(themedContext.getString(cancelLabel)) }
+                                }
                                 TextButton(onClick = {
                                     try {
-                                        onCancel?.invoke()
+                                        onConfirm()
                                     } finally {
                                         dialog.dismiss()
                                     }
-                                }) { Text(themedContext.getString(cancelLabel)) }
+                                }) { Text(themedContext.getString(confirmLabel)) }
                             }
-                            TextButton(onClick = {
-                                try {
-                                    onConfirm()
-                                } finally {
-                                    dialog.dismiss()
-                                }
-                            }) { Text(themedContext.getString(confirmLabel)) }
                         }
                     }
                 }
@@ -94,7 +105,11 @@ fun Context.createMacrionMessageDialog(
     }
     dialog = ComponentDialog(themedContext).apply {
         setContentView(content)
-        window?.setBackgroundDrawableResource(android.R.color.transparent)
+        window?.apply {
+            setBackgroundDrawableResource(android.R.color.transparent)
+            setDimAmount(0.6f)
+            addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
+        }
         setOnCancelListener { onCancel?.invoke() }
         setOnDismissListener { onDismiss?.invoke() }
     }

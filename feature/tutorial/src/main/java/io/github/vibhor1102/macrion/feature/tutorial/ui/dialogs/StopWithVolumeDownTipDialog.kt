@@ -17,6 +17,7 @@
 package io.github.vibhor1102.macrion.feature.tutorial.ui.dialogs
 
 import android.content.Context
+import android.view.WindowManager
 import androidx.activity.ComponentDialog
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -24,6 +25,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -96,12 +98,19 @@ internal fun Context.createStopWithVolumeDownTutorialDialog(
     val content = ComposeView(dialogContext).apply {
         setContent {
             MacrionTheme {
-                MacrionDialogSurface {
-                    StopWithVolumeDownTipContent(
-                        dontShowAgain = dontShowAgain,
-                        onDontShowAgainChanged = { dontShowAgain = it },
-                        onDismiss = { dialog.dismiss() },
-                    )
+                Surface(
+                    shape = MaterialTheme.shapes.extraLarge,
+                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    tonalElevation = 6.dp,
+                    modifier = Modifier.widthIn(min = 280.dp, max = 560.dp),
+                ) {
+                    MacrionDialogSurface {
+                        StopWithVolumeDownTipContent(
+                            dontShowAgain = dontShowAgain,
+                            onDontShowAgainChanged = { dontShowAgain = it },
+                            onDismiss = { dialog.dismiss() },
+                        )
+                    }
                 }
             }
         }
@@ -109,7 +118,11 @@ internal fun Context.createStopWithVolumeDownTutorialDialog(
 
     dialog = ComponentDialog(dialogContext).apply {
         setContentView(content)
-        window?.setBackgroundDrawableResource(android.R.color.transparent)
+        window?.apply {
+            setBackgroundDrawableResource(android.R.color.transparent)
+            setDimAmount(0.6f)
+            addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
+        }
         setOnDismissListener {
             if (dontShowAgain) tutorialRepository.dontShowTipAgain(Tip.STOP_WITH_VOLUME_DOWN)
             onDismissed?.invoke()

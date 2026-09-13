@@ -19,10 +19,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -70,34 +72,40 @@ private fun <T : DialogChoice> MultiChoiceDialogContent(
     onDismiss: () -> Unit,
     onChoiceSelected: (T) -> Unit,
 ) {
-    Column(
-        Modifier
-            .fillMaxWidth()
-            .wrapContentHeight()
-            .padding(bottom = 16.dp),
+    Surface(
+        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerLowest,
+        modifier = Modifier.fillMaxWidth(),
     ) {
-        Row(
-            Modifier.fillMaxWidth().height(64.dp).padding(horizontal = 4.dp),
-            verticalAlignment = Alignment.CenterVertically,
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .wrapContentHeight()
+                .padding(bottom = 16.dp),
         ) {
-            IconButton(onClick = onDismiss) {
-                Icon(
-                    painterResource(R.drawable.ic_cancel),
-                    stringResource(android.R.string.cancel),
-                    tint = MaterialTheme.colorScheme.onSurface,
+            Row(
+                Modifier.fillMaxWidth().height(64.dp).padding(horizontal = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                IconButton(onClick = onDismiss) {
+                    Icon(
+                        painterResource(R.drawable.ic_cancel),
+                        stringResource(android.R.string.cancel),
+                        tint = MaterialTheme.colorScheme.onSurface,
+                    )
+                }
+                Text(
+                    stringResource(title),
+                    Modifier.weight(1f).padding(horizontal = 8.dp),
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
                 )
             }
-            Text(
-                stringResource(title),
-                Modifier.weight(1f).padding(horizontal = 8.dp),
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onSurface,
-                maxLines = 1,
-            )
-        }
-        HorizontalDivider()
-        LazyColumn(Modifier.fillMaxWidth().heightIn(max = 520.dp)) {
-            items(choices) { choice -> ChoiceRow(choice) { onChoiceSelected(choice) } }
+            HorizontalDivider()
+            LazyColumn(Modifier.fillMaxWidth().heightIn(max = 520.dp)) {
+                items(choices) { choice -> ChoiceRow(choice) { onChoiceSelected(choice) } }
+            }
         }
     }
 }

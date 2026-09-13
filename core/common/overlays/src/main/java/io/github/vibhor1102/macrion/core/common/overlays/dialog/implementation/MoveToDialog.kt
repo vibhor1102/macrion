@@ -26,12 +26,14 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -86,39 +88,46 @@ class MoveToDialog(
         val content = ComposeView(context).apply {
             setContent {
                 MacrionTheme {
-                    MacrionDialogSurface {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(top = 24.dp, bottom = 8.dp),
-                        ) {
-                            Text(
-                                text = stringResource(R.string.dialog_move_to_title),
-                                style = MaterialTheme.typography.headlineSmall,
-                                modifier = Modifier.padding(horizontal = 24.dp),
-                            )
-                            MoveToPositionField(
-                                value = currentValue,
-                                itemCount = itemCount,
-                                requestFocus = requestFieldFocus,
-                                onValueChanged = { value ->
-                                    currentValue = value
-                                },
-                            )
-                            Row(
+                    Surface(
+                        shape = MaterialTheme.shapes.extraLarge,
+                        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        tonalElevation = 6.dp,
+                        modifier = Modifier.widthIn(min = 280.dp, max = 560.dp),
+                    ) {
+                        MacrionDialogSurface {
+                            Column(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(horizontal = 16.dp),
-                                horizontalArrangement = Arrangement.End,
+                                    .padding(top = 24.dp, bottom = 8.dp),
                             ) {
-                                TextButton(onClick = { back() }) {
-                                    Text(stringResource(android.R.string.cancel))
-                                }
-                                TextButton(
-                                    onClick = { validateCurrentValueAndClose() },
-                                    enabled = currentValue.toEditedValue() != null,
+                                Text(
+                                    text = stringResource(R.string.dialog_move_to_title),
+                                    style = MaterialTheme.typography.headlineSmall,
+                                    modifier = Modifier.padding(horizontal = 24.dp),
+                                )
+                                MoveToPositionField(
+                                    value = currentValue,
+                                    itemCount = itemCount,
+                                    requestFocus = requestFieldFocus,
+                                    onValueChanged = { value ->
+                                        currentValue = value
+                                    },
+                                )
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 16.dp),
+                                    horizontalArrangement = Arrangement.End,
                                 ) {
-                                    Text(stringResource(android.R.string.ok))
+                                    TextButton(onClick = { back() }) {
+                                        Text(stringResource(android.R.string.cancel))
+                                    }
+                                    TextButton(
+                                        onClick = { validateCurrentValueAndClose() },
+                                        enabled = currentValue.toEditedValue() != null,
+                                    ) {
+                                        Text(stringResource(android.R.string.ok))
+                                    }
                                 }
                             }
                         }
@@ -157,6 +166,8 @@ class MoveToDialog(
                 decorView.setViewTreeOnBackPressedDispatcherOwner(this@compDialog)
                 setBackgroundDrawableResource(android.R.color.transparent)
                 setType(OverlayManager.OVERLAY_WINDOW_TYPE)
+                setDimAmount(0.6f)
+                addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
             }
         }
     }

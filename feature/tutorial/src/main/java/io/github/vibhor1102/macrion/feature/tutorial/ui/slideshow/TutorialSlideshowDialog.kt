@@ -18,11 +18,13 @@ package io.github.vibhor1102.macrion.feature.tutorial.ui.slideshow
 
 import android.app.Dialog
 import android.content.Context
+import android.view.WindowManager
 import androidx.activity.ComponentDialog
 import android.util.Log
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -109,6 +111,7 @@ private fun Context.createDialog(
                     shape = MaterialTheme.shapes.extraLarge,
                     color = MaterialTheme.colorScheme.surfaceContainerHigh,
                     tonalElevation = 6.dp,
+                    modifier = Modifier.widthIn(min = 280.dp, max = 560.dp),
                 ) {
                     MacrionDialogSurface {
                         TutorialSlideshowDialogContent(
@@ -123,7 +126,11 @@ private fun Context.createDialog(
     }
     dialog = ComponentDialog(dialogContext).apply {
         setContentView(content)
-        window?.setBackgroundDrawableResource(android.R.color.transparent)
+        window?.apply {
+            setBackgroundDrawableResource(android.R.color.transparent)
+            setDimAmount(0.6f)
+            addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
+        }
         setOnDismissListener { onDismissed?.invoke() }
     }
     return dialog
