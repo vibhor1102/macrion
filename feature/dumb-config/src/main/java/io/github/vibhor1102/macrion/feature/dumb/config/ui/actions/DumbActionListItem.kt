@@ -55,10 +55,11 @@ internal fun DumbActionListItem(
                     .then(reorderHandleModifier),
                 contentAlignment = Alignment.Center,
             ) {
-                Image(
+                androidx.compose.material3.Icon(
                     painter = painterResource(R.drawable.ic_reorder),
                     contentDescription = stringResource(R.string.content_desc_drag_and_drop),
                     modifier = Modifier.size(24.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }

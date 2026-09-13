@@ -88,7 +88,7 @@ internal fun EventListRow(
                 EventDetail(
                     R.drawable.ic_click,
                     actionsCount,
-                    if (actionsInError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
+                    if (actionsInError) MaterialTheme.colorScheme.error else null,
                     Modifier.weight(1f),
                 )
                 EventDetail(conditionIconRes, conditionsCount, null, Modifier.weight(1f))
@@ -114,7 +114,12 @@ private fun DragHandle(
             .then(reorderHandleModifier),
         contentAlignment = Alignment.Center,
     ) {
-        LegacyIcon(R.drawable.ic_reorder, Modifier.size(24.dp))
+        Icon(
+            painter = painterResource(R.drawable.ic_reorder),
+            contentDescription = null,
+            modifier = Modifier.size(24.dp),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
 
@@ -125,22 +130,14 @@ private fun EventDetail(
     tint: Color?,
     modifier: Modifier,
 ) {
+    val resolvedTint = tint ?: MaterialTheme.colorScheme.onSurfaceVariant
     Row(modifier, verticalAlignment = Alignment.CenterVertically) {
-        LegacyIcon(iconRes, Modifier.size(16.dp), tint)
-        Text(text = text, color = tint ?: Color.Unspecified, fontSize = 14.sp, maxLines = 1)
+        Icon(
+            painter = painterResource(iconRes),
+            contentDescription = null,
+            modifier = Modifier.size(16.dp),
+            tint = resolvedTint,
+        )
+        Text(text = text, color = resolvedTint, fontSize = 14.sp, maxLines = 1)
     }
-}
-
-@Composable
-private fun LegacyIcon(
-    @DrawableRes iconRes: Int,
-    modifier: Modifier,
-    tint: Color? = null,
-) {
-    Icon(
-        painter = painterResource(iconRes),
-        contentDescription = null,
-        modifier = modifier,
-        tint = tint ?: androidx.compose.ui.graphics.Color.Unspecified,
-    )
 }

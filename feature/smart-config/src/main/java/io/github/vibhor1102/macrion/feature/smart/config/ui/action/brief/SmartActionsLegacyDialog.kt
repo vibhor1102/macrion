@@ -167,7 +167,7 @@ private fun ActionRow(
                 .background(if (isBeingDragged) MaterialTheme.colorScheme.primary.copy(alpha = 0.12f) else androidx.compose.ui.graphics.Color.Transparent, CircleShape)
                 .then(reorderHandleModifier),
             contentAlignment = Alignment.Center,
-        ) { Icon(painterResource(R.drawable.ic_reorder), null, Modifier.size(24.dp)) }
+        ) { Icon(painterResource(R.drawable.ic_reorder), null, Modifier.size(24.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant) }
         Column(Modifier.weight(1f).padding(start = 8.dp, end = 12.dp)) {
             Text(details.name, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
             Text(details.description, style = MaterialTheme.typography.bodySmall, fontStyle = FontStyle.Italic, maxLines = 1, overflow = TextOverflow.Ellipsis)
