@@ -27,6 +27,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -39,6 +40,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.vibhor1102.macrion.feature.smart.config.R
+
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.graphics.graphicsLayer
 
 @Composable
 internal fun EventListRow(
@@ -56,10 +63,22 @@ internal fun EventListRow(
     isBeingDragged: Boolean = false,
     accessibilityActions: List<CustomAccessibilityAction> = emptyList(),
 ) {
+    val elevation by animateDpAsState(if (isBeingDragged) 8.dp else 0.dp, label = "event_drag_elevation")
+    val scale by animateFloatAsState(if (isBeingDragged) 1.02f else 1f, label = "event_drag_scale")
+    val backgroundColor = if (isBeingDragged) MaterialTheme.colorScheme.surfaceVariant else Color.Transparent
+
     Row(
         modifier
             .fillMaxWidth()
             .height(62.dp)
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+                shadowElevation = elevation.toPx()
+                shape = RoundedCornerShape(12.dp)
+                clip = false
+            }
+            .background(backgroundColor, RoundedCornerShape(12.dp))
             .then(
                 if (accessibilityActions.isEmpty()) Modifier
                 else Modifier.semantics { customActions = accessibilityActions },
@@ -104,13 +123,13 @@ private fun DragHandle(
     reorderHandleModifier: Modifier,
     isBeingDragged: Boolean,
 ) {
+    val handleTint by animateColorAsState(
+        if (isBeingDragged) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+        label = "handle_tint",
+    )
     Box(
         modifier = Modifier
             .size(48.dp)
-            .background(
-                color = if (isBeingDragged) MaterialTheme.colorScheme.primary.copy(alpha = 0.12f) else Color.Transparent,
-                shape = CircleShape,
-            )
             .then(reorderHandleModifier),
         contentAlignment = Alignment.Center,
     ) {
@@ -118,7 +137,7 @@ private fun DragHandle(
             painter = painterResource(R.drawable.ic_reorder),
             contentDescription = null,
             modifier = Modifier.size(24.dp),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            tint = handleTint,
         )
     }
 }

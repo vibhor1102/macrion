@@ -136,6 +136,7 @@ class DumbActionListContent(appContext: Context) : NavBarDialogContent(appContex
         val sourceItems = viewModel.dumbActionsDetails.collectAsStateWithLifecycle(emptyList()).value
         var displayedItems by remember { mutableStateOf(emptyList<DumbActionDetails>()) }
         var isReordering by remember { mutableStateOf(false) }
+        val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
         LaunchedEffect(sourceItems) { if (!isReordering) displayedItems = sourceItems }
         val listState = androidx.compose.foundation.lazy.rememberLazyListState()
         val reorderState = rememberReorderableLazyListState(listState) { from, to ->
@@ -155,7 +156,10 @@ class DumbActionListContent(appContext: Context) : NavBarDialogContent(appContex
                             details = item,
                             showHandle = true,
                             reorderHandleModifier = Modifier.longPressDraggableHandle(
-                                onDragStarted = { isReordering = true },
+                                onDragStarted = {
+                                    haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                                    isReordering = true
+                                },
                                 onDragStopped = { viewModel.updateDumbActionOrder(displayedItems); isReordering = false },
                             ).clearAndSetSemantics { },
                             isBeingDragged = dragging,

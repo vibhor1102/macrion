@@ -18,6 +18,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -32,6 +33,12 @@ import androidx.compose.ui.unit.sp
 import io.github.vibhor1102.macrion.feature.dumb.config.R
 import io.github.vibhor1102.macrion.feature.dumb.config.ui.actions.copy.DumbActionDetails
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.graphics.graphicsLayer
+
 @Composable
 internal fun DumbActionListItem(
     details: DumbActionDetails,
@@ -40,10 +47,26 @@ internal fun DumbActionListItem(
     isBeingDragged: Boolean = false,
     onClick: () -> Unit,
 ) {
+    val elevation by animateDpAsState(if (isBeingDragged) 8.dp else 0.dp, label = "dumb_drag_elevation")
+    val scale by animateFloatAsState(if (isBeingDragged) 1.02f else 1f, label = "dumb_drag_scale")
+    val backgroundColor = if (isBeingDragged) MaterialTheme.colorScheme.surfaceVariant else androidx.compose.ui.graphics.Color.Transparent
+    val handleTint by animateColorAsState(
+        if (isBeingDragged) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+        label = "dumb_handle_tint",
+    )
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .height(80.dp)
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+                shadowElevation = elevation.toPx()
+                shape = RoundedCornerShape(12.dp)
+                clip = false
+            }
+            .background(backgroundColor, RoundedCornerShape(12.dp))
             .padding(end = 24.dp)
             .clickable(onClick = onClick),
         verticalAlignment = Alignment.CenterVertically,
@@ -51,7 +74,6 @@ internal fun DumbActionListItem(
         if (showHandle) {
             Box(
                 Modifier.size(48.dp)
-                    .background(if (isBeingDragged) MaterialTheme.colorScheme.primary.copy(alpha = 0.12f) else androidx.compose.ui.graphics.Color.Transparent, CircleShape)
                     .then(reorderHandleModifier),
                 contentAlignment = Alignment.Center,
             ) {
@@ -59,7 +81,7 @@ internal fun DumbActionListItem(
                     painter = painterResource(R.drawable.ic_reorder),
                     contentDescription = stringResource(R.string.content_desc_drag_and_drop),
                     modifier = Modifier.size(24.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    tint = handleTint,
                 )
             }
         }

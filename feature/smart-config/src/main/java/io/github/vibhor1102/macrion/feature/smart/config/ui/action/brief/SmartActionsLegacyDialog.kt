@@ -33,6 +33,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
@@ -117,12 +123,16 @@ private fun onCreateButtonClicked() {
                         else -> LazyColumn(Modifier.fillMaxSize(), state = listState) {
                             items(displayedItems, key = { it.id.databaseId.takeIf { id -> id != 0L } ?: -requireNotNull(it.id.tempId) }) { item ->
                                 val key = item.id.databaseId.takeIf { it != 0L } ?: -requireNotNull(item.id.tempId)
+                                val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
                                 ReorderableItem(reorderState, key) { dragging ->
                                     ActionRow(
                                         item = item,
                                         isBeingDragged = dragging,
                                         reorderHandleModifier = Modifier.longPressDraggableHandle(
-                                            onDragStarted = { isReordering = true },
+                                            onDragStarted = {
+                                                haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                                                isReordering = true
+                                            },
                                             onDragStopped = {
                                                 viewModel.updateActionOrder(displayedItems)
                                                 isReordering = false
@@ -158,16 +168,34 @@ private fun ActionRow(
     onClick: () -> Unit,
 ) {
     val details = item.data as UiAction
+    val elevation by animateDpAsState(if (isBeingDragged) 8.dp else 0.dp, label = "action_drag_elevation")
+    val scale by animateFloatAsState(if (isBeingDragged) 1.02f else 1f, label = "action_drag_scale")
+    val backgroundColor = if (isBeingDragged) MaterialTheme.colorScheme.surfaceVariant else Color.Transparent
+    val handleTint by animateColorAsState(
+        if (isBeingDragged) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+        label = "action_handle_tint",
+    )
+
     Row(
-        Modifier.fillMaxWidth().height(80.dp).clickable(onClick = onClick).padding(start = 8.dp, end = 16.dp),
+        Modifier
+            .fillMaxWidth()
+            .height(80.dp)
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+                shadowElevation = elevation.toPx()
+                shape = RoundedCornerShape(12.dp)
+                clip = false
+            }
+            .background(backgroundColor, RoundedCornerShape(12.dp))
+            .clickable(onClick = onClick)
+            .padding(start = 8.dp, end = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(
-            Modifier.size(48.dp)
-                .background(if (isBeingDragged) MaterialTheme.colorScheme.primary.copy(alpha = 0.12f) else androidx.compose.ui.graphics.Color.Transparent, CircleShape)
-                .then(reorderHandleModifier),
+            Modifier.size(48.dp).then(reorderHandleModifier),
             contentAlignment = Alignment.Center,
-        ) { Icon(painterResource(R.drawable.ic_reorder), null, Modifier.size(24.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant) }
+        ) { Icon(painterResource(R.drawable.ic_reorder), null, Modifier.size(24.dp), tint = handleTint) }
         Column(Modifier.weight(1f).padding(start = 8.dp, end = 12.dp)) {
             Text(details.name, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
             Text(details.description, style = MaterialTheme.typography.bodySmall, fontStyle = FontStyle.Italic, maxLines = 1, overflow = TextOverflow.Ellipsis)

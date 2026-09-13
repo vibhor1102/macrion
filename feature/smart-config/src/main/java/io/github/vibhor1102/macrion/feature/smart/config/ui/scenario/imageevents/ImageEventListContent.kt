@@ -111,6 +111,7 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
             val sourceItems = viewModel.eventsItems.collectAsStateWithLifecycle(null).value
             var displayedItems by remember { mutableStateOf(emptyList<UiImageEvent>()) }
             var isReordering by remember { mutableStateOf(false) }
+            val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
             val accessibilityManager = remember(context) {
                 context.getSystemService(AccessibilityManager::class.java)
             }
@@ -172,7 +173,10 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
                                         isBeingDragged = isBeingDragged,
                                         reorderHandleModifier = Modifier
                                             .longPressDraggableHandle(
-                                                onDragStarted = { isReordering = true },
+                                                onDragStarted = {
+                                                    haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                                                    isReordering = true
+                                                },
                                                 onDragStopped = {
                                                     viewModel.updateEventsPriority(displayedItems)
                                                     isReordering = false
