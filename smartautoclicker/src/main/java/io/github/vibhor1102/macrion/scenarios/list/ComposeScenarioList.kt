@@ -99,7 +99,7 @@ internal fun ComposeScenarioList(
                     if (menu.importExportItemState.visible) ScenarioToolbarButton(R.drawable.ic_load, R.string.menu_item_title_import, menu.importExportItemState.enabled, onImportExport)
                     if (menu.searchItemState.visible) ScenarioToolbarButton(R.drawable.ic_search, R.string.menu_item_title_search, menu.searchItemState.enabled, onSearchRequested)
                     if (menu.tutorialsItemState.visible) ScenarioToolbarButton(R.drawable.ic_tutorials, R.string.menu_item_title_export, menu.tutorialsItemState.enabled, onTutorials)
-                    if (menu.settingsItemState.visible) ScenarioToolbarButton(R.drawable.ic_settings_filled, R.string.menu_item_title_settings, menu.settingsItemState.enabled, onSettings)
+                    if (menu.settingsItemState.visible) ScenarioToolbarButton(R.drawable.ic_settings, R.string.menu_item_title_settings, menu.settingsItemState.enabled, onSettings)
                 },
             )
         },
