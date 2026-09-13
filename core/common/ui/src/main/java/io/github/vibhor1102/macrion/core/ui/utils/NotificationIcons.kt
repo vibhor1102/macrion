@@ -21,6 +21,4 @@ import androidx.annotation.DrawableRes
 import io.github.vibhor1102.macrion.core.ui.R
 
 @DrawableRes
-fun notificationIconResId(): Int =
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) R.drawable.ic_notification_vector
-    else R.drawable.ic_action_notification
+fun notificationIconResId(): Int = R.drawable.ic_notification_vector
