@@ -45,6 +45,8 @@ import androidx.compose.ui.unit.sp
 import io.github.vibhor1102.macrion.feature.smart.config.R
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.material3.ripple
 
 @Composable
 internal fun EventListRow(
@@ -122,10 +124,12 @@ private fun DragHandle(
 
     val handleTint by animateColorAsState(
         if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+        animationSpec = tween(durationMillis = 100),
         label = "handle_tint",
     )
     val containerColor by animateColorAsState(
         if (isActive) MaterialTheme.colorScheme.primary.copy(alpha = 0.16f) else Color.Transparent,
+        animationSpec = tween(durationMillis = 100),
         label = "handle_container",
     )
 
@@ -135,7 +139,11 @@ private fun DragHandle(
             .background(containerColor, CircleShape)
             .clickable(
                 interactionSource = interactionSource,
-                indication = null,
+                indication = ripple(
+                    color = MaterialTheme.colorScheme.primary,
+                    bounded = true,
+                    radius = 24.dp,
+                ),
                 onClick = {},
             )
             .then(reorderHandleModifier),

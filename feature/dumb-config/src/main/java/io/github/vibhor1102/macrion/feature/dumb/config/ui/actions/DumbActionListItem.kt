@@ -37,6 +37,8 @@ import io.github.vibhor1102.macrion.feature.dumb.config.R
 import io.github.vibhor1102.macrion.feature.dumb.config.ui.actions.copy.DumbActionDetails
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.material3.ripple
 
 @Composable
 internal fun DumbActionListItem(
@@ -67,10 +69,12 @@ internal fun DumbActionListItem(
 
             val animatedHandleTint by animateColorAsState(
                 if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                animationSpec = tween(durationMillis = 100),
                 label = "dumb_handle_tint",
             )
             val containerColor by animateColorAsState(
                 if (isActive) MaterialTheme.colorScheme.primary.copy(alpha = 0.16f) else androidx.compose.ui.graphics.Color.Transparent,
+                animationSpec = tween(durationMillis = 100),
                 label = "dumb_handle_container",
             )
 
@@ -79,7 +83,11 @@ internal fun DumbActionListItem(
                     .background(containerColor, CircleShape)
                     .clickable(
                         interactionSource = handleInteractionSource,
-                        indication = null,
+                        indication = ripple(
+                            color = MaterialTheme.colorScheme.primary,
+                            bounded = true,
+                            radius = 24.dp,
+                        ),
                         onClick = {},
                     )
                     .then(reorderHandleModifier),
