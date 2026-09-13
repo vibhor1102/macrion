@@ -137,7 +137,7 @@ fun createOverlayMenuLayout(
         root.anchors[button.id] = anchor
     }
 
-    val itemsAnchor = View(context).apply {
+    val itemsAnchor = FrameLayout(context).apply {
         id = R.id.menu_items
     }
     root.anchors[R.id.menu_items] = itemsAnchor
