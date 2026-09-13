@@ -47,16 +47,9 @@ internal fun DumbActionListItem(
     isBeingDragged: Boolean = false,
     onClick: () -> Unit,
 ) {
-    val elevation by animateDpAsState(
-        targetValue = if (isBeingDragged) 8.dp else 0.dp,
-        animationSpec = androidx.compose.animation.core.tween(durationMillis = 150),
-        label = "dumb_drag_elevation",
-    )
-    val backgroundColor by animateColorAsState(
-        targetValue = if (isBeingDragged) MaterialTheme.colorScheme.surfaceVariant else androidx.compose.ui.graphics.Color.Transparent,
-        animationSpec = androidx.compose.animation.core.tween(durationMillis = 150),
-        label = "dumb_drag_bg",
-    )
+    val elevation by animateDpAsState(if (isBeingDragged) 8.dp else 0.dp, label = "dumb_drag_elevation")
+    val scale by animateFloatAsState(if (isBeingDragged) 1.02f else 1f, label = "dumb_drag_scale")
+    val backgroundColor = if (isBeingDragged) MaterialTheme.colorScheme.surfaceVariant else androidx.compose.ui.graphics.Color.Transparent
     val handleTint by animateColorAsState(
         if (isBeingDragged) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
         label = "dumb_handle_tint",
@@ -67,6 +60,8 @@ internal fun DumbActionListItem(
             .fillMaxWidth()
             .height(80.dp)
             .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
                 shadowElevation = elevation.toPx()
                 shape = RoundedCornerShape(12.dp)
                 clip = false

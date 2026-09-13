@@ -63,22 +63,17 @@ internal fun EventListRow(
     isBeingDragged: Boolean = false,
     accessibilityActions: List<CustomAccessibilityAction> = emptyList(),
 ) {
-    val elevation by animateDpAsState(
-        targetValue = if (isBeingDragged) 8.dp else 0.dp,
-        animationSpec = androidx.compose.animation.core.tween(durationMillis = 150),
-        label = "event_drag_elevation",
-    )
-    val backgroundColor by animateColorAsState(
-        targetValue = if (isBeingDragged) MaterialTheme.colorScheme.surfaceVariant else Color.Transparent,
-        animationSpec = androidx.compose.animation.core.tween(durationMillis = 150),
-        label = "event_drag_bg",
-    )
+    val elevation by animateDpAsState(if (isBeingDragged) 8.dp else 0.dp, label = "event_drag_elevation")
+    val scale by animateFloatAsState(if (isBeingDragged) 1.02f else 1f, label = "event_drag_scale")
+    val backgroundColor = if (isBeingDragged) MaterialTheme.colorScheme.surfaceVariant else Color.Transparent
 
     Row(
         modifier
             .fillMaxWidth()
             .height(62.dp)
             .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
                 shadowElevation = elevation.toPx()
                 shape = RoundedCornerShape(12.dp)
                 clip = false
