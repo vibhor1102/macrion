@@ -14,9 +14,8 @@ import io.github.vibhor1102.macrion.core.ui.R
 import androidx.compose.foundation.layout.size
 import androidx.compose.ui.unit.dp
 
-/** The original toolbar's path-and-rotation morph, driven by its animated vector. */
 @Composable
-fun AnimatedPlayPauseIcon(isPlaying: Boolean, modifier: Modifier = Modifier.size(40.dp)) {
+fun AnimatedPlayPauseIcon(isPlaying: Boolean, modifier: Modifier = Modifier.size(32.dp)) {
     val vector = AnimatedImageVector.animatedVectorResource(R.drawable.anim_play_pause)
     Icon(
         painter = rememberAnimatedVectorPainter(vector, atEnd = isPlaying),

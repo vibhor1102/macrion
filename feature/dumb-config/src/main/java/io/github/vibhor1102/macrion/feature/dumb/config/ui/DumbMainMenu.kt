@@ -113,7 +113,7 @@ class DumbMainMenu(
                     AnimatedPlayPauseIcon(isPlaying)
                 } else {
                     Icon(
-                        painterResource(button.icon), null, Modifier.size(24.dp),
+                        painterResource(button.icon), null, Modifier.size(32.dp),
                         tint = colorResource(io.github.vibhor1102.macrion.core.ui.R.color.overlayMenuButtons),
                     )
                 }
