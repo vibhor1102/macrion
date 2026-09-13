@@ -19,7 +19,6 @@ plugins {
     alias(libs.plugins.buzbuz.androidLibrary)
     alias(libs.plugins.buzbuz.androidUnitTest)
     alias(libs.plugins.buzbuz.flavour)
-    alias(libs.plugins.androidxNavigationSafeArgs)
     alias(libs.plugins.buzbuz.hilt)
     alias(libs.plugins.jetbrainsKotlinCompose)
 }
@@ -28,7 +27,6 @@ android {
     namespace = "io.github.vibhor1102.macrion.feature.tutorial"
     buildFeatures {
         compose = true
-        viewBinding = true
     }
 }
 
@@ -37,21 +35,14 @@ dependencies {
 
     implementation(libs.kotlinx.coroutines.core)
 
-    implementation(libs.androidx.appCompat)
+    implementation(libs.androidx.activity.compose)
     implementation(composeBom)
     implementation(libs.androidx.compose.foundation)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.fragment.ktx)
     implementation(libs.androidx.lifecycle.runtime.compose)
-    implementation(libs.androidx.navigation.fragment.ktx)
-    implementation(libs.androidx.navigation.ui.ktx)
-    implementation(libs.androidx.recyclerView)
-    implementation(libs.androidx.viewpager2)
     implementation(libs.androidx.room.ktx)
-
-    implementation(libs.google.material)
 
     implementation(project(":core:common:accessibility"))
     implementation(project(":core:common:navigation"))

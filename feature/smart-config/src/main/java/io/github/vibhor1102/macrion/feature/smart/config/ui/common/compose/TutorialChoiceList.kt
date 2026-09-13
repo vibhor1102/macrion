@@ -1,7 +1,6 @@
 /* Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.common.compose
 
-import android.view.View
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -15,6 +14,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.DialogChoice
+import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredViewType
 import io.github.vibhor1102.macrion.feature.smart.config.R
 
 @Composable
@@ -23,7 +23,7 @@ fun <T : DialogChoice> TutorialChoiceList(
     choices: List<T>,
     onDismiss: () -> Unit,
     onChoiceSelected: (T) -> Unit,
-    onChoiceViewChanged: (T, View?) -> Unit,
+    monitoredType: ((T) -> MonitoredViewType?)? = null,
 ) {
     Surface(Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
         Column {
@@ -33,24 +33,43 @@ fun <T : DialogChoice> TutorialChoiceList(
             }
             LazyColumn(contentPadding = PaddingValues(bottom = 12.dp)) {
                 items(choices, key = { it::class.qualifiedName.orEmpty() }) { choice ->
-                    Box(Modifier.fillMaxWidth()) {
-                        Card(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp),
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)) {
-                            Row(Modifier.fillMaxWidth().heightIn(min = 72.dp).padding(16.dp)
+                    val type = monitoredType?.invoke(choice)
+                    Card(
+                        onClick = { onChoiceSelected(choice) },
+                        enabled = choice.enabled,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 6.dp)
+                            .then(
+                                if (type != null) {
+                                    Modifier.tutorialAnchor(
+                                        type = type,
+                                        onClick = { onChoiceSelected(choice) },
+                                        enabled = choice.enabled,
+                                    )
+                                } else Modifier
+                            ),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+                    ) {
+                        Row(
+                            Modifier.fillMaxWidth().heightIn(min = 72.dp).padding(16.dp)
                                 .alpha(if (choice.enabled) 1f else 0.5f),
-                                verticalAlignment = Alignment.CenterVertically) {
-                                choice.iconId?.let { Icon(painterResource(it), null, Modifier.size(32.dp)) }
-                                Column(Modifier.weight(1f).padding(start = if (choice.iconId != null) 16.dp else 0.dp)) {
-                                    Text(stringResource(choice.title), style = MaterialTheme.typography.titleSmall)
-                                    choice.description?.let { Text(stringResource(it), style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            choice.iconId?.let { Icon(painterResource(it), null, Modifier.size(32.dp)) }
+                            Column(Modifier.weight(1f).padding(start = if (choice.iconId != null) 16.dp else 0.dp)) {
+                                Text(stringResource(choice.title), style = MaterialTheme.typography.titleSmall)
+                                choice.description?.let {
+                                    Text(
+                                        stringResource(it),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
                                 }
-                                val trailingIcon = if (choice.enabled) R.drawable.ic_chevron_right else choice.disabledIconId
-                                trailingIcon?.let { Icon(painterResource(it), null, Modifier.size(24.dp)) }
                             }
+                            val trailingIcon = if (choice.enabled) R.drawable.ic_chevron_right else choice.disabledIconId
+                            trailingIcon?.let { Icon(painterResource(it), null, Modifier.size(24.dp)) }
                         }
-                        TutorialClickAnchor(onViewChanged = { onChoiceViewChanged(choice, it) },
-                            onClick = { onChoiceSelected(choice) }, enabled = choice.enabled)
                     }
                 }
             }

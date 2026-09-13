@@ -9,31 +9,34 @@
 package io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.conditions.adapter
 
 import android.graphics.Bitmap
-import android.graphics.Color
-import android.widget.ImageView
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
-import androidx.core.content.ContextCompat
 import io.github.vibhor1102.macrion.core.domain.model.condition.ScreenCondition
 import io.github.vibhor1102.macrion.core.domain.model.condition.TriggerCondition
-import io.github.vibhor1102.macrion.core.ui.utils.setColorIndicatorDrawable
 import io.github.vibhor1102.macrion.feature.smart.debugging.R
 import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.conditions.ConditionPerformanceEntry
 
@@ -60,11 +63,7 @@ internal fun ConditionPerformanceRow(state: ConditionPerformanceRowState) {
                 Modifier.size(72.dp).clipToBounds().background(MaterialTheme.colorScheme.surfaceVariant),
                 contentAlignment = Alignment.Center,
             ) {
-                AndroidView(
-                    factory = { context -> ImageView(context).apply { scaleType = ImageView.ScaleType.CENTER_CROP } },
-                    modifier = Modifier.size(72.dp).clipToBounds(),
-                    update = { image -> image.bindCondition(state) },
-                )
+                ConditionPreview(state)
             }
             Column(Modifier.weight(1f).padding(start = 16.dp)) {
                 Text(
@@ -94,21 +93,46 @@ internal fun ConditionPerformanceRow(state: ConditionPerformanceRowState) {
     }
 }
 
-private fun ImageView.bindCondition(state: ConditionPerformanceRowState) {
-    setImageDrawable(null)
+@Composable
+private fun ConditionPreview(state: ConditionPerformanceRowState) {
     when (val condition = state.entry.condition) {
-        is ScreenCondition.Color -> setColorIndicatorDrawable(condition.color)
+        is ScreenCondition.Color -> ColorPreview(condition.color)
         is ScreenCondition.Image -> when {
-            state.bitmap != null -> setImageBitmap(state.bitmap)
-            state.bitmapFailed -> setImageDrawable(ContextCompat.getDrawable(context, R.drawable.ic_cancel)?.apply {
-                setTint(Color.RED)
-            })
+            state.bitmap != null -> Image(
+                bitmap = state.bitmap.asImageBitmap(),
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop,
+            )
+            state.bitmapFailed -> Icon(
+                painter = painterResource(R.drawable.ic_cancel),
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.error,
+            )
         }
-        is ScreenCondition.Number -> setImageResource(R.drawable.ic_number_condition)
-        is ScreenCondition.Text -> setImageResource(R.drawable.ic_text_condition)
-        is TriggerCondition.OnBroadcastReceived -> setImageResource(R.drawable.ic_broadcast_received)
-        is TriggerCondition.OnCounterCountReached -> setImageResource(R.drawable.ic_counter_reached)
-        is TriggerCondition.OnTimerReached -> setImageResource(R.drawable.ic_timer_reached)
+        is ScreenCondition.Number -> ConditionIcon(R.drawable.ic_number_condition)
+        is ScreenCondition.Text -> ConditionIcon(R.drawable.ic_text_condition)
+        is TriggerCondition.OnBroadcastReceived -> ConditionIcon(R.drawable.ic_broadcast_received)
+        is TriggerCondition.OnCounterCountReached -> ConditionIcon(R.drawable.ic_counter_reached)
+        is TriggerCondition.OnTimerReached -> ConditionIcon(R.drawable.ic_timer_reached)
+    }
+}
+
+@Composable
+private fun ConditionIcon(icon: Int) = Icon(
+    painter = painterResource(icon),
+    contentDescription = null,
+    modifier = Modifier.fillMaxSize().padding(16.dp),
+    tint = Color.Unspecified,
+)
+
+@Composable
+private fun ColorPreview(color: Int) {
+    val outline = MaterialTheme.colorScheme.onSurfaceVariant
+    androidx.compose.foundation.Canvas(Modifier.fillMaxSize()) {
+        val radius = size.minDimension * 0.3f
+        drawCircle(Color(color), radius = radius)
+        drawCircle(outline, radius = radius * 1.15f, style = Stroke(size.minDimension * 0.06f))
     }
 }
 

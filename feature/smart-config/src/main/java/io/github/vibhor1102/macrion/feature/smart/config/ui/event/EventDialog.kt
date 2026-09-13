@@ -2,13 +2,15 @@
 package io.github.vibhor1102.macrion.feature.smart.config.ui.event
 
 import android.util.Log
-import android.view.View
 import android.view.ViewGroup
+import android.graphics.Bitmap
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -20,8 +22,11 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -29,19 +34,20 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.bottomsheet.BottomSheetDialog
+import android.app.Dialog
+import io.github.vibhor1102.macrion.core.ui.compose.ColorIndicator
 import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayDialog
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredOverlayType
+import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredViewType
 import io.github.vibhor1102.macrion.core.domain.model.AND
 import io.github.vibhor1102.macrion.core.domain.model.OR
+import io.github.vibhor1102.macrion.core.domain.model.condition.ScreenCondition
 import io.github.vibhor1102.macrion.core.ui.bindings.dropdown.TimeUnitDropDownItem
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTextField
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
@@ -51,8 +57,10 @@ import io.github.vibhor1102.macrion.feature.smart.config.R
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
 import io.github.vibhor1102.macrion.feature.smart.config.ui.action.brief.SmartActionsBriefMenu
 import io.github.vibhor1102.macrion.feature.smart.config.ui.action.brief.SmartActionsLegacyDialog
-import io.github.vibhor1102.macrion.feature.smart.config.ui.common.compose.TutorialClickAnchor
-import io.github.vibhor1102.macrion.feature.smart.config.ui.common.compose.TutorialViewAnchor
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.compose.LocalMonitoredViewsManager
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.compose.tutorialAnchor
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.formatters.toEffectDescription
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.formatters.toNaturalDisplayString
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.dialogs.showCloseWithoutSavingDialog
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.dialogs.showDeleteEventWithAssociatedActionsDialog
 import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.brief.ScreenConditionsBriefMenu
@@ -65,43 +73,34 @@ class EventDialog(private val onConfigComplete: () -> Unit, private val onDelete
     override fun tutorialMonitoringTag(): String = MonitoredOverlayType.EVENT.name
     private val viewModel: EventDialogViewModel by viewModels(
         entryPoint = ScenarioConfigViewModelsEntryPoint::class.java, creator = { eventDialogViewModel() })
-    private var conditionsAnchor: View? = null
-    private var andAnchor: View? = null
-    private var orAnchor: View? = null
-    private var actionsAnchor: View? = null
-    private var stateAnchor: View? = null
-    private var saveAnchor: View? = null
 
     override fun onCreateView(): ViewGroup = ComposeView(context).apply {
         setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
         setContent { MacrionTheme { this@EventDialog.Content() } }
     }
-    override fun onDialogCreated(dialog: BottomSheetDialog) {
+    override fun onDialogCreated(dialog: Dialog) {
         lifecycleScope.launch { repeatOnLifecycle(Lifecycle.State.CREATED) {
             viewModel.isEditingEvent.collect { if (!it) { Log.e(TAG, "Closing EventDialog because no event is edited"); finish() } }
         } }
     }
-    override fun onStart() { super.onStart(); attachAnchors() }
-    override fun onStop() { viewModel.detachMonitoredViews(); super.onStop() }
-    private fun attachAnchors() { viewModel.monitorConditionsView(conditionsAnchor); viewModel.monitorOperatorAndView(andAnchor)
-        viewModel.monitorOperatorOrView(orAnchor); viewModel.monitorActionsView(actionsAnchor)
-        viewModel.monitorInitialStateView(stateAnchor); viewModel.monitorSaveView(saveAnchor) }
 
     @Composable private fun Content() {
-        val state by viewModel.uiState.collectAsStateWithLifecycle()
-        val ui = state ?: return
-        var name by rememberSaveable { mutableStateOf(ui.name.orEmpty()) }
-        LaunchedEffect(ui.name) { if (name != ui.name) name = ui.name.orEmpty() }
-        Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
-            Column { TopBar(ui.canBeSaved)
-                Column(Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState())
-                    .padding(horizontal = 16.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    MacrionTextField(name, { name = it; viewModel.setEventName(it) }, context.getString(R.string.generic_name),
-                        isError = ui.nameError, maxLength = context.resources.getInteger(R.integer.name_max_length))
-                    ConditionsCard(ui)
-                    ActionsCard(ui.actionsItems)
-                    StateCard(ui)
-                    if (ui is EventDialogUiState.ScreenEvent) TestCard(ui.canTryEvent)
+        CompositionLocalProvider(LocalMonitoredViewsManager provides viewModel.monitoredViewsManager) {
+            val state by viewModel.uiState.collectAsStateWithLifecycle()
+            val ui = state ?: return@CompositionLocalProvider
+            var name by rememberSaveable { mutableStateOf(ui.name.orEmpty()) }
+            LaunchedEffect(ui.name) { if (name != ui.name) name = ui.name.orEmpty() }
+            Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
+                Column { TopBar(ui.canBeSaved)
+                    Column(Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState())
+                        .padding(horizontal = 16.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        MacrionTextField(name, { name = it; viewModel.setEventName(it) }, context.getString(R.string.generic_name),
+                            isError = ui.nameError, maxLength = context.resources.getInteger(R.integer.name_max_length))
+                        ConditionsCard(ui)
+                        ActionsCard(ui.actionsItems)
+                        StateCard(ui)
+                        if (ui is EventDialogUiState.ScreenEvent) TestCard(ui.canTryEvent)
+                    }
                 }
             }
         }
@@ -114,20 +113,24 @@ class EventDialog(private val onConfigComplete: () -> Unit, private val onDelete
             Modifier.weight(1f).padding(horizontal = 8.dp), style = MaterialTheme.typography.titleLarge,
             maxLines = 1, overflow = TextOverflow.Clip)
         FilledTonalIconButton(onClick = ::delete) { Icon(painterResource(R.drawable.ic_delete), null) }
-        Spacer(Modifier.width(8.dp)); Box {
-            FilledIconButton(onClick = ::save, enabled = enabled) { Icon(painterResource(R.drawable.ic_save_filled), null) }
-            TutorialClickAnchor({ saveAnchor = it; viewModel.monitorSaveView(it) }, ::save, enabled)
-        }
+        Spacer(Modifier.width(8.dp))
+        FilledIconButton(
+            onClick = ::save,
+            enabled = enabled,
+            modifier = Modifier.tutorialAnchor(
+                MonitoredViewType.EVENT_DIALOG_BUTTON_SAVE,
+                onClick = ::save,
+                enabled = enabled,
+            ),
+        ) { Icon(painterResource(R.drawable.ic_save_filled), null) }
     } }
 
     @Composable private fun ConditionsCard(ui: EventDialogUiState) {
         EventCard(context.getString(R.string.menu_item_title_conditions), colorResource(R.color.event_conditions_color)) {
-            Box {
-                TutorialViewAnchor(
-                    { conditionsAnchor = it; viewModel.monitorConditionsView(it) },
-                    ::showConditions,
-                    Modifier.matchParentSize(),
-                )
+            Box(Modifier.tutorialAnchor(
+                MonitoredViewType.EVENT_DIALOG_FIELD_CONDITIONS,
+                onClick = ::showConditions,
+            )) {
                 when (ui) {
                     is EventDialogUiState.ScreenEvent -> ScreenConditionSelector(ui.imageConditionsItems)
                     is EventDialogUiState.TriggerEvent -> ChildrenSelector(ui.triggerConditionsItems, true, ::showConditions)
@@ -147,12 +150,10 @@ class EventDialog(private val onConfigComplete: () -> Unit, private val onDelete
 
     @Composable private fun ActionsCard(items: List<EventChildrenItem>) = EventCard(
         context.getString(R.string.menu_item_title_actions), colorResource(R.color.event_actions_color)) {
-        Box {
-            TutorialViewAnchor(
-                { actionsAnchor = it; viewModel.monitorActionsView(it) },
-                { showActionsOverlay() },
-                Modifier.matchParentSize(),
-            )
+        Box(Modifier.tutorialAnchor(
+            MonitoredViewType.EVENT_DIALOG_FIELD_ACTIONS,
+            onClick = { showActionsOverlay() },
+        )) {
             ChildrenSelector(items, false, ::showActionsOverlay)
         }
     }
@@ -168,11 +169,11 @@ class EventDialog(private val onConfigComplete: () -> Unit, private val onDelete
     @Composable private fun ScreenConditionSelector(items: List<io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.condition.UiScreenCondition>) {
         if (items.isEmpty()) { EmptySelector(true, ::showConditions); return }
         Row(Modifier.fillMaxWidth().height(116.dp), verticalAlignment = Alignment.CenterVertically) {
-            AndroidView(factory = { ctx -> RecyclerView(ctx).apply {
-                layoutManager = LinearLayoutManager(ctx, RecyclerView.HORIZONTAL, false)
-                adapter = EventImageConditionsAdapter(::showImageConditionsBriefMenu, viewModel::getConditionBitmap)
-                overScrollMode = View.OVER_SCROLL_NEVER
-            } }, update = { (it.adapter as EventImageConditionsAdapter).submitList(items) }, modifier = Modifier.weight(1f).fillMaxHeight())
+            LazyRow(Modifier.weight(1f).fillMaxHeight()) {
+                itemsIndexed(items, key = { _, item -> item.condition.id.databaseId.takeIf { it != 0L } ?: -requireNotNull(item.condition.id.tempId) }) { index, item ->
+                    EventImageConditionCard(item, viewModel::getConditionBitmap) { showImageConditionsBriefMenu(index) }
+                }
+            }
             Spacer(Modifier.width(8.dp))
             FilledTonalIconButton(onClick = ::showConditions, modifier = Modifier.size(40.dp)) {
                 Icon(painterResource(R.drawable.ic_chevron_right), null)
@@ -184,11 +185,11 @@ class EventDialog(private val onConfigComplete: () -> Unit, private val onDelete
         if (items.isEmpty()) { EmptySelector(conditions, onClick); return }
         Row(Modifier.fillMaxWidth().heightIn(min = 62.dp).padding(vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically) {
-            AndroidView(factory = { ctx -> RecyclerView(ctx).apply {
-                layoutManager = LinearLayoutManager(ctx, RecyclerView.HORIZONTAL, false)
-                adapter = EventChildrenCardsAdapter { index -> if (conditions) showTriggerConditionsDialog() else showActionsOverlay(index) }
-                overScrollMode = View.OVER_SCROLL_NEVER
-            } }, update = { (it.adapter as EventChildrenCardsAdapter).submitList(items) }, modifier = Modifier.weight(1f).height(64.dp))
+            LazyRow(Modifier.weight(1f).height(64.dp)) {
+                itemsIndexed(items) { index, item ->
+                    EventChildCard(item) { if (conditions) showTriggerConditionsDialog() else showActionsOverlay(index) }
+                }
+            }
             Spacer(Modifier.width(8.dp))
             FilledTonalIconButton(onClick = onClick, modifier = Modifier.size(40.dp)) {
                 Icon(painterResource(R.drawable.ic_chevron_right), null)
@@ -215,11 +216,12 @@ class EventDialog(private val onConfigComplete: () -> Unit, private val onDelete
         Row(Modifier.height(32.dp).clip(shape).border(1.dp, MaterialTheme.colorScheme.outline, shape)) {
             listOf(AND to R.string.condition_operator_and, OR to R.string.condition_operator_or).forEachIndexed { index, pair ->
                 if (index > 0) Box(Modifier.width(1.dp).fillMaxHeight().background(MaterialTheme.colorScheme.outline))
+                val anchorType = if (pair.first == AND) MonitoredViewType.EVENT_DIALOG_FIELD_OPERATOR_ITEM_AND else MonitoredViewType.EVENT_DIALOG_FIELD_OPERATOR_ITEM_OR
                 Box(Modifier.width(48.dp).fillMaxHeight().background(if (selected == pair.first) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent)
-                    .clickable { viewModel.setConditionOperator(pair.first) }, contentAlignment = Alignment.Center) {
+                    .clickable { viewModel.setConditionOperator(pair.first) }
+                    .tutorialAnchor(anchorType, onClick = { viewModel.setConditionOperator(pair.first) }),
+                    contentAlignment = Alignment.Center) {
                     Text(stringResource(pair.second), style = MaterialTheme.typography.labelMedium)
-                    TutorialClickAnchor({ view -> if (pair.first == AND) { andAnchor = view; viewModel.monitorOperatorAndView(view) }
-                        else { orAnchor = view; viewModel.monitorOperatorOrView(view) } }, { viewModel.setConditionOperator(pair.first) })
                 }
             }
         }
@@ -227,17 +229,20 @@ class EventDialog(private val onConfigComplete: () -> Unit, private val onDelete
 
     @Composable private fun StateCard(ui: EventDialogUiState) = EventCard(context.getString(R.string.menu_item_title_state),
         colorResource(R.color.event_state_color)) {
-        Box { SwitchField(context.getString(R.string.field_event_state_title),
+        SwitchField(
+            context.getString(R.string.field_event_state_title),
             context.getString(if (ui.enabledOnStart) R.string.field_event_state_desc_enabled else R.string.field_event_state_desc_disabled),
-            ui.enabledOnStart, viewModel::toggleEventState)
-            TutorialClickAnchor({ stateAnchor = it; viewModel.monitorInitialStateView(it) }, viewModel::toggleEventState) }
+            ui.enabledOnStart,
+            viewModel::toggleEventState,
+            modifier = Modifier.tutorialAnchor(MonitoredViewType.EVENT_DIALOG_FIELD_INITIAL_STATE, onClick = viewModel::toggleEventState),
+        )
         if (ui is EventDialogUiState.ScreenEvent) { HorizontalDivider(); SwitchField(context.getString(R.string.field_event_keep_detecting_title),
             context.getString(if (ui.keepDetecting) R.string.field_event_keep_detecting_desc_enabled else R.string.field_event_keep_detecting_desc_disabled),
             ui.keepDetecting, viewModel::toggleKeepDetectingState); HorizontalDivider(); CooldownField(ui) }
     }
 
-    @Composable private fun SwitchField(title: String, desc: String, checked: Boolean, toggle: () -> Unit) {
-        Row(Modifier.fillMaxWidth().clickable(onClick = toggle).padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+    @Composable private fun SwitchField(title: String, desc: String, checked: Boolean, toggle: () -> Unit, modifier: Modifier = Modifier) {
+        Row(Modifier.fillMaxWidth().then(modifier).clickable(onClick = toggle).padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f).padding(end = 16.dp)) { Text(title, style = MaterialTheme.typography.bodyLarge); Text(desc,
                 style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
             VerticalDivider(Modifier.height(48.dp))
@@ -296,5 +301,57 @@ class EventDialog(private val onConfigComplete: () -> Unit, private val onDelete
         if (viewModel.isLegacyActionUiEnabled()) SmartActionsLegacyDialog() else SmartActionsBriefMenu(index), true)
     private fun showTryElementMenu() { viewModel.getTryInfo()?.let { (scenario, event) ->
         overlayManager.navigateTo(context, TryEventOverlayMenu(scenario, event), true) } }
+}
+
+@Composable
+private fun EventImageConditionCard(
+    uiCondition: io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.condition.UiScreenCondition,
+    bitmapProvider: (ScreenCondition.Image, (Bitmap?) -> Unit) -> kotlinx.coroutines.Job?,
+    onClick: () -> Unit,
+) {
+    var bitmap by remember(uiCondition.condition.id) { mutableStateOf<Bitmap?>(null) }
+    var bitmapFailed by remember(uiCondition.condition.id) { mutableStateOf(false) }
+    val imageCondition = uiCondition.condition as? ScreenCondition.Image
+    DisposableEffect(imageCondition) {
+        val loadingJob = imageCondition?.let { image -> bitmapProvider(image) { loaded -> bitmap = loaded; bitmapFailed = loaded == null } }
+        onDispose { loadingJob?.cancel() }
+    }
+    Box(Modifier.size(108.dp).padding(horizontal = 4.dp, vertical = 4.dp)) {
+        OutlinedCard(onClick = onClick, modifier = Modifier.fillMaxSize(), elevation = CardDefaults.outlinedCardElevation(defaultElevation = 2.dp)) {
+            Column(Modifier.fillMaxSize()) {
+                Box(Modifier.weight(1f).fillMaxWidth().padding(vertical = 2.dp).clipToBounds().background(MaterialTheme.colorScheme.surfaceVariant), contentAlignment = Alignment.Center) {
+                    when (val condition = uiCondition.condition) {
+                        is ScreenCondition.Color -> ColorIndicator(condition.color)
+                        is ScreenCondition.Image -> when {
+                            bitmap != null -> androidx.compose.foundation.Image(bitmap!!.asImageBitmap(), null, Modifier.fillMaxSize(), contentScale = androidx.compose.ui.layout.ContentScale.Fit)
+                            bitmapFailed -> Icon(painterResource(R.drawable.ic_cancel), null, tint = MaterialTheme.colorScheme.error)
+                        }
+                        is ScreenCondition.Number -> Text(condition.comparisonOperation.toEffectDescription(LocalContext.current, operand = condition.counterValue.toNaturalDisplayString()), Modifier.padding(horizontal = 4.dp), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                        is ScreenCondition.Text -> Text(condition.text, Modifier.padding(horizontal = 4.dp), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                    }
+                }
+                HorizontalDivider()
+                Text(uiCondition.name, Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 2.dp), style = MaterialTheme.typography.bodySmall, textAlign = androidx.compose.ui.text.style.TextAlign.Center, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Row(Modifier.fillMaxWidth().height(20.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Box(Modifier.weight(1f), contentAlignment = Alignment.Center) { Icon(painterResource(uiCondition.shouldBeVisibleIconRes), null, Modifier.height(16.dp)) }
+                    Box(Modifier.weight(1f), contentAlignment = Alignment.Center) { if (imageCondition != null) Icon(painterResource(uiCondition.detectionTypeIconRes), null, Modifier.height(16.dp)) }
+                    Text(uiCondition.thresholdText, Modifier.weight(1f), fontSize = 14.sp, textAlign = androidx.compose.ui.text.style.TextAlign.Center, maxLines = 1)
+                }
+            }
+        }
+    }
+}
+
+
+@Composable
+private fun EventChildCard(item: EventChildrenItem, onClick: () -> Unit) {
+    Box(Modifier.width(56.dp).height(64.dp).padding(horizontal = 4.dp, vertical = 8.dp)) {
+        Surface(Modifier.fillMaxSize().border(1.dp, MaterialTheme.colorScheme.outlineVariant, MaterialTheme.shapes.medium).clickable(onClick = onClick), shape = MaterialTheme.shapes.medium, color = MaterialTheme.colorScheme.surfaceContainerLow, shadowElevation = 2.dp) {
+            Box(contentAlignment = Alignment.Center) {
+                Icon(painterResource(item.iconRes), null, Modifier.size(29.dp))
+                if (item.isInError) Box(Modifier.align(Alignment.TopEnd).padding(top = 8.dp, end = 6.dp).size(6.dp).background(MaterialTheme.colorScheme.error, CircleShape))
+            }
+        }
+    }
 }
 private const val TAG = "EventDialog"

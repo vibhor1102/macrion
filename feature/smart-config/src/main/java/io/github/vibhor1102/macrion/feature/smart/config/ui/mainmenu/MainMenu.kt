@@ -16,11 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.mainmenu
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 
-import android.content.DialogInterface
 import android.graphics.Region
 import android.os.Build
-import android.util.Size
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -39,25 +39,19 @@ import io.github.vibhor1102.macrion.core.common.overlays.manager.OverlayManager.
 import io.github.vibhor1102.macrion.core.common.overlays.menu.OverlayMenu
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.Tip
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredOverlayType
-import io.github.vibhor1102.macrion.core.ui.utils.AnimatedStatesImageButtonController
-import io.github.vibhor1102.macrion.core.ui.utils.getDynamicColorsContext
+import io.github.vibhor1102.macrion.core.ui.compose.createMacrionMessageDialog
 import io.github.vibhor1102.macrion.feature.smart.config.R
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.starters.newRestartMediaProjectionStarterOverlay
 import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.text.alphabet.AlphabetActivity
-import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.text.alphabet.required.RequiredAlphabetFragment
 import io.github.vibhor1102.macrion.feature.smart.config.ui.mainmenu.debugging.LiveDebuggingUiState
 import io.github.vibhor1102.macrion.feature.smart.config.ui.mainmenu.debugging.LiveDebuggingViewModel
 import io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.ScenarioDialog
-import io.github.vibhor1102.macrion.core.ui.R as CoreUiR
-
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import io.github.vibhor1102.macrion.core.ui.compose.AnimatedPlayPauseIcon
 
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 
 /**
  * [OverlayMenu] implementation for displaying the main menu overlay.
@@ -101,8 +95,7 @@ class MainMenu(
 
     private lateinit var viewBinding: MainMenuViews
     private var liveDebugUiState by mutableStateOf<LiveDebuggingUiState?>(null)
-    /** Controls the animations of the play/pause button. */
-    private lateinit var playPauseButtonController: AnimatedStatesImageButtonController
+    private var isDetecting by mutableStateOf(false)
     /** The coroutine job for the observable used in debug mode. Null when not in debug mode. */
     private var debugObservableJob: Job? = null
 
@@ -137,18 +130,15 @@ class MainMenu(
     private var keyDownHandled: Boolean = false
 
     override fun onCreateMenu(layoutInflater: LayoutInflater): ViewGroup {
-        playPauseButtonController = AnimatedStatesImageButtonController(
+        viewBinding = createMainOverlayMenu(
             context = context,
-            state1StaticRes = R.drawable.ic_play_arrow,
-            state2StaticRes = R.drawable.ic_pause,
-            state1to2AnimationRes = R.drawable.anim_play_pause,
-            state2to1AnimationRes = R.drawable.anim_pause_play,
+            debugContent = { MainLiveDebugPanel(liveDebugUiState) },
+            playPauseContent = {
+                AnimatedPlayPauseIcon(isDetecting)
+            },
         )
-        viewBinding = createMainOverlayMenu(context) { MainLiveDebugPanel(liveDebugUiState) }
         viewBinding.btnSwitchScenario.isVisible = isSwitchButtonInitiallyVisible
         viewBinding.btnOpenHome.isVisible = isHomeButtonInitiallyVisible
-        playPauseButtonController.attachView(viewBinding.btnPlay)
-
         return viewBinding.root
     }
 
@@ -185,18 +175,12 @@ class MainMenu(
     override fun onStart() {
         super.onStart()
 
-        viewModel.monitorViews(
-            playMenuButton = viewBinding.btnPlay,
-            configMenuButton = viewBinding.btnClickList,
-        )
-
         // Start loading advertisement if needed
         viewModel.loadAdIfNeeded(context)
     }
 
     override fun onStop() {
         super.onStop()
-        viewModel.stopViewMonitoring()
         viewBinding.btnPlay.tag = null
     }
 
@@ -204,7 +188,6 @@ class MainMenu(
         viewBinding.root.removeCallbacks(updateTouchableRegion)
         viewBinding.root.removeOnLayoutChangeListener(updateTouchableRegionOnLayout)
         super.onDestroy()
-        playPauseButtonController.detachView()
     }
 
     override fun onKeyEvent(keyEvent: KeyEvent): Boolean {
@@ -246,28 +229,16 @@ class MainMenu(
                 return@launch
             }
 
-            MaterialAlertDialogBuilder(context.getDynamicColorsContext(R.style.AppTheme))
-                .setTitle(R.string.dialog_stop_confirmation_title)
-                .setMessage(R.string.dialog_stop_confirmation_message)
-                .setNegativeButton(android.R.string.cancel, null)
-                .setPositiveButton(R.string.dialog_stop_confirmation_stop) { _, _ -> onStopClicked() }
-                .create()
-                .showAsOverlay()
+            context.createMacrionMessageDialog(
+                title = R.string.dialog_stop_confirmation_title,
+                message = R.string.dialog_stop_confirmation_message,
+                confirmLabel = R.string.dialog_stop_confirmation_stop,
+                cancelLabel = android.R.string.cancel,
+                onConfirm = { onStopClicked() },
+            ).showAsOverlay()
         }
     }
 
-    override fun getWindowMaximumSize(backgroundView: ViewGroup): Size {
-        val bgSize = super.getWindowMaximumSize(backgroundView)
-        val switchButtonWidth = if (viewBinding.btnSwitchScenario.isVisible) {
-            0
-        } else {
-            context.resources.getDimensionPixelSize(CoreUiR.dimen.overlay_menu_btn_size)
-        }
-        return Size(
-            bgSize.width + switchButtonWidth + context.resources.getDimensionPixelSize(R.dimen.overlay_debug_panel_width),
-            bgSize.height,
-        )
-    }
 
     fun onMediaProjectionLost() {
         if (!lifecycle.currentState.isAtLeast(Lifecycle.State.CREATED)) return
@@ -288,8 +259,14 @@ class MainMenu(
     }
 
     private fun onPlayPauseClicked() {
+        // Stop is always valid while detecting; start-only prerequisites must not intercept Pause.
+        if (viewModel.detectionState.value is UiState.Detecting) {
+            viewModel.stopDetection()
+            return
+        }
+
         if (viewModel.shouldDownloadModels()) {
-            context.startActivity(AlphabetActivity.getStartIntent(context, RequiredAlphabetFragment.FRAGMENT_TAG))
+            context.startActivity(AlphabetActivity.getStartIntent(context, AlphabetActivity.MODE_REQUIRED))
             return
         }
 
@@ -332,7 +309,9 @@ class MainMenu(
         val currentState = viewBinding.btnPlay.tag
         if (currentState == newState) return
 
+
         viewBinding.btnPlay.tag = newState
+        isDetecting = newState is UiState.Detecting
         when (newState) {
             UiState.Idle -> {
                 if (currentState == null) {
@@ -340,14 +319,12 @@ class MainMenu(
                     viewBinding.btnClickList.isVisible = true
                     viewBinding.btnSwitchScenario.isVisible = isSwitchButtonInitiallyVisible
                     viewBinding.btnOpenHome.isVisible = isHomeButtonInitiallyVisible
-                    playPauseButtonController.toState1(false)
                 } else {
                     animateLayoutChanges {
                         setMenuItemVisibility(viewBinding.btnStop, true)
                         setMenuItemVisibility(viewBinding.btnClickList, true)
                         setMenuItemVisibility(viewBinding.btnSwitchScenario, viewModel.isSwitchButtonVisible.value)
                         setMenuItemVisibility(viewBinding.btnOpenHome, isHomeButtonInitiallyVisible)
-                        playPauseButtonController.toState1(true)
                     }
                 }
             }
@@ -358,14 +335,12 @@ class MainMenu(
                     viewBinding.btnClickList.isVisible = false
                     viewBinding.btnSwitchScenario.isVisible = false
                     viewBinding.btnOpenHome.isVisible = false
-                    playPauseButtonController.toState2(false)
                 } else {
                     animateLayoutChanges {
                         setMenuItemVisibility(viewBinding.btnStop, false)
                         setMenuItemVisibility(viewBinding.btnClickList, false)
                         setMenuItemVisibility(viewBinding.btnSwitchScenario, false)
                         setMenuItemVisibility(viewBinding.btnOpenHome, false)
-                        playPauseButtonController.toState2(true)
                     }
                 }
             }
@@ -431,17 +406,14 @@ class MainMenu(
         )
 
     private fun showScenarioSaveErrorDialog() {
-        MaterialAlertDialogBuilder(context.getDynamicColorsContext(R.style.AppTheme))
-            .setTitle(R.string.dialog_overlay_title_warning)
-            .setMessage(R.string.error_dialog_message_scenario_saving)
-            .setPositiveButton(R.string.generic_modify) { _: DialogInterface, _: Int ->
-                showScenarioConfigDialog()
-            }
-            .setNegativeButton(android.R.string.cancel) { _: DialogInterface, _: Int ->
-                viewModel.cancelScenarioChanges()
-            }
-            .create()
-            .showAsOverlay()
+        context.createMacrionMessageDialog(
+            title = R.string.dialog_overlay_title_warning,
+            message = R.string.error_dialog_message_scenario_saving,
+            confirmLabel = R.string.generic_modify,
+            cancelLabel = android.R.string.cancel,
+            onConfirm = { showScenarioConfigDialog() },
+            onCancel = { viewModel.cancelScenarioChanges() },
+        ).showAsOverlay()
     }
 
     private fun showStopVolumeDownTutorialDialog() {
@@ -453,27 +425,23 @@ class MainMenu(
     private fun showNativeLibErrorDialogIfNeeded(haveError: Boolean) {
         if (!haveError) return
 
-        MaterialAlertDialogBuilder(context.getDynamicColorsContext(R.style.AppTheme))
-            .setTitle(R.string.dialog_overlay_title_warning)
-            .setMessage(R.string.error_dialog_message_error_native_lib)
-            .setPositiveButton(android.R.string.ok) { _, _ ->
-                onStopClicked()
-            }
-            .create()
-            .showAsOverlay()
+        context.createMacrionMessageDialog(
+            title = R.string.dialog_overlay_title_warning,
+            message = R.string.error_dialog_message_error_native_lib,
+            confirmLabel = android.R.string.ok,
+            onConfirm = { onStopClicked() },
+        ).showAsOverlay()
     }
 
     private fun showScreenCaptureErrorDialogIfNeeded(haveError: Boolean) {
         if (!haveError) return
 
-        MaterialAlertDialogBuilder(context.getDynamicColorsContext(R.style.AppTheme))
-            .setTitle(R.string.dialog_overlay_title_warning)
-            .setMessage(R.string.error_dialog_message_screen_capture_unsupported)
-            .setPositiveButton(android.R.string.ok) { _, _ ->
-                onStopClicked()
-            }
-            .create()
-            .showAsOverlay()
+        context.createMacrionMessageDialog(
+            title = R.string.dialog_overlay_title_warning,
+            message = R.string.error_dialog_message_screen_capture_unsupported,
+            confirmLabel = android.R.string.ok,
+            onConfirm = { onStopClicked() },
+        ).showAsOverlay()
     }
 
     private fun showRestartMediaProjectionScreen() {

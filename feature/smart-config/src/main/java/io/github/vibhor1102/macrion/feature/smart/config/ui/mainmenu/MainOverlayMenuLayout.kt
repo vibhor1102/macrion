@@ -1,14 +1,13 @@
 /* Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.mainmenu
 
+import io.github.vibhor1102.macrion.core.common.overlays.menu.ComposeOverlayMenuHost
+import io.github.vibhor1102.macrion.core.common.overlays.menu.OverlayMenuContentAnchor
+import io.github.vibhor1102.macrion.core.common.overlays.menu.findOverlayView
+
 import android.content.Context
-import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
-import android.widget.FrameLayout
-import android.widget.ImageView
-import android.widget.ImageButton
-import android.widget.LinearLayout
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -22,15 +21,15 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.PlatformTextStyle
@@ -43,50 +42,32 @@ import androidx.compose.ui.unit.sp
 import androidx.core.view.isVisible
 import io.github.vibhor1102.macrion.core.common.overlays.menu.OverlayMenuButton
 import io.github.vibhor1102.macrion.core.common.overlays.menu.createOverlayMenuLayout
+import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredViewType
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.feature.smart.config.R
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.compose.tutorialAnchor
 import io.github.vibhor1102.macrion.feature.smart.config.ui.mainmenu.debugging.LiveDebuggingUiState
 
 internal class MainMenuViews(val root: ViewGroup) {
-    val menuItems: ViewGroup = root.findViewById(R.id.menu_items)
-    val btnPlay: ImageButton = root.findViewById(R.id.btn_play)
-    val btnStop: ImageButton = root.findViewById(R.id.btn_stop)
-    val btnClickList: ImageButton = root.findViewById(R.id.btn_click_list)
-    val btnSwitchScenario: ImageButton = root.findViewById(R.id.btn_switch_scenario)
-    val btnOpenHome: ImageButton = root.findViewById(R.id.btn_open_home)
-    val layoutDebug: View = root.findViewById(R.id.layout_debug)
-    val errorBadge: ImageView = root.findViewById(R.id.error_badge)
+    val menuItems: ViewGroup = root.findOverlayView(R.id.menu_items)
+    val btnPlay: View = root.findOverlayView(R.id.btn_play)
+    val btnStop: View = root.findOverlayView(R.id.btn_stop)
+    val btnClickList: View = root.findOverlayView(R.id.btn_click_list)
+    val btnSwitchScenario: View = root.findOverlayView(R.id.btn_switch_scenario)
+    val btnOpenHome: View = root.findOverlayView(R.id.btn_open_home)
+    val layoutDebug: View = root.findOverlayView(R.id.layout_debug)
+    val errorBadge: View = root.findOverlayView(R.id.error_badge)
 }
 
 internal fun createMainOverlayMenu(
     context: Context,
     debugContent: @Composable () -> Unit,
+    playPauseContent: @Composable () -> Unit,
 ): MainMenuViews {
-    val density = context.resources.displayMetrics.density
-    fun dp(value: Int) = (value * density).toInt()
-
-    val debugContainer = FrameLayout(context).apply {
-        id = R.id.layout_debug
-        isVisible = false
-        var contentInstalled = false
-        addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
-            override fun onViewAttachedToWindow(view: View) {
-                if (contentInstalled) return
-                contentInstalled = true
-                addView(
-                    ComposeView(context).apply {
-                        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-                        setContent { MacrionTheme { debugContent() } }
-                    },
-                    FrameLayout.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                    ),
-                )
-            }
-            override fun onViewDetachedFromWindow(view: View) = Unit
-        })
+    val errorBadgeAnchor = OverlayMenuContentAnchor(context, initiallyVisible = false).apply {
+        id = R.id.error_badge
     }
+
     val root = createOverlayMenuLayout(
         context = context,
         buttons = listOf(
@@ -97,26 +78,54 @@ internal fun createMainOverlayMenu(
             OverlayMenuButton(R.id.btn_open_home, R.drawable.ic_home, R.string.content_desc_open_home),
             OverlayMenuButton(R.id.btn_move, R.drawable.ic_move, R.string.content_desc_move_menu),
         ),
-        content = debugContainer,
-        contentLayoutParams = LinearLayout.LayoutParams(dp(200), dp(100)),
+        content = { MacrionTheme { debugContent() } },
+        contentWidthDp = 200,
+        contentHeightDp = 100,
+        contentInitiallyVisible = false,
+        contentId = R.id.layout_debug,
+        buttonModifier = { button, performClick ->
+            when (button.id) {
+                R.id.btn_play -> Modifier.tutorialAnchor(
+                    MonitoredViewType.MAIN_MENU_BUTTON_PLAY,
+                    onClick = performClick,
+                )
+                R.id.btn_click_list -> Modifier.tutorialAnchor(
+                    MonitoredViewType.MAIN_MENU_BUTTON_CONFIG,
+                    onClick = performClick,
+                )
+                else -> Modifier
+            }
+        },
+        buttonContent = { button ->
+            MacrionTheme {
+                Box(Modifier.fillMaxWidth().fillMaxHeight(), contentAlignment = Alignment.Center) {
+                    if (button.id == R.id.btn_play) {
+                        playPauseContent()
+                        if (errorBadgeAnchor.composeVisibility == View.VISIBLE) {
+                            Box(
+                                Modifier
+                                    .align(Alignment.TopEnd)
+                                    .padding(top = 8.dp, end = 10.dp)
+                                    .size(6.dp)
+                                    .background(MaterialTheme.colorScheme.error, CircleShape),
+                            )
+                        }
+                    } else {
+                        Icon(
+                            painterResource(button.icon), null, Modifier.fillMaxWidth().fillMaxHeight(),
+                            tint = colorResource(io.github.vibhor1102.macrion.core.ui.R.color.overlayMenuButtons),
+                        )
+                    }
+                }
+            }
+        },
     )
-    root.findViewById<View>(R.id.btn_switch_scenario).isVisible = false
-    root.findViewById<View>(R.id.btn_open_home).isVisible = false
-    root.addView(ImageView(context).apply {
-        id = R.id.error_badge
-        setImageResource(R.drawable.ic_badge_error)
-        scaleType = ImageView.ScaleType.FIT_CENTER
-        isVisible = false
-    }, FrameLayout.LayoutParams(
-        ViewGroup.LayoutParams.WRAP_CONTENT,
-        ViewGroup.LayoutParams.WRAP_CONTENT,
-        Gravity.TOP or Gravity.START,
-    ).apply {
-        leftMargin = dp(32)
-        topMargin = dp(8)
-    })
+    (root as? ComposeOverlayMenuHost)?.anchors?.put(R.id.error_badge, errorBadgeAnchor)
+    root.findOverlayView<View>(R.id.btn_switch_scenario).isVisible = false
+    root.findOverlayView<View>(R.id.btn_open_home).isVisible = false
     return MainMenuViews(root)
 }
+
 
 @Composable
 internal fun MainLiveDebugPanel(state: LiveDebuggingUiState?) {

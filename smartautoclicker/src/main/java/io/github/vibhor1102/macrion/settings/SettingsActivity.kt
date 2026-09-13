@@ -24,14 +24,14 @@ import android.os.Build
 import io.github.vibhor1102.macrion.crash.CrashReportsActivity
 import io.github.vibhor1102.macrion.core.base.crash.CrashDiagnostics
 import io.github.vibhor1102.macrion.BuildConfig
+import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.viewModels
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class SettingsActivity : AppCompatActivity() {
+class SettingsActivity : ComponentActivity() {
 
     private val viewModel: SettingsViewModel by viewModels()
 
@@ -45,7 +45,6 @@ class SettingsActivity : AppCompatActivity() {
                 onNavigateBack = ::finish,
                 onShowPrivacySettings = { viewModel.showPrivacySettings(this) },
                 onShowPurchase = { viewModel.showPurchaseActivity(this) },
-                onShowTroubleshooting = { viewModel.showTroubleshootingDialog(this) },
                 onShowCrashReports = { startActivity(Intent(this, CrashReportsActivity::class.java)) },
                 onOpenGithub = { openUrl(GITHUB_URL) },
                 onJoinDiscord = { openUrl(DISCORD_URL) },

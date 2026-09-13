@@ -21,15 +21,15 @@ import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.google.android.material.bottomsheet.BottomSheetDialog
 import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayDialog
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredOverlayType
+import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredViewType
 import io.github.vibhor1102.macrion.core.domain.model.condition.ScreenCondition
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.feature.smart.config.R
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
-import io.github.vibhor1102.macrion.feature.smart.config.ui.common.compose.TutorialClickAnchor
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.compose.tutorialAnchor
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.formatters.toEffectDescription
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.formatters.toNaturalDisplayString
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.condition.UiScreenCondition
@@ -48,10 +48,7 @@ class ScreenConditionSelectionDialog(
         setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
         setContent { MacrionTheme { this@ScreenConditionSelectionDialog.Content() } }
     }
-    override fun onDialogCreated(dialog: BottomSheetDialog) = Unit
-    override fun onStop() { viewModel.stopViewMonitoring(); super.onStop() }
-
-    @Composable private fun Content() {
+@Composable private fun Content() {
         Surface(Modifier.fillMaxWidth().heightIn(max = 640.dp), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
             Column {
                 Row(Modifier.fillMaxWidth().padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -67,22 +64,25 @@ class ScreenConditionSelectionDialog(
                     contentPadding = PaddingValues(horizontal = 10.dp, vertical = 8.dp),
                 ) {
                     itemsIndexed(conditionList, key = { _, item -> item.condition.id.toString() }) { index, item ->
-                        Box(Modifier.fillMaxWidth()) {
-                            ConditionCard(item) { onConditionSelected(item.condition); back() }
-                            if (index == 0) TutorialClickAnchor(
-                                onViewChanged = { view -> if (view != null) viewModel.monitorFirstConditionItemView(view)
-                                    else viewModel.stopViewMonitoring() },
-                                onClick = { onConditionSelected(item.condition); back() },
-                            )
-                        }
+                        val selectCondition = { onConditionSelected(item.condition); back() }
+                        ConditionCard(
+                            item = item,
+                            onClick = selectCondition,
+                            modifier = if (index == 0) {
+                                Modifier.tutorialAnchor(
+                                    MonitoredViewType.CONDITION_SELECTOR_DIALOG_ITEM_FIRST,
+                                    onClick = selectCondition,
+                                )
+                            } else Modifier,
+                        )
                     }
                 }
             }
         }
     }
 
-    @Composable private fun ConditionCard(item: UiScreenCondition, onClick: () -> Unit) {
-        Card(Modifier.fillMaxWidth().padding(6.dp).clickable(onClick = onClick), shape = RoundedCornerShape(10.dp),
+    @Composable private fun ConditionCard(item: UiScreenCondition, onClick: () -> Unit, modifier: Modifier = Modifier) {
+        Card(onClick = onClick, modifier = Modifier.fillMaxWidth().padding(6.dp).then(modifier), shape = RoundedCornerShape(10.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)) {
             Column(Modifier.height(124.dp)) {
                 ConditionPreview(item, Modifier.fillMaxWidth().height(68.dp))

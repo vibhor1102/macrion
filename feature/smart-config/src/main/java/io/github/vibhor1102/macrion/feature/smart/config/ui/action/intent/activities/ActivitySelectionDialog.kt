@@ -8,7 +8,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.google.android.material.bottomsheet.BottomSheetDialog
 import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayDialog
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredOverlayType
@@ -32,9 +31,7 @@ class ActivitySelectionDialog(
         setContent { MacrionTheme { this@ActivitySelectionDialog.Content() } }
     }
 
-    override fun onDialogCreated(dialog: BottomSheetDialog) = Unit
-
-    @Composable
+@Composable
     private fun Content() {
         val applications by viewModel.activities.collectAsStateWithLifecycle(initialValue = null)
         ApplicationSelectionContent(

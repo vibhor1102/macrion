@@ -17,12 +17,12 @@
  */
 package io.github.vibhor1102.macrion.core.common.overlays.manager
 
+import android.app.Dialog
 import android.content.Context
 import android.graphics.Point
 import android.util.Log
 import android.view.KeyEvent
 import android.view.WindowManager
-import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.Lifecycle
 
 import io.github.vibhor1102.macrion.core.base.Dumpable
@@ -61,7 +61,7 @@ class OverlayManager @Inject internal constructor(
         /** The type of window used for the overlays. */
         const val OVERLAY_WINDOW_TYPE: Int = WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY
 
-        fun AlertDialog.showAsOverlay() {
+        fun Dialog.showAsOverlay() {
             window?.setType(OVERLAY_WINDOW_TYPE)
             show()
         }
@@ -104,6 +104,9 @@ class OverlayManager @Inject internal constructor(
     /** @return the top of the overlay back stack. */
     fun getBackStackTop(): Overlay? =
         overlayBackStack.top
+
+    /** Whether no overlay from a previous scenario session remains. */
+    fun isEmpty(): Boolean = topOverlay == null && overlayBackStack.isEmpty()
 
     /** Display the provided overlay and pause the current one, if any. */
     fun navigateTo(context: Context, newOverlay: Overlay, hideCurrent: Boolean = false) {

@@ -16,19 +16,26 @@
  */
 package io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation
 
+import android.app.Dialog
 import android.view.KeyEvent
 import android.view.WindowManager
 
 import androidx.annotation.StyleRes
-import androidx.appcompat.app.AlertDialog
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -49,16 +56,20 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import androidx.activity.ComponentDialog
+import androidx.activity.addCallback
+import androidx.activity.setViewTreeOnBackPressedDispatcherOwner
+import androidx.lifecycle.setViewTreeLifecycleOwner
+import androidx.lifecycle.setViewTreeViewModelStoreOwner
+import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 
 import io.github.vibhor1102.macrion.core.common.overlays.R
 import io.github.vibhor1102.macrion.core.common.overlays.base.BaseOverlay
 import io.github.vibhor1102.macrion.core.common.overlays.manager.OverlayManager
+import io.github.vibhor1102.macrion.core.ui.R as UiR
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionDialogSurface
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.core.ui.utils.getDynamicColorsContext
-import io.github.vibhor1102.macrion.core.ui.R as UiR
-
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
-
 class MoveToDialog(
     @StyleRes theme: Int,
     private val defaultValue: Int,
@@ -71,50 +82,93 @@ class MoveToDialog(
 
     /** Tells if the dialog is visible. */
     private var isShown = false
-    private var dialog: AlertDialog? = null
+    private var dialog: Dialog? = null
 
     override fun onCreate() {
         val content = ComposeView(context).apply {
             setContent {
                 MacrionTheme {
-                    MoveToPositionField(
-                        value = currentValue,
-                        itemCount = itemCount,
-                        requestFocus = requestFieldFocus,
-                        onValueChanged = { value ->
-                            currentValue = value
-                            updatePositiveButtonState()
-                        },
-                    )
+                    Surface(
+                        shape = MaterialTheme.shapes.extraLarge,
+                        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        tonalElevation = 6.dp,
+                        modifier = Modifier.widthIn(min = 280.dp, max = 560.dp),
+                    ) {
+                        MacrionDialogSurface {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 24.dp, bottom = 8.dp),
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.dialog_move_to_title),
+                                    style = MaterialTheme.typography.headlineSmall,
+                                    modifier = Modifier.padding(horizontal = 24.dp),
+                                )
+                                MoveToPositionField(
+                                    value = currentValue,
+                                    itemCount = itemCount,
+                                    requestFocus = requestFieldFocus,
+                                    onValueChanged = { value ->
+                                        currentValue = value
+                                    },
+                                )
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 16.dp),
+                                    horizontalArrangement = Arrangement.End,
+                                ) {
+                                    TextButton(onClick = { back() }) {
+                                        Text(stringResource(android.R.string.cancel))
+                                    }
+                                    TextButton(
+                                        onClick = { validateCurrentValueAndClose() },
+                                        enabled = currentValue.toEditedValue() != null,
+                                    ) {
+                                        Text(stringResource(android.R.string.ok))
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
 
-        dialog = MaterialAlertDialogBuilder(context.getDynamicColorsContext(R.style.AppTheme))
-            .setTitle(R.string.dialog_move_to_title)
-            .setView(content)
-            .setOnKeyListener { _, keyCode, event ->
+        content.setViewTreeLifecycleOwner(this)
+        content.setViewTreeSavedStateRegistryOwner(this)
+        content.setViewTreeViewModelStoreOwner(this)
+
+        dialog = ComponentDialog(context.getDynamicColorsContext(R.style.AppTheme)).apply compDialog@ {
+            content.setViewTreeOnBackPressedDispatcherOwner(this)
+            onBackPressedDispatcher.addCallback(this@MoveToDialog) {
+                this@MoveToDialog.back()
+            }
+            setContentView(content)
+            setOnKeyListener { _, keyCode, event ->
                 if (keyCode == KeyEvent.KEYCODE_BACK && event.action == KeyEvent.ACTION_UP) {
-                    this@MoveToDialog.back()
+                    onBackPressedDispatcher.onBackPressed()
                     true
                 } else {
                     false
                 }
             }
-            .setPositiveButton(android.R.string.ok) { _, _ -> validateCurrentValueAndClose() }
-            .setNegativeButton(android.R.string.cancel) { _, _ -> back() }
-            .setOnDismissListener {
+            setOnDismissListener {
                 dialog = null
                 destroy()
             }
-            .create()
-
-        // Install AlertController's content before clearing its inferred no-editor flag.
-        // Its View-tree scan cannot see the text editor inside an unattached ComposeView.
-        dialog?.create()
-        dialog?.window?.apply {
-            setType(OverlayManager.OVERLAY_WINDOW_TYPE)
-            clearFlags(WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM)
+            create()
+            window?.apply {
+                decorView.setViewTreeLifecycleOwner(this@MoveToDialog)
+                decorView.setViewTreeSavedStateRegistryOwner(this@MoveToDialog)
+                decorView.setViewTreeViewModelStoreOwner(this@MoveToDialog)
+                decorView.setViewTreeOnBackPressedDispatcherOwner(this@compDialog)
+                setBackgroundDrawableResource(android.R.color.transparent)
+                setType(OverlayManager.OVERLAY_WINDOW_TYPE)
+                setDimAmount(0.6f)
+                addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
+            }
         }
     }
 
@@ -128,7 +182,6 @@ class MoveToDialog(
                 WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE,
         )
         requestFieldFocus = true
-        updatePositiveButtonState()
     }
 
     override fun onStop() {
@@ -142,11 +195,6 @@ class MoveToDialog(
     override fun onDestroy() {
         dialog?.dismiss()
         dialog = null
-    }
-
-    private fun updatePositiveButtonState() {
-        dialog?.getButton(AlertDialog.BUTTON_POSITIVE)?.isEnabled =
-            currentValue.toEditedValue() != null
     }
 
     private fun validateCurrentValueAndClose() {

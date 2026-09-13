@@ -19,7 +19,6 @@ package io.github.vibhor1102.macrion.feature.smart.config.di
 
 import io.github.vibhor1102.macrion.core.common.overlays.di.OverlayComponent
 import io.github.vibhor1102.macrion.feature.smart.config.ui.mainmenu.MainMenuModel
-import io.github.vibhor1102.macrion.feature.smart.config.ui.action.selection.ActionTypeSelectionViewModel
 import io.github.vibhor1102.macrion.feature.smart.config.ui.action.brief.SmartActionsBriefViewModel
 import io.github.vibhor1102.macrion.feature.smart.config.ui.action.changecounter.ChangeCounterViewModel
 import io.github.vibhor1102.macrion.feature.smart.config.ui.action.click.offset.ClickOffsetViewModel
@@ -46,11 +45,9 @@ import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.col
 import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.color.capture.ColorCaptureViewModel
 import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.number.NumberConditionViewModel
 import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.selection.ScreenConditionSelectionViewModel
-import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.selection.ScreenConditionTypeSelectionViewModel
 import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.text.TextConditionViewModel
 import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.trigger.TriggerConditionListViewModel
 import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.trigger.broadcast.BroadcastReceivedConditionViewModel
-import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.trigger.selection.TriggerConditionTypeSelectionViewModel
 import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.trigger.counter.CounterReachedConditionViewModel
 import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.trigger.timer.TimerReachedConditionViewModel
 import io.github.vibhor1102.macrion.feature.smart.config.ui.copy.action.ActionCopyViewModel
@@ -79,7 +76,6 @@ import dagger.hilt.InstallIn
 interface ScenarioConfigViewModelsEntryPoint {
 
     fun actionCopyViewModel(): ActionCopyViewModel
-    fun actionTypeSelectionViewModel(): ActionTypeSelectionViewModel
     fun activitySelectionViewModel(): ActivitySelectionModel
     fun broadcastReceivedConditionViewModel(): BroadcastReceivedConditionViewModel
     fun captureViewModel(): CaptureViewModel
@@ -119,7 +115,6 @@ interface ScenarioConfigViewModelsEntryPoint {
     fun scenarioDialogViewModel(): ScenarioDialogViewModel
     fun scenarioSwitchViewModel(): ScenarioSwitchViewModel
     fun screenConditionSelectionViewModel(): ScreenConditionSelectionViewModel
-    fun screenConditionTypeSelectionViewModel(): ScreenConditionTypeSelectionViewModel
     fun setTextViewModel(): SetTextViewModel
     fun smartActionsBriefViewModel(): SmartActionsBriefViewModel
     fun swipeViewModel(): SwipeViewModel
@@ -127,7 +122,6 @@ interface ScenarioConfigViewModelsEntryPoint {
     fun textConditionViewModel(): TextConditionViewModel
     fun timerReachedConditionViewModel(): TimerReachedConditionViewModel
     fun toggleEventViewModel(): ToggleEventViewModel
-    fun triggerConditionTypeSelectionViewModel(): TriggerConditionTypeSelectionViewModel
     fun triggerConditionsViewModel(): TriggerConditionListViewModel
     fun triggerEventListViewModel(): TriggerEventListViewModel
 }

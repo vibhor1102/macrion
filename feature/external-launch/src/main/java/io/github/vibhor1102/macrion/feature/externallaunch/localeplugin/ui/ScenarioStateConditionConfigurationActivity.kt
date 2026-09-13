@@ -10,12 +10,12 @@ package io.github.vibhor1102.macrion.feature.externallaunch.localeplugin.ui
 
 import android.app.Activity
 import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
+import androidx.activity.ComponentActivity
 import io.github.vibhor1102.macrion.feature.externallaunch.R
 import io.github.vibhor1102.macrion.feature.externallaunch.localeplugin.domain.LocalePluginContract
 import io.github.vibhor1102.macrion.feature.externallaunch.localeplugin.scenariostate.ScenarioStatePluginContract
 
-class ScenarioStateConditionConfigurationActivity : AppCompatActivity() {
+class ScenarioStateConditionConfigurationActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

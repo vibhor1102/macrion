@@ -24,7 +24,7 @@ import io.github.vibhor1102.macrion.core.dumb.domain.model.DumbScenario
 import io.github.vibhor1102.macrion.core.settings.domain.model.ScenarioSortType
 
 /**
- * Ui State for the [io.github.vibhor1102.macrion.scenarios.list.ScenarioListFragment]
+ * Ui State for the Compose scenario list hosted by [io.github.vibhor1102.macrion.scenarios.ScenarioActivity].
  *
  * @param type the current ui type
  * @param menuUiState the ui state for the action bar menu
@@ -36,7 +36,7 @@ data class ScenarioListUiState(
     val listContent: List<Item>,
 ) {
 
-    /** Possible states for the action menu of the ScenarioListFragment. */
+    /** Possible states for the scenario-list toolbar. */
     enum class Type {
         /** The user can select a scenario to be played/edited.*/
         SELECTION,

@@ -1,17 +1,21 @@
 /* Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report
 
-import android.view.ViewGroup
-import android.widget.FrameLayout
-import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.drag
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.HorizontalDivider
@@ -19,23 +23,43 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import io.github.vibhor1102.macrion.core.ui.views.fastscroll.VerticalFastScrollerView
 import io.github.vibhor1102.macrion.feature.smart.debugging.R
+import kotlinx.coroutines.delay
+import kotlin.math.max
 
-internal class ReportRecyclerViews(
-    val recyclerView: RecyclerView,
-    val fastScroller: VerticalFastScrollerView,
+private data class FastScrollerThumbBounds(
+    val top: Float,
+    val height: Float,
+    val minimumTouchHeight: Float,
+    val minimumTop: Float,
+    val maximumTop: Float,
 )
 
 @Composable
@@ -105,56 +129,133 @@ internal fun ReportEmptyMessage(
     }
 }
 
+/** Shared fast scroller for report LazyColumns. */
 @Composable
-internal fun ReportRecycler(
-    @StringRes contentDescriptionRes: Int,
+internal fun ReportFastScroller(
+    state: LazyListState,
+    contentDescription: String,
     modifier: Modifier = Modifier,
-    bottomPaddingDp: Int = 0,
-    onCreated: (ReportRecyclerViews) -> Unit,
 ) {
-    AndroidView(
-        modifier = modifier,
-        factory = { context ->
-            val recycler = RecyclerView(context).apply {
-                layoutManager = LinearLayoutManager(context)
-                clipToPadding = bottomPaddingDp == 0
-                setPadding(0, 0, 0, (bottomPaddingDp * resources.displayMetrics.density).toInt())
-            }
-            val scroller = VerticalFastScrollerView(context).apply {
-                contentDescription = context.getString(contentDescriptionRes)
-                attachToRecyclerView(recycler)
-            }
-            FrameLayout(context).apply {
-                addView(recycler, FrameLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                ))
-                addView(scroller, FrameLayout.LayoutParams(
-                    (32 * resources.displayMetrics.density).toInt(),
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    android.view.Gravity.END,
-                ))
-                onCreated(ReportRecyclerViews(recycler, scroller))
-            }
-        },
-    )
-}
+    var heightPx by remember { mutableIntStateOf(0) }
+    var dragging by remember { mutableStateOf(false) }
+    var draggedThumbTop by remember { mutableFloatStateOf(0f) }
+    var thumbVisible by remember { mutableStateOf(true) }
+    val layoutInfo = state.layoutInfo
+    val itemCount = layoutInfo.totalItemsCount
+    val visibleCount = layoutInfo.visibleItemsInfo.size
+    val trackColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f)
+    val thumbColor = MaterialTheme.colorScheme.primary
+    if (itemCount == 0 || visibleCount >= itemCount) return
 
-@Composable
-internal fun ReportLoadableList(
-    items: List<*>?,
-    @StringRes contentDescriptionRes: Int,
-    emptyTitle: String? = null,
-    emptySecondary: String? = null,
-    onCreated: (ReportRecyclerViews) -> Unit,
-) {
-    when {
-        items == null -> ReportLoading()
-        items.isEmpty() && emptyTitle != null -> ReportEmptyMessage(
-            title = emptyTitle,
-            secondary = emptySecondary,
+    LaunchedEffect(state.isScrollInProgress, dragging) {
+        if (state.isScrollInProgress || dragging) {
+            thumbVisible = true
+        } else {
+            delay(1_200)
+            thumbVisible = false
+        }
+    }
+
+    val density = androidx.compose.ui.platform.LocalDensity.current
+    val marginPx = with(density) { 4.dp.toPx() }
+    val minimumThumbHeightPx = with(density) { 48.dp.toPx() }
+    val averageItemHeight = (layoutInfo.visibleItemsInfo
+        .map { it.size }
+        .average()
+        .takeIf { !it.isNaN() } ?: 1.0)
+        .toFloat()
+        .coerceAtLeast(1f)
+    val viewportHeight = heightPx.toFloat().coerceAtLeast(1f)
+    val availableHeight = (viewportHeight - marginPx * 2).coerceAtLeast(1f)
+    val estimatedRange = (averageItemHeight * itemCount).coerceAtLeast(viewportHeight)
+    val scrollableRange = (estimatedRange - viewportHeight).coerceAtLeast(1f)
+    val thumbHeight = max(
+        minimumThumbHeightPx,
+        availableHeight * viewportHeight / estimatedRange,
+    ).coerceAtMost(availableHeight)
+    val thumbTravel = (availableHeight - thumbHeight).coerceAtLeast(1f)
+    val currentOffset = (state.firstVisibleItemIndex * averageItemHeight + state.firstVisibleItemScrollOffset)
+        .coerceIn(0f, scrollableRange)
+    val thumbTop = marginPx + thumbTravel * currentOffset / scrollableRange
+    // The list's pixel offset is necessarily estimated for variable-height rows.  While
+    // dragging, retain the exact thumb position separately so that estimate changes can't
+    // pull the affordance away from the user's finger.
+    val displayedThumbTop = if (dragging) draggedThumbTop else thumbTop
+
+    val latestScrollMultiplier = rememberUpdatedState(scrollableRange / thumbTravel)
+    val latestThumbBounds = rememberUpdatedState(
+        FastScrollerThumbBounds(
+            top = thumbTop,
+            height = thumbHeight,
+            minimumTouchHeight = minimumThumbHeightPx,
+            minimumTop = marginPx,
+            maximumTop = marginPx + thumbTravel,
+        ),
+    )
+    val dragVisualProgress by animateFloatAsState(
+        targetValue = if (dragging) 1f else 0f,
+        animationSpec = tween(durationMillis = 140),
+        label = "report-fast-scroller-drag",
+    )
+    val visibilityProgress by animateFloatAsState(
+        targetValue = if (thumbVisible) 1f else 0f,
+        // A slightly longer easing makes the utility control feel like it is
+        // retreating after use instead of disappearing between frames.
+        animationSpec = tween(durationMillis = 520, easing = FastOutSlowInEasing),
+        label = "report-fast-scroller-visibility",
+    )
+
+    Canvas(
+        modifier = modifier
+            .width(32.dp)
+            .fillMaxHeight()
+            .alpha(visibilityProgress)
+            .onSizeChanged { heightPx = it.height }
+            .semantics { this.contentDescription = contentDescription }
+            .pointerInput(Unit) {
+                awaitEachGesture {
+                    val down = awaitFirstDown(requireUnconsumed = false)
+                    val bounds = latestThumbBounds.value
+                    val touchPadding = (max(bounds.height, bounds.minimumTouchHeight) - bounds.height) / 2
+                    val touchTop = bounds.top - touchPadding
+                    val touchBottom = bounds.top + bounds.height + touchPadding
+                    if (down.position.y !in touchTop..touchBottom) return@awaitEachGesture
+
+                    try {
+                        thumbVisible = true
+                        draggedThumbTop = bounds.top
+                        dragging = true
+                        drag(down.id) { change ->
+                            val dragAmount = change.positionChange().y
+                            if (dragAmount != 0f) {
+                                change.consume()
+                                val currentBounds = latestThumbBounds.value
+                                draggedThumbTop = (draggedThumbTop + dragAmount).coerceIn(
+                                    currentBounds.minimumTop,
+                                    currentBounds.maximumTop,
+                                )
+                                state.dispatchRawDelta(dragAmount * latestScrollMultiplier.value)
+                            }
+                        }
+                    } finally {
+                        dragging = false
+                    }
+                }
+            },
+    ) {
+        val trackWidth = 3.dp.toPx() + 5.dp.toPx() * dragVisualProgress
+        val visualThumbWidth = 8.dp.toPx() + 6.dp.toPx() * dragVisualProgress
+        drawRoundRect(
+            color = trackColor,
+            topLeft = Offset(size.width - trackWidth, marginPx),
+            size = Size(trackWidth, availableHeight),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(trackWidth / 2),
         )
-        items.isEmpty() -> Box(Modifier.fillMaxSize())
-        else -> ReportRecycler(contentDescriptionRes, Modifier.fillMaxSize(), onCreated = onCreated)
+        drawRoundRect(
+            color = thumbColor.copy(alpha = 0.8f + 0.2f * dragVisualProgress),
+            topLeft = Offset(size.width - visualThumbWidth, displayedThumbTop),
+            size = Size(visualThumbWidth, thumbHeight),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(visualThumbWidth / 2),
+        )
     }
 }

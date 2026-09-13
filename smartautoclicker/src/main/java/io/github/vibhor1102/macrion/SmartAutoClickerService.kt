@@ -94,6 +94,19 @@ class SmartAutoClickerService : AccessibilityService() {
     override fun onServiceConnected() {
         super.onServiceConnected()
 
+        // A previous accessibility-service instance can disappear while the application process (and therefore its
+        // singleton engines) survives. Never publish a fresh LocalService on top of that stale session.
+        if (localServiceConnection.getLocalService() == null &&
+            (!overlayManager.isEmpty() || smartProcessingRepository.getScenarioId() != null ||
+                !smartProcessingRepository.isFullyStopped() || dumbEngine.isInitialized())
+        ) {
+            Log.w(TAG, "Resetting stale scenario state after accessibility service reconnect")
+            dumbEngine.release()
+            overlayManager.closeAll(this)
+            smartProcessingRepository.stopScreenRecord()
+            onAccessibilityServiceLost()
+        }
+
         qualityMetricsMonitor.onServiceConnected()
         actionExecutor.init(this)
 
@@ -152,15 +165,13 @@ class SmartAutoClickerService : AccessibilityService() {
                 onScenarioChanged = ::onLocalScenarioChanged,
                 onScenarioStateChanged = externalLaunchRepository::notifyScenarioStateChanged,
                 onStop = ::onLocalServiceStopped,
+                onAccessibilityLoss = ::onAccessibilityServiceLost,
             )
         )
     }
 
     override fun onUnbind(intent: Intent?): Boolean {
-        localServiceConnection.getLocalService()?.apply {
-            stopScenario()
-            release()
-        }
+        localServiceConnection.getLocalService()?.shutdownForAccessibilityLoss()
         localServiceConnection.onAccessibilityServiceStopped()
         externalLaunchRepository.notifyScenarioStateChanged()
 
@@ -199,6 +210,16 @@ class SmartAutoClickerService : AccessibilityService() {
         requestFilterKeyEvents(false)
         stopForeground(STOP_FOREGROUND_REMOVE)
 
+        displayConfigManager.stopMonitoring()
+        bitmapManager.clearCache()
+    }
+
+    /** Release service-owned resources without treating an abnormal accessibility loss as a completed user session. */
+    private fun onAccessibilityServiceLost() {
+        qualityMetricsMonitor.onServiceForegroundEnd()
+        actionExecutor.resetState()
+        requestFilterKeyEvents(false)
+        stopForeground(STOP_FOREGROUND_REMOVE)
         displayConfigManager.stopMonitoring()
         bitmapManager.clearCache()
     }

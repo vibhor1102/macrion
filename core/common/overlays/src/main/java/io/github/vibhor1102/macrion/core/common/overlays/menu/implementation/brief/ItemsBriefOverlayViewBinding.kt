@@ -18,26 +18,52 @@ package io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.br
 
 import android.content.res.Configuration
 import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.widget.FrameLayout
-import android.widget.ImageView
-import android.widget.Space
+import android.view.ViewConfiguration
+import kotlinx.coroutines.delay
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.rememberSplineBasedDecay
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.snapping.SnapLayoutInfoProvider
+import androidx.compose.foundation.gestures.snapping.snapFlingBehavior
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -46,32 +72,79 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.viewinterop.AndroidView
-import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.recyclerview.widget.RecyclerView
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.material3.Icon
+import androidx.compose.ui.graphics.graphicsLayer
 import io.github.vibhor1102.macrion.core.common.overlays.R
-import io.github.vibhor1102.macrion.core.ui.views.gesturerecord.GestureRecordView
-import io.github.vibhor1102.macrion.core.ui.views.itembrief.ItemBriefView
+import io.github.vibhor1102.macrion.core.display.config.DisplayConfig
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
+import io.github.vibhor1102.macrion.core.ui.compose.overlay.GestureRecordOverlay
+import io.github.vibhor1102.macrion.core.ui.compose.overlay.ItemBriefCanvas
+import io.github.vibhor1102.macrion.core.ui.views.gesturerecord.RecordedGesture
+import io.github.vibhor1102.macrion.core.ui.views.itembrief.ItemBriefDescription
 import io.github.vibhor1102.macrion.core.ui.R as UiR
 
-class ItemsBriefOverlayViewBinding private constructor(
-    val root: View,
-    val viewBrief: ItemBriefView,
-    val viewRecorder: GestureRecordView,
-    val layoutInstructions: ComposeView,
-    val layoutActionList: View,
-    val listActions: RecyclerView,
-    val emptyScenarioCard: View,
-    private val controlPanel: ComposeView,
-    private val orientation: Int,
-) {
+interface ItemBriefViewFacade {
+    fun setDescription(newDescription: ItemBriefDescription?, animate: Boolean = true)
+}
 
-    val recordingIcon = ImageView(root.context).apply {
-        setImageResource(UiR.drawable.ic_recording)
+interface GestureRecordViewFacade {
+    var isVisible: Boolean
+    var gestureCaptureListener: ((gesture: RecordedGesture?, isFinished: Boolean) -> Unit)?
+    fun clearAndHide()
+}
+
+class ItemsBriefOverlayViewBinding private constructor(
+    val root: ComposeView,
+    private val orientation: Int,
+    private val displayConfig: DisplayConfig,
+) {
+    val currentDescription = mutableStateOf<ItemBriefDescription?>(null)
+    private val isAnimateEnabled = mutableStateOf(true)
+    private var internalGestureCaptureListener: ((gesture: RecordedGesture?, isFinished: Boolean) -> Unit)? = null
+
+    val viewBrief: ItemBriefViewFacade = object : ItemBriefViewFacade {
+        override fun setDescription(newDescription: ItemBriefDescription?, animate: Boolean) {
+            currentDescription.value = newDescription
+            isAnimateEnabled.value = animate
+        }
     }
+
+    val viewRecorder: GestureRecordViewFacade = object : GestureRecordViewFacade {
+        override var isVisible: Boolean
+            get() = isGestureRecording.value
+            set(value) { isGestureRecording.value = value }
+
+        override var gestureCaptureListener: ((gesture: RecordedGesture?, isFinished: Boolean) -> Unit)?
+            get() = internalGestureCaptureListener
+            set(value) { internalGestureCaptureListener = value }
+
+        override fun clearAndHide() {
+            isGestureRecording.value = false
+            internalGestureCaptureListener = null
+        }
+    }
+
     private val emptyText = mutableIntStateOf(0)
     private val controlState = mutableStateOf(ItemBriefControlsState())
+    private val briefItems = mutableStateOf<List<ItemBrief>>(emptyList())
+    private val requestedBriefItemIndex = mutableIntStateOf(0)
+    private val isPanelVisible = mutableStateOf(false)
+    val isGestureRecording = mutableStateOf(false)
+    private val isInstructionsVisible = mutableStateOf(false)
+    private val isPanelAutoHideEnabled = mutableStateOf(true)
+
+    private val panelTimerTrigger = mutableIntStateOf(0)
+    private val instructionsTimerTrigger = mutableIntStateOf(0)
+
+    private var briefItemContent: (@Composable (ItemBrief, Int, () -> Unit) -> Unit)? = null
+    private var onItemClicked: (Int, ItemBrief) -> Unit = { _, _ -> }
+    private var onFocusedItemChanged: (Int) -> Unit = {}
+    private var firstItemModifier by mutableStateOf<@Composable () -> Modifier>({ Modifier })
 
     private var onMovePrevious: () -> Unit = {}
     private var onDelete: () -> Unit = {}
@@ -79,204 +152,22 @@ class ItemsBriefOverlayViewBinding private constructor(
     private var onPlay: () -> Unit = {}
     private var onMoveNext: () -> Unit = {}
 
-    private constructor(views: HostViews, orientation: Int) : this(
-        root = views.root,
-        viewBrief = views.viewBrief,
-        viewRecorder = views.viewRecorder,
-        layoutInstructions = views.layoutInstructions,
-        layoutActionList = views.layoutActionList,
-        listActions = views.listActions,
-        emptyScenarioCard = views.emptyScenarioCard,
-        controlPanel = views.controlPanel,
-        orientation = orientation,
-    )
-
     companion object {
 
-        fun inflate(inflater: LayoutInflater, orientation: Int): ItemsBriefOverlayViewBinding {
-            val isPortrait = orientation == Configuration.ORIENTATION_PORTRAIT
-            val views = createHostViews(inflater, isPortrait)
-            return ItemsBriefOverlayViewBinding(views, orientation).apply {
-                views.backgroundList.setFade(if (isPortrait) FadeDirection.BOTTOM else FadeDirection.LEFT)
-                views.emptyScenarioCard.setEmptyContent(emptyText)
-                setInstructionsContent(isPortrait)
-                setControlPanelContent()
-            }
-        }
+        private const val AUTO_HIDE_DELAY_MS = 3_000L
 
-        private fun createHostViews(inflater: LayoutInflater, isPortrait: Boolean): HostViews {
+        fun inflate(
+            inflater: LayoutInflater,
+            orientation: Int,
+            displayConfig: DisplayConfig,
+        ): ItemsBriefOverlayViewBinding {
             val context = inflater.context
-            val resources = context.resources
-            val matchParent = ViewGroup.LayoutParams.MATCH_PARENT
-            val wrapContent = ViewGroup.LayoutParams.WRAP_CONTENT
-
-            val root = FrameLayout(context).apply {
-                layoutParams = FrameLayout.LayoutParams(matchParent, matchParent)
+            val root = ComposeView(context)
+            return ItemsBriefOverlayViewBinding(root, orientation, displayConfig).apply {
+                root.setContent { MacrionTheme { OverlayContent() } }
             }
-            val viewRecorder = GestureRecordView(context).apply {
-                visibility = View.GONE
-            }
-            val layoutInstructions = ComposeView(context).apply {
-                visibility = View.GONE
-            }
-            val viewBrief = ItemBriefView(context)
-            val layoutActionList = ConstraintLayout(context)
-            val backgroundList = ComposeView(context).apply { id = View.generateViewId() }
-            val emptyScenarioCard = ComposeView(context).apply {
-                id = View.generateViewId()
-                visibility = View.GONE
-            }
-            val listActions = RecyclerView(context).apply {
-                id = View.generateViewId()
-                clipToPadding = false
-                isHorizontalScrollBarEnabled = false
-                isVerticalScrollBarEnabled = false
-            }
-            val controlPanel = ComposeView(context).apply { id = View.generateViewId() }
-            val spacer = Space(context).apply { id = View.generateViewId() }
-
-            root.addView(viewRecorder, FrameLayout.LayoutParams(matchParent, matchParent))
-            root.addView(layoutInstructions, FrameLayout.LayoutParams(matchParent, wrapContent))
-            root.addView(viewBrief, FrameLayout.LayoutParams(matchParent, matchParent))
-            root.addView(layoutActionList, FrameLayout.LayoutParams(matchParent, matchParent))
-
-            if (isPortrait) {
-                layoutActionList.addView(
-                    backgroundList,
-                    ConstraintLayout.LayoutParams(0, 0).apply {
-                        startToStart = ConstraintLayout.LayoutParams.PARENT_ID
-                        endToEnd = ConstraintLayout.LayoutParams.PARENT_ID
-                        topToTop = spacer.id
-                        bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
-                    },
-                )
-                layoutActionList.addView(
-                    spacer,
-                    ConstraintLayout.LayoutParams(0, 0).apply {
-                        startToStart = ConstraintLayout.LayoutParams.PARENT_ID
-                        endToEnd = ConstraintLayout.LayoutParams.PARENT_ID
-                        bottomToTop = controlPanel.id
-                        bottomMargin = resources.getDimensionPixelSize(R.dimen.overlay_brief_background_top_padding_port)
-                    },
-                )
-                layoutActionList.addView(
-                    emptyScenarioCard,
-                    ConstraintLayout.LayoutParams(
-                        0,
-                        resources.getDimensionPixelSize(R.dimen.item_brief_height),
-                    ).apply {
-                        startToStart = ConstraintLayout.LayoutParams.PARENT_ID
-                        endToEnd = ConstraintLayout.LayoutParams.PARENT_ID
-                        bottomToTop = controlPanel.id
-                        marginStart = resources.getDimensionPixelSize(UiR.dimen.margin_horizontal_extra_large)
-                        marginEnd = resources.getDimensionPixelSize(UiR.dimen.margin_horizontal_extra_large)
-                        bottomMargin = resources.getDimensionPixelSize(UiR.dimen.margin_vertical_extra_large)
-                    },
-                )
-                listActions.setPadding(
-                    resources.getDimensionPixelSize(UiR.dimen.margin_horizontal_large),
-                    0,
-                    resources.getDimensionPixelSize(UiR.dimen.margin_horizontal_large),
-                    0,
-                )
-                layoutActionList.addView(
-                    listActions,
-                    ConstraintLayout.LayoutParams(0, 0).apply {
-                        startToStart = ConstraintLayout.LayoutParams.PARENT_ID
-                        endToEnd = ConstraintLayout.LayoutParams.PARENT_ID
-                        topToTop = ConstraintLayout.LayoutParams.PARENT_ID
-                        bottomToTop = controlPanel.id
-                        bottomMargin = resources.getDimensionPixelSize(UiR.dimen.margin_vertical_extra_large)
-                    },
-                )
-                layoutActionList.addView(
-                    controlPanel,
-                    ConstraintLayout.LayoutParams(0, wrapContent).apply {
-                        startToStart = ConstraintLayout.LayoutParams.PARENT_ID
-                        endToEnd = ConstraintLayout.LayoutParams.PARENT_ID
-                        bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
-                    },
-                )
-            } else {
-                layoutActionList.addView(
-                    backgroundList,
-                    ConstraintLayout.LayoutParams(0, 0).apply {
-                        startToStart = ConstraintLayout.LayoutParams.PARENT_ID
-                        endToStart = spacer.id
-                        topToTop = ConstraintLayout.LayoutParams.PARENT_ID
-                        bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
-                    },
-                )
-                layoutActionList.addView(
-                    spacer,
-                    ConstraintLayout.LayoutParams(0, 0).apply {
-                        startToEnd = controlPanel.id
-                        topToTop = ConstraintLayout.LayoutParams.PARENT_ID
-                        bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
-                        marginStart = resources.getDimensionPixelSize(R.dimen.overlay_brief_background_end_padding_land)
-                    },
-                )
-                layoutActionList.addView(
-                    emptyScenarioCard,
-                    ConstraintLayout.LayoutParams(
-                        resources.getDimensionPixelSize(R.dimen.overlay_brief_item_width_land),
-                        0,
-                    ).apply {
-                        startToEnd = controlPanel.id
-                        topToTop = ConstraintLayout.LayoutParams.PARENT_ID
-                        bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
-                        marginStart = resources.getDimensionPixelSize(UiR.dimen.margin_horizontal_default)
-                        topMargin = 64.dpToPx(resources.displayMetrics.density)
-                        bottomMargin = 64.dpToPx(resources.displayMetrics.density)
-                    },
-                )
-                val verticalPadding = 64.dpToPx(resources.displayMetrics.density)
-                listActions.setPadding(0, verticalPadding, 0, verticalPadding)
-                layoutActionList.addView(
-                    listActions,
-                    ConstraintLayout.LayoutParams(0, 0).apply {
-                        startToEnd = controlPanel.id
-                        endToEnd = ConstraintLayout.LayoutParams.PARENT_ID
-                        topToTop = ConstraintLayout.LayoutParams.PARENT_ID
-                        bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
-                        marginStart = resources.getDimensionPixelSize(UiR.dimen.margin_horizontal_default)
-                    },
-                )
-                layoutActionList.addView(
-                    controlPanel,
-                    ConstraintLayout.LayoutParams(wrapContent, 0).apply {
-                        startToStart = ConstraintLayout.LayoutParams.PARENT_ID
-                        topToTop = ConstraintLayout.LayoutParams.PARENT_ID
-                        bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
-                    },
-                )
-            }
-
-            return HostViews(
-                root = root,
-                viewBrief = viewBrief,
-                viewRecorder = viewRecorder,
-                layoutInstructions = layoutInstructions,
-                layoutActionList = layoutActionList,
-                backgroundList = backgroundList,
-                listActions = listActions,
-                emptyScenarioCard = emptyScenarioCard,
-                controlPanel = controlPanel,
-            )
         }
     }
-
-    private data class HostViews(
-        val root: FrameLayout,
-        val viewBrief: ItemBriefView,
-        val viewRecorder: GestureRecordView,
-        val layoutInstructions: ComposeView,
-        val layoutActionList: ConstraintLayout,
-        val backgroundList: ComposeView,
-        val listActions: RecyclerView,
-        val emptyScenarioCard: ComposeView,
-        val controlPanel: ComposeView,
-    )
 
     fun setEmptyText(textRes: Int) {
         emptyText.intValue = textRes
@@ -300,44 +191,159 @@ class ItemsBriefOverlayViewBinding private constructor(
         controlState.value = state
     }
 
-    private fun setControlPanelContent() {
-        controlPanel.setContent {
-            MacrionTheme {
-                ItemBriefControls(
-                    state = controlState.value,
-                    isPortrait = orientation == Configuration.ORIENTATION_PORTRAIT,
-                    onMovePrevious = { onMovePrevious() },
-                    onDelete = { onDelete() },
-                    onPosition = { onPosition() },
-                    onPlay = { onPlay() },
-                    onMoveNext = { onMoveNext() },
-                )
-            }
+    fun setBriefItemsContent(
+        initialItemIndex: Int,
+        itemContent: @Composable (ItemBrief, Int, () -> Unit) -> Unit,
+        onItemClicked: (Int, ItemBrief) -> Unit,
+        onFocusedItemChanged: (Int) -> Unit,
+        firstItemModifier: @Composable () -> Modifier = { Modifier },
+    ) {
+        this.briefItemContent = itemContent
+        this.onItemClicked = onItemClicked
+        this.onFocusedItemChanged = onFocusedItemChanged
+        this.firstItemModifier = firstItemModifier
+        requestedBriefItemIndex.intValue = initialItemIndex
+    }
+
+    fun updateBriefItems(items: List<ItemBrief>, focusedIndex: Int) {
+        briefItems.value = items
+        requestedBriefItemIndex.intValue = focusedIndex
+    }
+
+    /** Mirrors the legacy brief panel's immediate reveal and three-second auto-hide timer. */
+    fun showOrResetPanelTimer() {
+        if (isGestureRecording.value) return
+        isPanelVisible.value = true
+        panelTimerTrigger.intValue++
+    }
+
+    fun hidePanel() {
+        panelTimerTrigger.intValue = 0
+        isPanelVisible.value = false
+    }
+
+    fun setGestureRecording(recording: Boolean) {
+        isGestureRecording.value = recording
+        if (recording) hidePanel() else showOrResetPanelTimer()
+    }
+
+    fun setPanelAutoHideEnabled(enabled: Boolean) {
+        isPanelAutoHideEnabled.value = enabled
+        if (!enabled) {
+            panelTimerTrigger.intValue = 0
         }
     }
 
-    private fun setInstructionsContent(isPortrait: Boolean) {
-        layoutInstructions.setContent {
-            val colors = arrayOf(
-                0f to Color.Black,
-                0.7f to Color.Black.copy(alpha = 0.53f),
-                1f to Color.Transparent,
+    fun showOrResetInstructionsTimer() {
+        isInstructionsVisible.value = true
+        instructionsTimerTrigger.intValue++
+    }
+
+    fun hideInstructions() {
+        instructionsTimerTrigger.intValue = 0
+        isInstructionsVisible.value = false
+    }
+
+    fun dispose() {
+        panelTimerTrigger.intValue = 0
+        instructionsTimerTrigger.intValue = 0
+    }
+
+    @Composable
+    private fun OverlayContent() {
+        LaunchedEffect(panelTimerTrigger.intValue, isPanelAutoHideEnabled.value) {
+            if (panelTimerTrigger.intValue > 0 && isPanelAutoHideEnabled.value) {
+                delay(AUTO_HIDE_DELAY_MS)
+                isPanelVisible.value = false
+            }
+        }
+        LaunchedEffect(instructionsTimerTrigger.intValue) {
+            if (instructionsTimerTrigger.intValue > 0) {
+                delay(AUTO_HIDE_DELAY_MS)
+                isInstructionsVisible.value = false
+            }
+        }
+        val isPortrait = orientation == Configuration.ORIENTATION_PORTRAIT
+        Box(Modifier.fillMaxSize()) {
+            ItemBriefCanvas(
+                description = currentDescription.value,
+                displayConfig = displayConfig,
+                animate = isAnimateEnabled.value,
+                modifier = Modifier.fillMaxSize(),
             )
-            MacrionTheme {
+            GestureRecordOverlay(
+                displayConfig = displayConfig,
+                isRecording = isGestureRecording.value,
+                onGestureCaptured = { gesture, isFinished ->
+                    internalGestureCaptureListener?.invoke(gesture, isFinished)
+                },
+                modifier = Modifier.fillMaxSize(),
+            )
+
+            // An exiting panel still owns pointer input during its animation. Recording must
+            // expose the entire gesture surface immediately, not just hide the panel visually.
+            if (!isGestureRecording.value) AnimatedVisibility(
+                visible = isPanelVisible.value,
+                enter = if (isPortrait) slideInVertically { it } + fadeIn() else slideInHorizontally { -it } + fadeIn(),
+                exit = if (isPortrait) slideOutVertically { it } + fadeOut() else slideOutHorizontally { -it } + fadeOut(),
+            ) {
+                if (isPortrait) PortraitBriefPanel() else LandscapeBriefPanel()
+            }
+
+            // The legacy root consumed a tap while its auto-hidden panel was away and used it to
+            // reveal that panel. Keep that explicit here, but never place a hit target over a
+            // visible brief card.
+            if (!isPanelVisible.value && !isGestureRecording.value) {
+                val interactionSource = remember { MutableInteractionSource() }
+                Box(
+                    Modifier
+                        .fillMaxSize()
+                        .clickable(
+                            interactionSource = interactionSource,
+                            indication = null,
+                            onClick = ::showOrResetPanelTimer,
+                        ),
+                )
+            }
+
+            AnimatedVisibility(
+                visible = isInstructionsVisible.value,
+                enter = slideInVertically { -it } + fadeIn(),
+                exit = slideOutVertically { -it } + fadeOut(),
+                modifier = Modifier.align(Alignment.TopCenter),
+            ) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Brush.verticalGradient(colorStops = colors))
-                        .padding(
-                            start = 32.dp,
-                            top = if (isPortrait) 12.dp else 8.dp,
-                            end = 32.dp,
-                            bottom = 24.dp,
-                        ),
+                        .background(
+                            Brush.verticalGradient(
+                                0f to Color.Black,
+                                0.7f to Color.Black.copy(alpha = 0.53f),
+                                1f to Color.Transparent,
+                            ),
+                        )
+                        .padding(start = 32.dp, top = if (isPortrait) 12.dp else 8.dp, end = 32.dp, bottom = 24.dp),
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    AndroidView(factory = { recordingIcon }, modifier = Modifier.size(24.dp))
+                    val blinkingTransition = rememberInfiniteTransition(label = "BlinkingRecordingIcon")
+                    val blinkingAlpha by blinkingTransition.animateFloat(
+                        initialValue = 1f,
+                        targetValue = 0.5f,
+                        animationSpec = infiniteRepeatable(
+                            animation = tween(500),
+                            repeatMode = RepeatMode.Reverse,
+                        ),
+                        label = "RecordingAlpha",
+                    )
+                    Icon(
+                        painter = painterResource(UiR.drawable.ic_recording),
+                        contentDescription = null,
+                        tint = Color.Unspecified,
+                        modifier = Modifier
+                            .size(24.dp)
+                            .graphicsLayer { alpha = blinkingAlpha },
+                    )
                     Spacer(Modifier.width(if (isPortrait) 8.dp else 16.dp))
                     Text(
                         text = stringResource(R.string.overlay_instructions_gesture_record),
@@ -346,6 +352,154 @@ class ItemsBriefOverlayViewBinding private constructor(
                         textAlign = TextAlign.Center,
                     )
                 }
+            }
+        }
+    }
+
+    @Composable
+    private fun PortraitBriefPanel() {
+        Box(Modifier.fillMaxSize()) {
+            PanelTimerResetSurface()
+            // The old ConstraintLayout began this surface at the controls minus 112dp. Its
+            // effective height is the 68dp controls row plus that offset, not the full screen.
+            Box(
+                Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .height(PORTRAIT_FADE_HEIGHT)
+                    .background(
+                        Brush.verticalGradient(
+                            0f to Color.Transparent,
+                            0.3f to Color.Black.copy(alpha = 0.53f),
+                            1f to Color.Black,
+                        ),
+                    ),
+            )
+            Column(Modifier.fillMaxSize()) {
+            Spacer(Modifier.height(112.dp))
+            Box(Modifier.weight(1f).fillMaxWidth().padding(bottom = 24.dp)) {
+                if (briefItems.value.isEmpty()) {
+                    EmptyBriefCard(
+                        Modifier
+                            .align(Alignment.BottomCenter)
+                            .fillMaxWidth()
+                            .height(80.dp)
+                            .padding(horizontal = 32.dp),
+                    )
+                }
+                else briefItemContent?.let { itemContent ->
+                    BriefItemsCarousel(
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .fillMaxWidth()
+                            .height(80.dp),
+                        items = briefItems.value,
+                        orientation = orientation,
+                        requestedIndex = requestedBriefItemIndex.intValue,
+                        itemContent = itemContent,
+                        onItemClicked = onItemClicked,
+                        onFocusedItemChanged = onFocusedItemChanged,
+                        firstItemModifier = firstItemModifier(),
+                        onInteraction = ::showOrResetPanelTimer,
+                    )
+                }
+            }
+            Controls()
+            }
+        }
+    }
+
+    @Composable
+    private fun LandscapeBriefPanel() {
+        Box(Modifier.fillMaxSize()) {
+            PanelTimerResetSurface()
+            // Legacy used a fade whose right edge ended 156dp beyond the controls.
+            Box(
+                Modifier
+                    .align(Alignment.CenterStart)
+                    .fillMaxHeight()
+                    .width(LANDSCAPE_FADE_WIDTH)
+                    .background(
+                        Brush.horizontalGradient(
+                            0f to Color.Black,
+                            0.7f to Color.Black.copy(alpha = 0.53f),
+                            1f to Color.Transparent,
+                        ),
+                    ),
+            )
+            Row(Modifier.fillMaxSize()) {
+            Controls()
+            Box(Modifier.weight(1f).fillMaxHeight().padding(start = 16.dp, end = 156.dp)) {
+                if (briefItems.value.isEmpty()) {
+                    EmptyBriefCard(
+                        Modifier
+                            .align(Alignment.CenterStart)
+                            .fillMaxHeight()
+                            .width(124.dp)
+                            .padding(vertical = 64.dp),
+                    )
+                }
+                else briefItemContent?.let { itemContent ->
+                    BriefItemsCarousel(
+                        modifier = Modifier
+                            .align(Alignment.CenterStart)
+                            .fillMaxHeight()
+                            .width(124.dp),
+                        items = briefItems.value,
+                        orientation = orientation,
+                        requestedIndex = requestedBriefItemIndex.intValue,
+                        itemContent = itemContent,
+                        onItemClicked = onItemClicked,
+                        onFocusedItemChanged = onFocusedItemChanged,
+                        firstItemModifier = firstItemModifier(),
+                        onInteraction = ::showOrResetPanelTimer,
+                    )
+                }
+            }
+            }
+        }
+    }
+
+    @Composable
+    private fun Controls() = ItemBriefControls(
+        state = controlState.value,
+        isPortrait = orientation == Configuration.ORIENTATION_PORTRAIT,
+        onMovePrevious = onMovePrevious,
+        onDelete = onDelete,
+        onPosition = onPosition,
+        onPlay = onPlay,
+        onMoveNext = onMoveNext,
+    )
+
+    /**
+     * Equivalent of the legacy root click listener. This sits behind the actual controls and
+     * carousel, so only otherwise-unused panel space resets the auto-hide timer.
+     */
+    @Composable
+    private fun PanelTimerResetSurface() {
+        val interactionSource = remember { MutableInteractionSource() }
+        Box(
+            Modifier
+                .fillMaxSize()
+                .clickable(
+                    interactionSource = interactionSource,
+                    indication = null,
+                    onClick = ::showOrResetPanelTimer,
+                ),
+        )
+    }
+
+    @Composable
+    private fun EmptyBriefCard(modifier: Modifier) {
+        ElevatedCard(modifier) {
+            Box(Modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 8.dp), contentAlignment = Alignment.Center) {
+                if (emptyText.intValue != 0) Text(
+                    text = stringResource(emptyText.intValue),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontStyle = FontStyle.Italic,
+                    textAlign = TextAlign.Center,
+                )
             }
         }
     }
@@ -438,49 +592,150 @@ private fun PositionCard(state: ItemBriefControlsState, onClick: () -> Unit, mod
     }
 }
 
-private enum class FadeDirection { TOP, BOTTOM, LEFT }
+@Composable
+private fun BriefItemsCarousel(
+    modifier: Modifier,
+    items: List<ItemBrief>,
+    orientation: Int,
+    requestedIndex: Int,
+    itemContent: @Composable (ItemBrief, Int, () -> Unit) -> Unit,
+    onItemClicked: (Int, ItemBrief) -> Unit,
+    onFocusedItemChanged: (Int) -> Unit,
+    firstItemModifier: Modifier,
+    onInteraction: () -> Unit,
+) {
+    val listState = rememberLazyListState()
 
-private fun Int.dpToPx(density: Float): Int = (this * density).toInt()
-
-private fun ComposeView.setFade(direction: FadeDirection) {
-    isClickable = false
-    setContent {
-        val opaque = Color.Black
-        val middle = Color.Black.copy(alpha = 0.53f)
-        val transparent = Color.Transparent
-        val colors = when (direction) {
-            FadeDirection.TOP -> arrayOf(0f to opaque, 0.7f to middle, 1f to transparent)
-            FadeDirection.BOTTOM -> arrayOf(0f to transparent, 0.3f to middle, 1f to opaque)
-            FadeDirection.LEFT -> arrayOf(0f to opaque, 0.7f to middle, 1f to transparent)
+    LaunchedEffect(items, requestedIndex) {
+        if (items.isNotEmpty()) {
+            listState.scrollToItem(requestedIndex.coerceIn(0, items.lastIndex))
         }
-        val brush = if (direction == FadeDirection.LEFT) {
-            Brush.horizontalGradient(colorStops = colors)
-        } else {
-            Brush.verticalGradient(colorStops = colors)
-        }
-        Box(Modifier.fillMaxSize().background(brush))
     }
-}
+    LaunchedEffect(listState, items.size) {
+        snapshotFlow { listState.focusedItemIndex() }
+            .collect { index -> if (index != null) onFocusedItemChanged(index) }
+    }
 
-private fun ComposeView.setEmptyContent(textState: androidx.compose.runtime.MutableIntState) {
-    setContent {
-        MacrionTheme {
-            ElevatedCard(Modifier.fillMaxSize()) {
-                Box(
-                    modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 8.dp),
-                    contentAlignment = Alignment.Center,
+    val flingBehavior = rememberBriefCarouselFlingBehavior(listState)
+    if (orientation == Configuration.ORIENTATION_PORTRAIT) {
+        LazyRow(
+            modifier = modifier,
+            state = listState,
+            flingBehavior = flingBehavior,
+            contentPadding = PaddingValues(horizontal = 16.dp),
+        ) {
+            itemsIndexed(items, key = { _, brief -> brief.id.toString() }) { index, brief ->
+                BriefItemContainer(
+                    modifier = Modifier.fillParentMaxSize(),
+                    firstItemModifier = firstItemModifier,
+                    isFirstItem = index == 0,
+                    onInteraction = onInteraction,
                 ) {
-                    if (textState.intValue != 0) {
-                        Text(
-                            text = stringResource(textState.intValue),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontStyle = FontStyle.Italic,
-                            textAlign = TextAlign.Center,
-                        )
-                    }
+                    itemContent(brief, orientation) { onItemClicked(index, brief) }
+                }
+            }
+        }
+    } else {
+        LazyColumn(
+            modifier = modifier,
+            state = listState,
+            flingBehavior = flingBehavior,
+            contentPadding = PaddingValues(vertical = 64.dp),
+        ) {
+            itemsIndexed(items, key = { _, brief -> brief.id.toString() }) { index, brief ->
+                BriefItemContainer(
+                    modifier = Modifier.fillParentMaxSize(),
+                    firstItemModifier = firstItemModifier,
+                    isFirstItem = index == 0,
+                    onInteraction = onInteraction,
+                ) {
+                    itemContent(brief, orientation) { onItemClicked(index, brief) }
                 }
             }
         }
     }
 }
+
+@Composable
+private fun rememberBriefCarouselFlingBehavior(listState: LazyListState): androidx.compose.foundation.gestures.FlingBehavior {
+    val context = LocalContext.current
+    val decayAnimationSpec = rememberSplineBasedDecay<Float>()
+    val maximumFlingVelocity = remember(context) {
+        ViewConfiguration.get(context).scaledMaximumFlingVelocity.toFloat()
+    }
+    val defaultSnapProvider = remember(listState) { SnapLayoutInfoProvider(listState) }
+    val tunedSnapProvider = remember(listState, defaultSnapProvider, maximumFlingVelocity) {
+        object : SnapLayoutInfoProvider {
+            override fun calculateApproachOffset(velocity: Float, decayOffset: Float): Float {
+                val defaultApproach = defaultSnapProvider.calculateApproachOffset(velocity, decayOffset)
+                val pageSize = listState.layoutInfo.visibleItemsInfo.firstOrNull()?.size ?: return defaultApproach
+                if (pageSize == 0 || maximumFlingVelocity == 0f) return defaultApproach
+
+                // A gently accelerating quadratic keeps the response continuous and predictable:
+                // its slope changes linearly and its second derivative is constant. There are no
+                // velocity thresholds or page-count caps.
+                val normalizedVelocity = kotlin.math.abs(velocity) / maximumFlingVelocity
+                val additionalPages =
+                    FLING_LINEAR_FACTOR * normalizedVelocity +
+                        FLING_QUADRATIC_FACTOR * normalizedVelocity * normalizedVelocity
+                val desiredApproach = additionalPages * pageSize
+
+                return kotlin.math.min(desiredApproach, kotlin.math.abs(defaultApproach)) *
+                    kotlin.math.sign(decayOffset)
+            }
+
+            override fun calculateSnapOffset(velocity: Float): Float =
+                defaultSnapProvider.calculateSnapOffset(velocity)
+        }
+    }
+    return remember(tunedSnapProvider, decayAnimationSpec) {
+        snapFlingBehavior(
+            snapLayoutInfoProvider = tunedSnapProvider,
+            decayAnimationSpec = decayAnimationSpec,
+            snapAnimationSpec = spring(
+                dampingRatio = EXPRESSIVE_SNAP_DAMPING_RATIO,
+                stiffness = EXPRESSIVE_SNAP_STIFFNESS,
+            ),
+        )
+    }
+}
+
+@Composable
+private fun BriefItemContainer(
+    modifier: Modifier,
+    firstItemModifier: Modifier,
+    isFirstItem: Boolean,
+    onInteraction: () -> Unit,
+    content: @Composable () -> Unit,
+) {
+    Box(
+        modifier
+            .then(if (isFirstItem) firstItemModifier else Modifier)
+            .pointerInput(onInteraction) {
+                awaitEachGesture {
+                    awaitFirstDown(requireUnconsumed = false)
+                    onInteraction()
+                    waitForUpOrCancellation()
+                }
+            },
+    ) {
+        content()
+    }
+}
+
+private fun LazyListState.focusedItemIndex(): Int? {
+    val visibleItems = layoutInfo.visibleItemsInfo
+    if (visibleItems.isEmpty()) return null
+
+    val viewportCenter = (layoutInfo.viewportStartOffset + layoutInfo.viewportEndOffset) / 2
+    return visibleItems.minBy { item ->
+        kotlin.math.abs(item.offset + item.size / 2 - viewportCenter)
+    }.index
+}
+
+private const val FLING_LINEAR_FACTOR = 2f
+private const val FLING_QUADRATIC_FACTOR = 2f
+private const val EXPRESSIVE_SNAP_DAMPING_RATIO = 0.8f
+private const val EXPRESSIVE_SNAP_STIFFNESS = 380f
+private val PORTRAIT_FADE_HEIGHT = 180.dp
+private val LANDSCAPE_FADE_WIDTH = 252.dp

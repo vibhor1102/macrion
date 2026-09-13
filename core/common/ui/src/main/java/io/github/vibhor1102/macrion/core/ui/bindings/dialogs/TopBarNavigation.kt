@@ -1,71 +1,127 @@
+/*
+ * Copyright (C) 2026 Vibhor Goel
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ */
 package io.github.vibhor1102.macrion.core.ui.bindings.dialogs
 
 import android.content.Context
-import android.view.Gravity
 import android.view.View
-import android.widget.FrameLayout
 import androidx.annotation.StringRes
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.*
+import androidx.compose.material3.FilledIconButton
+import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import io.github.vibhor1102.macrion.core.ui.R
-import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 
-class TopBarNavigationView(context: Context) : FrameLayout(context) {
-    val root: View get() = this
-    val buttonDismiss = ComposeView(context)
-    val buttonDelete = ComposeView(context)
-    val buttonSave = ComposeView(context)
+import io.github.vibhor1102.macrion.core.ui.R
+
+/** A Compose-native top bar for overlay dialogs with state-driven title and actions. */
+class TopBarNavigationView(val context: Context) {
     private val title = mutableStateOf("")
-    private val states = DialogNavigationButton.entries.associateWith { mutableStateOf(TopBarButtonState(it == DialogNavigationButton.DISMISS)) }
+    private val states = DialogNavigationButton.entries.associateWith {
+        mutableStateOf(TopBarButtonState(it == DialogNavigationButton.DISMISS))
+    }
     private val callbacks = mutableMapOf<DialogNavigationButton, () -> Unit>()
 
-    init {
-        elevation = 3 * resources.displayMetrics.density
-        addView(ComposeView(context).apply { setContent { MacrionTheme {
-            Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surfaceContainerLow) {
-                Box(Modifier.fillMaxSize().padding(start = 64.dp, end = 112.dp), contentAlignment = Alignment.CenterStart) {
-                    Text(title.value, style = MaterialTheme.typography.titleLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                }
-            }
-        } } }, LayoutParams(LayoutParams.MATCH_PARENT, resources.getDimensionPixelSize(R.dimen.dialog_top_bar_height)))
-        addButton(buttonDismiss, Gravity.START or Gravity.CENTER_VERTICAL, 8, DialogNavigationButton.DISMISS, R.drawable.ic_cancel)
-        addButton(buttonSave, Gravity.END or Gravity.CENTER_VERTICAL, 8, DialogNavigationButton.SAVE, R.drawable.ic_save_filled)
-        addButton(buttonDelete, Gravity.END or Gravity.CENTER_VERTICAL, 64, DialogNavigationButton.DELETE, R.drawable.ic_delete)
+    private val buttonModifiers = DialogNavigationButton.entries.associateWith {
+        mutableStateOf<@Composable () -> Modifier>({ Modifier })
     }
 
     fun setTitle(text: CharSequence) { title.value = text.toString() }
     fun setTitle(@StringRes text: Int) = setTitle(context.getText(text))
-    fun setButtonEnabledState(type: DialogNavigationButton, enabled: Boolean) = update(type) { copy(enabled = enabled) }
-    fun setButtonVisibility(type: DialogNavigationButton, visibility: Int) = update(type) { copy(visible = visibility == View.VISIBLE) }
-    fun setButtonClickListener(type: DialogNavigationButton, callback: () -> Unit) { callbacks[type] = callback }
+    fun setButtonEnabledState(type: DialogNavigationButton, enabled: Boolean) {
+        update(type) { copy(enabled = enabled) }
+    }
+    fun setButtonVisibility(type: DialogNavigationButton, visibility: Int) =
+        update(type) { copy(visible = visibility == View.VISIBLE) }
+    fun setButtonClickListener(type: DialogNavigationButton, callback: () -> Unit) {
+        callbacks[type] = callback
+    }
+    fun performButtonClick(type: DialogNavigationButton) {
+        callbacks[type]?.invoke()
+    }
 
-    private fun addButton(view: ComposeView, gravity: Int, marginDp: Int, type: DialogNavigationButton, icon: Int) {
-        addView(view, LayoutParams(48.dpPx, 48.dpPx, gravity).apply { marginStart = marginDp.dpPx; marginEnd = marginDp.dpPx })
-        view.setContent { MacrionTheme {
-            val state = states.getValue(type).value
-            if (state.visible) when (type) {
-                DialogNavigationButton.DISMISS -> IconButton({ callbacks[type]?.invoke() }, enabled = state.enabled) {
-                    Icon(painterResource(icon), null, tint = MaterialTheme.colorScheme.onSurface)
-                }
-                DialogNavigationButton.DELETE -> FilledTonalIconButton({ callbacks[type]?.invoke() }, enabled = state.enabled) { Icon(painterResource(icon), null) }
-                DialogNavigationButton.SAVE -> FilledIconButton({ callbacks[type]?.invoke() }, enabled = state.enabled) { Icon(painterResource(icon), null) }
+    fun setButtonModifier(type: DialogNavigationButton, modifier: @Composable () -> Modifier) {
+        buttonModifiers.getValue(type).value = modifier
+    }
+
+    @Composable
+    fun Content(modifier: Modifier = Modifier) {
+        Surface(
+            modifier = modifier
+                .fillMaxWidth()
+                .height(dimensionResource(R.dimen.dialog_top_bar_height)),
+            color = MaterialTheme.colorScheme.surfaceContainerLow,
+            shadowElevation = 3.dp,
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                DialogTopBarButton(DialogNavigationButton.DISMISS, R.drawable.ic_cancel)
+                Text(
+                    text = title.value,
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(horizontal = 8.dp),
+                    style = MaterialTheme.typography.titleLarge,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                DialogTopBarButton(DialogNavigationButton.DELETE, R.drawable.ic_delete)
+                DialogTopBarButton(DialogNavigationButton.SAVE, R.drawable.ic_save_filled)
             }
-        } }
+        }
+    }
+
+    @Composable
+    private fun DialogTopBarButton(type: DialogNavigationButton, icon: Int) {
+        val state = states.getValue(type).value
+        if (!state.visible) return
+        val modifier = buttonModifiers.getValue(type).value()
+        when (type) {
+            DialogNavigationButton.DISMISS -> IconButton(
+                onClick = { callbacks[type]?.invoke() },
+                enabled = state.enabled,
+                modifier = modifier,
+            ) { Icon(painterResource(icon), contentDescription = null, tint = MaterialTheme.colorScheme.onSurface) }
+            DialogNavigationButton.DELETE -> FilledTonalIconButton(
+                onClick = { callbacks[type]?.invoke() },
+                enabled = state.enabled,
+                modifier = modifier,
+            ) { Icon(painterResource(icon), contentDescription = null) }
+            DialogNavigationButton.SAVE -> FilledIconButton(
+                onClick = { callbacks[type]?.invoke() },
+                enabled = state.enabled,
+                modifier = modifier,
+            ) { Icon(painterResource(icon), contentDescription = null) }
+        }
     }
 
     private fun update(type: DialogNavigationButton, change: TopBarButtonState.() -> TopBarButtonState) {
         states.getValue(type).let { it.value = it.value.change() }
     }
-    private val Int.dpPx get() = (this * resources.displayMetrics.density).toInt()
 }
 
 private data class TopBarButtonState(val visible: Boolean, val enabled: Boolean = true)

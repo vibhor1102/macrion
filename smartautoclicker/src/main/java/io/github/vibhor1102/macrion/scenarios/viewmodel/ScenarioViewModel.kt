@@ -23,9 +23,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.PermissionChecker
-import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 
@@ -53,7 +51,7 @@ import javax.inject.Inject
 class ScenarioViewModel @Inject constructor(
     private val revenueRepository: IRevenueRepository,
     private val qualityRepository: QualityRepository,
-    private val permissionController: PermissionsController,
+    val permissionController: PermissionsController,
     private val settingsRepository: SettingsRepository,
     private val appComponentsProvider: AppComponentsProvider,
     private val serviceConnection: LocalAccessibilityServiceConnection,
@@ -74,7 +72,7 @@ class ScenarioViewModel @Inject constructor(
         revenueRepository.refreshPurchases()
     }
 
-    fun startPermissionFlowIfNeeded(activity: AppCompatActivity, onAllGranted: () -> Unit) {
+    fun startPermissionFlowIfNeeded(activity: Context, onAllGranted: () -> Unit) {
         permissionController.startPermissionsUiFlow(
             activity = activity,
             permissions = listOf(
@@ -89,8 +87,11 @@ class ScenarioViewModel @Inject constructor(
         )
     }
 
-    fun startTroubleshootingFlowIfNeeded(activity: FragmentActivity, onCompleted: () -> Unit) {
-        qualityRepository.startTroubleshootingUiFlowIfNeeded(activity, onCompleted)
+    fun startTroubleshootingFlowIfNeeded(
+        showTroubleshooting: (onDismissed: () -> Unit) -> Unit,
+        onCompleted: () -> Unit,
+    ) {
+        qualityRepository.startTroubleshootingUiFlowIfNeeded(showTroubleshooting, onCompleted)
     }
 
     /**
@@ -114,8 +115,7 @@ class ScenarioViewModel @Inject constructor(
             if (foregroundPermission != PermissionChecker.PERMISSION_GRANTED) return false
         }
 
-        serviceConnection.getLocalService()?.launchSmartScenario(resultCode, data, scenario)
-        return true
+        return serviceConnection.getLocalService()?.launchSmartScenario(resultCode, data, scenario) == true
     }
 
     fun loadDumbScenario(context: Context, scenario: DumbScenario): Boolean {
@@ -124,8 +124,7 @@ class ScenarioViewModel @Inject constructor(
             if (foregroundPermission != PermissionChecker.PERMISSION_GRANTED) return false
         }
 
-        serviceConnection.getLocalService()?.launchDumbScenario(scenario)
-        return true
+        return serviceConnection.getLocalService()?.launchDumbScenario(scenario) == true
     }
 
     /** Stop the overlay UI and release all associated resources. */

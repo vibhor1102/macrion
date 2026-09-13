@@ -38,6 +38,8 @@
 
     <string name="item_event_desc_enabled_children">Enabled</string>
     <string name="item_event_desc_disabled_children">Disabled</string>
+    <string name="action_move_event_up">Move event up</string>
+    <string name="action_move_event_down">Move event down</string>
 
     <string name="item_image_condition_desc_threshold">%1$d%%</string>
     <string name="item_image_condition_desc_complete_threshold">Difference: %1$d%%</string>

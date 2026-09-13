@@ -27,13 +27,13 @@ import io.github.vibhor1102.macrion.core.ui.bindings.dialogs.DialogNavigationBut
 import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.navbar.NavBarDialog
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.navbar.NavBarDialogContent
+import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.navbar.DialogNavigationItem
 import io.github.vibhor1102.macrion.feature.dumb.config.R
 import io.github.vibhor1102.macrion.feature.dumb.config.di.DumbConfigViewModelsEntryPoint
 import io.github.vibhor1102.macrion.feature.dumb.config.ui.scenario.actionlist.DumbActionListContent
 import io.github.vibhor1102.macrion.feature.dumb.config.ui.scenario.config.DumbScenarioConfigContent
 
-import com.google.android.material.bottomsheet.BottomSheetDialog
-import com.google.android.material.navigation.NavigationBarView
+import android.app.Dialog
 
 import kotlinx.coroutines.launch
 
@@ -55,9 +55,10 @@ class DumbScenarioDialog(
         }
     }
 
-    override fun inflateMenu(navBarView: NavigationBarView) {
-        navBarView.inflateMenu(R.menu.menu_dumb_scenario_config)
-    }
+    override fun navigationItems(): List<DialogNavigationItem> = listOf(
+        DialogNavigationItem(R.id.page_config, R.drawable.ic_settings, R.string.menu_item_title_dumb_config),
+        DialogNavigationItem(R.id.page_actions, R.drawable.ic_click, R.string.menu_item_title_dumb_actions),
+    )
 
     override fun onCreateContent(navItemId: Int): NavBarDialogContent = when (navItemId) {
         R.id.page_actions -> DumbActionListContent(context.applicationContext)
@@ -65,7 +66,7 @@ class DumbScenarioDialog(
         else -> throw IllegalArgumentException("Unknown menu id $navItemId")
     }
 
-    override fun onDialogCreated(dialog: BottomSheetDialog) {
+    override fun onDialogCreated(dialog: Dialog) {
         super.onDialogCreated(dialog)
 
         lifecycleScope.launch {

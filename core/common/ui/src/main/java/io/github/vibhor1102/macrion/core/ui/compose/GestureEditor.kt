@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
@@ -40,21 +41,25 @@ fun MacrionPositionGestureEditor(
     onSave: () -> Unit,
 ) {
     Surface(
+        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
         modifier = Modifier.fillMaxWidth().heightIn(max = 520.dp),
         color = MaterialTheme.colorScheme.surface,
         contentColor = MaterialTheme.colorScheme.onSurface,
     ) {
-        Column(Modifier.fillMaxWidth()) {
-            GestureEditorTopBar(title, saveEnabled, onDismiss, onDelete, onSave)
-            Column(
-                modifier = Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState())
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                MacrionTextField(name, onNameChanged, nameLabel, isError = nameError, maxLength = maxNameLength)
-                NumericField(duration, durationLabel, durationError, onDurationChanged)
-                PositionCard(positionTitle, positionDescription, positionError, onPositionClicked)
-                Spacer(Modifier.height(8.dp))
+        MacrionDialogSurface {
+            Column(Modifier.fillMaxWidth()) {
+                GestureEditorTopBar(title, saveEnabled, onDismiss, onDelete, onSave)
+                Column(
+                    modifier = Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState())
+                        .imePadding()
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    MacrionTextField(name, onNameChanged, nameLabel, isError = nameError, maxLength = maxNameLength)
+                    NumericField(duration, durationLabel, durationError, onDurationChanged)
+                    PositionCard(positionTitle, positionDescription, positionError, onPositionClicked)
+                    Spacer(Modifier.height(8.dp))
+                }
             }
         }
     }
@@ -73,34 +78,38 @@ fun MacrionGestureEditor(
     onPositionClicked: () -> Unit, onDismiss: () -> Unit, onDelete: () -> Unit, onSave: () -> Unit,
 ) {
     Surface(
+        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
         modifier = Modifier.fillMaxWidth().heightIn(max = 640.dp),
         color = MaterialTheme.colorScheme.surface,
         contentColor = MaterialTheme.colorScheme.onSurface,
     ) {
-        Column(Modifier.fillMaxWidth()) {
-            GestureEditorTopBar(title, saveEnabled, onDismiss, onDelete, onSave)
-            Column(
-                modifier = Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState())
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                MacrionTextField(name, onNameChanged, nameLabel, isError = nameError, maxLength = maxNameLength)
-                NumericField(duration, durationLabel, durationError, onDurationChanged)
-                Row(verticalAlignment = Alignment.Top) {
-                    NumericField(repeatCount, repeatCountLabel, repeatCountError, onRepeatCountChanged,
-                        Modifier.weight(1f), enabled = !infiniteRepeat)
-                    Spacer(Modifier.width(16.dp))
-                    OutlinedIconToggleButton(
-                        checked = infiniteRepeat,
-                        onCheckedChange = { onInfiniteRepeatChanged() },
-                        modifier = Modifier.padding(top = 8.dp).size(48.dp),
-                    ) {
-                        Icon(painterResource(infiniteRepeatIcon), repeatCountLabel, Modifier.size(24.dp))
+        MacrionDialogSurface {
+            Column(Modifier.fillMaxWidth()) {
+                GestureEditorTopBar(title, saveEnabled, onDismiss, onDelete, onSave)
+                Column(
+                    modifier = Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState())
+                        .imePadding()
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    MacrionTextField(name, onNameChanged, nameLabel, isError = nameError, maxLength = maxNameLength)
+                    NumericField(duration, durationLabel, durationError, onDurationChanged)
+                    Row(verticalAlignment = Alignment.Top) {
+                        NumericField(repeatCount, repeatCountLabel, repeatCountError, onRepeatCountChanged,
+                            Modifier.weight(1f), enabled = !infiniteRepeat)
+                        Spacer(Modifier.width(16.dp))
+                        OutlinedIconToggleButton(
+                            checked = infiniteRepeat,
+                            onCheckedChange = { onInfiniteRepeatChanged() },
+                            modifier = Modifier.padding(top = 8.dp).size(48.dp),
+                        ) {
+                            Icon(painterResource(infiniteRepeatIcon), repeatCountLabel, Modifier.size(24.dp))
+                        }
                     }
+                    NumericField(repeatDelay, repeatDelayLabel, repeatDelayError, onRepeatDelayChanged)
+                    PositionCard(positionTitle, positionDescription, false, onPositionClicked)
+                    Spacer(Modifier.height(8.dp))
                 }
-                NumericField(repeatDelay, repeatDelayLabel, repeatDelayError, onRepeatDelayChanged)
-                PositionCard(positionTitle, positionDescription, false, onPositionClicked)
-                Spacer(Modifier.height(8.dp))
             }
         }
     }

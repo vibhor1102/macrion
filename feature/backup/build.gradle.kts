@@ -28,7 +28,6 @@ android {
     namespace = "io.github.vibhor1102.macrion.feature.backup"
     buildFeatures {
         compose = true
-        viewBinding = true
     }
 }
 
@@ -38,19 +37,16 @@ dependencies {
     implementation(libs.kotlinx.coroutines.core)
 
     implementation(libs.androidx.annotation)
-    implementation(libs.androidx.appCompat)
     implementation(composeBom)
     implementation(libs.androidx.compose.foundation)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.fragment.ktx)
+    implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
-
-    implementation(libs.google.material)
 
     implementation(project(":core:common:base"))
     implementation(project(":core:common:bitmaps"))

@@ -5,6 +5,8 @@ import android.view.LayoutInflater
 import android.view.View
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -28,15 +30,23 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.other.FullscreenOverlay
@@ -68,17 +78,10 @@ class TutorialFullscreenOverlay : FullscreenOverlay(theme = R.style.AppTheme) {
     private fun Content() {
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
         Box(Modifier.fillMaxSize()) {
-            AndroidView(
-                factory = { context ->
-                    TutorialFullscreenView(context).apply {
-                        onMonitoredViewClickedListener = viewModel::performClickOnMonitoredView
-                    }
-                },
-                update = { background ->
-                    background.expectedViewPosition =
-                        (uiState?.exitButton as? TutorialExitButtonUiState.MonitoredView)?.position
-                },
-                modifier = Modifier.fillMaxSize(),
+            TutorialSpotlight(
+                monitoredPosition =
+                    (uiState?.exitButton as? TutorialExitButtonUiState.MonitoredView)?.position,
+                onMonitoredViewClicked = viewModel::performClickOnMonitoredView,
             )
 
             IconButton(
@@ -103,6 +106,65 @@ class TutorialFullscreenOverlay : FullscreenOverlay(theme = R.style.AppTheme) {
                         Text(stringResource(R.string.button_text_tutorial_next))
                     }
                 }
+            }
+        }
+    }
+
+    @Composable
+    private fun TutorialSpotlight(
+        monitoredPosition: android.graphics.Rect?,
+        onMonitoredViewClicked: () -> Unit,
+    ) {
+        val background = colorResource(R.color.tutorial_overlay_background)
+        val borderWidth = dimensionResource(R.dimen.tutorial_hole_border_width)
+        Canvas(
+            modifier = Modifier
+                .fillMaxSize()
+                .graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen)
+                .pointerInput(monitoredPosition) {
+                    detectTapGestures { position ->
+                        monitoredPosition?.takeIf { it.contains(position.x.toInt(), position.y.toInt()) }
+                            ?.let { onMonitoredViewClicked() }
+                    }
+                },
+        ) {
+            drawRect(background)
+            monitoredPosition ?: return@Canvas
+            val isCircular = monitoredPosition.width().toDouble() in
+                (0.5 * monitoredPosition.height())..(1.5 * monitoredPosition.height())
+            if (isCircular) {
+                val center = Offset(monitoredPosition.exactCenterX(), monitoredPosition.exactCenterY())
+                val radius = monitoredPosition.height() * 0.8f
+                drawCircle(Color.Transparent, radius, center, blendMode = BlendMode.Clear)
+                drawCircle(Color.White, radius, center, style = Stroke(borderWidth.toPx()))
+            } else {
+                val source = Rect(
+                    monitoredPosition.left.toFloat(),
+                    monitoredPosition.top.toFloat(),
+                    monitoredPosition.right.toFloat(),
+                    monitoredPosition.bottom.toFloat(),
+                )
+                val center = source.center
+                val expanded = Rect(
+                    center.x - source.width * 0.525f,
+                    center.y - source.height * 0.525f,
+                    center.x + source.width * 0.525f,
+                    center.y + source.height * 0.525f,
+                )
+                drawRoundRect(
+                    color = Color.Transparent,
+                    topLeft = expanded.topLeft,
+                    size = expanded.size,
+                    cornerRadius = CornerRadius(25f, 25f),
+                    blendMode = BlendMode.Clear,
+                )
+                drawRoundRect(
+                    color = Color.White,
+                    topLeft = expanded.topLeft,
+                    size = expanded.size,
+                    cornerRadius = CornerRadius(25f, 25f),
+                    style = Stroke(borderWidth.toPx()),
+                )
             }
         }
     }

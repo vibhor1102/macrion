@@ -8,7 +8,7 @@
  */
 package io.github.vibhor1102.macrion.feature.externallaunch.localeplugin.ui
 
-import androidx.appcompat.app.AppCompatActivity
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.github.vibhor1102.macrion.core.common.permissions.PermissionsController
@@ -29,7 +29,7 @@ internal class LocalePluginConfigurationViewModel @Inject constructor(
     smartRepository: IRepository,
     dumbRepository: DumbRepository,
     private val codec: LocalePluginConfigurationCodec,
-    private val permissionController: PermissionsController,
+    val permissionController: PermissionsController,
 ) : ViewModel() {
 
     val scenarios: StateFlow<List<LocalePluginScenarioItem>> = combine(
@@ -47,7 +47,7 @@ internal class LocalePluginConfigurationViewModel @Inject constructor(
 
     fun encodeConfiguration(configuration: LocalePluginConfiguration): String = codec.encode(configuration)
 
-    fun requestFallbackNotificationPermission(activity: AppCompatActivity, onGranted: () -> Unit) {
+    fun requestFallbackNotificationPermission(activity: Context, onGranted: () -> Unit) {
         permissionController.startPermissionsUiFlow(
             activity = activity,
             permissions = listOf(

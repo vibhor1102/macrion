@@ -20,10 +20,8 @@ package io.github.vibhor1102.macrion.settings
 import android.app.Activity
 import android.content.Context
 import android.os.Build
-import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.ViewModel
 import io.github.vibhor1102.macrion.core.base.workarounds.isImpactedByInputBlock
-import io.github.vibhor1102.macrion.core.common.quality.domain.QualityRepository
 import io.github.vibhor1102.macrion.core.settings.domain.SettingsRepository
 import io.github.vibhor1102.macrion.feature.revenue.IRevenueRepository
 import io.github.vibhor1102.macrion.feature.revenue.UserBillingState
@@ -36,7 +34,6 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
-    private val qualityRepository: QualityRepository,
     private val revenueRepository: IRevenueRepository,
     private val settingsRepository: SettingsRepository,
 ) : ViewModel() {
@@ -118,9 +115,5 @@ class SettingsViewModel @Inject constructor(
 
     fun showPurchaseActivity(context: Context) {
         revenueRepository.startPurchaseUiFlow(context)
-    }
-
-    fun showTroubleshootingDialog(activity: FragmentActivity) {
-        qualityRepository.startTroubleshootingUiFlow(activity)
     }
 }

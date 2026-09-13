@@ -16,22 +16,26 @@
  */
 package io.github.vibhor1102.macrion.core.common.overlays.dialog
 
+import android.app.Dialog
+import android.view.Gravity
 import android.view.KeyEvent
-import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
 
+import androidx.activity.ComponentDialog
+import androidx.activity.addCallback
+import androidx.activity.setViewTreeOnBackPressedDispatcherOwner
 import androidx.annotation.CallSuper
 import androidx.annotation.StyleRes
-import androidx.coordinatorlayout.widget.CoordinatorLayout
+import androidx.lifecycle.setViewTreeLifecycleOwner
+import androidx.lifecycle.setViewTreeViewModelStoreOwner
+import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 
 import io.github.vibhor1102.macrion.core.base.addDumpTabulationLvl
 import io.github.vibhor1102.macrion.core.common.overlays.base.BaseOverlay
 import io.github.vibhor1102.macrion.core.common.overlays.manager.OverlayManager
-import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.google.android.material.bottomsheet.BottomSheetDialog
 
 import java.io.PrintWriter
 
@@ -45,14 +49,6 @@ abstract class OverlayDialog(@StyleRes theme: Int? = null) : BaseOverlay(theme, 
 
     /** The Android InputMethodManger, for ensuring the keyboard dismiss on dialog dismiss. */
     private lateinit var inputMethodManager: InputMethodManager
-    /** Touch listener hiding the software keyboard and propagating the touch event normally. */
-    protected val hideSoftInputTouchListener = View.OnTouchListener { view, event ->
-        if (event.action == MotionEvent.ACTION_DOWN) {
-            view.findFocus()?.clearFocus()
-            hideSoftInput()
-        }
-        false
-    }
 
     /** Tells if the dialog is visible. */
     private var isShown = false
@@ -61,14 +57,7 @@ abstract class OverlayDialog(@StyleRes theme: Int? = null) : BaseOverlay(theme, 
      * The dialog currently displayed by this controller.
      * Null until [onDialogCreated] is called, or if it has been dismissed.
      */
-    protected var dialog: BottomSheetDialog? = null
-        private set
-
-    /**
-     * The coordinator layout of the dialog.
-     * Null until [onDialogCreated] is called, or if the dialog has been dismissed.
-     */
-    protected var dialogCoordinatorLayout: CoordinatorLayout? = null
+    protected var dialog: Dialog? = null
         private set
 
     /**
@@ -86,19 +75,31 @@ abstract class OverlayDialog(@StyleRes theme: Int? = null) : BaseOverlay(theme, 
      *
      * @param dialog the newly created dialog.
      */
-    protected abstract fun onDialogCreated(dialog: BottomSheetDialog)
+    open fun onDialogCreated(dialog: Dialog) = Unit
 
     final override fun onCreate() {
         inputMethodManager = context.getSystemService(InputMethodManager::class.java)
 
-        dialog = BottomSheetDialog(context).apply {
-            val view = onCreateView()
+        val dialogTheme = theme ?: io.github.vibhor1102.macrion.core.ui.R.style.AppTheme
+        val view = onCreateView()
+
+        // WindowManager overlay roots don't inherit Activity view-tree owners. Install this
+        // overlay's owners before attaching the view so Compose can create its recomposer safely.
+        view.setViewTreeLifecycleOwner(this)
+        view.setViewTreeSavedStateRegistryOwner(this)
+        view.setViewTreeViewModelStoreOwner(this)
+
+        dialog = ComponentDialog(context, dialogTheme).apply compDialog@ {
+            view.setViewTreeOnBackPressedDispatcherOwner(this)
+            onBackPressedDispatcher.addCallback(this@OverlayDialog) {
+                this@OverlayDialog.back()
+            }
 
             setContentView(view)
             setCancelable(false)
             setOnKeyListener { _, keyCode, event ->
                 if (keyCode == KeyEvent.KEYCODE_BACK && event.action == KeyEvent.ACTION_UP) {
-                    this@OverlayDialog.back()
+                    onBackPressedDispatcher.onBackPressed()
                     true
                 } else {
                     false
@@ -107,19 +108,21 @@ abstract class OverlayDialog(@StyleRes theme: Int? = null) : BaseOverlay(theme, 
             create()
 
             window?.apply {
+                decorView.setViewTreeLifecycleOwner(this@OverlayDialog)
+                decorView.setViewTreeSavedStateRegistryOwner(this@OverlayDialog)
+                decorView.setViewTreeViewModelStoreOwner(this@OverlayDialog)
+                decorView.setViewTreeOnBackPressedDispatcherOwner(this@compDialog)
+
                 setType(OverlayManager.OVERLAY_WINDOW_TYPE)
+                setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+                setGravity(Gravity.BOTTOM)
+                setBackgroundDrawableResource(android.R.color.transparent)
+                setDimAmount(0.6f)
+                addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
                 setSoftInputMode(
                     WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN or
                         WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE,
                 )
-                decorView.setOnTouchListener(hideSoftInputTouchListener)
-            }
-
-            dialogCoordinatorLayout = (view.parent.parent as CoordinatorLayout)
-
-            behavior.apply {
-                state = BottomSheetBehavior.STATE_EXPANDED
-                isDraggable = false
             }
         }
 

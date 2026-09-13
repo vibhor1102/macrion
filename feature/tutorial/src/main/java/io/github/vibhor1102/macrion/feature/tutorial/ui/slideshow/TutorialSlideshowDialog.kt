@@ -16,16 +16,21 @@
  */
 package io.github.vibhor1102.macrion.feature.tutorial.ui.slideshow
 
+import android.app.Dialog
 import android.content.Context
+import android.view.WindowManager
+import androidx.activity.ComponentDialog
 import android.util.Log
-import androidx.appcompat.app.AlertDialog
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
@@ -33,7 +38,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import androidx.compose.ui.window.Dialog as ComposeDialog
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionDialogSurface
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.core.ui.utils.getDynamicColorsContext
@@ -41,23 +46,54 @@ import io.github.vibhor1102.macrion.feature.tutorial.R
 import io.github.vibhor1102.macrion.feature.tutorial.data.mapping.toTutorialSlideshow
 import io.github.vibhor1102.macrion.feature.tutorial.domain.model.TutorialSlideshow
 
+@Composable
+fun TutorialSlideshowDialog(
+    slideshowType: TutorialSlideshow.Type,
+    pageRange: IntRange? = null,
+    onDismiss: () -> Unit,
+) {
+    val slideshow = remember(slideshowType) { slideshowType.toTutorialSlideshow() }
+    val pages = pageRange ?: IntRange(0, slideshow.slideshowItems.lastIndex)
+    if (pageRange != null && (pageRange.first < 0 || pageRange.last > slideshow.slideshowItems.lastIndex)) {
+        Log.e(TAG, "Can't create slideshow dialog, page range is invalid: $pageRange; " +
+                "slideshowItems=${slideshow.slideshowItems.size}")
+        return
+    }
+
+    ComposeDialog(onDismissRequest = onDismiss) {
+        Surface(
+            shape = MaterialTheme.shapes.extraLarge,
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            tonalElevation = 6.dp,
+        ) {
+            MacrionDialogSurface {
+                TutorialSlideshowDialogContent(
+                    slideshow = slideshow,
+                    pages = slideshow.slideshowItems.subList(pages.first, pages.last + 1),
+                    onDismiss = onDismiss,
+                )
+            }
+        }
+    }
+}
+
 internal fun Context.createTutorialSlideshowDialog(
     slideshowType: TutorialSlideshow.Type,
     pageIndex: Int,
     onDismissed: (() -> Unit)?,
-): AlertDialog? = createDialog(slideshowType.toTutorialSlideshow(), IntRange(pageIndex, pageIndex), onDismissed)
+): Dialog? = createDialog(slideshowType.toTutorialSlideshow(), IntRange(pageIndex, pageIndex), onDismissed)
 
 internal fun Context.createTutorialSlideshowDialog(
     slideshowType: TutorialSlideshow.Type,
     pageRange: IntRange? = null,
     onDismissed: (() -> Unit)?,
-): AlertDialog? = createDialog(slideshowType.toTutorialSlideshow(), pageRange, onDismissed)
+): Dialog? = createDialog(slideshowType.toTutorialSlideshow(), pageRange, onDismissed)
 
 private fun Context.createDialog(
     slideshow: TutorialSlideshow,
     pageRange: IntRange?,
     onDismissed: (() -> Unit)?,
-): AlertDialog? {
+): Dialog? {
 
     val pages = pageRange ?: IntRange(0, slideshow.slideshowItems.lastIndex)
     if (pageRange != null && (pageRange.first < 0 || pageRange.last > slideshow.slideshowItems.lastIndex)) {
@@ -67,24 +103,36 @@ private fun Context.createDialog(
     }
 
     val dialogContext = getDynamicColorsContext(R.style.AppTheme)
-    lateinit var dialog: AlertDialog
+    lateinit var dialog: ComponentDialog
     val content = ComposeView(dialogContext).apply {
         setContent {
             MacrionTheme {
-                MacrionDialogSurface {
-                    TutorialSlideshowDialogContent(
-                        slideshow = slideshow,
-                        pages = slideshow.slideshowItems.subList(pages.first, pages.last + 1),
-                        onDismiss = { dialog.dismiss() },
-                    )
+                Surface(
+                    shape = MaterialTheme.shapes.extraLarge,
+                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    tonalElevation = 6.dp,
+                    modifier = Modifier.widthIn(min = 280.dp, max = 560.dp),
+                ) {
+                    MacrionDialogSurface {
+                        TutorialSlideshowDialogContent(
+                            slideshow = slideshow,
+                            pages = slideshow.slideshowItems.subList(pages.first, pages.last + 1),
+                            onDismiss = { dialog.dismiss() },
+                        )
+                    }
                 }
             }
         }
     }
-    dialog = MaterialAlertDialogBuilder(dialogContext)
-        .setView(content)
-        .setOnDismissListener { onDismissed?.invoke() }
-        .create()
+    dialog = ComponentDialog(dialogContext).apply {
+        setContentView(content)
+        window?.apply {
+            setBackgroundDrawableResource(android.R.color.transparent)
+            setDimAmount(0.6f)
+            addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
+        }
+        setOnDismissListener { onDismissed?.invoke() }
+    }
     return dialog
 }
 

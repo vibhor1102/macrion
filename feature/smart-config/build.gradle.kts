@@ -24,25 +24,22 @@ plugins {
 
 android {
     namespace = "io.github.vibhor1102.macrion.feature.smart.config"
-    buildFeatures { compose = true; viewBinding = true }
+    buildFeatures { compose = true }
 }
 
 dependencies {
     val composeBom = platform(libs.androidx.compose.bom)
     implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.reorderable)
 
-    implementation(libs.androidx.appCompat)
     implementation(composeBom)
+    implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.compose.foundation)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.datastore)
-    implementation(libs.androidx.fragment.ktx)
     implementation(libs.androidx.lifecycle.runtime.compose)
-    implementation(libs.androidx.recyclerView)
-
-    implementation(libs.google.material)
 
     implementation(project(":core:common:actions"))
     implementation(project(":core:common:android"))

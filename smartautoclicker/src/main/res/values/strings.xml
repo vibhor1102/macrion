@@ -121,6 +121,12 @@
 
     <string name="activity_settings_title">Settings</string>
     <string name="content_desc_back">Navigate back</string>
+    <string name="settings_section_scenario_list">Scenario list</string>
+    <string name="settings_section_overlay">Overlay controls</string>
+    <string name="settings_section_compatibility">Compatibility</string>
+    <string name="settings_section_device_compatibility">Device compatibility</string>
+    <string name="settings_section_account">Account and privacy</string>
+    <string name="settings_section_help">Help and diagnostics</string>
 
     <string name="field_show_scenario_filters_ui_title">Show Scenarios filters</string>
     <string name="field_show_scenario_filters_ui_desc">Display or hide the filters in the scenario list screen.</string>

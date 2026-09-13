@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (C) 2026 Kevin Buzeau
  * 
  * This program is free software: you can redistribute it and/or modify
@@ -16,9 +16,8 @@
  */
 package io.github.vibhor1102.macrion.feature.tutorial.ui.list
 
+import android.content.Context
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 
@@ -29,7 +28,6 @@ import io.github.vibhor1102.macrion.core.common.permissions.model.PermissionAcce
 import io.github.vibhor1102.macrion.core.common.permissions.model.PermissionOverlay
 import io.github.vibhor1102.macrion.core.common.permissions.model.PermissionPostNotification
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.TutorialRepository
-import io.github.vibhor1102.macrion.core.settings.domain.SettingsRepository
 import io.github.vibhor1102.macrion.feature.tutorial.data.mapping.toTutorialItem
 import io.github.vibhor1102.macrion.feature.tutorial.domain.model.TutorialCategory
 import io.github.vibhor1102.macrion.feature.tutorial.domain.GetTutorialCategoryUseCase
@@ -44,22 +42,22 @@ import javax.inject.Inject
 
 @HiltViewModel
 class TutorialListViewModel @Inject constructor(
-    savedStateHandle: SavedStateHandle,
     private val appComponentsProvider: AppComponentsProvider,
     private val accessibilityServiceConnection: LocalAccessibilityServiceConnection,
-    private val permissionsController: PermissionsController,
+    val permissionsController: PermissionsController,
     private val tutorialRepository: TutorialRepository,
-    getTutorialCategoryUseCase: GetTutorialCategoryUseCase,
+    private val getTutorialCategoryUseCase: GetTutorialCategoryUseCase,
 ) : ViewModel() {
 
-    private val categoryType: TutorialCategory.Type =
-        TutorialListFragmentArgs.fromSavedStateHandle(savedStateHandle).categoryType
+    private val categoryStates = mutableMapOf<TutorialCategory.Type, StateFlow<TutorialCategoryUiState>>()
 
-    val uiState: StateFlow<TutorialCategoryUiState> =
-        getTutorialCategoryUseCase(categoryType)
-            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(3_000), TutorialCategoryUiState.Loading)
+    fun uiState(categoryType: TutorialCategory.Type): StateFlow<TutorialCategoryUiState> =
+        categoryStates.getOrPut(categoryType) {
+            getTutorialCategoryUseCase(categoryType)
+                .stateIn(viewModelScope, SharingStarted.WhileSubscribed(3_000), TutorialCategoryUiState.Loading)
+        }
 
-    fun startPermissionFlowIfNeeded(activity: AppCompatActivity, onAllGranted: () -> Unit) {
+    fun startPermissionFlowIfNeeded(activity: Context, onAllGranted: () -> Unit) {
         permissionsController.startPermissionsUiFlow(
             activity = activity,
             permissions = listOf(

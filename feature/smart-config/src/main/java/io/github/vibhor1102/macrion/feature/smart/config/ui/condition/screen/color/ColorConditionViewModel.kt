@@ -18,14 +18,11 @@ package io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.co
 
 import android.graphics.PointF
 import android.graphics.Rect
-import android.view.View
 import androidx.annotation.ColorInt
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 
 import io.github.vibhor1102.macrion.core.domain.model.condition.ScreenCondition
-import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredViewType
-import io.github.vibhor1102.macrion.core.common.tutorial.domain.MonitoredViewsManager
 import io.github.vibhor1102.macrion.feature.smart.config.domain.EditionRepository
 import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.color.extensions.getBlueValue
 import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.color.extensions.getGreenValue
@@ -46,7 +43,6 @@ import javax.inject.Inject
 
 class ColorConditionViewModel  @Inject constructor(
     private val editionRepository: EditionRepository,
-    private val monitoredViewsManager: MonitoredViewsManager,
 ) : ViewModel()  {
 
     /** The condition being configured by the user. */
@@ -104,14 +100,6 @@ class ColorConditionViewModel  @Inject constructor(
         }
     }
 
-    fun monitorSaveButtonView(view: View?) {
-        if (view == null) monitoredViewsManager.detach(MonitoredViewType.SCREEN_CONDITION_DIALOG_BUTTON_SAVE)
-        else monitoredViewsManager.attach(MonitoredViewType.SCREEN_CONDITION_DIALOG_BUTTON_SAVE, view)
-    }
-
-    fun detachMonitoredViews() {
-        monitoredViewsManager.detach(MonitoredViewType.SCREEN_CONDITION_DIALOG_BUTTON_SAVE)
-    }
 
     private fun updateEditedCondition(closure: (oldValue: ScreenCondition.Color) -> ScreenCondition.Color?) {
         editionRepository.editionState.getEditedCondition<ScreenCondition.Color>()?.let { condition ->

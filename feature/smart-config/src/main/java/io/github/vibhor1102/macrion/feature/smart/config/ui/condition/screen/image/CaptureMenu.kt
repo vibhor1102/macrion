@@ -16,25 +16,31 @@
  */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.image
 
+import io.github.vibhor1102.macrion.core.common.overlays.menu.findOverlayView
+
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageButton
+import io.github.vibhor1102.macrion.core.common.overlays.menu.OverlayMenuButtonView
 import android.widget.Toast
 
 import androidx.annotation.IntDef
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import io.github.vibhor1102.macrion.core.common.navigation.getTutorialNavigator
 
 import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.menu.OverlayMenu
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.Tip
 import io.github.vibhor1102.macrion.core.domain.model.condition.ScreenCondition
-import io.github.vibhor1102.macrion.core.ui.views.imageselector.ImageSelectorView
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.feature.smart.config.R
 import io.github.vibhor1102.macrion.feature.smart.config.ui.createValidationOverlayToolbar
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredOverlayType
+import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.selector.SelectorController
+import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.selector.SelectorOverlay
 
 /**
  * [OverlayMenu] implementation for displaying the area selection menu and the area to be captured in order
@@ -74,12 +80,12 @@ class CaptureMenu(
     )
 
     private lateinit var menuView: ViewGroup
-    private val confirmButton get() = menuView.findViewById<ImageButton>(R.id.btn_confirm)
-    private val cancelButton get() = menuView.findViewById<ImageButton>(R.id.btn_cancel)
-    private val helpButton get() = menuView.findViewById<ImageButton>(R.id.btn_help)
-    private val hideButton get() = menuView.findViewById<ImageButton>(R.id.btn_hide_overlay)
-    /** The view displaying the screenshot and the selector for the capture. */
-    private lateinit var selectorView: ImageSelectorView
+    private val confirmButton get() = menuView.findOverlayView<OverlayMenuButtonView>(R.id.btn_confirm)
+    private val cancelButton get() = menuView.findOverlayView<OverlayMenuButtonView>(R.id.btn_cancel)
+    private val helpButton get() = menuView.findOverlayView<OverlayMenuButtonView>(R.id.btn_help)
+    private val hideButton get() = menuView.findOverlayView<OverlayMenuButtonView>(R.id.btn_hide_overlay)
+    /** Compose selector state retained across the menu and overlay view lifecycles. */
+    private val selectorController = SelectorController(hasCapture = true, ::onSelectorValidityChanged)
 
     /** The current state of the overlay. */
     @ConditionCaptureState
@@ -97,12 +103,15 @@ class CaptureMenu(
                         )
                     )
                     setOverlayViewVisibility(false)
-                    selectorView.hide = true
+                    selectorController.setShown(false)
+                    // Resetting an old valid selection reports invalid; the capture action itself
+                    // must remain available in this initial state.
+                    setMenuItemViewEnabled(confirmButton, true)
                 }
                 CAPTURE -> {
                     setMenuVisibility(View.GONE)
                     setOverlayViewVisibility(true)
-                    selectorView.hide = true
+                    selectorController.setShown(false)
                 }
                 ADJUST -> {
                     confirmButton.setImageResource(R.drawable.ic_confirm)
@@ -113,14 +122,14 @@ class CaptureMenu(
                             hideButton to true,
                         )
                     )
-                    selectorView.hide = false
+                    selectorController.setShown(true)
                 }
                 SAVE -> {
                     setMenuItemViewEnabled(confirmButton, false)
                     setMenuItemViewEnabled(cancelButton, false)
                     setMenuItemViewEnabled(helpButton, false)
                     setMenuItemViewEnabled(hideButton, false)
-                    selectorView.hide = false
+                    selectorController.setShown(true)
                 }
             }
         }
@@ -128,12 +137,14 @@ class CaptureMenu(
     override fun animateOverlayView(): Boolean = false
 
     override fun onCreateMenu(layoutInflater: LayoutInflater): ViewGroup {
-        selectorView = ImageSelectorView(context, displayConfigManager, ::onSelectorValidityChanged)
         menuView = createValidationOverlayToolbar(context)
         return menuView
     }
 
-    override fun onCreateOverlayView(): View = selectorView
+    override fun onCreateOverlayView(): View = ComposeView(context).apply {
+        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+        setContent { MacrionTheme { SelectorOverlay(selectorController) } }
+    }
 
     override fun onStart() {
         super.onStart()
@@ -169,7 +180,7 @@ class CaptureMenu(
             ADJUST -> {
                 state = SAVE
                 try {
-                    val selection = selectorView.getSelection()
+                    val selection = selectorController.getCaptureSelection()
                     viewModel.createImageCondition(context, selection.first, selection.second) { imageCondition ->
                         back()
                         onConditionSelected(imageCondition)
@@ -209,7 +220,7 @@ class CaptureMenu(
                 return@takeScreenshot
             }
 
-            selectorView.showCapture(screenshot)
+            selectorController.showCapture(screenshot)
             state = ADJUST
         }
     }

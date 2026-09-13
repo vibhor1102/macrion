@@ -19,7 +19,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
-import com.google.android.material.bottomsheet.BottomSheetDialog
 import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayDialog
 import io.github.vibhor1102.macrion.core.domain.model.scenario.Scenario
@@ -45,8 +44,7 @@ class ScenarioSwitchDialog(private val onScenarioSelected: suspend (Scenario) ->
         setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
         setContent { MacrionTheme { this@ScenarioSwitchDialog.Content() } }
     }
-    override fun onDialogCreated(dialog: BottomSheetDialog) = Unit
-    override fun back() { if (!isSwitching) super.back() }
+override fun back() { if (!isSwitching) super.back() }
     override fun onStop() { isSwitching = false; isShowingSwitchProgress = false; failedScenario = null; confirmedScenario = null; super.onStop() }
 
     @Composable private fun Content() {

@@ -18,22 +18,16 @@ package io.github.vibhor1102.macrion.core.common.quality.domain
 
 import android.content.Context
 import android.util.Log
-import androidx.annotation.MainThread
-import androidx.fragment.app.FragmentActivity
-
+import io.github.vibhor1102.macrion.core.common.quality.BuildConfig
+import io.github.vibhor1102.macrion.core.common.quality.data.INVALID_TIME
+import io.github.vibhor1102.macrion.core.common.quality.data.QualityMetrics
+import dagger.hilt.android.qualifiers.ApplicationContext
 import io.github.vibhor1102.macrion.core.base.Dumpable
 import io.github.vibhor1102.macrion.core.base.addDumpTabulationLvl
 import io.github.vibhor1102.macrion.core.base.di.Dispatcher
 import io.github.vibhor1102.macrion.core.base.di.HiltCoroutineDispatchers.IO
 import io.github.vibhor1102.macrion.core.base.di.HiltCoroutineDispatchers.Main
 import io.github.vibhor1102.macrion.core.base.dumpWithTimeout
-import io.github.vibhor1102.macrion.core.common.quality.BuildConfig
-import io.github.vibhor1102.macrion.core.common.quality.data.INVALID_TIME
-import io.github.vibhor1102.macrion.core.common.quality.data.QualityMetrics
-import io.github.vibhor1102.macrion.core.common.quality.ui.AccessibilityTroubleshootingDialog
-import io.github.vibhor1102.macrion.core.common.quality.ui.AccessibilityTroubleshootingDialog.Companion.FRAGMENT_RESULT_KEY_TROUBLESHOOTING
-import io.github.vibhor1102.macrion.core.common.quality.ui.AccessibilityTroubleshootingDialog.Companion.FRAGMENT_TAG_TROUBLESHOOTING_DIALOG
-import dagger.hilt.android.qualifiers.ApplicationContext
 
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -100,10 +94,13 @@ class QualityRepository @Inject constructor(
 
     /**
      * Starts the ui flow for the troubleshooting, if the user needs it.
-     * Once the user has dismissed the ui, [onCompleted] will be called. If the ui doesn't needs to be shown,
+     * Once the user has dismissed the ui, [onCompleted] will be called. If the ui doesn't need to be shown,
      * [onCompleted] will be called immediately.
      */
-    fun startTroubleshootingUiFlowIfNeeded(activity: FragmentActivity, onCompleted: () -> Unit) {
+    fun startTroubleshootingUiFlowIfNeeded(
+        showTroubleshooting: (onDismissed: () -> Unit) -> Unit,
+        onCompleted: () -> Unit,
+    ) {
         // If the permission has not been removed, or if the dialog has already been displayed, complete.
         if (quality.value != Quality.ExternalIssue || isTroubleshootingDialogDisplayed) {
             onCompleted()
@@ -128,20 +125,17 @@ class QualityRepository @Inject constructor(
 
                 isTroubleshootingDialogDisplayed = true
                 qualityMetricsMonitor.onTroubleshootingDisplayed()
-                withContext(mainDispatcher) { startTroubleshootingUiFlow(activity, onCompleted) }
+                withContext(mainDispatcher) {
+                    showTroubleshooting {
+                        onCompleted()
+                    }
+                }
 
                 return@launch
             }
 
             withContext(mainDispatcher) { onCompleted() }
         }
-    }
-
-    @MainThread
-    fun startTroubleshootingUiFlow(activity: FragmentActivity, onCompleted: (() -> Unit)? = null) {
-        activity.supportFragmentManager
-            .setFragmentResultListener(FRAGMENT_RESULT_KEY_TROUBLESHOOTING, activity) { _, _ -> onCompleted?.invoke() }
-        AccessibilityTroubleshootingDialog().show(activity.supportFragmentManager, FRAGMENT_TAG_TROUBLESHOOTING_DIALOG)
     }
 
     private fun monitorQuality(

@@ -19,39 +19,36 @@ package io.github.vibhor1102.macrion.scenarios
 
 import android.content.Intent
 import android.os.Bundle
-import android.view.View
-import android.view.ViewGroup
 import android.widget.Toast
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
-import androidx.fragment.app.FragmentContainerView
-import androidx.fragment.app.commitNow
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.withResumed
-import androidx.fragment.app.DialogFragment
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentManager
-import io.github.vibhor1102.macrion.crash.CrashReportPrompt
 import io.github.vibhor1102.macrion.crash.crashReportStore
 import io.github.vibhor1102.macrion.core.base.crash.CrashDiagnostics
+import io.github.vibhor1102.macrion.feature.backup.ui.BackupViewModel
+import io.github.vibhor1102.macrion.scenarios.creation.ScenarioCreationViewModel
+import io.github.vibhor1102.macrion.scenarios.list.copy.ScenarioCopyViewModel
+import io.github.vibhor1102.macrion.scenarios.migration.ConditionsMigrationViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Job
 
 import io.github.vibhor1102.macrion.R
-import io.github.vibhor1102.macrion.scenarios.list.ScenarioListFragment
+import io.github.vibhor1102.macrion.scenarios.list.ScenarioListHost
+import io.github.vibhor1102.macrion.scenarios.list.ScenarioListViewModel
 import io.github.vibhor1102.macrion.scenarios.list.model.ScenarioListUiState
-import io.github.vibhor1102.macrion.core.base.extensions.delayDrawUntil
 import io.github.vibhor1102.macrion.core.display.recorder.MediaProjectionRequest
 import io.github.vibhor1102.macrion.core.domain.model.scenario.Scenario
 import io.github.vibhor1102.macrion.core.dumb.domain.model.DumbScenario
 import io.github.vibhor1102.macrion.core.ui.errors.createNoMediaProjectionDialog
 import io.github.vibhor1102.macrion.feature.revenue.UserConsentState
 import io.github.vibhor1102.macrion.scenarios.viewmodel.ScenarioViewModel
-import io.github.vibhor1102.macrion.core.common.quality.ui.BackgroundLaunchTroubleshootingDialog
 import io.github.vibhor1102.macrion.feature.externallaunch.localeplugin.domain.LocalePluginLaunchFailureStore
 import io.github.vibhor1102.macrion.feature.externallaunch.localeplugin.notification.LocalePluginNotificationController
 
@@ -65,10 +62,16 @@ import javax.inject.Inject
  * available scenarios, if any.
  */
 @AndroidEntryPoint
-class ScenarioActivity : AppCompatActivity(), ScenarioListFragment.Listener {
+class ScenarioActivity : ComponentActivity() {
 
     /** ViewModel providing the click scenarios data to the UI. */
     private val scenarioViewModel: ScenarioViewModel by viewModels()
+    private val scenarioListViewModel: ScenarioListViewModel by viewModels()
+    private val scenarioCreationViewModel: ScenarioCreationViewModel by viewModels()
+    private val scenarioCopyViewModel: ScenarioCopyViewModel by viewModels()
+    private val backupViewModel: BackupViewModel by viewModels()
+    private val conditionsMigrationViewModel: ConditionsMigrationViewModel by viewModels()
+    private lateinit var scenarioListHost: ScenarioListHost
     @Inject lateinit var localePluginLaunchFailureStore: LocalePluginLaunchFailureStore
     @Inject lateinit var localePluginNotifications: LocalePluginNotificationController
 
@@ -84,43 +87,43 @@ class ScenarioActivity : AppCompatActivity(), ScenarioListFragment.Listener {
     private val startupConsentFinished = CompletableDeferred<Unit>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        val splashScreen = installSplashScreen()
+        splashScreen.setKeepOnScreenCondition {
+            scenarioViewModel.userConsentState.value == UserConsentState.UNKNOWN
+        }
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         CrashDiagnostics.record(CrashDiagnostics.Event.HOME_OPENED)
-        supportFragmentManager.registerFragmentLifecycleCallbacks(object : FragmentManager.FragmentLifecycleCallbacks() {
-            override fun onFragmentDetached(fm: FragmentManager, f: Fragment) {
-                if (f is DialogFragment) window.decorView.post { offerLocalCrashReport() }
-            }
-        }, false)
-        setContentView(
-            FragmentContainerView(this).apply {
-                id = R.id.fragment
-                layoutParams = ViewGroup.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                )
-            },
+        scenarioListHost = ScenarioListHost(
+            activity = this,
+            scenarioListViewModel = scenarioListViewModel,
+            scenarioCreationViewModel = scenarioCreationViewModel,
+            scenarioCopyViewModel = scenarioCopyViewModel,
+            backupViewModel = backupViewModel,
+            conditionsMigrationViewModel = conditionsMigrationViewModel,
+            permissionsController = scenarioViewModel.permissionController,
+            onLaunchScenario = ::launchScenario,
+            onDialogDismissed = { window.decorView.post { offerLocalCrashReport() } },
         )
-        if (savedInstanceState == null) {
-            supportFragmentManager.commitNow {
-                replace(R.id.fragment, ScenarioListFragment(), "ScenarioList")
-            }
+        setContent {
+            scenarioListHost.Content()
         }
+        scenarioListHost.start()
 
         scenarioViewModel.stopScenario()
         scenarioViewModel.requestUserConsentIfNeeded(this) { startupConsentFinished.complete(Unit) }
 
         mediaProjectionRequest.registerForActivityResult(this)
-
-        // Splash screen is dismissed on first frame drawn, delay it until we have a user consent status
-        findViewById<View>(android.R.id.content).delayDrawUntil {
-            scenarioViewModel.userConsentState.value != UserConsentState.UNKNOWN
-        }
     }
 
     override fun onResume() {
         super.onResume()
         scenarioViewModel.refreshPurchaseState()
+    }
+
+    override fun onDestroy() {
+        scenarioListHost.destroy()
+        super.onDestroy()
     }
 
     override fun onPostResume() {
@@ -146,8 +149,7 @@ class ScenarioActivity : AppCompatActivity(), ScenarioListFragment.Listener {
     private fun canOfferCrashReport() = startupHelpChecked && !crashPromptOffered &&
         !isFinishing && requestedItem == null && hasWindowFocus() &&
         lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED) &&
-        !supportFragmentManager.isStateSaved &&
-        supportFragmentManager.fragments.none { it is DialogFragment }
+        !scenarioListHost.hasActiveDialog()
 
     private fun offerLocalCrashReport() {
         if (checkingCrashReport || !canOfferCrashReport()) return
@@ -158,7 +160,7 @@ class ScenarioActivity : AppCompatActivity(), ScenarioListFragment.Listener {
                 val report = withContext(Dispatchers.IO) { runCatching { store.pending().firstOrNull { !it.prompted } }.getOrNull() }
                 if (report != null && canOfferCrashReport()) {
                     crashPromptOffered = true
-                    CrashReportPrompt.newInstance(report.id).showNow(supportFragmentManager, CrashReportPrompt.TAG)
+                    scenarioListHost.showCrashReportDialog(report.id)
                     withContext(Dispatchers.IO) { runCatching { store.markPrompted(report.id) } }
                 }
             } finally { checkingCrashReport = false }
@@ -166,15 +168,11 @@ class ScenarioActivity : AppCompatActivity(), ScenarioListFragment.Listener {
     }
 
     private fun showLocalePluginBackgroundLaunchHelp() {
-        if (supportFragmentManager.findFragmentByTag(BackgroundLaunchTroubleshootingDialog.FRAGMENT_TAG) != null) return
-        BackgroundLaunchTroubleshootingDialog.newInstance(
-            getString(R.string.dialog_title_locale_plugin_background_launch),
-            getString(R.string.message_locale_plugin_background_launch),
-            DONT_KILL_MY_APP_URL,
-        ).show(supportFragmentManager, BackgroundLaunchTroubleshootingDialog.FRAGMENT_TAG)
+        if (scenarioListHost.isShowingBackgroundLaunchHelp()) return
+        scenarioListHost.showLocalePluginBackgroundLaunchHelp()
     }
 
-    override fun launchScenario(item: ScenarioListUiState.Item.ScenarioItem) {
+    private fun launchScenario(item: ScenarioListUiState.Item.ScenarioItem) {
         requestedItem = item
 
         scenarioViewModel.startPermissionFlowIfNeeded(
@@ -184,7 +182,9 @@ class ScenarioActivity : AppCompatActivity(), ScenarioListFragment.Listener {
     }
 
     private fun onMandatoryPermissionsGranted() {
-        scenarioViewModel.startTroubleshootingFlowIfNeeded(this) {
+        scenarioViewModel.startTroubleshootingFlowIfNeeded(
+            showTroubleshooting = scenarioListHost::showAccessibilityTroubleshootingDialog,
+        ) {
             when (val scenario = requestedItem?.scenario) {
                 is DumbScenario -> launchDumbScenario(scenario)
                 is Scenario -> mediaProjectionRequest.showMediaProjectionWarning(
@@ -235,4 +235,4 @@ class ScenarioActivity : AppCompatActivity(), ScenarioListFragment.Listener {
     }
 }
 
-private const val DONT_KILL_MY_APP_URL = "https://dontkillmyapp.com/?app=Klick%27r"
+private const val DONT_KILL_MY_APP_URL = "https://dontkillmyapp.com/?app=Macrion"

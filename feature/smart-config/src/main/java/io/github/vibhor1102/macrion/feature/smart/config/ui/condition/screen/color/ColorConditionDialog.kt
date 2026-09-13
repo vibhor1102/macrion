@@ -27,15 +27,16 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import com.google.android.material.bottomsheet.BottomSheetDialog
+import android.app.Dialog
 import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayDialog
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredOverlayType
+import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredViewType
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTextField
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.feature.smart.config.R
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
-import io.github.vibhor1102.macrion.feature.smart.config.ui.common.compose.TutorialClickAnchor
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.compose.tutorialAnchor
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.dialogs.showCloseWithoutSavingDialog
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.dialogs.showDeleteConditionsWithAssociatedActionsDialog
 import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.OnConditionConfigCompleteListener
@@ -51,19 +52,16 @@ class ColorConditionDialog(private val listener: OnConditionConfigCompleteListen
         entryPoint = ScenarioConfigViewModelsEntryPoint::class.java,
         creator = { colorConditionViewModel() },
     )
-    private var saveAnchor: View? = null
 
     override fun onCreateView(): ViewGroup = ComposeView(context).apply {
         setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
         setContent { MacrionTheme { this@ColorConditionDialog.Content() } }
     }
-    override fun onDialogCreated(dialog: BottomSheetDialog) {
+    override fun onDialogCreated(dialog: Dialog) {
         lifecycleScope.launch { repeatOnLifecycle(Lifecycle.State.CREATED) {
             viewModel.isEditingCondition.collect { if (!it) { Log.e(TAG, "Closing ColorConditionDialog because there is no condition edited"); finish() } }
         } }
     }
-    override fun onStart() { super.onStart(); viewModel.monitorSaveButtonView(saveAnchor) }
-    override fun onStop() { viewModel.detachMonitoredViews(); super.onStop() }
 
     @Composable private fun Content() {
         val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -90,10 +88,15 @@ class ColorConditionDialog(private val listener: OnConditionConfigCompleteListen
                 style = MaterialTheme.typography.titleLarge, maxLines = 1, overflow = TextOverflow.Clip)
             FilledTonalIconButton(onClick = ::onDeleteClicked) { Icon(painterResource(R.drawable.ic_delete), null) }
             Spacer(Modifier.width(8.dp))
-            Box {
-                FilledIconButton(onClick = ::save, enabled = saveEnabled) { Icon(painterResource(R.drawable.ic_save_filled), null) }
-                TutorialClickAnchor({ saveAnchor = it; viewModel.monitorSaveButtonView(it) }, ::save, saveEnabled)
-            }
+            FilledIconButton(
+                onClick = ::save,
+                enabled = saveEnabled,
+                modifier = Modifier.tutorialAnchor(
+                    MonitoredViewType.SCREEN_CONDITION_DIALOG_BUTTON_SAVE,
+                    onClick = ::save,
+                    enabled = saveEnabled,
+                ),
+            ) { Icon(painterResource(R.drawable.ic_save_filled), null) }
         }
     }
 

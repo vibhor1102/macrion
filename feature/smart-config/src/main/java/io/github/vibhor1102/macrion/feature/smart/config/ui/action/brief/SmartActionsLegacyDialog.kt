@@ -16,12 +16,12 @@
  */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.action.brief
 
-import android.annotation.SuppressLint
 import android.view.ViewGroup
-import android.widget.ImageView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -34,15 +34,7 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-
-import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.DividerItemDecoration
-import androidx.recyclerview.widget.ItemTouchHelper
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.ListAdapter
-import androidx.recyclerview.widget.RecyclerView
 
 import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayDialog
@@ -53,9 +45,9 @@ import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewMo
 import io.github.vibhor1102.macrion.feature.smart.config.ui.action.selection.ActionTypeSelectionDialog
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.action.UiAction
 
-import com.google.android.material.bottomsheet.BottomSheetDialog
-import java.util.Collections
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredOverlayType
+import sh.calvin.reorderable.ReorderableItem
+import sh.calvin.reorderable.rememberReorderableLazyListState
 
 
 class SmartActionsLegacyDialog : OverlayDialog(R.style.ScenarioConfigTheme) {
@@ -69,25 +61,14 @@ class SmartActionsLegacyDialog : OverlayDialog(R.style.ScenarioConfigTheme) {
         creator = { smartActionsBriefViewModel() }
     )
 
-    /** TouchHelper applied to [actionAdapter] allowing to drag and drop the items. */
-    private val itemTouchHelper = ItemTouchHelper(ActionReorderTouchHelper())
-
-    private lateinit var actionAdapter: ActionAdapter
-
     override fun onCreateView(): ViewGroup {
-        actionAdapter = ActionAdapter(
-            actionClickedListener = ::onActionClicked,
-            actionReorderListener = viewModel::updateActionOrder,
-        )
         return ComposeView(context).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent { MacrionTheme { this@SmartActionsLegacyDialog.Content() } }
         }
     }
 
-    override fun onDialogCreated(dialog: BottomSheetDialog) = Unit
-
-    private fun onCreateButtonClicked() {
+private fun onCreateButtonClicked() {
         overlayManager.navigateTo(
             context = context,
             newOverlay = ActionTypeSelectionDialog(
@@ -110,6 +91,13 @@ class SmartActionsLegacyDialog : OverlayDialog(R.style.ScenarioConfigTheme) {
     @Composable private fun Content() {
         val canCopy = viewModel.canCopyActions.collectAsStateWithLifecycle(false).value
         val items = viewModel.actionBriefList.collectAsStateWithLifecycle(null).value
+        var displayedItems by remember { mutableStateOf(emptyList<ItemBrief>()) }
+        var isReordering by remember { mutableStateOf(false) }
+        LaunchedEffect(items) { if (!isReordering) displayedItems = items.orEmpty() }
+        val listState = androidx.compose.foundation.lazy.rememberLazyListState()
+        val reorderState = rememberReorderableLazyListState(listState) { from, to ->
+            displayedItems = displayedItems.toMutableList().apply { add(to.index, removeAt(from.index)) }
+        }
         Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
             Column {
                 Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -126,12 +114,26 @@ class SmartActionsLegacyDialog : OverlayDialog(R.style.ScenarioConfigTheme) {
                             Text(context.getString(R.string.message_empty_action_list_desc), style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
-                        else -> AndroidView(factory = { ctx -> RecyclerView(ctx).apply {
-                            layoutManager = LinearLayoutManager(ctx)
-                            adapter = actionAdapter
-                            addItemDecoration(DividerItemDecoration(ctx, DividerItemDecoration.VERTICAL))
-                            itemTouchHelper.attachToRecyclerView(this)
-                        } }, update = { actionAdapter.submitList(items) }, modifier = Modifier.fillMaxSize())
+                        else -> LazyColumn(Modifier.fillMaxSize(), state = listState) {
+                            items(displayedItems, key = { it.id.databaseId.takeIf { id -> id != 0L } ?: -requireNotNull(it.id.tempId) }) { item ->
+                                val key = item.id.databaseId.takeIf { it != 0L } ?: -requireNotNull(item.id.tempId)
+                                ReorderableItem(reorderState, key) { dragging ->
+                                    ActionRow(
+                                        item = item,
+                                        isBeingDragged = dragging,
+                                        reorderHandleModifier = Modifier.longPressDraggableHandle(
+                                            onDragStarted = { isReordering = true },
+                                            onDragStopped = {
+                                                viewModel.updateActionOrder(displayedItems)
+                                                isReordering = false
+                                            },
+                                        ),
+                                        onClick = { onActionClicked(item) },
+                                    )
+                                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                                }
+                            }
+                        }
                     }
                     Column(Modifier.align(Alignment.BottomEnd).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         if (canCopy) FloatingActionButton(onClick = ::onCopyButtonClicked,
@@ -148,141 +150,31 @@ class SmartActionsLegacyDialog : OverlayDialog(R.style.ScenarioConfigTheme) {
     }
 }
 
-private class ActionAdapter(
-    private val actionClickedListener: (ItemBrief) -> Unit,
-    private val actionReorderListener: (List<ItemBrief>) -> Unit,
-) : ListAdapter<ItemBrief, ActionItemBriefViewHolder>(ActionItemBriefDiffUtilCallback) {
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ActionItemBriefViewHolder =
-        ActionItemBriefViewHolder(parent)
-
-    override fun onBindViewHolder(holder: ActionItemBriefViewHolder, position: Int) {
-        holder.onBind(getItem(position), actionClickedListener)
-    }
-
-    /**
-     * Swap the position of two events in the list.
-     *
-     * @param from the position of the click to be moved.
-     * @param to the new position of the click to be moved.
-     */
-    fun moveActions(from: Int, to: Int) {
-        val newList = currentList.toMutableList()
-        Collections.swap(newList, from, to)
-        submitList(newList)
-    }
-
-    /** Notify for an item drag and drop completion. */
-    fun notifyMoveFinished() {
-        actionReorderListener(currentList)
-    }
-}
-
-private object ActionItemBriefDiffUtilCallback: DiffUtil.ItemCallback<ItemBrief>() {
-    override fun areItemsTheSame(
-        oldItem: ItemBrief,
-        newItem: ItemBrief,
-    ): Boolean = oldItem.id == newItem.id
-
-    @SuppressLint("DiffUtilEquals")
-    override fun areContentsTheSame(
-        oldItem: ItemBrief,
-        newItem: ItemBrief,
-    ): Boolean = oldItem.data == newItem.data
-}
-
-private class ActionItemBriefViewHolder(
-    parent: ViewGroup,
-) : RecyclerView.ViewHolder(ComposeView(parent.context)) {
-    private var itemState by mutableStateOf<ItemBrief?>(null)
-    private var clickListener: ((ItemBrief) -> Unit)? = null
-
-    init {
-        (itemView as ComposeView).apply {
-            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindowOrReleasedFromPool)
-            setContent { MacrionTheme { itemState?.let { ActionRow(it) } } }
+@Composable
+private fun ActionRow(
+    item: ItemBrief,
+    isBeingDragged: Boolean,
+    reorderHandleModifier: Modifier,
+    onClick: () -> Unit,
+) {
+    val details = item.data as UiAction
+    Row(
+        Modifier.fillMaxWidth().height(80.dp).clickable(onClick = onClick).padding(start = 8.dp, end = 16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box(
+            Modifier.size(48.dp)
+                .background(if (isBeingDragged) MaterialTheme.colorScheme.primary.copy(alpha = 0.12f) else androidx.compose.ui.graphics.Color.Transparent, CircleShape)
+                .then(reorderHandleModifier),
+            contentAlignment = Alignment.Center,
+        ) { Icon(painterResource(R.drawable.ic_reorder), null, Modifier.size(24.dp)) }
+        Column(Modifier.weight(1f).padding(start = 8.dp, end = 12.dp)) {
+            Text(details.name, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(details.description, style = MaterialTheme.typography.bodySmall, fontStyle = FontStyle.Italic, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
-    }
-
-    fun onBind(item: ItemBrief, itemClickedListener: (ItemBrief) -> Unit) {
-        clickListener = itemClickedListener
-        itemState = item
-    }
-
-    @Composable
-    private fun ActionRow(item: ItemBrief) {
-        val details = item.data as UiAction
-        Row(
-            Modifier.fillMaxWidth().height(80.dp).clickable { clickListener?.invoke(item) }
-                .padding(start = 8.dp, end = 16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            AndroidView(
-                factory = { context -> ImageView(context).apply { scaleType = ImageView.ScaleType.CENTER } },
-                update = { it.setImageResource(R.drawable.ic_reorder) },
-                modifier = Modifier.size(48.dp),
-            )
-            Column(Modifier.weight(1f).padding(start = 8.dp, end = 12.dp)) {
-                Text(
-                    details.name,
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Text(
-                    details.description,
-                    style = MaterialTheme.typography.bodySmall,
-                    fontStyle = FontStyle.Italic,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-            Box(Modifier.size(32.dp)) {
-                AndroidView(
-                    factory = { context -> ImageView(context).apply { scaleType = ImageView.ScaleType.FIT_CENTER } },
-                    update = { it.setImageResource(details.icon) },
-                    modifier = Modifier.matchParentSize(),
-                )
-                if (details.haveError) Box(
-                    Modifier.align(Alignment.TopEnd).size(6.dp)
-                        .background(MaterialTheme.colorScheme.error, CircleShape),
-                )
-            }
-        }
-    }
-}
-
-private class ActionReorderTouchHelper
-    : ItemTouchHelper.SimpleCallback(ItemTouchHelper.UP or ItemTouchHelper.DOWN, 0) {
-
-    /** Tells if the user is currently dragging an item. */
-    private var isDragging: Boolean = false
-
-    override fun onMove(
-        recyclerView: RecyclerView,
-        viewHolder: RecyclerView.ViewHolder,
-        target: RecyclerView.ViewHolder
-    ): Boolean {
-        isDragging = true
-
-        (recyclerView.adapter as ActionAdapter).moveActions(
-            viewHolder.bindingAdapterPosition,
-            target.bindingAdapterPosition
-        )
-        return true
-    }
-
-    override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-        // Nothing do to
-    }
-
-    override fun clearView(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder) {
-        super.clearView(recyclerView, viewHolder)
-
-        if (isDragging) {
-            (recyclerView.adapter as ActionAdapter).notifyMoveFinished()
-            isDragging = false
+        Box(Modifier.size(32.dp)) {
+            Icon(painterResource(details.icon), null, Modifier.matchParentSize())
+            if (details.haveError) Box(Modifier.align(Alignment.TopEnd).size(6.dp).background(MaterialTheme.colorScheme.error, CircleShape))
         }
     }
 }

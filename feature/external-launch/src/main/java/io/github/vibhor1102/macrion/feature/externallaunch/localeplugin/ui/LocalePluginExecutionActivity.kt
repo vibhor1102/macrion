@@ -12,11 +12,13 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
-import android.widget.FrameLayout
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import io.github.vibhor1102.macrion.core.common.permissions.ui.PermissionsHost
 import io.github.vibhor1102.macrion.core.display.recorder.MediaProjectionRequest
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.feature.externallaunch.R
 import io.github.vibhor1102.macrion.feature.externallaunch.localeplugin.domain.LocalePluginDirectLaunchTracker
 import io.github.vibhor1102.macrion.feature.externallaunch.localeplugin.domain.LocalePluginLaunchFailureStore
@@ -27,7 +29,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class LocalePluginExecutionActivity : AppCompatActivity() {
+class LocalePluginExecutionActivity : ComponentActivity() {
 
     companion object {
         private const val EXTRA_CONFIGURATION_JSON =
@@ -70,7 +72,11 @@ class LocalePluginExecutionActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(FrameLayout(this).apply { setBackgroundColor(Color.TRANSPARENT) })
+        setContent {
+            MacrionTheme {
+                PermissionsHost(viewModel.permissionController)
+            }
+        }
         mediaProjectionRequest.registerForActivityResult(this)
         handleLaunchIntent(intent)
     }

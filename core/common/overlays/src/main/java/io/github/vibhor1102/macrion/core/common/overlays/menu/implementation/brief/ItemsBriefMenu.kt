@@ -16,25 +16,21 @@
  */
 package io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.brief
 
-import android.animation.Animator
-import android.animation.AnimatorInflater
 import android.annotation.SuppressLint
 import android.content.res.Configuration
 import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 
 import androidx.annotation.CallSuper
 import androidx.annotation.StringRes
 import androidx.annotation.StyleRes
-import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 
 import io.github.vibhor1102.macrion.core.common.overlays.R
 import io.github.vibhor1102.macrion.core.common.overlays.menu.OverlayMenu
-import io.github.vibhor1102.macrion.core.ui.utils.AutoHideAnimationController
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.ItemBriefDescription
 import io.github.vibhor1102.macrion.core.ui.views.gesturerecord.toActionDescription
-import androidx.core.view.isVisible
 
 abstract class ItemBriefMenu(
     @StyleRes theme: Int? = null,
@@ -43,24 +39,18 @@ abstract class ItemBriefMenu(
 ) : OverlayMenu(theme = theme, recreateOverlayViewOnRotation = true) {
 
 
-    /** Layout manager for the recycler view. */
-    private val itemListSnapHelper: ItemsBriefSnapHelper = ItemsBriefSnapHelper()
-
-    /** Controls the action brief panel in and out animations. */
-    private lateinit var briefPanelAnimationController: AutoHideAnimationController
-    /** Controls the instructions in and out animations. */
-    private lateinit var instructionsAnimationController: AutoHideAnimationController
     /** The view binding for the position selector. */
     protected lateinit var briefViewBinding: ItemsBriefOverlayViewBinding
-    /** Adapter displaying the items in the list. */
-    private lateinit var briefAdapter: ItemBriefAdapter
-
-    private lateinit var blinkingAnimator: Animator
+    /** Items currently displayed by the Compose carousel. */
+    private var briefItems: List<ItemBrief> = emptyList()
+    private var focusedItemIndex: Int = 0
 
     protected open fun onOverlayViewCreated(binding: ItemsBriefOverlayViewBinding): Unit = Unit
 
-    protected abstract fun onCreateBriefItemViewHolder(parent: ViewGroup, orientation: Int): ItemBriefViewHolder<*>
-    protected open fun onBriefItemViewBound(index: Int, itemView: View?): Unit = Unit
+    @androidx.compose.runtime.Composable
+    protected abstract fun ItemBriefContent(item: ItemBrief, orientation: Int, onClick: () -> Unit)
+    @Composable
+    protected open fun firstBriefItemModifier(): Modifier = Modifier
 
     protected open fun onItemBriefClicked(index: Int, item: ItemBrief): Unit = Unit
     protected open fun onItemPositionCardClicked(index: Int, itemCount: Int): Unit = Unit
@@ -69,77 +59,48 @@ abstract class ItemBriefMenu(
     protected abstract fun onDeleteItemClicked(index: Int)
 
     override fun onCreateOverlayView(): View {
-        briefPanelAnimationController = AutoHideAnimationController()
-        instructionsAnimationController = AutoHideAnimationController()
-
         briefViewBinding = ItemsBriefOverlayViewBinding.inflate(
             inflater = context.getSystemService(LayoutInflater::class.java),
             orientation = displayConfigManager.displayConfig.orientation,
-        )
-
-        briefAdapter = ItemBriefAdapter(
-            displayConfigManager = displayConfigManager,
-            viewHolderCreator = ::onCreateBriefItemViewHolder,
-            itemBoundListener = ::onBriefItemViewBound,
-            onItemClickedListener = { index, brief ->
-                debounceUserInteraction { onItemBriefClicked(index, brief) }
-            },
+            displayConfig = displayConfigManager.displayConfig,
         )
 
         briefViewBinding.apply {
-            briefPanelAnimationController.attachToView(
-                layoutActionList,
-                if (displayConfigManager.displayConfig.orientation == Configuration.ORIENTATION_PORTRAIT)
-                    AutoHideAnimationController.ScreenSide.BOTTOM
-                else
-                    AutoHideAnimationController.ScreenSide.LEFT
-            )
 
-            instructionsAnimationController.attachToView(
-                layoutInstructions,
-                AutoHideAnimationController.ScreenSide.TOP,
-            )
-            blinkingAnimator = AnimatorInflater.loadAnimator(context, R.animator.blinking)
-
-            listActions.adapter = briefAdapter
-            itemListSnapHelper.apply {
-                onSnapPositionChangeListener = { snapIndex ->
-                    onFocusedItemChanged(snapIndex)
-                    briefPanelAnimationController.showOrResetTimer()
-                }
-                attachToRecyclerView(listActions)
-                initialItemIndex = this@ItemBriefMenu.initialItemIndex
-            }
-            listActions.layoutManager = LinearLayoutManager(
-                context,
-                if (displayConfigManager.displayConfig.orientation == Configuration.ORIENTATION_PORTRAIT)
-                    LinearLayoutManager.HORIZONTAL else LinearLayoutManager.VERTICAL,
-                false,
+            setBriefItemsContent(
+                initialItemIndex = initialItemIndex,
+                itemContent = { item, orientation, onClick -> ItemBriefContent(item, orientation, onClick) },
+                onItemClicked = { index, item ->
+                    debounceUserInteraction { onItemBriefClicked(index, item) }
+                },
+                onFocusedItemChanged = { index ->
+                    focusedItemIndex = index
+                    onFocusedItemChanged(index)
+                    showOrResetPanelTimer()
+                },
+                firstItemModifier = { firstBriefItemModifier() },
             )
 
             setEmptyText(noItemText)
 
-            root.setOnClickListener {
-                briefPanelAnimationController.showOrResetTimer()
-            }
             setControlCallbacks(
                 onMovePrevious = { debounceUserInteraction {
-                    briefPanelAnimationController.showOrResetTimer()
-                    onMoveItemClicked(itemListSnapHelper.snapPosition, itemListSnapHelper.snapPosition - 1)
+                    showOrResetPanelTimer()
+                    onMoveItemClicked(focusedItemIndex, focusedItemIndex - 1)
                 } },
                 onDelete = { debounceUserInteraction {
-                    briefPanelAnimationController.showOrResetTimer()
-                    onDeleteItemClicked(itemListSnapHelper.snapPosition)
+                    showOrResetPanelTimer()
+                    onDeleteItemClicked(focusedItemIndex)
                 } },
                 onPosition = { debounceUserInteraction {
-                    onItemPositionCardClicked(getFocusedItemIndex(), briefAdapter.itemCount)
+                    onItemPositionCardClicked(getFocusedItemIndex(), briefItems.size)
                 } },
                 onPlay = { debounceUserInteraction {
-                    onPlayItemClicked(itemListSnapHelper.snapPosition)
+                    onPlayItemClicked(focusedItemIndex)
                 } },
                 onMoveNext = { debounceUserInteraction {
-                    briefPanelAnimationController.showOrResetTimer()
-                    onMoveItemClicked(itemListSnapHelper.snapPosition, itemListSnapHelper.snapPosition + 1)
+                    showOrResetPanelTimer()
+                    onMoveItemClicked(focusedItemIndex, focusedItemIndex + 1)
                 } },
             )
         }
@@ -151,74 +112,71 @@ abstract class ItemBriefMenu(
 
     override fun onResume() {
         super.onResume()
-        briefPanelAnimationController.showOrResetTimer()
+        briefViewBinding.showOrResetPanelTimer()
     }
 
     override fun onDestroy() {
-        briefPanelAnimationController.detachFromView()
-        instructionsAnimationController.detachFromView()
+        briefViewBinding.dispose()
         super.onDestroy()
     }
 
     override fun onScreenOverlayVisibilityChanged(isVisible: Boolean) {
-        if (isVisible) briefPanelAnimationController.showOrResetTimer()
+        if (isVisible) briefViewBinding.showOrResetPanelTimer()
     }
 
     @CallSuper
     protected open fun onFocusedItemChanged(index: Int) {
-        updateBriefButtons(briefAdapter.itemCount)
+        updateBriefButtons(briefItems.size)
     }
 
     protected fun setBriefPanelAutoHide(isEnabled: Boolean) {
-        briefPanelAnimationController.setAutoHideEnabled(isEnabled)
+        briefViewBinding.setPanelAutoHideEnabled(isEnabled)
     }
 
     protected fun getFocusedItemIndex(): Int =
-        itemListSnapHelper.snapPosition
+        focusedItemIndex
 
     protected fun getFocusedItemBrief(): ItemBrief? {
-        if (briefAdapter.itemCount == 0) return null
-        return briefAdapter.getItem(getFocusedItemIndex().coerceIn(0, briefAdapter.itemCount - 1))
+        if (briefItems.isEmpty()) return null
+        return briefItems.getOrNull(getFocusedItemIndex().coerceIn(0, briefItems.lastIndex))
     }
 
     protected fun hidePanel(): Unit =
-        briefPanelAnimationController.hide()
+        briefViewBinding.hidePanel()
 
     protected fun updateItemList(actions: List<ItemBrief>) {
-        briefViewBinding.apply {
+        val previousItems = briefItems
+        val previouslyFocusedId = previousItems.getOrNull(focusedItemIndex)?.id
+        briefItems = actions
 
-            if (actions.isEmpty()) {
-                listActions.visibility = View.GONE
-                emptyScenarioCard.visibility = View.VISIBLE
-            } else {
-                listActions.visibility = View.VISIBLE
-                emptyScenarioCard.visibility = View.GONE
-            }
-
-            briefAdapter.submitList(actions)
+        val targetIndex = when {
+            actions.isEmpty() -> 0
+            previousItems.isEmpty() -> initialItemIndex.coerceIn(0, actions.lastIndex)
+            actions.size > previousItems.size -> actions.indexOfLast { item -> previousItems.none { it.id == item.id } }
+                .takeIf { it >= 0 } ?: focusedItemIndex.coerceIn(0, actions.lastIndex)
+            else -> actions.indexOfFirst { it.id == previouslyFocusedId }
+                .takeIf { it >= 0 } ?: focusedItemIndex.coerceIn(0, actions.lastIndex)
         }
+        focusedItemIndex = targetIndex
+        briefViewBinding.updateBriefItems(actions, targetIndex)
 
         updateBriefButtons(actions.size)
     }
 
     @SuppressLint("ClickableViewAccessibility")
     protected fun startGestureCapture(onNewAction: (gesture: ItemBriefDescription?, isFinished: Boolean) -> Unit) {
-        briefPanelAnimationController.hide()
-
-        blinkingAnimator.setTarget(briefViewBinding.recordingIcon)
-        blinkingAnimator.start()
-        instructionsAnimationController.showOrResetTimer()
-
+        briefViewBinding.setGestureRecording(true)
+        briefViewBinding.showOrResetInstructionsTimer()
         briefViewBinding.viewBrief.setDescription(null)
 
         briefViewBinding.viewRecorder.apply {
-            visibility = View.VISIBLE
+            isVisible = true
 
             var isCaptureStarted = false
             gestureCaptureListener = { gesture, isFinished ->
                 if (gesture != null && !isCaptureStarted){
                     isCaptureStarted = true
-                    instructionsAnimationController.hide()
+                    briefViewBinding.hideInstructions()
                 }
                 briefViewBinding.viewBrief.setDescription(
                     newDescription = gesture?.toActionDescription(),
@@ -234,18 +192,16 @@ abstract class ItemBriefMenu(
     }
 
     protected fun stopGestureCapture() {
-        blinkingAnimator.end()
-
         briefViewBinding.viewRecorder.clearAndHide()
-        briefPanelAnimationController.showOrResetTimer()
-        instructionsAnimationController.hide()
+        briefViewBinding.setGestureRecording(false)
+        briefViewBinding.hideInstructions()
     }
 
     protected fun isGestureCaptureStarted(): Boolean =
         briefViewBinding.viewRecorder.isVisible
 
     private fun updateBriefButtons(itemCount: Int) {
-        val index = itemListSnapHelper.snapPosition
+        val index = focusedItemIndex.coerceIn(0, (itemCount - 1).coerceAtLeast(0))
         val hasItems = itemCount != 0
         briefViewBinding.updateControls(
             ItemBriefControlsState(
