@@ -41,9 +41,9 @@ class DumbActionListViewModel @Inject constructor(
         dumbEditionRepository.editedDumbScenario
 
     /** The list of dumb actions for the scenario. */
-    val dumbActionsDetails: Flow<List<DumbActionDetails>> = userModifications
+    val dumbActionsDetails: Flow<List<DumbActionDetails>?> = userModifications
         .map { dumbScenario ->
-            dumbScenario?.dumbActions?.map { it.toDumbActionDetails(context) } ?: emptyList()
+            dumbScenario?.dumbActions?.map { it.toDumbActionDetails(context) }
         }
 
     val canCopyAction: Flow<Boolean> = dumbEditionRepository.actionsToCopy

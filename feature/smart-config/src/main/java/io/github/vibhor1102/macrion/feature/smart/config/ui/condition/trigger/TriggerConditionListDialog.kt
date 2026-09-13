@@ -45,7 +45,7 @@ class TriggerConditionListDialog : OverlayDialog(R.style.ScenarioConfigTheme) {
         setContent { MacrionTheme { this@TriggerConditionListDialog.Content() } }
     }
 @Composable private fun Content() {
-        val conditions = viewModel.configuredTriggerConditions.collectAsStateWithLifecycle(emptyList()).value
+        val conditions = viewModel.configuredTriggerConditions.collectAsStateWithLifecycle(null).value
         val canCopy = viewModel.canCopyCondition.collectAsStateWithLifecycle(false).value
         Surface(
             modifier = Modifier.fillMaxWidth().heightIn(max = dimensionResource(io.github.vibhor1102.macrion.core.ui.R.dimen.bottom_sheet_min_height)),
@@ -84,13 +84,19 @@ class TriggerConditionListDialog : OverlayDialog(R.style.ScenarioConfigTheme) {
                     }
                 },
             ) { padding ->
-                if (conditions.isEmpty()) Box(Modifier.fillMaxSize().padding(padding).padding(24.dp), contentAlignment = Alignment.Center) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(context.getString(R.string.message_empty_trigger_condition_list_title), style = MaterialTheme.typography.titleMedium)
-                        Text(context.getString(R.string.message_empty_trigger_condition_list_desc), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                when {
+                    conditions == null -> Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
                     }
-                } else LazyColumn(Modifier.fillMaxSize().padding(padding), contentPadding = PaddingValues(bottom = 88.dp)) {
-                    items(conditions, key = { it.condition.id.toString() }) { condition -> ConditionRow(condition) }
+                    conditions.isEmpty() -> Box(Modifier.fillMaxSize().padding(padding).padding(24.dp), contentAlignment = Alignment.Center) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(context.getString(R.string.message_empty_trigger_condition_list_title), style = MaterialTheme.typography.titleMedium)
+                            Text(context.getString(R.string.message_empty_trigger_condition_list_desc), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
+                    else -> LazyColumn(Modifier.fillMaxSize().padding(padding), contentPadding = PaddingValues(bottom = 88.dp)) {
+                        items(conditions, key = { it.condition.id.toString() }) { condition -> ConditionRow(condition) }
+                    }
                 }
             }
         }

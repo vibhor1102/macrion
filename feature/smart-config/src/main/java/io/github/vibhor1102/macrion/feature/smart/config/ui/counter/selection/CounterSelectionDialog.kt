@@ -42,7 +42,7 @@ class CounterSelectionDialog(private val onCounterSelected: (String) -> Unit) :
     }
 @Composable private fun Content() {
         CompositionLocalProvider(LocalMonitoredViewsManager provides viewModel.monitoredViewsManager) {
-            val counters = viewModel.counterNames.collectAsStateWithLifecycle(emptyList()).value
+            val counters = viewModel.counterNames.collectAsStateWithLifecycle(null).value
             Surface(
                 modifier = Modifier.fillMaxWidth().heightIn(max = 640.dp),
                 shape = OverlayDialogShape,
@@ -69,26 +69,32 @@ class CounterSelectionDialog(private val onCounterSelected: (String) -> Unit) :
                         }
                     },
                 ) { padding ->
-                    if (counters.isEmpty()) Box(Modifier.fillMaxSize().padding(padding).padding(24.dp),
-                        contentAlignment = Alignment.Center) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(context.getString(R.string.message_empty_counter_name_list_title), style = MaterialTheme.typography.titleMedium)
-                            Text(context.getString(R.string.message_empty_counter_name_list_desc),
-                                color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    when {
+                        counters == null -> Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
+                            CircularProgressIndicator()
                         }
-                    } else LazyColumn(Modifier.fillMaxSize().padding(padding), contentPadding = PaddingValues(bottom = 88.dp)) {
-                        items(counters, key = { it.counterName }) { counter ->
-                            Row(Modifier.fillMaxWidth().heightIn(min = 64.dp).clickable {
-                                onCounterSelected(counter.counterName); back()
-                            }.padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                                Column(Modifier.weight(1f)) {
-                                    Text(counter.counterName, style = MaterialTheme.typography.titleSmall)
-                                    Text(counter.counterStartingValueDesc, style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                }
-                                Icon(painterResource(R.drawable.ic_chevron_right), null, Modifier.size(24.dp))
+                        counters.isEmpty() -> Box(Modifier.fillMaxSize().padding(padding).padding(24.dp),
+                            contentAlignment = Alignment.Center) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(context.getString(R.string.message_empty_counter_name_list_title), style = MaterialTheme.typography.titleMedium)
+                                Text(context.getString(R.string.message_empty_counter_name_list_desc),
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
-                            HorizontalDivider(Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant)
+                        }
+                        else -> LazyColumn(Modifier.fillMaxSize().padding(padding), contentPadding = PaddingValues(bottom = 88.dp)) {
+                            items(counters, key = { it.counterName }) { counter ->
+                                Row(Modifier.fillMaxWidth().heightIn(min = 64.dp).clickable {
+                                    onCounterSelected(counter.counterName); back()
+                                }.padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                                    Column(Modifier.weight(1f)) {
+                                        Text(counter.counterName, style = MaterialTheme.typography.titleSmall)
+                                        Text(counter.counterStartingValueDesc, style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    }
+                                    Icon(painterResource(R.drawable.ic_chevron_right), null, Modifier.size(24.dp))
+                                }
+                                HorizontalDivider(Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant)
+                            }
                         }
                     }
                 }

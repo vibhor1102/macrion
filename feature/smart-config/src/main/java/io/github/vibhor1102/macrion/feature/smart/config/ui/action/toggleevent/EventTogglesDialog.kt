@@ -51,29 +51,38 @@ class EventTogglesDialog(
 override fun onDestroy() { onDismissed?.invoke(); super.onDestroy() }
 
     @Composable private fun Content() {
-        val listItems by viewModel.currentItems.collectAsStateWithLifecycle(initialValue = emptyList())
+        val listItems by viewModel.currentItems.collectAsStateWithLifecycle(initialValue = null)
         Surface(
             shape = OverlayDialogShape,
             modifier = Modifier.fillMaxWidth().heightIn(max = 600.dp), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
             Column {
                 TopBar()
-                if (listItems.isEmpty()) {
-                    Box(Modifier.fillMaxWidth().weight(1f).padding(24.dp), contentAlignment = Alignment.Center) {
-                        Text(context.getString(R.string.message_empty_screen_event_title), style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                val current = listItems
+                when {
+                    current == null -> {
+                        Box(Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {
+                            CircularProgressIndicator()
+                        }
                     }
-                } else {
-                    LazyColumn(Modifier.fillMaxWidth().weight(1f), contentPadding = PaddingValues(vertical = 8.dp)) {
-                        items(listItems, key = { item -> when (item) {
-                            is EventTogglesListItem.Header -> "header:${item.title}"
-                            is EventTogglesListItem.Item -> item.event.id.let { "event:${it.databaseId}:${it.tempId ?: ""}" }
-                        } }, contentType = { item -> when (item) {
-                            is EventTogglesListItem.Header -> "header"
-                            is EventTogglesListItem.Item -> "event"
-                        } }) { item -> when (item) {
-                            is EventTogglesListItem.Header -> Header(item.title)
-                            is EventTogglesListItem.Item -> EventRow(item)
-                        } }
+                    current.isEmpty() -> {
+                        Box(Modifier.fillMaxWidth().weight(1f).padding(24.dp), contentAlignment = Alignment.Center) {
+                            Text(context.getString(R.string.message_empty_screen_event_title), style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
+                    else -> {
+                        LazyColumn(Modifier.fillMaxWidth().weight(1f), contentPadding = PaddingValues(vertical = 8.dp)) {
+                            items(current, key = { item -> when (item) {
+                                is EventTogglesListItem.Header -> "header:${item.title}"
+                                is EventTogglesListItem.Item -> item.event.id.let { "event:${it.databaseId}:${it.tempId ?: ""}" }
+                            } }, contentType = { item -> when (item) {
+                                is EventTogglesListItem.Header -> "header"
+                                is EventTogglesListItem.Item -> "event"
+                            } }) { item -> when (item) {
+                                is EventTogglesListItem.Header -> Header(item.title)
+                                is EventTogglesListItem.Item -> EventRow(item)
+                            } }
+                        }
                     }
                 }
             }

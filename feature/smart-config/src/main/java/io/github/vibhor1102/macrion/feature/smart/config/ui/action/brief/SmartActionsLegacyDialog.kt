@@ -101,6 +101,11 @@ private fun onCreateButtonClicked() {
         val items = viewModel.actionBriefList.collectAsStateWithLifecycle(null).value
         var displayedItems by remember { mutableStateOf(emptyList<ItemBrief>()) }
         var isReordering by remember { mutableStateOf(false) }
+
+        if (!isReordering && items != null && displayedItems != items) {
+            displayedItems = items
+        }
+
         LaunchedEffect(items) { if (!isReordering) displayedItems = items.orEmpty() }
         val listState = androidx.compose.foundation.lazy.rememberLazyListState()
         val reorderState = rememberReorderableLazyListState(listState) { from, to ->
@@ -125,7 +130,7 @@ private fun onCreateButtonClicked() {
                                 color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                         else -> LazyColumn(Modifier.fillMaxSize(), state = listState) {
-                            items(displayedItems, key = { it.id.databaseId.takeIf { id -> id != 0L } ?: -requireNotNull(it.id.tempId) }) { item ->
+                            items(displayedItems.ifEmpty { items }, key = { it.id.databaseId.takeIf { id -> id != 0L } ?: -requireNotNull(it.id.tempId) }) { item ->
                                 val key = item.id.databaseId.takeIf { it != 0L } ?: -requireNotNull(item.id.tempId)
                                 val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
                                 ReorderableItem(reorderState, key) { dragging ->

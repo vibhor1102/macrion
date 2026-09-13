@@ -133,40 +133,51 @@ class DumbActionListContent(appContext: Context) : NavBarDialogContent(appContex
     }
 
     @Composable private fun Content() {
-        val sourceItems = viewModel.dumbActionsDetails.collectAsStateWithLifecycle(emptyList()).value
+        val sourceItems = viewModel.dumbActionsDetails.collectAsStateWithLifecycle(null).value
         var displayedItems by remember { mutableStateOf(emptyList<DumbActionDetails>()) }
         var isReordering by remember { mutableStateOf(false) }
         val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
-        LaunchedEffect(sourceItems) { if (!isReordering) displayedItems = sourceItems }
+
+        if (!isReordering && sourceItems != null && displayedItems != sourceItems) {
+            displayedItems = sourceItems
+        }
+
+        LaunchedEffect(sourceItems) { if (!isReordering) displayedItems = sourceItems ?: emptyList() }
         val listState = androidx.compose.foundation.lazy.rememberLazyListState()
         val reorderState = rememberReorderableLazyListState(listState) { from, to ->
             displayedItems = displayedItems.toMutableList().apply { add(to.index, removeAt(from.index)) }
         }
         Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
-            if (displayedItems.isEmpty()) {
-                Column(Modifier.fillMaxSize().padding(24.dp), Arrangement.Center, Alignment.CenterHorizontally) {
-                    Text(context.getString(R.string.message_empty_dumb_action_list), style = MaterialTheme.typography.headlineSmall)
-                    Text(context.getString(R.string.message_empty_secondary_dumb_action_list), style = MaterialTheme.typography.bodyMedium)
+            when {
+                sourceItems == null -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
                 }
-            } else LazyColumn(Modifier.fillMaxSize(), state = listState) {
-                items(displayedItems, key = { it.action.id.databaseId.takeIf { id -> id != 0L } ?: -requireNotNull(it.action.id.tempId) }) { item ->
-                    val key = item.action.id.databaseId.takeIf { it != 0L } ?: -requireNotNull(item.action.id.tempId)
-                    ReorderableItem(reorderState, key) { dragging ->
-                        DumbActionListItem(
-                            details = item,
-                            showHandle = true,
-                            reorderHandleModifier = Modifier.draggableHandle(
-                                onDragStarted = {
-                                    haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
-                                    isReordering = true
-                                },
-                                onDragStopped = { viewModel.updateDumbActionOrder(displayedItems); isReordering = false },
-                                dragGestureDetector = io.github.vibhor1102.macrion.feature.dumb.config.ui.actions.DualDragGestureDetector,
-                            ).clearAndSetSemantics { },
-                            isBeingDragged = dragging,
-                            onClick = { onDumbActionClicked(item) },
-                        )
-                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                sourceItems.isEmpty() -> {
+                    Column(Modifier.fillMaxSize().padding(24.dp), Arrangement.Center, Alignment.CenterHorizontally) {
+                        Text(context.getString(R.string.message_empty_dumb_action_list), style = MaterialTheme.typography.headlineSmall)
+                        Text(context.getString(R.string.message_empty_secondary_dumb_action_list), style = MaterialTheme.typography.bodyMedium)
+                    }
+                }
+                else -> LazyColumn(Modifier.fillMaxSize(), state = listState) {
+                    items(displayedItems.ifEmpty { sourceItems }, key = { it.action.id.databaseId.takeIf { id -> id != 0L } ?: -requireNotNull(it.action.id.tempId) }) { item ->
+                        val key = item.action.id.databaseId.takeIf { it != 0L } ?: -requireNotNull(item.action.id.tempId)
+                        ReorderableItem(reorderState, key) { dragging ->
+                            DumbActionListItem(
+                                details = item,
+                                showHandle = true,
+                                reorderHandleModifier = Modifier.draggableHandle(
+                                    onDragStarted = {
+                                        haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                                        isReordering = true
+                                    },
+                                    onDragStopped = { viewModel.updateDumbActionOrder(displayedItems); isReordering = false },
+                                    dragGestureDetector = io.github.vibhor1102.macrion.feature.dumb.config.ui.actions.DualDragGestureDetector,
+                                ).clearAndSetSemantics { },
+                                isBeingDragged = dragging,
+                                onClick = { onDumbActionClicked(item) },
+                            )
+                            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                        }
                     }
                 }
             }

@@ -29,7 +29,7 @@ import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.trigger.se
 import dagger.hilt.android.qualifiers.ApplicationContext
 
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 
@@ -39,9 +39,9 @@ class TriggerConditionListViewModel @Inject constructor(
     private val editionRepository: EditionRepository,
 ) : ViewModel() {
 
-    val configuredTriggerConditions: Flow<List<UiTriggerCondition>> =
+    val configuredTriggerConditions: Flow<List<UiTriggerCondition>?> =
         editionRepository.editionState.editedEventTriggerConditionsState
-            .mapNotNull { triggerConditionsState ->
+            .map { triggerConditionsState ->
                 triggerConditionsState.value?.map { triggerCondition ->
                     triggerCondition.toUiTriggerCondition(context, inError = !triggerCondition.isComplete())
                 }

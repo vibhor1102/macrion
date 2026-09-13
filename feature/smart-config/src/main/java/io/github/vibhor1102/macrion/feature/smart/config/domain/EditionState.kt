@@ -79,7 +79,7 @@ internal class EditionState internal constructor(
 
     override val editedScreenEventsState: Flow<EditedListState<ScreenEvent>> =
         editor.editedScreenEventListState.map { listState ->
-            listState.copy(value = listState.value?.sortedByPriority()?.toList() ?: emptyList())
+            listState.copy(value = listState.value?.sortedByPriority()?.toList())
         }
 
     override val editedTriggerEventsState: Flow<EditedListState<TriggerEvent>> =

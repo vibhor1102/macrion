@@ -127,6 +127,10 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
                 onDispose { accessibilityManager?.removeTouchExplorationStateChangeListener(listener) }
             }
 
+            if (!isReordering && sourceItems != null && displayedItems != sourceItems) {
+                displayedItems = sourceItems
+            }
+
             LaunchedEffect(sourceItems) {
                 if (!isReordering) displayedItems = sourceItems ?: emptyList()
             }
@@ -141,9 +145,9 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
             Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
                 when {
                     sourceItems == null -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
-                    displayedItems.isEmpty() -> EmptyState(R.string.message_empty_screen_event_title, R.string.message_empty_screen_event_desc)
+                    sourceItems.isEmpty() -> EmptyState(R.string.message_empty_screen_event_title, R.string.message_empty_screen_event_desc)
                     else -> LazyColumn(Modifier.fillMaxSize(), state = lazyListState) {
-                        itemsIndexed(displayedItems, key = { _, item -> item.event.id.toLazyListKey() }) { index, item ->
+                        itemsIndexed(displayedItems.ifEmpty { sourceItems }, key = { _, item -> item.event.id.toLazyListKey() }) { index, item ->
                             val anchorType = when (index) {
                                 0 -> MonitoredViewType.SCENARIO_DIALOG_ITEM_FIRST_EVENT
                                 1 -> MonitoredViewType.SCENARIO_DIALOG_ITEM_SECOND_EVENT
