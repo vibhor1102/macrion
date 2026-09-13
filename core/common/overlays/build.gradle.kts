@@ -39,8 +39,6 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
 
-    implementation(libs.google.material)
-
     implementation(project(":core:common:base"))
     implementation(project(":core:common:display"))
     implementation(project(":core:common:ui"))

@@ -19,8 +19,6 @@ package io.github.vibhor1102.macrion.core.ui.utils
 import android.content.Context
 import android.view.ContextThemeWrapper
 import androidx.annotation.StyleRes
-import com.google.android.material.color.DynamicColors
-
 
 fun Context.getDynamicColorsContext(@StyleRes theme: Int): Context =
-    DynamicColors.wrapContextIfAvailable(ContextThemeWrapper(this, theme))
+    ContextThemeWrapper(this, theme)

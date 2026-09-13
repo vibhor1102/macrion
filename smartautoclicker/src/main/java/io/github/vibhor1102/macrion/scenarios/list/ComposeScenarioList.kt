@@ -97,7 +97,7 @@ internal fun ComposeScenarioList(
                     if (menu.cancelItemState.visible) ScenarioToolbarButton(R.drawable.ic_cancel, R.string.menu_item_title_cancel, menu.cancelItemState.enabled, onCancel)
                     if (menu.selectAllItemState.visible) ScenarioToolbarButton(R.drawable.ic_select_all, R.string.menu_item_title_select_all, menu.selectAllItemState.enabled, onSelectAll)
                     if (menu.importExportItemState.visible) ScenarioToolbarButton(R.drawable.ic_load, R.string.menu_item_title_import, menu.importExportItemState.enabled, onImportExport)
-                    if (menu.searchItemState.visible) ScenarioToolbarButton(R.drawable.abc_ic_search_api_material, R.string.menu_item_title_search, menu.searchItemState.enabled, onSearchRequested)
+                    if (menu.searchItemState.visible) ScenarioToolbarButton(R.drawable.ic_search, R.string.menu_item_title_search, menu.searchItemState.enabled, onSearchRequested)
                     if (menu.tutorialsItemState.visible) ScenarioToolbarButton(R.drawable.ic_tutorials, R.string.menu_item_title_export, menu.tutorialsItemState.enabled, onTutorials)
                     if (menu.settingsItemState.visible) ScenarioToolbarButton(R.drawable.ic_settings_filled, R.string.menu_item_title_settings, menu.settingsItemState.enabled, onSettings)
                 },

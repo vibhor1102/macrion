@@ -20,8 +20,12 @@
 
     <!-- Base text appearance. -->
     <style name="AppTheme.TextAppearance" />
-    <style name="AppTheme.TextAppearance.Body" parent="@style/TextAppearance.Material3.BodyMedium" />
-    <style name="AppTheme.TextAppearance.BodyLarge" parent="@style/TextAppearance.Material3.BodyLarge" />
+    <style name="AppTheme.TextAppearance.Body" parent="@android:style/TextAppearance.DeviceDefault.Medium">
+        <item name="android:textSize">14sp</item>
+    </style>
+    <style name="AppTheme.TextAppearance.BodyLarge" parent="@android:style/TextAppearance.DeviceDefault.Large">
+        <item name="android:textSize">16sp</item>
+    </style>
 
     <style name="AppTheme.TranslucentActivity">
         <item name="android:windowIsTranslucent">true</item>

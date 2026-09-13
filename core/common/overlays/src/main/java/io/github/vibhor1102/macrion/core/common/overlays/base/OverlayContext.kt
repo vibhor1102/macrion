@@ -25,8 +25,6 @@ import android.view.Display
 import android.view.ContextThemeWrapper
 import androidx.annotation.StyleRes
 
-import com.google.android.material.color.DynamicColors
-
 /**
  * Get a new context wrapper for an overlay.
  *
@@ -57,7 +55,7 @@ internal fun newOverlayContext(parentContext: Context, @StyleRes theme: Int?, or
     }
     themes.drop(1).forEach { themeResId -> themedContext.theme.applyStyle(themeResId, true) }
 
-    return DynamicColors.wrapContextIfAvailable(themedContext)
+    return themedContext
 }
 
 /**

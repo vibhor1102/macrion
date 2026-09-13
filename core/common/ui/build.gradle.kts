@@ -41,7 +41,7 @@ dependencies {
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
-    implementation(libs.google.material)
+
 
     implementation(project(":core:common:base"))
     implementation(project(":core:common:display"))

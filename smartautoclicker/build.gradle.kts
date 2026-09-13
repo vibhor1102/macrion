@@ -174,7 +174,6 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.lifecycle.common.java8)
-    implementation(libs.google.material)
 
     implementation(project(":core:common:accessibility"))
     implementation(project(":core:common:actions"))

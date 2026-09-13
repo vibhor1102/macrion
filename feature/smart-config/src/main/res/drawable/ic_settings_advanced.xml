@@ -3,7 +3,7 @@
     android:height="24dp"
     android:viewportWidth="48"
     android:viewportHeight="48"
-    android:tint="?attr/colorControlNormal">
+    android:tint="?android:attr/colorControlNormal">
 
   <group>
 
