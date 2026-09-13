@@ -227,7 +227,7 @@ class DumbScenarioBriefMenu(
     }
 
     private fun updateReplayingState(isReplaying: Boolean) {
-        setOverlayViewVisibility(!isReplaying)
+        setOverlayViewVisibility(!isReplaying && isUserOverlayVisible)
         setMenuItemViewEnabled(backButton, true)
         setMenuItemViewEnabled(addButton, !isReplaying)
         setMenuItemViewEnabled(hideButton, !isReplaying)

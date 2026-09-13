@@ -132,6 +132,13 @@ abstract class OverlayMenu(
     private var moveButton: View? = null
 
     /**
+     * Whether the overlay view is intended to be visible by the user (toggled via the hide-overlay button).
+     * Preserved across rotation and temporary overlay hiding.
+     */
+    protected var isUserOverlayVisible: Boolean = true
+        private set
+
+    /**
      * The view to be displayed between the current activity and the overlay menu.
      * It can be shown/hidden by pressing on the menu item with the id [R.id.btn_hide_overlay]. If null, pressing this
      * button will have no effect.
@@ -249,7 +256,7 @@ abstract class OverlayMenu(
                 }
                 R.id.btn_hide_overlay -> {
                     hideOverlayButton = view
-                    setOverlayViewVisibility(true)
+                    setOverlayViewVisibility(isUserOverlayVisible)
                     view.setOnClickListener { onToggleOverlayVisibilityClicked() }
                 }
                 else -> view.setDebouncedOnClickListener { v ->
@@ -401,7 +408,9 @@ abstract class OverlayMenu(
      * @param oldOverlayView the overlay view before the rotation.
      */
     private fun recreateOverlayViewForRotation(oldOverlayView: View) {
-        screenOverlayView = onCreateOverlayView()
+        screenOverlayView = onCreateOverlayView()?.apply {
+            visibility = if (isUserOverlayVisible) View.VISIBLE else View.GONE
+        }
         screenOverlayView?.installOverlayViewTreeOwners()
         overlayLayoutParams = onCreateOverlayViewLayoutParams().apply {
             gravity = Gravity.TOP or Gravity.START
@@ -428,7 +437,7 @@ abstract class OverlayMenu(
 
         lifecycleRegistry.currentState = previousState
 
-        setOverlayViewVisibility(oldOverlayView.isVisible)
+        setOverlayViewVisibility(isUserOverlayVisible)
     }
 
     /**
@@ -524,10 +533,8 @@ abstract class OverlayMenu(
      * Toggle the visible state of the overlay view.
      */
     private fun onToggleOverlayVisibilityClicked() {
-
-        screenOverlayView?.let { view ->
-            setOverlayViewVisibility(view.visibility != View.VISIBLE)
-        }
+        isUserOverlayVisible = !isUserOverlayVisible
+        setOverlayViewVisibility(isUserOverlayVisible)
     }
 
     /**
@@ -537,20 +544,14 @@ abstract class OverlayMenu(
      * @param isOverlayVisible the new visibility to apply.
      */
     protected fun setOverlayViewVisibility(isOverlayVisible: Boolean) {
-        screenOverlayView?.apply {
+        Log.d(TAG, "setOverlayViewVisibility for ${this@OverlayMenu.hashCode()} with visibility $isOverlayVisible")
 
-            Log.d(TAG, "setOverlayViewVisibility for ${this@OverlayMenu.hashCode()} with visibility $isOverlayVisible")
+        screenOverlayView?.visibility = if (isOverlayVisible) View.VISIBLE else View.GONE
+        hideOverlayButton?.setImageResource(
+            if (isOverlayVisible) R.drawable.ic_visible_on else R.drawable.ic_visible_off
+        )
 
-            if (isOverlayVisible) {
-                visibility = View.VISIBLE
-                hideOverlayButton?.setImageResource(R.drawable.ic_visible_on)
-            } else {
-                visibility = View.GONE
-                hideOverlayButton?.setImageResource(R.drawable.ic_visible_off)
-            }
-
-            onScreenOverlayVisibilityChanged(isOverlayVisible)
-        }
+        onScreenOverlayVisibilityChanged(isOverlayVisible)
     }
 
     /**

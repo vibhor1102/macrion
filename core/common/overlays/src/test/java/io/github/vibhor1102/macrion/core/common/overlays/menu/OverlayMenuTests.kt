@@ -79,7 +79,10 @@ class OverlayMenuTests {
      * Tested class implementation redirecting the abstract method calls to the provided mock interface.
      * @param impl the mock called for each abstract method calls.
      */
-    class OverlayMenuTestImpl(private val impl: OverlayMenuControllerImpl) : OverlayMenu() {
+    class OverlayMenuTestImpl(
+        private val impl: OverlayMenuControllerImpl,
+        recreateOverlayViewOnRotation: Boolean = false,
+    ) : OverlayMenu(recreateOverlayViewOnRotation = recreateOverlayViewOnRotation) {
         override fun onCreateMenu(layoutInflater: LayoutInflater): ViewGroup = impl.onCreateMenu(layoutInflater)
         override fun onCreateOverlayView(): View? = impl.onCreateOverlayView()
         override fun onMenuItemClicked(viewId: Int) {
@@ -92,6 +95,7 @@ class OverlayMenuTests {
         fun publicSetMenuItemViewEnabled(view: View, enabled: Boolean, clickable: Boolean = false) {
             setMenuItemViewEnabled(view, enabled, clickable)
         }
+        fun isUserOverlayVisibleForTest(): Boolean = isUserOverlayVisible
     }
 
     /**
@@ -166,6 +170,7 @@ class OverlayMenuTests {
         mockWhen(mockMenu.findViewById<ViewGroup>(R.id.menu_items)).thenReturn(mockMenu)
         mockWhen(mockMenu.findViewById<ViewGroup>(R.id.menu_background)).thenReturn(mockMenu)
         mockWhen(mockMenu.context).thenReturn(mockContext)
+        mockWhen(mockMenu.isAttachedToWindow).thenReturn(true)
         mockWhen(mockMenu.viewTreeObserver).thenReturn(mock(ViewTreeObserver::class.java))
         mockWhen(overlayMenuControllerImpl.onCreateMenu(mockLayoutInflater)).thenReturn(mockMenu)
         mockWhen(overlayMenuControllerImpl.onCreateOverlayView()).thenReturn(mockOverlay)
@@ -333,6 +338,41 @@ class OverlayMenuTests {
         overlayMenuController.create(mockContext)
 
         verify(hideItem).setOnClickListener(any())
+    }
+
+    @Test
+    fun hideOverlay_persistsAcrossOrientationChange() {
+        val testController = OverlayMenuTestImpl(overlayMenuControllerImpl, recreateOverlayViewOnRotation = true)
+        val hideItem = createMockMenuItemView(R.id.btn_hide_overlay)
+        val menuItems = sequenceOf(
+            createMockMenuItemView(),
+            hideItem,
+            createMockMenuItemView()
+        )
+        val overlayView1 = mock(View::class.java)
+        val overlayView2 = mock(View::class.java)
+        mockViewsFromImpl(createMockMenuView(menuItems), overlayView1)
+        mockWhen(overlayMenuControllerImpl.onCreateOverlayView())
+            .thenReturn(overlayView1)
+            .thenReturn(overlayView2)
+
+        val clickCaptor = org.mockito.ArgumentCaptor.forClass(View.OnClickListener::class.java)
+        testController.create(mockContext)
+        testController.start()
+        testController.resume()
+
+        verify(hideItem).setOnClickListener(clickCaptor.capture())
+        // Click to toggle overlay visibility off
+        clickCaptor.value.onClick(hideItem)
+        assertEquals(false, testController.isUserOverlayVisibleForTest())
+        verify(hideItem).setImageResource(R.drawable.ic_visible_off)
+
+        // Rotate
+        testController.changeOrientation()
+
+        // User overlay visibility remains false
+        assertEquals(false, testController.isUserOverlayVisibleForTest())
+        verify(overlayView2, atLeastOnce()).visibility = View.GONE
     }
 
     @Test

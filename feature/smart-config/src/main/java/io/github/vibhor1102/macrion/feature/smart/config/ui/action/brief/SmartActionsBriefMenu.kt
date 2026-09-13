@@ -209,7 +209,7 @@ class SmartActionsBriefMenu(initialItemIndex: Int) : ItemBriefMenu(
     }
 
     private fun updateReplayingState(isReplaying: Boolean) {
-        setOverlayViewVisibility(!isReplaying)
+        setOverlayViewVisibility(!isReplaying && isUserOverlayVisible)
         setMenuItemViewEnabled(menuView.findOverlayView(R.id.btn_back), !isReplaying)
         setMenuItemViewEnabled(menuView.findOverlayView(R.id.btn_add_other), !isReplaying)
         setMenuItemViewEnabled(menuView.findOverlayView(R.id.btn_hide_overlay), !isReplaying)
