@@ -8,29 +8,27 @@
  */
 package io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation
 
-import android.view.View
-
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,11 +36,9 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 
 import io.github.vibhor1102.macrion.core.common.overlays.R
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.navbar.DialogNavigationItem
-
 
 @Composable
 internal fun DialogNavigation(
@@ -61,7 +57,7 @@ internal fun DialogNavigation(
                     selected = item.id == selectedItemId,
                     onClick = { onItemSelected(item.id) },
                     icon = { NavigationItemIcon(item, missingInputBadges[item.id] == true) },
-                    label = { androidx.compose.material3.Text(stringResource(item.labelRes)) },
+                    label = { Text(stringResource(item.labelRes)) },
                     alwaysShowLabel = false,
                 )
             }
@@ -95,11 +91,11 @@ private fun NavigationItemIcon(item: DialogNavigationItem, hasMissingInput: Bool
 
 @Composable
 internal fun NavBarDialogScaffold(
-    topBar: View,
-    persistentHeader: View,
-    content: View,
-    navBar: View,
-    floatingActions: View,
+    topBar: @Composable () -> Unit,
+    persistentHeader: @Composable () -> Unit,
+    content: @Composable () -> Unit,
+    navBar: @Composable () -> Unit,
+    floatingActions: @Composable () -> Unit,
     isPortrait: Boolean,
 ) {
     Surface(
@@ -112,51 +108,55 @@ internal fun NavBarDialogScaffold(
         if (isPortrait) {
             Box(modifier = Modifier.fillMaxSize()) {
                 Column(modifier = Modifier.fillMaxSize()) {
-                    AndroidView(factory = { topBar }, modifier = Modifier.fillMaxWidth())
-                    AndroidView(factory = { persistentHeader }, modifier = Modifier.fillMaxWidth())
-                    AndroidView(
-                        factory = { content },
+                    Box(modifier = Modifier.fillMaxWidth()) { topBar() }
+                    Box(modifier = Modifier.fillMaxWidth()) { persistentHeader() }
+                    Box(
                         modifier = Modifier
                             .fillMaxWidth()
                             .weight(1f)
                             .padding(bottom = dimensionResource(R.dimen.android_bottom_navigation_height)),
-                    )
+                    ) {
+                        content()
+                    }
                 }
-                AndroidView(
-                    factory = { floatingActions },
+                Box(
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
                         .padding(
                             end = dimensionResource(R.dimen.margin_horizontal_default),
                             bottom = dimensionResource(R.dimen.dialog_create_copy_buttons_bottom_margin),
                         ),
-                )
-                AndroidView(
-                    factory = { navBar },
+                ) {
+                    floatingActions()
+                }
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .align(Alignment.BottomCenter),
-                )
+                ) {
+                    navBar()
+                }
             }
         } else {
             Column(modifier = Modifier.fillMaxSize()) {
-                AndroidView(factory = { topBar }, modifier = Modifier.fillMaxWidth())
+                Box(modifier = Modifier.fillMaxWidth()) { topBar() }
                 Row(modifier = Modifier.fillMaxWidth().weight(1f)) {
-                    AndroidView(factory = { navBar }, modifier = Modifier.fillMaxHeight())
+                    Box(modifier = Modifier.fillMaxHeight()) { navBar() }
                     Box(modifier = Modifier.weight(1f).fillMaxSize()) {
                         Column(modifier = Modifier.fillMaxSize()) {
-                            AndroidView(factory = { persistentHeader }, modifier = Modifier.fillMaxWidth())
-                            AndroidView(factory = { content }, modifier = Modifier.fillMaxWidth().weight(1f))
+                            Box(modifier = Modifier.fillMaxWidth()) { persistentHeader() }
+                            Box(modifier = Modifier.fillMaxWidth().weight(1f)) { content() }
                         }
-                        AndroidView(
-                            factory = { floatingActions },
+                        Box(
                             modifier = Modifier
                                 .align(Alignment.BottomEnd)
                                 .padding(
                                     end = dimensionResource(R.dimen.margin_horizontal_default),
                                     bottom = dimensionResource(R.dimen.margin_vertical_extra_large),
                                 ),
-                        )
+                        ) {
+                            floatingActions()
+                        }
                     }
                 }
             }

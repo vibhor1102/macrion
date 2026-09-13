@@ -10,15 +10,13 @@ package io.github.vibhor1102.macrion.core.ui.bindings.dialogs
 
 import android.content.Context
 import android.view.View
-import android.widget.FrameLayout
-
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material3.Badge
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -31,29 +29,32 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 
 import io.github.vibhor1102.macrion.core.ui.R
-import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 
 /**
- * A single Compose FAB cluster. Invisible Android anchors retain the popup/tutorial integration contract without
- * participating in normal touch dispatch.
+ * A Compose-native FAB cluster controller for dialog primary/secondary actions.
  */
-class FloatingActionButtonsView(context: Context) : FrameLayout(context) {
-    val root: View get() = this
+class FloatingActionButtonsView(val context: Context) {
+    var isVisible by mutableStateOf(false)
+
+    inner class RootShim {
+        var visibility: Int
+            get() = if (isVisible) View.VISIBLE else View.GONE
+            set(value) { isVisible = (value == View.VISIBLE) }
+    }
+    val root = RootShim()
+
+    inner class ButtonShim {
+        var contentDescription: CharSequence?
+            get() = primaryDescription.value
+            set(value) { primaryDescription.value = value }
+    }
+    val primary = ButtonShim()
 
     private val primaryDescription = mutableStateOf<CharSequence?>(null)
-    val primary = object : View(context) {
-        override fun setContentDescription(contentDescription: CharSequence?) {
-            super.setContentDescription(contentDescription)
-            primaryDescription.value = contentDescription
-        }
-    }.apply { visibility = INVISIBLE }
-    val secondary = View(context).apply { visibility = INVISIBLE }
-
     private val primaryIcon = mutableIntStateOf(R.drawable.ic_add)
     private val secondaryIcon = mutableIntStateOf(R.drawable.ic_copy)
     private val badgeText = mutableStateOf<String?>(null)
@@ -61,15 +62,6 @@ class FloatingActionButtonsView(context: Context) : FrameLayout(context) {
     var primaryModifier by mutableStateOf<@Composable () -> Modifier>({ Modifier })
     private var onPrimary: () -> Unit = {}
     private var onSecondary: () -> Unit = {}
-
-    init {
-        clipChildren = false
-        clipToPadding = false
-        translationZ = 100 * resources.displayMetrics.density
-        addView(ComposeView(context).apply { setContent { MacrionTheme { FabClusterContent() } } })
-        addView(primary)
-        addView(secondary)
-    }
 
     fun configure(
         @DrawableRes primaryIcon: Int,
@@ -87,36 +79,18 @@ class FloatingActionButtonsView(context: Context) : FrameLayout(context) {
     fun performSecondaryClick() { onSecondary() }
 
     fun setSecondaryVisible(visible: Boolean) {
-        if (secondaryVisible.value == visible) return
         secondaryVisible.value = visible
-        requestLayout()
     }
 
     fun setBadge(text: String?, description: CharSequence? = null) {
         badgeText.value = text
-        primary.contentDescription = description
+        primaryDescription.value = description
     }
 
-    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        val clusterHeight = if (secondaryVisible.value) CLUSTER_HEIGHT_DP else PRIMARY_CONTAINER_SIZE_DP
-        val width = resolveSize(PRIMARY_CONTAINER_SIZE_DP.dpPx, widthMeasureSpec)
-        val height = resolveSize(clusterHeight.dpPx, heightMeasureSpec)
-        val childWidthSpec = MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY)
-        val childHeightSpec = MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY)
-        repeat(childCount) { getChildAt(it).measure(childWidthSpec, childHeightSpec) }
-        setMeasuredDimension(width, height)
-    }
-
-    override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
-        getChildAt(0).layout(0, 0, width, height)
-        val primaryTop = height - PRIMARY_CONTAINER_SIZE_DP.dpPx
-        primary.layout(0, primaryTop, width, height)
-        secondary.layout(0, 0, width, SECONDARY_CONTAINER_SIZE_DP.dpPx)
-    }
-
-    @androidx.compose.runtime.Composable
-    private fun FabClusterContent() {
-        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
+    @Composable
+    fun Content(modifier: Modifier = Modifier) {
+        if (!isVisible) return
+        Box(modifier.wrapContentSize(), contentAlignment = Alignment.BottomCenter) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 if (secondaryVisible.value) {
                     SmallFloatingActionButton(onClick = onSecondary) {
@@ -140,11 +114,7 @@ class FloatingActionButtonsView(context: Context) : FrameLayout(context) {
         }
     }
 
-    private val Int.dpPx get() = (this * resources.displayMetrics.density).toInt()
-
     private companion object {
-        const val SECONDARY_CONTAINER_SIZE_DP = 40
         const val PRIMARY_CONTAINER_SIZE_DP = 64
-        const val CLUSTER_HEIGHT_DP = SECONDARY_CONTAINER_SIZE_DP + 16 + PRIMARY_CONTAINER_SIZE_DP
     }
 }

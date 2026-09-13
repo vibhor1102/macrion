@@ -9,14 +9,12 @@
 package io.github.vibhor1102.macrion.core.ui.bindings.dialogs
 
 import android.content.Context
-import android.view.Gravity
 import android.view.View
-import android.widget.FrameLayout
-
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.FilledTonalIconButton
@@ -29,64 +27,64 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 
 import io.github.vibhor1102.macrion.core.ui.R
-import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 
-/** A single Compose top bar with Android-only anchors for tutorial coordinates and programmatic taps. */
-class TopBarNavigationView(context: Context) : FrameLayout(context) {
-    val root: View get() = this
-    val buttonDismiss = createAnchor(DialogNavigationButton.DISMISS, Gravity.START or Gravity.CENTER_VERTICAL, 8)
-    val buttonDelete = createAnchor(DialogNavigationButton.DELETE, Gravity.END or Gravity.CENTER_VERTICAL, 64)
-    val buttonSave = createAnchor(DialogNavigationButton.SAVE, Gravity.END or Gravity.CENTER_VERTICAL, 8)
-
+/** A Compose-native top bar for overlay dialogs with state-driven title and actions. */
+class TopBarNavigationView(val context: Context) {
     private val title = mutableStateOf("")
     private val states = DialogNavigationButton.entries.associateWith {
         mutableStateOf(TopBarButtonState(it == DialogNavigationButton.DISMISS))
     }
     private val callbacks = mutableMapOf<DialogNavigationButton, () -> Unit>()
 
-    init {
-        elevation = 3 * resources.displayMetrics.density
-        addView(
-            ComposeView(context).apply { setContent { MacrionTheme { DialogTopBarContent() } } },
-            LayoutParams(LayoutParams.MATCH_PARENT, resources.getDimensionPixelSize(R.dimen.dialog_top_bar_height)),
-        )
+    private val buttonModifiers = DialogNavigationButton.entries.associateWith {
+        mutableStateOf<@Composable () -> Modifier>({ Modifier })
     }
 
     fun setTitle(text: CharSequence) { title.value = text.toString() }
     fun setTitle(@StringRes text: Int) = setTitle(context.getText(text))
     fun setButtonEnabledState(type: DialogNavigationButton, enabled: Boolean) {
-        buttonFor(type).isEnabled = enabled
         update(type) { copy(enabled = enabled) }
     }
-    fun setButtonVisibility(type: DialogNavigationButton, visibility: Int) = update(type) { copy(visible = visibility == View.VISIBLE) }
-    fun setButtonClickListener(type: DialogNavigationButton, callback: () -> Unit) { callbacks[type] = callback }
-    fun performButtonClick(type: DialogNavigationButton) { callbacks[type]?.invoke() }
-
-    private val buttonModifiers = DialogNavigationButton.entries.associateWith {
-        mutableStateOf<@Composable () -> Modifier>({ Modifier })
+    fun setButtonVisibility(type: DialogNavigationButton, visibility: Int) =
+        update(type) { copy(visible = visibility == View.VISIBLE) }
+    fun setButtonClickListener(type: DialogNavigationButton, callback: () -> Unit) {
+        callbacks[type] = callback
+    }
+    fun performButtonClick(type: DialogNavigationButton) {
+        callbacks[type]?.invoke()
     }
 
     fun setButtonModifier(type: DialogNavigationButton, modifier: @Composable () -> Modifier) {
         buttonModifiers.getValue(type).value = modifier
     }
 
-    @androidx.compose.runtime.Composable
-    private fun DialogTopBarContent() {
-        Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surfaceContainerLow) {
+    @Composable
+    fun Content(modifier: Modifier = Modifier) {
+        Surface(
+            modifier = modifier
+                .fillMaxWidth()
+                .height(dimensionResource(R.dimen.dialog_top_bar_height)),
+            color = MaterialTheme.colorScheme.surfaceContainerLow,
+            shadowElevation = 3.dp,
+        ) {
             Row(
-                modifier = Modifier.fillMaxSize().padding(horizontal = 8.dp),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 DialogTopBarButton(DialogNavigationButton.DISMISS, R.drawable.ic_cancel)
                 Text(
                     text = title.value,
-                    modifier = Modifier.weight(1f).padding(horizontal = 8.dp),
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(horizontal = 8.dp),
                     style = MaterialTheme.typography.titleLarge,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -97,7 +95,7 @@ class TopBarNavigationView(context: Context) : FrameLayout(context) {
         }
     }
 
-    @androidx.compose.runtime.Composable
+    @Composable
     private fun DialogTopBarButton(type: DialogNavigationButton, icon: Int) {
         val state = states.getValue(type).value
         if (!state.visible) return
@@ -121,27 +119,9 @@ class TopBarNavigationView(context: Context) : FrameLayout(context) {
         }
     }
 
-    private fun createAnchor(type: DialogNavigationButton, gravity: Int, marginDp: Int): View =
-        View(context).apply {
-            visibility = INVISIBLE
-            setOnClickListener { callbacks[type]?.invoke() }
-            this@TopBarNavigationView.addView(this, LayoutParams(48.dpPx, 48.dpPx, gravity).apply {
-                marginStart = marginDp.dpPx
-                marginEnd = marginDp.dpPx
-            })
-        }
-
-    private fun buttonFor(type: DialogNavigationButton): View = when (type) {
-        DialogNavigationButton.DISMISS -> buttonDismiss
-        DialogNavigationButton.DELETE -> buttonDelete
-        DialogNavigationButton.SAVE -> buttonSave
-    }
-
     private fun update(type: DialogNavigationButton, change: TopBarButtonState.() -> TopBarButtonState) {
         states.getValue(type).let { it.value = it.value.change() }
     }
-
-    private val Int.dpPx get() = (this * resources.displayMetrics.density).toInt()
 }
 
 private data class TopBarButtonState(val visible: Boolean, val enabled: Boolean = true)

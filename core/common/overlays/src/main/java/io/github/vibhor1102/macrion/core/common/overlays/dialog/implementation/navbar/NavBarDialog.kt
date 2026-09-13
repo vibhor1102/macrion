@@ -28,8 +28,11 @@ import androidx.annotation.CallSuper
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.annotation.StyleRes
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 
 import io.github.vibhor1102.macrion.core.common.overlays.R
@@ -58,7 +61,6 @@ abstract class NavBarDialog(@StyleRes theme: Int) : OverlayDialog(theme) {
 
     private lateinit var persistentHeader: FrameLayout
     private lateinit var contentContainer: FrameLayout
-    private lateinit var navigationHost: NavigationHostView
     private val missingInputBadges = mutableStateMapOf<Int, Boolean>()
     private var selectedNavigationItemId = mutableIntStateOf(View.NO_ID)
     lateinit var floatingActionButtons: FloatingActionButtonsView
@@ -91,33 +93,30 @@ abstract class NavBarDialog(@StyleRes theme: Int) : OverlayDialog(theme) {
         require(navigationItems.isNotEmpty()) { "A navigation dialog must expose at least one page" }
         selectedNavigationItemId.intValue = navigationItems.first().id
         val isPortrait = displayConfigManager.displayConfig.orientation == Configuration.ORIENTATION_PORTRAIT
-        navigationHost = NavigationHostView(context, isPortrait).apply {
-            id = View.generateViewId()
-            if (isPortrait) translationZ = 100 * resources.displayMetrics.density
-            setContent {
-                MacrionTheme {
-                    DialogNavigation(
-                        items = navigationItems,
-                        selectedItemId = selectedNavigationItemId.intValue,
-                        missingInputBadges = missingInputBadges,
-                        isPortrait = isPortrait,
-                        onItemSelected = ::updateContentView,
-                        itemModifier = ::navigationItemModifier,
-                    )
-                }
-            }
-        }
         floatingActionButtons = FloatingActionButtonsView(context)
 
         return ComposeView(context).apply {
             setContent {
                 MacrionTheme {
                     NavBarDialogScaffold(
-                        topBar = topBarBinding.root,
-                        persistentHeader = persistentHeader,
-                        content = contentContainer,
-                        navBar = navigationHost,
-                        floatingActions = floatingActionButtons.root,
+                        topBar = { topBarBinding.Content() },
+                        persistentHeader = {
+                            AndroidView(factory = { persistentHeader }, modifier = Modifier.fillMaxWidth())
+                        },
+                        content = {
+                            AndroidView(factory = { contentContainer }, modifier = Modifier.fillMaxSize())
+                        },
+                        navBar = {
+                            DialogNavigation(
+                                items = navigationItems,
+                                selectedItemId = selectedNavigationItemId.intValue,
+                                missingInputBadges = missingInputBadges,
+                                isPortrait = isPortrait,
+                                onItemSelected = ::updateContentView,
+                                itemModifier = ::navigationItemModifier,
+                            )
+                        },
+                        floatingActions = { floatingActionButtons.Content() },
                         isPortrait = isPortrait,
                     )
                 }
@@ -197,9 +196,7 @@ abstract class NavBarDialog(@StyleRes theme: Int) : OverlayDialog(theme) {
         selectedNavigationItemId.intValue = itemId
         onContentViewChanged(itemId)
 
-        floatingActionButtons.root.visibility =
-            if (content.floatingActionButtonsAreAvailable()) View.VISIBLE
-            else View.GONE
+        floatingActionButtons.isVisible = content.floatingActionButtonsAreAvailable()
 
         if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) content.resume()
     }
