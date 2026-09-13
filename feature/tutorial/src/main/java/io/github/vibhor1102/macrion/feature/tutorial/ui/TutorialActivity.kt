@@ -345,8 +345,8 @@ private fun TutorialSlideshowHost(
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 24.dp)
                         .border(
-                            width = 2.dp,
-                            color = colorResource(R.color.tutorial_header_card_border),
+                            width = 1.dp,
+                            color = MaterialTheme.colorScheme.outlineVariant,
                             shape = MaterialTheme.shapes.medium,
                         ),
                 ) {

@@ -25,6 +25,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.ViewCompositionStrategy
@@ -159,9 +160,10 @@ class EventDialog(private val onConfigComplete: () -> Unit, private val onDelete
     }
 
     @Composable private fun EventCard(title: String, accent: Color, content: @Composable ColumnScope.() -> Unit) {
+        val titleColor = if (accent.luminance() > 0.5f) Color(0xFF191C1E) else Color.White
         ElevatedCard(Modifier.fillMaxWidth().border(2.dp, accent, RoundedCornerShape(12.dp))) {
             Text(title, Modifier.fillMaxWidth().background(accent).padding(horizontal = 16.dp, vertical = 6.dp),
-                style = MaterialTheme.typography.bodyLarge, color = Color.White, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                style = MaterialTheme.typography.bodyLarge, color = titleColor, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
             Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp), content = content)
         }
     }
@@ -278,7 +280,7 @@ class EventDialog(private val onConfigComplete: () -> Unit, private val onDelete
     }
 
     @Composable private fun TestCard(enabled: Boolean) {
-        ElevatedCard(Modifier.fillMaxWidth().border(2.dp, colorResource(R.color.event_test_color), RoundedCornerShape(12.dp))) {
+        ElevatedCard(Modifier.fillMaxWidth().border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(12.dp))) {
             Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                 Text(context.getString(R.string.item_title_try_element, context.getString(R.string.dialog_title_image_event)),
                     Modifier.weight(1f), style = MaterialTheme.typography.titleMedium)

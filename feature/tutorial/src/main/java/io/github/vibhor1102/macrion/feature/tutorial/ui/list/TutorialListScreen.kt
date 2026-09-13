@@ -79,7 +79,7 @@ private fun TutorialCategoryHeader(item: TutorialCategoryUiItems.Header) {
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
-                .border(2.dp, colorResource(R.color.tutorial_header_card_border), MaterialTheme.shapes.medium),
+                .border(1.dp, MaterialTheme.colorScheme.outlineVariant, MaterialTheme.shapes.medium),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),

@@ -10,6 +10,7 @@ package io.github.vibhor1102.macrion.feature.backup.ui
 
 import android.view.View
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -67,12 +68,18 @@ internal fun BackupDialogContent(
         if (currentState.loadingVisibility == View.VISIBLE) {
             CircularProgressIndicator(Modifier.size(72.dp))
         } else if (currentState.iconStatusVisibility == View.VISIBLE && currentState.iconStatus != null) {
+            val isDark = isSystemInDarkTheme()
+            val iconTint = when (currentState.iconStatus) {
+                R.drawable.img_error -> MaterialTheme.colorScheme.error
+                R.drawable.ic_warning -> if (isDark) Color(0xFFFFB74D) else Color(0xFFE65100)
+                R.drawable.img_success -> if (isDark) Color(0xFF81C784) else Color(0xFF2E7D32)
+                else -> MaterialTheme.colorScheme.primary
+            }
             Image(
                 painter = painterResource(currentState.iconStatus),
                 contentDescription = stringResource(R.string.content_desc_backup_state),
                 modifier = Modifier.size(72.dp),
-                colorFilter = currentState.iconTint?.let { ColorFilter.tint(Color(it)) }
-                    ?: ColorFilter.tint(MaterialTheme.colorScheme.primary),
+                colorFilter = ColorFilter.tint(iconTint),
             )
         }
 

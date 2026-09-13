@@ -123,7 +123,7 @@ class ClickOffsetDialog : OverlayDialog(R.style.ScenarioConfigTheme) {
         val markerRadius = dimensionResource(CoreUiR.dimen.overlay_click_selector_radius)
         val innerMarkerRadius = dimensionResource(CoreUiR.dimen.overlay_click_selector_inner_radius)
         val markerThickness = dimensionResource(CoreUiR.dimen.overlay_click_selector_thickness)
-        val markerColor = colorResource(CoreUiR.color.overlayViewPrimary)
+        val markerColor = MaterialTheme.colorScheme.primary
         val markerBackground = colorResource(CoreUiR.color.overlayActionsBriefBackground)
         val imageBitmap = remember(image) { (image as? Drawable)?.toBitmap()?.asImageBitmap() }
         Box(
@@ -151,11 +151,11 @@ class ClickOffsetDialog : OverlayDialog(R.style.ScenarioConfigTheme) {
                 is Bitmap -> Image(image.asImageBitmap(), null, Modifier.fillMaxSize(), contentScale = ContentScale.Fit)
                 else -> imageBitmap?.let {
                     Image(it, null, Modifier.fillMaxSize(), contentScale = ContentScale.Fit)
-                } ?: Image(
+                } ?: Icon(
                     painter = painterResource(R.drawable.ic_image_condition_big),
                     contentDescription = null,
                     modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Fit,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                 )
             }
             offsetState?.let { state ->

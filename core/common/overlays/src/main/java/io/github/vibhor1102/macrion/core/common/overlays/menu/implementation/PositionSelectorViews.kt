@@ -155,7 +155,7 @@ internal class PositionSelectorViews(
         ) {
             Text(
                 text = stringResource(instructionText),
-                color = colorResource(R.color.md_theme_light_onPrimary),
+                color = Color.White,
                 style = MaterialTheme.typography.headlineSmall,
                 textAlign = TextAlign.Center,
             )

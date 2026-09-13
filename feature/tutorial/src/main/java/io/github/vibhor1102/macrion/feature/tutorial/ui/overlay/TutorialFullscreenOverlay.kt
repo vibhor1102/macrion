@@ -192,7 +192,7 @@ class TutorialFullscreenOverlay : FullscreenOverlay(theme = R.style.AppTheme) {
         Card(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 40.dp),
             elevation = CardDefaults.elevatedCardElevation(),
-            border = BorderStroke(2.dp, colorResource(R.color.tutorial_header_card_border)),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
         ) {
             Column(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
