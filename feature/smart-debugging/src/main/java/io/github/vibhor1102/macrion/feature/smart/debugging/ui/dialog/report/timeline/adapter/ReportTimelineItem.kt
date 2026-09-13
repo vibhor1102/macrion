@@ -79,6 +79,7 @@ internal fun ReportTimelineItem(item: DebugReportTimelineEventOccurrenceItem, on
                         painter = painterResource(action.iconRes),
                         contentDescription = null,
                         modifier = Modifier.padding(end = 8.dp, top = 2.dp, bottom = 2.dp).size(26.dp),
+                        colorFilter = ColorFilter.tint(secondary),
                     )
                 }
                 Spacer(Modifier.weight(1f))

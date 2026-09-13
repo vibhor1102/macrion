@@ -123,7 +123,7 @@ private fun ChoiceRow(choice: DialogChoice, onClick: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (detailed) choice.iconId?.let {
-            Icon(painterResource(it), null, Modifier.size(32.dp).alpha(alpha), tint = Color.Unspecified)
+            Icon(painterResource(it), null, Modifier.size(32.dp).alpha(alpha), tint = MaterialTheme.colorScheme.onSurface.copy(alpha))
             Spacer(Modifier.width(8.dp))
         }
         Column(Modifier.weight(1f)) {

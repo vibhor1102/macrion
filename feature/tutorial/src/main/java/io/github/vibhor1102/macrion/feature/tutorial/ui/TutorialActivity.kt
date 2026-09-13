@@ -356,12 +356,13 @@ private fun TutorialSlideshowHost(
                             .padding(vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Image(
+                        Icon(
                             painter = painterResource(R.drawable.ic_tutorial_slideshow),
                             contentDescription = null,
                             modifier = Modifier
                                 .padding(start = 16.dp)
                                 .size(64.dp),
+                            tint = MaterialTheme.colorScheme.primary,
                         )
                         Text(
                             text = stringResource(slideshow.nameRes),

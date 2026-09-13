@@ -71,7 +71,8 @@ internal fun BackupDialogContent(
                 painter = painterResource(currentState.iconStatus),
                 contentDescription = stringResource(R.string.content_desc_backup_state),
                 modifier = Modifier.size(72.dp),
-                colorFilter = currentState.iconTint?.let { ColorFilter.tint(Color(it)) },
+                colorFilter = currentState.iconTint?.let { ColorFilter.tint(Color(it)) }
+                    ?: ColorFilter.tint(MaterialTheme.colorScheme.primary),
             )
         }
 

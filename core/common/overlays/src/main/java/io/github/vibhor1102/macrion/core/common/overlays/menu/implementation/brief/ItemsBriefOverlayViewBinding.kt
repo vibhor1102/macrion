@@ -339,7 +339,7 @@ class ItemsBriefOverlayViewBinding private constructor(
                     Icon(
                         painter = painterResource(UiR.drawable.ic_recording),
                         contentDescription = null,
-                        tint = Color.Unspecified,
+                        tint = colorResource(UiR.color.overlayGestureRecorder),
                         modifier = Modifier
                             .size(24.dp)
                             .graphicsLayer { alpha = blinkingAlpha },

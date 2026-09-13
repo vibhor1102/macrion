@@ -50,7 +50,7 @@ internal fun SmartActionBriefItem(details: UiAction, orientation: Int, onClick: 
             painter = painterResource(details.icon),
             contentDescription = null,
             modifier = Modifier.fillMaxSize(),
-            tint = Color.Unspecified,
+            tint = MaterialTheme.colorScheme.onSurface,
         )
         if (details.haveError) Box(Modifier.align(Alignment.TopEnd).size(6.dp).background(MaterialTheme.colorScheme.error, CircleShape))
     }

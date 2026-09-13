@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -110,10 +111,11 @@ internal fun DumbActionListItem(
             titleMaxLines = 1,
             textAlign = TextAlign.Start,
         )
-        Image(
+        Icon(
             painter = painterResource(details.icon),
             contentDescription = stringResource(R.string.content_desc_action_icon),
             modifier = Modifier.size(32.dp),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 }

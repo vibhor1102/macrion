@@ -189,6 +189,7 @@ internal fun ReportTriggerConditionCard(
                     painter = painterResource(iconRes),
                     contentDescription = null,
                     modifier = Modifier.size(24.dp),
+                    colorFilter = ColorFilter.tint(reportSecondaryColor),
                 )
             }
             Column(Modifier.weight(1f).padding(start = 16.dp)) {

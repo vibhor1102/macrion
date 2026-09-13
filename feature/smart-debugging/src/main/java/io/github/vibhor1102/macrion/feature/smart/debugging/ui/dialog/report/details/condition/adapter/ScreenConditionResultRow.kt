@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -116,10 +117,11 @@ private fun ScreenConditionPreview(state: ScreenConditionResultState) {
 }
 
 @Composable
-private fun ResultConditionIcon(icon: Int) = Image(
+private fun ResultConditionIcon(icon: Int) = Icon(
     painter = painterResource(icon),
     contentDescription = null,
     modifier = Modifier.fillMaxSize().padding(20.dp),
+    tint = MaterialTheme.colorScheme.onSurfaceVariant,
 )
 
 @Composable

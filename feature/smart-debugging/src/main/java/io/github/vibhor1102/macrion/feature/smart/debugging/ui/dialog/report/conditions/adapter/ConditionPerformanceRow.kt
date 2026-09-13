@@ -123,7 +123,7 @@ private fun ConditionIcon(icon: Int) = Icon(
     painter = painterResource(icon),
     contentDescription = null,
     modifier = Modifier.fillMaxSize().padding(16.dp),
-    tint = Color.Unspecified,
+    tint = MaterialTheme.colorScheme.onSurfaceVariant,
 )
 
 @Composable

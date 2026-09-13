@@ -5,6 +5,8 @@ import android.content.res.Configuration
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -28,12 +30,12 @@ internal fun DumbActionBriefItem(details: DumbActionDetails, orientation: Int, o
             if (portrait) {
                 Row(Modifier.fillMaxSize().padding(horizontal = 8.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                     ActionText(details, Modifier.weight(1f).padding(start = 16.dp), Alignment.Start, 1, TextAlign.Start)
-                    Image(painterResource(details.icon), null, Modifier.padding(end = 16.dp).size(32.dp))
+                    Icon(painterResource(details.icon), null, Modifier.padding(end = 16.dp).size(32.dp), tint = MaterialTheme.colorScheme.onSurface)
                 }
             } else {
                 Column(Modifier.fillMaxSize().padding(horizontal = 4.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                     ActionText(details, Modifier.weight(1f).fillMaxWidth(), Alignment.CenterHorizontally, 2, TextAlign.Center)
-                    Image(painterResource(details.icon), null, Modifier.padding(bottom = 12.dp).size(32.dp))
+                    Icon(painterResource(details.icon), null, Modifier.padding(bottom = 12.dp).size(32.dp), tint = MaterialTheme.colorScheme.onSurface)
                 }
             }
         }

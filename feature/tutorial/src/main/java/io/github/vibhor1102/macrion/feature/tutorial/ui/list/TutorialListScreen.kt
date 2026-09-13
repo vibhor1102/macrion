@@ -25,6 +25,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -84,10 +85,11 @@ private fun TutorialCategoryHeader(item: TutorialCategoryUiItems.Header) {
                 modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Image(
+                Icon(
                     painter = painterResource(item.iconRes),
                     contentDescription = null,
                     modifier = Modifier.padding(start = 16.dp).size(64.dp),
+                    tint = MaterialTheme.colorScheme.primary,
                 )
                 Text(
                     text = stringResource(item.categoryNameRes),
@@ -117,11 +119,20 @@ private fun TutorialItemCard(item: TutorialCategoryUiItems.Item, onClick: () -> 
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            Image(
-                painter = painterResource(item.iconRes()),
-                contentDescription = null,
-                modifier = Modifier.size(32.dp),
-            )
+            if (item is TutorialCategoryUiItems.Item.Tutorial && item.tutorialCompleted) {
+                Image(
+                    painter = painterResource(item.iconRes()),
+                    contentDescription = null,
+                    modifier = Modifier.size(32.dp),
+                )
+            } else {
+                Icon(
+                    painter = painterResource(item.iconRes()),
+                    contentDescription = null,
+                    modifier = Modifier.size(32.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
             Column(Modifier.weight(1f)) {
                 Text(stringResource(item.nameRes), style = MaterialTheme.typography.bodyLarge)
                 Spacer(Modifier.size(4.dp))
@@ -131,9 +142,10 @@ private fun TutorialItemCard(item: TutorialCategoryUiItems.Item, onClick: () -> 
                     fontStyle = FontStyle.Italic,
                 )
             }
-            Image(
+            Icon(
                 painter = painterResource(R.drawable.ic_chevron_right),
                 contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }
