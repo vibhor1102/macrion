@@ -1,6 +1,8 @@
 /* Copyright (C) 2024 Kevin Buzeau; Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.image
 
+import io.github.vibhor1102.macrion.core.ui.compose.OverlayDialogShape
+
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
@@ -79,7 +81,9 @@ class ImageConditionDialog(private val listener: OnConditionConfigCompleteListen
         val saveEnabled by viewModel.conditionCanBeSaved.collectAsStateWithLifecycle(false)
         var name by rememberSaveable { mutableStateOf("") }
         LaunchedEffect(initialName) { initialName?.let { name = it } }
-        Surface(Modifier.fillMaxWidth().heightIn(max = 600.dp), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
+        Surface(
+            shape = OverlayDialogShape,
+            modifier = Modifier.fillMaxWidth().heightIn(max = 600.dp), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
             Column {
                 TopBar(saveEnabled)
                 Column(Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState())

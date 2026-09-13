@@ -24,6 +24,7 @@ import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayDialog
 import io.github.vibhor1102.macrion.core.domain.model.scenario.Scenario
 import io.github.vibhor1102.macrion.core.processing.domain.model.ScenarioSwitchResult
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
+import io.github.vibhor1102.macrion.core.ui.compose.OverlayDialogShape
 import io.github.vibhor1102.macrion.feature.smart.config.R
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
 import kotlinx.coroutines.CancellationException
@@ -51,29 +52,34 @@ override fun back() { if (!isSwitching) super.back() }
         val state by viewModel.uiState.collectAsStateWithLifecycle()
         val columns = if (LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE) 2 else 1
         val enabled = !state.isLoading && !isSwitching && state.isPaused && state.currentScenario != null
-        Scaffold(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
-            snackbarHost = { SnackbarHost(snackbar) },
-            topBar = {
-                Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = ::back, enabled = !isSwitching) {
-                        Icon(painterResource(io.github.vibhor1102.macrion.core.ui.R.drawable.ic_back), null)
+        Surface(
+            shape = OverlayDialogShape,
+            color = MaterialTheme.colorScheme.surfaceContainerLowest,
+        ) {
+            Scaffold(
+                containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+                snackbarHost = { SnackbarHost(snackbar) },
+                topBar = {
+                    Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                        IconButton(onClick = ::back, enabled = !isSwitching) {
+                            Icon(painterResource(io.github.vibhor1102.macrion.core.ui.R.drawable.ic_back), null)
+                        }
+                        Column(Modifier.weight(1f).padding(horizontal = 8.dp)) {
+                            Text(context.getString(R.string.dialog_title_scenario_switcher), style = MaterialTheme.typography.titleLarge)
+                        }
                     }
-                    Column(Modifier.weight(1f).padding(horizontal = 8.dp)) {
-                        Text(context.getString(R.string.dialog_title_scenario_switcher), style = MaterialTheme.typography.titleLarge)
+                },
+            ) { padding ->
+                when {
+                    state.isLoading -> Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+                    state.scenarios.isEmpty() -> Box(Modifier.fillMaxSize().padding(padding).padding(24.dp), contentAlignment = Alignment.Center) {
+                        Text(context.getString(R.string.scenario_switcher_empty), color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
-                }
-            },
-        ) { padding ->
-            when {
-                state.isLoading -> Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
-                state.scenarios.isEmpty() -> Box(Modifier.fillMaxSize().padding(padding).padding(24.dp), contentAlignment = Alignment.Center) {
-                    Text(context.getString(R.string.scenario_switcher_empty), color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-                else -> LazyVerticalGrid(GridCells.Fixed(columns), Modifier.fillMaxSize().padding(padding),
-                    contentPadding = PaddingValues(bottom = 16.dp)) {
-                    items(state.scenarios, key = { it.id.toString() }) { scenario ->
-                        ScenarioCard(scenario, scenario.id == state.currentScenario?.id, enabled)
+                    else -> LazyVerticalGrid(GridCells.Fixed(columns), Modifier.fillMaxSize().padding(padding),
+                        contentPadding = PaddingValues(bottom = 16.dp)) {
+                        items(state.scenarios, key = { it.id.toString() }) { scenario ->
+                            ScenarioCard(scenario, scenario.id == state.currentScenario?.id, enabled)
+                        }
                     }
                 }
             }

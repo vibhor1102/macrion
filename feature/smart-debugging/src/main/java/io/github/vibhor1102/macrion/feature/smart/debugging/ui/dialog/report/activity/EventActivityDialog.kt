@@ -1,6 +1,8 @@
 /* Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.activity
 
+import io.github.vibhor1102.macrion.core.ui.compose.OverlayDialogShape
+
 import android.view.ViewGroup
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -58,7 +60,9 @@ class EventActivityDialog : OverlayDialog(R.style.AppTheme) {
         LaunchedEffect(state) {
             if (state == EventActivityUiState.NotAvailable) back()
         }
-        Surface(Modifier.fillMaxSize().heightIn(min = 600.dp)) {
+        Surface(
+            shape = OverlayDialogShape,
+            modifier = Modifier.fillMaxSize().heightIn(min = 600.dp)) {
             Column {
                 ReportDialogTopBar(context.getString(R.string.dialog_overlay_title_event_activity), ::back)
                 Box(Modifier.weight(1f)) {

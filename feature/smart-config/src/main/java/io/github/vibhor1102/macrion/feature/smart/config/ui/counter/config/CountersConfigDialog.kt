@@ -1,6 +1,8 @@
 /* Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.counter.config
 
+import io.github.vibhor1102.macrion.core.ui.compose.OverlayDialogShape
+
 import android.view.ViewGroup
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
@@ -56,7 +58,9 @@ class CountersConfigDialog : OverlayDialog(R.style.ScenarioConfigTheme) {
         val state by viewModel.uiState.collectAsStateWithLifecycle()
         val canDismiss = state is CountersUiState.Loaded || state is CountersUiState.Empty
         Surface(
-            Modifier.fillMaxWidth().heightIn(max = 680.dp),
+            shape = OverlayDialogShape,
+            
+            modifier = Modifier.fillMaxWidth().heightIn(max = 680.dp),
             color = MaterialTheme.colorScheme.surfaceContainerLowest,
         ) {
             Box(Modifier.fillMaxWidth()) {

@@ -41,7 +41,7 @@ fun MacrionPositionGestureEditor(
     onSave: () -> Unit,
 ) {
     Surface(
-        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+        shape = OverlayDialogShape,
         modifier = Modifier.fillMaxWidth().heightIn(max = 520.dp),
         color = MaterialTheme.colorScheme.surface,
         contentColor = MaterialTheme.colorScheme.onSurface,
@@ -78,7 +78,7 @@ fun MacrionGestureEditor(
     onPositionClicked: () -> Unit, onDismiss: () -> Unit, onDelete: () -> Unit, onSave: () -> Unit,
 ) {
     Surface(
-        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+        shape = OverlayDialogShape,
         modifier = Modifier.fillMaxWidth().heightIn(max = 640.dp),
         color = MaterialTheme.colorScheme.surface,
         contentColor = MaterialTheme.colorScheme.onSurface,

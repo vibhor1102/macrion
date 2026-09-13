@@ -23,6 +23,7 @@ import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredViewType
 import io.github.vibhor1102.macrion.core.domain.model.condition.TriggerCondition
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
+import io.github.vibhor1102.macrion.core.ui.compose.OverlayDialogShape
 import io.github.vibhor1102.macrion.feature.smart.config.R
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.compose.tutorialAnchor
@@ -46,46 +47,51 @@ class TriggerConditionListDialog : OverlayDialog(R.style.ScenarioConfigTheme) {
 @Composable private fun Content() {
         val conditions = viewModel.configuredTriggerConditions.collectAsStateWithLifecycle(emptyList()).value
         val canCopy = viewModel.canCopyCondition.collectAsStateWithLifecycle(false).value
-        Scaffold(
+        Surface(
             modifier = Modifier.fillMaxWidth().heightIn(max = dimensionResource(io.github.vibhor1102.macrion.core.ui.R.dimen.bottom_sheet_min_height)),
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
-            topBar = {
-                Row(Modifier.fillMaxWidth().padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(
-                        onClick = ::back,
-                        modifier = Modifier.tutorialAnchor(
-                            MonitoredViewType.TRIGGER_CONDITION_LIST_DIALOG_BUTTON_CLOSE,
+            shape = OverlayDialogShape,
+            color = MaterialTheme.colorScheme.surfaceContainerLowest,
+        ) {
+            Scaffold(
+                containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+                topBar = {
+                    Row(Modifier.fillMaxWidth().padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                        IconButton(
                             onClick = ::back,
-                        ),
-                    ) { Icon(painterResource(R.drawable.ic_back), null) }
-                    Text(context.getString(R.string.dialog_title_trigger_event), Modifier.weight(1f).padding(8.dp),
-                        style = MaterialTheme.typography.titleLarge)
-                }
-            },
-            floatingActionButton = {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    if (canCopy) FloatingActionButton(onClick = ::showCopyDialog, containerColor = MaterialTheme.colorScheme.secondaryContainer) {
-                        Icon(painterResource(R.drawable.ic_copy), null)
+                            modifier = Modifier.tutorialAnchor(
+                                MonitoredViewType.TRIGGER_CONDITION_LIST_DIALOG_BUTTON_CLOSE,
+                                onClick = ::back,
+                            ),
+                        ) { Icon(painterResource(R.drawable.ic_back), null) }
+                        Text(context.getString(R.string.dialog_title_trigger_event), Modifier.weight(1f).padding(8.dp),
+                            style = MaterialTheme.typography.titleLarge)
                     }
-                    FloatingActionButton(
-                        onClick = ::showTriggerConditionTypeSelectionDialog,
-                        modifier = Modifier.tutorialAnchor(
-                            MonitoredViewType.TRIGGER_CONDITION_LIST_DIALOG_BUTTON_CREATE,
+                },
+                floatingActionButton = {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        if (canCopy) FloatingActionButton(onClick = ::showCopyDialog, containerColor = MaterialTheme.colorScheme.secondaryContainer) {
+                            Icon(painterResource(R.drawable.ic_copy), null)
+                        }
+                        FloatingActionButton(
                             onClick = ::showTriggerConditionTypeSelectionDialog,
-                        ),
-                    ) {
-                        Icon(painterResource(R.drawable.ic_add), null)
+                            modifier = Modifier.tutorialAnchor(
+                                MonitoredViewType.TRIGGER_CONDITION_LIST_DIALOG_BUTTON_CREATE,
+                                onClick = ::showTriggerConditionTypeSelectionDialog,
+                            ),
+                        ) {
+                            Icon(painterResource(R.drawable.ic_add), null)
+                        }
                     }
+                },
+            ) { padding ->
+                if (conditions.isEmpty()) Box(Modifier.fillMaxSize().padding(padding).padding(24.dp), contentAlignment = Alignment.Center) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(context.getString(R.string.message_empty_trigger_condition_list_title), style = MaterialTheme.typography.titleMedium)
+                        Text(context.getString(R.string.message_empty_trigger_condition_list_desc), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                } else LazyColumn(Modifier.fillMaxSize().padding(padding), contentPadding = PaddingValues(bottom = 88.dp)) {
+                    items(conditions, key = { it.condition.id.toString() }) { condition -> ConditionRow(condition) }
                 }
-            },
-        ) { padding ->
-            if (conditions.isEmpty()) Box(Modifier.fillMaxSize().padding(padding).padding(24.dp), contentAlignment = Alignment.Center) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(context.getString(R.string.message_empty_trigger_condition_list_title), style = MaterialTheme.typography.titleMedium)
-                    Text(context.getString(R.string.message_empty_trigger_condition_list_desc), color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            } else LazyColumn(Modifier.fillMaxSize().padding(padding), contentPadding = PaddingValues(bottom = 88.dp)) {
-                items(conditions, key = { it.condition.id.toString() }) { condition -> ConditionRow(condition) }
             }
         }
     }

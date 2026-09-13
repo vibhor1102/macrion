@@ -1,6 +1,8 @@
 /* Copyright (C) 2026 Kevin Buzeau; Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.selection
 
+import io.github.vibhor1102.macrion.core.ui.compose.OverlayDialogShape
+
 import android.graphics.Bitmap
 import android.view.ViewGroup
 import androidx.compose.foundation.*
@@ -49,7 +51,9 @@ class ScreenConditionSelectionDialog(
         setContent { MacrionTheme { this@ScreenConditionSelectionDialog.Content() } }
     }
 @Composable private fun Content() {
-        Surface(Modifier.fillMaxWidth().heightIn(max = 640.dp), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
+        Surface(
+            shape = OverlayDialogShape,
+            modifier = Modifier.fillMaxWidth().heightIn(max = 640.dp), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
             Column {
                 Row(Modifier.fillMaxWidth().padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
                     IconButton(onClick = ::back) { Icon(painterResource(R.drawable.ic_cancel), null) }

@@ -1,6 +1,8 @@
 /* Copyright (C) 2024 Kevin Buzeau; Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.action.toggleevent
 
+import io.github.vibhor1102.macrion.core.ui.compose.OverlayDialogShape
+
 import android.view.ViewGroup
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -50,7 +52,9 @@ override fun onDestroy() { onDismissed?.invoke(); super.onDestroy() }
 
     @Composable private fun Content() {
         val listItems by viewModel.currentItems.collectAsStateWithLifecycle(initialValue = emptyList())
-        Surface(Modifier.fillMaxWidth().heightIn(max = 600.dp), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
+        Surface(
+            shape = OverlayDialogShape,
+            modifier = Modifier.fillMaxWidth().heightIn(max = 600.dp), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
             Column {
                 TopBar()
                 if (listItems.isEmpty()) {

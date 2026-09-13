@@ -1,6 +1,8 @@
 /* Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.counter.creation
 
+import io.github.vibhor1102.macrion.core.ui.compose.OverlayDialogShape
+
 import android.view.ViewGroup
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -48,7 +50,9 @@ class CounterCreationDialog : OverlayDialog(R.style.ScenarioConfigTheme) {
         var startingValue by rememberSaveable { mutableStateOf("0") }
 
         Surface(
-            Modifier.fillMaxWidth().heightIn(max = 420.dp),
+            shape = OverlayDialogShape,
+            
+            modifier = Modifier.fillMaxWidth().heightIn(max = 420.dp),
             color = MaterialTheme.colorScheme.surfaceContainerLowest,
         ) {
             Column(Modifier.fillMaxWidth()) {

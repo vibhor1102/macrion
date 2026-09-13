@@ -1,6 +1,8 @@
 /* Copyright (C) 2024 Kevin Buzeau; Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.action.click
 
+import io.github.vibhor1102.macrion.core.ui.compose.OverlayDialogShape
+
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import android.util.Log
@@ -83,7 +85,9 @@ class ClickDialog(private val listener: OnActionConfigCompleteListener) : Overla
             var duration by rememberSaveable { mutableStateOf(state.pressDuration.orEmpty()) }
             LaunchedEffect(state.name) { if (state.name != name) name = state.name.orEmpty() }
             LaunchedEffect(state.pressDuration) { if (state.pressDuration != duration) duration = state.pressDuration.orEmpty() }
-            Surface(Modifier.fillMaxWidth().heightIn(max = 600.dp), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
+            Surface(
+            shape = OverlayDialogShape,
+            modifier = Modifier.fillMaxWidth().heightIn(max = 600.dp), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
                 Column {
                     TopBar(state.canBeSaved)
                     Column(Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState())

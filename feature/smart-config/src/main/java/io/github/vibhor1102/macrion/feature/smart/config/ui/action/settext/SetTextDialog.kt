@@ -1,6 +1,8 @@
 /* Copyright (C) 2025 Kevin Buzeau; Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.action.settext
 
+import io.github.vibhor1102.macrion.core.ui.compose.OverlayDialogShape
+
 import android.os.Build
 import android.util.Log
 import android.view.ViewGroup
@@ -83,6 +85,8 @@ class SetTextDialog(
         }
 
         Surface(
+            shape = OverlayDialogShape,
+            
             modifier = Modifier.fillMaxWidth().heightIn(max = 640.dp),
             color = MaterialTheme.colorScheme.surface,
             contentColor = MaterialTheme.colorScheme.onSurface,

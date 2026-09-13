@@ -1,6 +1,8 @@
 /* Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.action.external
 
+import io.github.vibhor1102.macrion.core.ui.compose.OverlayDialogShape
+
 import android.view.ViewGroup
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -32,7 +34,9 @@ class ExternalActionSelectionDialog(private val onExternalActionSelected: (Strin
     }
 @Composable private fun Content() {
         val names = viewModel.knownExternalActionNames.collectAsStateWithLifecycle(emptyList()).value
-        Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
+        Surface(
+            shape = OverlayDialogShape,
+            modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
             Column {
                 Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                     IconButton(onClick = ::back) { Icon(painterResource(R.drawable.ic_cancel), null) }

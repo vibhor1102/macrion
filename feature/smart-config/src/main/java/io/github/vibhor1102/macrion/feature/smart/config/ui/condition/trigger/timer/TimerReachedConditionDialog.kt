@@ -1,6 +1,8 @@
 /* Copyright (C) 2024 Kevin Buzeau; Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.condition.trigger.timer
 
+import io.github.vibhor1102.macrion.core.ui.compose.OverlayDialogShape
+
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
@@ -83,7 +85,9 @@ class TimerReachedConditionDialog(private val listener: OnConditionConfigComplet
             LaunchedEffect(initialName) { initialName?.let { name = it } }
             LaunchedEffect(displayedDuration) { displayedDuration?.let { duration = it } }
 
-            Surface(Modifier.fillMaxWidth().heightIn(max = 600.dp), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
+            Surface(
+            shape = OverlayDialogShape,
+            modifier = Modifier.fillMaxWidth().heightIn(max = 600.dp), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
                 Column {
                     TopBar(saveEnabled)
                     Column(Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState())

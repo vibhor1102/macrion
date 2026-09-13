@@ -1,6 +1,8 @@
 /* Copyright (C) 2024 Kevin Buzeau; Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.action.changecounter
 
+import io.github.vibhor1102.macrion.core.ui.compose.OverlayDialogShape
+
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
@@ -66,7 +68,9 @@ class ChangeCounterDialog(private val listener: OnActionConfigCompleteListener) 
     @Composable private fun Content() {
         val state by viewModel.uiState.collectAsStateWithLifecycle()
         val ui = state ?: return
-        Surface(Modifier.fillMaxWidth().heightIn(max = 600.dp), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
+        Surface(
+            shape = OverlayDialogShape,
+            modifier = Modifier.fillMaxWidth().heightIn(max = 600.dp), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
             Column {
                 TopBar(ui.canBeSaved)
                 Column(Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState())

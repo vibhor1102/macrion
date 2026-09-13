@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.dp
 
 import io.github.vibhor1102.macrion.core.common.overlays.R
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.navbar.DialogNavigationItem
+import io.github.vibhor1102.macrion.core.ui.compose.OverlayDialogShape
 
 @Composable
 internal fun DialogNavigation(
@@ -99,7 +100,7 @@ internal fun NavBarDialogScaffold(
     isPortrait: Boolean,
 ) {
     Surface(
-        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+        shape = OverlayDialogShape,
         color = MaterialTheme.colorScheme.surfaceContainerLowest,
         modifier = Modifier
             .fillMaxWidth()

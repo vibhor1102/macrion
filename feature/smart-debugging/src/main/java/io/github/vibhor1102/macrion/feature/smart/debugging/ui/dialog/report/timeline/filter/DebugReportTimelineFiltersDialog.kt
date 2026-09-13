@@ -1,6 +1,8 @@
 /* Copyright (C) 2026 Kevin Buzeau; Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.timeline.filter
 
+import io.github.vibhor1102.macrion.core.ui.compose.OverlayDialogShape
+
 import android.view.ViewGroup
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -56,7 +58,9 @@ class DebugReportTimelineFiltersDialog(
         val time = viewModel.timeUiState.collectAsStateWithLifecycle(initialValue = null).value
         val image = viewModel.imageEventsUiState.collectAsStateWithLifecycle(initialValue = null).value
         val trigger = viewModel.triggerEventsUiState.collectAsStateWithLifecycle(initialValue = null).value
-        Surface(Modifier.fillMaxSize().heightIn(min = 600.dp)) {
+        Surface(
+            shape = OverlayDialogShape,
+            modifier = Modifier.fillMaxSize().heightIn(min = 600.dp)) {
             Column {
                 ReportDialogTopBar(
                     context.getString(R.string.dialog_overlay_title_timeline_filters),

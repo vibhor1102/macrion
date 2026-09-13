@@ -83,6 +83,21 @@ abstract class OverlayDialog(@StyleRes theme: Int? = null) : BaseOverlay(theme, 
         val dialogTheme = theme ?: io.github.vibhor1102.macrion.core.ui.R.style.AppTheme
         val view = onCreateView()
 
+        val cornerRadius = 28 * context.resources.displayMetrics.density
+        view.outlineProvider = object : android.view.ViewOutlineProvider() {
+            override fun getOutline(v: View, outline: android.graphics.Outline) {
+                if (v.width > 0 && v.height > 0) {
+                    outline.setRoundRect(0, 0, v.width, v.height + cornerRadius.toInt(), cornerRadius)
+                }
+            }
+        }
+        view.clipToOutline = true
+        view.addOnLayoutChangeListener { v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom ->
+            if (right - left != oldRight - oldLeft || bottom - top != oldBottom - oldTop) {
+                v.invalidateOutline()
+            }
+        }
+
         // WindowManager overlay roots don't inherit Activity view-tree owners. Install this
         // overlay's owners before attaching the view so Compose can create its recomposer safely.
         view.setViewTreeLifecycleOwner(this)

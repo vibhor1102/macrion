@@ -1,6 +1,8 @@
 /* Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.counter.reference
 
+import io.github.vibhor1102.macrion.core.ui.compose.OverlayDialogShape
+
 import android.view.ViewGroup
 import androidx.compose.foundation.background
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -48,7 +50,9 @@ class CounterReferenceDialog(
     private fun Content() {
         val items by viewModel.uiState.collectAsStateWithLifecycle()
         Surface(
-            Modifier.fillMaxWidth().heightIn(max = 620.dp),
+            shape = OverlayDialogShape,
+            
+            modifier = Modifier.fillMaxWidth().heightIn(max = 620.dp),
             color = MaterialTheme.colorScheme.surfaceContainerLowest,
         ) {
             Column(Modifier.fillMaxWidth()) {

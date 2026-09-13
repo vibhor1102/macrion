@@ -1,6 +1,8 @@
 /* Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.copy
 
+import io.github.vibhor1102.macrion.core.ui.compose.OverlayDialogShape
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -36,7 +38,9 @@ internal fun CopyPickerContent(
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
     Surface(
-        Modifier.fillMaxSize(),
+            shape = OverlayDialogShape,
+            
+        modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.surfaceContainerLowest,
     ) {
         Column(Modifier.fillMaxWidth()) {

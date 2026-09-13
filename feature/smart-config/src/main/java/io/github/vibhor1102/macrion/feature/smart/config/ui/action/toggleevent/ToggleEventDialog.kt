@@ -1,6 +1,8 @@
 /* Copyright (C) 2024 Kevin Buzeau; Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.action.toggleevent
 
+import io.github.vibhor1102.macrion.core.ui.compose.OverlayDialogShape
+
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
@@ -65,7 +67,9 @@ class ToggleEventDialog(private val listener: OnActionConfigCompleteListener) : 
             initialValue = EventToggleSelectorState(false, "", 0, 0, 0, R.string.field_select_toggle_events_desc_empty),
         )
         val saveEnabled by viewModel.isValidAction.collectAsStateWithLifecycle(initialValue = false)
-        Surface(Modifier.fillMaxWidth().heightIn(max = 600.dp), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
+        Surface(
+            shape = OverlayDialogShape,
+            modifier = Modifier.fillMaxWidth().heightIn(max = 600.dp), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
             Column {
                 TopBar(saveEnabled)
                 Column(

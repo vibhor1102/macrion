@@ -21,6 +21,7 @@ import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayDialog
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredOverlayType
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredViewType
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
+import io.github.vibhor1102.macrion.core.ui.compose.OverlayDialogShape
 import io.github.vibhor1102.macrion.feature.smart.config.R
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.compose.LocalMonitoredViewsManager
@@ -42,51 +43,56 @@ class CounterSelectionDialog(private val onCounterSelected: (String) -> Unit) :
 @Composable private fun Content() {
         CompositionLocalProvider(LocalMonitoredViewsManager provides viewModel.monitoredViewsManager) {
             val counters = viewModel.counterNames.collectAsStateWithLifecycle(emptyList()).value
-            Scaffold(
+            Surface(
                 modifier = Modifier.fillMaxWidth().heightIn(max = 640.dp),
-                containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
-                topBar = {
-                    Row(Modifier.fillMaxWidth().padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                        IconButton(onClick = ::back) { Icon(painterResource(R.drawable.ic_cancel), null) }
-                        Text(context.getString(R.string.generic_counters), Modifier.weight(1f).padding(8.dp),
-                            style = MaterialTheme.typography.titleLarge)
-                    }
-                },
-                floatingActionButton = {
-                    FloatingActionButton(
-                        onClick = ::showCounterCreationDialog,
-                        modifier = Modifier.tutorialAnchor(
-                            MonitoredViewType.COUNTER_SELECTION_DIALOG_BUTTON_CREATE,
+                shape = OverlayDialogShape,
+                color = MaterialTheme.colorScheme.surfaceContainerLowest,
+            ) {
+                Scaffold(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+                    topBar = {
+                        Row(Modifier.fillMaxWidth().padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                            IconButton(onClick = ::back) { Icon(painterResource(R.drawable.ic_cancel), null) }
+                            Text(context.getString(R.string.generic_counters), Modifier.weight(1f).padding(8.dp),
+                                style = MaterialTheme.typography.titleLarge)
+                        }
+                    },
+                    floatingActionButton = {
+                        FloatingActionButton(
                             onClick = ::showCounterCreationDialog,
-                        ),
-                    ) {
-                        Icon(painterResource(R.drawable.ic_add), null)
-                    }
-                },
-            ) { padding ->
-            if (counters.isEmpty()) Box(Modifier.fillMaxSize().padding(padding).padding(24.dp),
-                contentAlignment = Alignment.Center) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(context.getString(R.string.message_empty_counter_name_list_title), style = MaterialTheme.typography.titleMedium)
-                    Text(context.getString(R.string.message_empty_counter_name_list_desc),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            } else LazyColumn(Modifier.fillMaxSize().padding(padding), contentPadding = PaddingValues(bottom = 88.dp)) {
-                items(counters, key = { it.counterName }) { counter ->
-                    Row(Modifier.fillMaxWidth().heightIn(min = 64.dp).clickable {
-                        onCounterSelected(counter.counterName); back()
-                    }.padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Column(Modifier.weight(1f)) {
-                            Text(counter.counterName, style = MaterialTheme.typography.titleSmall)
-                            Text(counter.counterStartingValueDesc, style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.tutorialAnchor(
+                                MonitoredViewType.COUNTER_SELECTION_DIALOG_BUTTON_CREATE,
+                                onClick = ::showCounterCreationDialog,
+                            ),
+                        ) {
+                            Icon(painterResource(R.drawable.ic_add), null)
+                        }
+                    },
+                ) { padding ->
+                    if (counters.isEmpty()) Box(Modifier.fillMaxSize().padding(padding).padding(24.dp),
+                        contentAlignment = Alignment.Center) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(context.getString(R.string.message_empty_counter_name_list_title), style = MaterialTheme.typography.titleMedium)
+                            Text(context.getString(R.string.message_empty_counter_name_list_desc),
                                 color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
-                        Icon(painterResource(R.drawable.ic_chevron_right), null, Modifier.size(24.dp))
+                    } else LazyColumn(Modifier.fillMaxSize().padding(padding), contentPadding = PaddingValues(bottom = 88.dp)) {
+                        items(counters, key = { it.counterName }) { counter ->
+                            Row(Modifier.fillMaxWidth().heightIn(min = 64.dp).clickable {
+                                onCounterSelected(counter.counterName); back()
+                            }.padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Column(Modifier.weight(1f)) {
+                                    Text(counter.counterName, style = MaterialTheme.typography.titleSmall)
+                                    Text(counter.counterStartingValueDesc, style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                }
+                                Icon(painterResource(R.drawable.ic_chevron_right), null, Modifier.size(24.dp))
+                            }
+                            HorizontalDivider(Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant)
+                        }
                     }
-                    HorizontalDivider(Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant)
                 }
             }
-        }
         }
     }
 

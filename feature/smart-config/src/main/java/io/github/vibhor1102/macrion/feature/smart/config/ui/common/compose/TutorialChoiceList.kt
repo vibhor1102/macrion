@@ -1,6 +1,8 @@
 /* Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.common.compose
 
+import io.github.vibhor1102.macrion.core.ui.compose.OverlayDialogShape
+
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -25,7 +27,9 @@ fun <T : DialogChoice> TutorialChoiceList(
     onChoiceSelected: (T) -> Unit,
     monitoredType: ((T) -> MonitoredViewType?)? = null,
 ) {
-    Surface(Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
+    Surface(
+            shape = OverlayDialogShape,
+            modifier = Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
         Column {
             Row(Modifier.fillMaxWidth().padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = onDismiss) { Icon(painterResource(R.drawable.ic_cancel), null) }

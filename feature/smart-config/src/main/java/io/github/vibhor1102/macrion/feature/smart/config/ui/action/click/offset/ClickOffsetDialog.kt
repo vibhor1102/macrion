@@ -1,6 +1,8 @@
 /* Copyright (C) 2024 Kevin Buzeau; Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.action.click.offset
 
+import io.github.vibhor1102.macrion.core.ui.compose.OverlayDialogShape
+
 import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
@@ -68,7 +70,9 @@ class ClickOffsetDialog : OverlayDialog(R.style.ScenarioConfigTheme) {
                 xText = it.offset.x.toString(); yText = it.offset.y.toString()
             }
         }
-        Surface(Modifier.fillMaxWidth().heightIn(max = 600.dp), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
+        Surface(
+            shape = OverlayDialogShape,
+            modifier = Modifier.fillMaxWidth().heightIn(max = 600.dp), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
             Column {
                 TopBar()
                 if (landscape) Row(Modifier.fillMaxWidth().weight(1f), verticalAlignment = Alignment.CenterVertically) {

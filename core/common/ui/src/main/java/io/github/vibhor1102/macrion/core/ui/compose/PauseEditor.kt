@@ -61,6 +61,7 @@ fun MacrionPauseEditor(
     onSave: () -> Unit,
 ) {
     Surface(
+        shape = OverlayDialogShape,
         modifier = Modifier.fillMaxWidth().height(240.dp),
         color = MaterialTheme.colorScheme.surface,
         contentColor = MaterialTheme.colorScheme.onSurface,

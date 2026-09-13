@@ -1,6 +1,8 @@
 /* Copyright (C) 2026 Kevin Buzeau; Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.timeline.filter.events
 
+import io.github.vibhor1102.macrion.core.ui.compose.OverlayDialogShape
+
 import android.view.ViewGroup
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -55,7 +57,9 @@ class FilteredEventsSelectorDialog(
 
 @Composable private fun Content() {
         val items = viewModel.eventsItems.collectAsStateWithLifecycle(initialValue = emptyList()).value
-        Surface(Modifier.fillMaxSize().heightIn(min = 600.dp)) {
+        Surface(
+            shape = OverlayDialogShape,
+            modifier = Modifier.fillMaxSize().heightIn(min = 600.dp)) {
             Column {
                 ReportDialogTopBar(
                     title = "",

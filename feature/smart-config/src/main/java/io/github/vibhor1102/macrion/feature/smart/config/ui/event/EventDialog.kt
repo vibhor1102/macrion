@@ -52,6 +52,7 @@ import io.github.vibhor1102.macrion.core.domain.model.condition.ScreenCondition
 import io.github.vibhor1102.macrion.core.ui.bindings.dropdown.TimeUnitDropDownItem
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTextField
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
+import io.github.vibhor1102.macrion.core.ui.compose.OverlayDialogShape
 import io.github.vibhor1102.macrion.core.ui.compose.macrionDoneKeyboardActions
 import io.github.vibhor1102.macrion.core.ui.compose.macrionDoneKeyboardOptions
 import io.github.vibhor1102.macrion.feature.smart.config.R
@@ -91,7 +92,7 @@ class EventDialog(private val onConfigComplete: () -> Unit, private val onDelete
             val ui = state ?: return@CompositionLocalProvider
             var name by rememberSaveable { mutableStateOf(ui.name.orEmpty()) }
             LaunchedEffect(ui.name) { if (name != ui.name) name = ui.name.orEmpty() }
-            Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
+            Surface(Modifier.fillMaxSize(), shape = OverlayDialogShape, color = MaterialTheme.colorScheme.surfaceContainerLowest) {
                 Column { TopBar(ui.canBeSaved)
                     Column(Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState())
                         .padding(horizontal = 16.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {

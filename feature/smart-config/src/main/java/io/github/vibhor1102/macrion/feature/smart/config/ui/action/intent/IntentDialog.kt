@@ -1,6 +1,8 @@
 /* Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.action.intent
 
+import io.github.vibhor1102.macrion.core.ui.compose.OverlayDialogShape
+
 import android.content.ComponentName
 import android.util.Log
 import android.view.ViewGroup
@@ -85,6 +87,8 @@ class IntentDialog(
         val valid by viewModel.isValidAction.collectAsStateWithLifecycle(initialValue = false)
 
         Surface(
+            shape = OverlayDialogShape,
+            
             modifier = Modifier.fillMaxWidth().heightIn(max = 680.dp),
             color = MaterialTheme.colorScheme.surface,
             contentColor = MaterialTheme.colorScheme.onSurface,

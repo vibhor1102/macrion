@@ -17,6 +17,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
 import io.github.vibhor1102.macrion.core.android.application.AndroidApplicationInfo
+import io.github.vibhor1102.macrion.core.ui.compose.OverlayDialogShape
 import io.github.vibhor1102.macrion.feature.smart.config.R
 
 @Composable
@@ -28,6 +29,7 @@ internal fun ApplicationSelectionContent(
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth().heightIn(max = 680.dp),
+        shape = OverlayDialogShape,
         color = MaterialTheme.colorScheme.surface,
         contentColor = MaterialTheme.colorScheme.onSurface,
     ) {

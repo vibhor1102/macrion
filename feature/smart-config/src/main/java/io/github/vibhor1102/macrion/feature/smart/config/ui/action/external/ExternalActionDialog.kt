@@ -1,6 +1,8 @@
 /* Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.action.external
 
+import io.github.vibhor1102.macrion.core.ui.compose.OverlayDialogShape
+
 import android.util.Log
 import android.view.ViewGroup
 import androidx.compose.foundation.layout.*
@@ -56,6 +58,8 @@ class ExternalActionDialog(
         val state by viewModel.uiState.collectAsStateWithLifecycle()
         val ui = state ?: return
         Surface(
+            shape = OverlayDialogShape,
+            
             modifier = Modifier.fillMaxWidth().heightIn(max = 520.dp),
             color = MaterialTheme.colorScheme.surface,
             contentColor = MaterialTheme.colorScheme.onSurface,

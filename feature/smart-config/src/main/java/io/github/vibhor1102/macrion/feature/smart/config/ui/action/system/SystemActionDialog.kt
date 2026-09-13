@@ -1,6 +1,8 @@
 /* Copyright (C) 2025 Kevin Buzeau; Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.action.system
 
+import io.github.vibhor1102.macrion.core.ui.compose.OverlayDialogShape
+
 import android.util.Log
 import android.view.ViewGroup
 import androidx.compose.foundation.layout.*
@@ -65,6 +67,8 @@ class SystemActionDialog(
         LaunchedEffect(initialName) { initialName?.let { name = it } }
 
         Surface(
+            shape = OverlayDialogShape,
+            
             modifier = Modifier.fillMaxWidth().heightIn(max = 320.dp),
             color = MaterialTheme.colorScheme.surface,
             contentColor = MaterialTheme.colorScheme.onSurface,

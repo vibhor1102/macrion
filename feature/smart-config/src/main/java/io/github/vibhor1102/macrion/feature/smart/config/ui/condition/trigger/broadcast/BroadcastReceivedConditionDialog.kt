@@ -1,6 +1,8 @@
 /* Copyright (C) 2024 Kevin Buzeau; Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.condition.trigger.broadcast
 
+import io.github.vibhor1102.macrion.core.ui.compose.OverlayDialogShape
+
 import android.view.ViewGroup
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -56,7 +58,9 @@ class BroadcastReceivedConditionDialog(private val listener: OnConditionConfigCo
         val nameError = viewModel.nameError.collectAsStateWithLifecycle(false).value
         val actionError = viewModel.intentActionError.collectAsStateWithLifecycle(false).value
         val saveEnabled = viewModel.conditionCanBeSaved.collectAsStateWithLifecycle(false).value
-        Surface(Modifier.fillMaxWidth().heightIn(max = 560.dp), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
+        Surface(
+            shape = OverlayDialogShape,
+            modifier = Modifier.fillMaxWidth().heightIn(max = 560.dp), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
             Column {
                 TopBar(saveEnabled)
                 Column(Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState())

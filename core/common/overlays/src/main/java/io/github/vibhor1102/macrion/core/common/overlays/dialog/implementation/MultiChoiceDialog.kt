@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import io.github.vibhor1102.macrion.core.common.overlays.R
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayDialog
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
+import io.github.vibhor1102.macrion.core.ui.compose.OverlayDialogShape
 
 /** A Compose-native overlay dialog displaying a list of choices. */
 open class MultiChoiceDialog<T : DialogChoice>(
@@ -73,7 +74,7 @@ private fun <T : DialogChoice> MultiChoiceDialogContent(
     onChoiceSelected: (T) -> Unit,
 ) {
     Surface(
-        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+        shape = OverlayDialogShape,
         color = MaterialTheme.colorScheme.surfaceContainerLowest,
         modifier = Modifier.fillMaxWidth(),
     ) {

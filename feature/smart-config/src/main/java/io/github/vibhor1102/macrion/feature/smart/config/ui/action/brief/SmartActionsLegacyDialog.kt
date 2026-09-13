@@ -16,6 +16,8 @@
  */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.action.brief
 
+import io.github.vibhor1102.macrion.core.ui.compose.OverlayDialogShape
+
 import android.view.ViewGroup
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -104,7 +106,9 @@ private fun onCreateButtonClicked() {
         val reorderState = rememberReorderableLazyListState(listState) { from, to ->
             displayedItems = displayedItems.toMutableList().apply { add(to.index, removeAt(from.index)) }
         }
-        Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
+        Surface(
+            shape = OverlayDialogShape,
+            modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
             Column {
                 Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
                     IconButton(onClick = ::back) { Icon(painterResource(R.drawable.ic_cancel), null) }
