@@ -25,6 +25,9 @@ import android.view.ViewGroup
 import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
 
+import androidx.activity.ComponentDialog
+import androidx.activity.addCallback
+import androidx.activity.setViewTreeOnBackPressedDispatcherOwner
 import androidx.annotation.CallSuper
 import androidx.annotation.StyleRes
 import androidx.lifecycle.setViewTreeLifecycleOwner
@@ -95,12 +98,17 @@ abstract class OverlayDialog(@StyleRes theme: Int? = null) : BaseOverlay(theme, 
         view.setViewTreeSavedStateRegistryOwner(this)
         view.setViewTreeViewModelStoreOwner(this)
 
-        dialog = Dialog(context, dialogTheme).apply {
+        dialog = ComponentDialog(context, dialogTheme).apply compDialog@ {
+            view.setViewTreeOnBackPressedDispatcherOwner(this)
+            onBackPressedDispatcher.addCallback(this@OverlayDialog) {
+                this@OverlayDialog.back()
+            }
+
             setContentView(view)
             setCancelable(false)
             setOnKeyListener { _, keyCode, event ->
                 if (keyCode == KeyEvent.KEYCODE_BACK && event.action == KeyEvent.ACTION_UP) {
-                    this@OverlayDialog.back()
+                    onBackPressedDispatcher.onBackPressed()
                     true
                 } else {
                     false
@@ -112,6 +120,7 @@ abstract class OverlayDialog(@StyleRes theme: Int? = null) : BaseOverlay(theme, 
                 decorView.setViewTreeLifecycleOwner(this@OverlayDialog)
                 decorView.setViewTreeSavedStateRegistryOwner(this@OverlayDialog)
                 decorView.setViewTreeViewModelStoreOwner(this@OverlayDialog)
+                decorView.setViewTreeOnBackPressedDispatcherOwner(this@compDialog)
 
                 setType(OverlayManager.OVERLAY_WINDOW_TYPE)
                 setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)

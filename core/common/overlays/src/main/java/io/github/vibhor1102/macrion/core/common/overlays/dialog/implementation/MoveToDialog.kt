@@ -54,6 +54,9 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import androidx.activity.ComponentDialog
+import androidx.activity.addCallback
+import androidx.activity.setViewTreeOnBackPressedDispatcherOwner
 import androidx.lifecycle.setViewTreeLifecycleOwner
 import androidx.lifecycle.setViewTreeViewModelStoreOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
@@ -128,11 +131,15 @@ class MoveToDialog(
         content.setViewTreeSavedStateRegistryOwner(this)
         content.setViewTreeViewModelStoreOwner(this)
 
-        dialog = Dialog(context.getDynamicColorsContext(R.style.AppTheme)).apply {
+        dialog = ComponentDialog(context.getDynamicColorsContext(R.style.AppTheme)).apply compDialog@ {
+            content.setViewTreeOnBackPressedDispatcherOwner(this)
+            onBackPressedDispatcher.addCallback(this@MoveToDialog) {
+                this@MoveToDialog.back()
+            }
             setContentView(content)
             setOnKeyListener { _, keyCode, event ->
                 if (keyCode == KeyEvent.KEYCODE_BACK && event.action == KeyEvent.ACTION_UP) {
-                    this@MoveToDialog.back()
+                    onBackPressedDispatcher.onBackPressed()
                     true
                 } else {
                     false
@@ -147,6 +154,7 @@ class MoveToDialog(
                 decorView.setViewTreeLifecycleOwner(this@MoveToDialog)
                 decorView.setViewTreeSavedStateRegistryOwner(this@MoveToDialog)
                 decorView.setViewTreeViewModelStoreOwner(this@MoveToDialog)
+                decorView.setViewTreeOnBackPressedDispatcherOwner(this@compDialog)
                 setBackgroundDrawableResource(android.R.color.transparent)
                 setType(OverlayManager.OVERLAY_WINDOW_TYPE)
             }
