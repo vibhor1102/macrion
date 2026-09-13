@@ -19,7 +19,6 @@ package io.github.vibhor1102.macrion.core.common.overlays.dialog
 import android.app.Dialog
 import android.view.Gravity
 import android.view.KeyEvent
-import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
@@ -50,14 +49,6 @@ abstract class OverlayDialog(@StyleRes theme: Int? = null) : BaseOverlay(theme, 
 
     /** The Android InputMethodManger, for ensuring the keyboard dismiss on dialog dismiss. */
     private lateinit var inputMethodManager: InputMethodManager
-    /** Touch listener hiding the software keyboard and propagating the touch event normally. */
-    protected val hideSoftInputTouchListener = View.OnTouchListener { view, event ->
-        if (event.action == MotionEvent.ACTION_DOWN) {
-            view.findFocus()?.clearFocus()
-            hideSoftInput()
-        }
-        false
-    }
 
     /** Tells if the dialog is visible. */
     private var isShown = false
@@ -130,9 +121,8 @@ abstract class OverlayDialog(@StyleRes theme: Int? = null) : BaseOverlay(theme, 
                 addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
                 setSoftInputMode(
                     WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN or
-                        WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN,
+                        WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE,
                 )
-                decorView.setOnTouchListener(hideSoftInputTouchListener)
             }
         }
 

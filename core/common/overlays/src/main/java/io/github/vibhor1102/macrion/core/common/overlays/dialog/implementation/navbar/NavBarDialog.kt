@@ -127,12 +127,6 @@ abstract class NavBarDialog(@StyleRes theme: Int) : OverlayDialog(theme) {
 
     @CallSuper
     override fun onDialogCreated(dialog: Dialog) {
-        // Switch to ADJUST_PAN so the window scrolls (rather than resizes) when the keyboard opens.
-        dialog.window?.setSoftInputMode(
-            WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN or
-            WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN
-        )
-
         updateContentView(
             itemId = selectedNavigationItemId.intValue,
             forceUpdate = true,
