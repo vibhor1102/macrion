@@ -208,30 +208,32 @@ fun createOverlayMenuLayout(
                                                 .then(buttonModifier?.invoke(buttons[index]) { button.performClick() } ?: Modifier),
                                         ) {
                                             if (visible) {
-                                                Box(Modifier.fillMaxSize().alpha(button.composeAlpha)) {
+                                                Box(Modifier.fillMaxSize().alpha(button.composeAlpha), contentAlignment = Alignment.Center) {
                                                     if (buttonContent != null) {
                                                         buttonContent(buttons[index])
                                                     } else {
                                                         Icon(
                                                             painterResource(button.currentIconResource),
                                                             null,
-                                                            Modifier.fillMaxSize(),
+                                                            Modifier.size(24.dp),
                                                             tint = colorResource(R.color.overlayMenuButtons),
                                                         )
                                                     }
                                                 }
                                                 AndroidView(factory = { button }, modifier = Modifier.fillMaxSize())
                                             } else if (buttonContent != null) {
-                                                Box(Modifier.fillMaxSize().alpha(button.composeAlpha)) {
+                                                Box(Modifier.fillMaxSize().alpha(button.composeAlpha), contentAlignment = Alignment.Center) {
                                                     buttonContent(buttons[index])
                                                 }
                                             } else {
-                                                Icon(
-                                                    painterResource(button.currentIconResource),
-                                                    null,
-                                                    Modifier.fillMaxSize().alpha(button.composeAlpha),
-                                                    tint = colorResource(R.color.overlayMenuButtons),
-                                                )
+                                                Box(Modifier.fillMaxSize().alpha(button.composeAlpha), contentAlignment = Alignment.Center) {
+                                                    Icon(
+                                                        painterResource(button.currentIconResource),
+                                                        null,
+                                                        Modifier.size(24.dp),
+                                                        tint = colorResource(R.color.overlayMenuButtons),
+                                                    )
+                                                }
                                             }
                                         }
                                     }

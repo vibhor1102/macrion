@@ -112,7 +112,7 @@ internal fun createMainOverlayMenu(
                         }
                     } else {
                         Icon(
-                            painterResource(button.icon), null, Modifier.fillMaxWidth().fillMaxHeight(),
+                            painterResource(button.icon), null, Modifier.size(24.dp),
                             tint = colorResource(io.github.vibhor1102.macrion.core.ui.R.color.overlayMenuButtons),
                         )
                     }

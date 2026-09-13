@@ -26,11 +26,13 @@ import android.view.View
 import android.view.ViewGroup
 
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
 
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -111,7 +113,7 @@ class DumbMainMenu(
                     AnimatedPlayPauseIcon(isPlaying)
                 } else {
                     Icon(
-                        painterResource(button.icon), null, Modifier.fillMaxSize(),
+                        painterResource(button.icon), null, Modifier.size(24.dp),
                         tint = colorResource(io.github.vibhor1102.macrion.core.ui.R.color.overlayMenuButtons),
                     )
                 }
