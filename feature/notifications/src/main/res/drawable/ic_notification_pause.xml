@@ -1,45 +1,9 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
-* Copyright (C) 2024 Kevin Buzeau
-*
-* This program is free software: you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program.  If not, see <http://www.gnu.org/licenses/>.
--->
-<vector
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp"
     android:height="24dp"
-    android:viewportWidth="128"
-    android:viewportHeight="128"
-    android:tint="?android:attr/colorControlNormal">
-
-
-        <group
-            android:name="icon"
-            android:rotation="90"
-            android:pivotX="64"
-            android:pivotY="64"
-            android:scaleX="1"
-            android:scaleY="1">
-
-            <path
-                android:name="iconPath"
-                android:pathData="@string/path_pause"
-                android:fillColor="@color/notification_icon_color_secondary"
-                android:strokeLineCap="butt"
-                android:strokeLineJoin="miter"
-                android:strokeMiterLimit="10"/>
-
-        </group>
-
+    android:viewportWidth="960"
+    android:viewportHeight="960">
+  <path
+      android:fillColor="@color/notification_icon_color"
+      android:pathData="M600,760Q567,760 543.5,736.5Q520,713 520,680L520,280Q520,247 543.5,223.5Q567,200 600,200L680,200Q713,200 736.5,223.5Q760,247 760,280L760,680Q760,713 736.5,736.5Q713,760 680,760L600,760ZM280,760Q247,760 223.5,736.5Q200,713 200,680L200,280Q200,247 223.5,223.5Q247,200 280,200L360,200Q393,200 416.5,223.5Q440,247 440,280L440,680Q440,713 416.5,736.5Q393,760 360,760L280,760ZM600,680L680,680L680,280L600,280L600,680ZM280,680L360,680L360,280L280,280L280,680ZM280,280L280,280L280,680L280,680L280,280ZM600,280L600,280L600,680L600,680L600,280Z"/>
 </vector>

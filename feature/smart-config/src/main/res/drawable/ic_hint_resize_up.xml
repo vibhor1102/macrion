@@ -1,22 +1,9 @@
-<vector
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="40dp"
     android:height="40dp"
-    android:viewportWidth="24"
-    android:viewportHeight="24"
-    android:tint="?android:attr/colorControlNormal">
-
-    <group
-        android:pivotX="12"
-        android:pivotY="12"
-        android:scaleX="2"
-        android:scaleY="2"
-        android:translateY="13.5">
-
-        <path
-            android:fillColor="@color/overlayMenuButtons"
-            android:pathData="M10.5,9h3c0.28,0 0.5,-0.22 0.5,-0.5L14,6h1.79c0.45,0 0.67,-0.54 0.35,-0.85l-3.79,-3.79c-0.2,-0.2 -0.51,-0.2 -0.71,0L7.85,5.15c-0.31,0.31 -0.09,0.85 0.36,0.85L10,6v2.5c0,0.28 0.22,0.5 0.5,0.5z"/>
-
-    </group>
-
+    android:viewportWidth="960"
+    android:viewportHeight="960">
+  <path
+      android:fillColor="@android:color/white"
+      android:pathData="M440,313L244,509Q232,521 216,520.5Q200,520 188,508Q177,496 176.5,480Q176,464 188,452L452,188Q458,182 465,179.5Q472,177 480,177Q488,177 495,179.5Q502,182 508,188L772,452Q783,463 783,479.5Q783,496 772,508Q760,520 743.5,520Q727,520 715,508L520,313L520,760Q520,777 508.5,788.5Q497,800 480,800Q463,800 451.5,788.5Q440,777 440,760L440,313Z"/>
 </vector>
