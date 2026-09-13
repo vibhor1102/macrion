@@ -20,7 +20,6 @@ import android.content.Context
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.LayerDrawable
-import android.widget.ImageView
 import androidx.annotation.ColorInt
 import androidx.core.content.ContextCompat
 import io.github.vibhor1102.macrion.core.ui.R
@@ -35,19 +34,6 @@ fun Context.createColorIndicatorDrawable(@ColorInt color: Int? = null): Drawable
     if (color != null) indicatorDrawable.setColorIndicatorDrawableColor(color)
 
     return indicatorDrawable
-}
-
-fun ImageView.setColorIndicatorDrawable(@ColorInt color: Int? = null) {
-    imageTintList = null
-
-    val indicatorDrawable = context.createColorIndicatorDrawable(color) ?: return
-    if (color != null) indicatorDrawable.setColorIndicatorDrawableColor(color)
-
-    setImageDrawable(indicatorDrawable)
-}
-
-fun ImageView.updateColorIndicatorDrawableColor(@ColorInt color: Int) {
-    drawable.setColorIndicatorDrawableColor(color)
 }
 
 private fun Drawable.setColorIndicatorDrawableColor(@ColorInt color: Int) {

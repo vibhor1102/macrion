@@ -17,7 +17,6 @@
 package io.github.vibhor1102.macrion.core.common.tutorial.impl.monitoring
 
 import android.graphics.Rect
-import android.view.View
 
 import io.github.vibhor1102.macrion.core.base.di.Dispatcher
 import io.github.vibhor1102.macrion.core.base.di.HiltCoroutineDispatchers.IO
@@ -44,7 +43,6 @@ internal class MonitoredViewsManagerImpl @Inject constructor(
 ) : MonitoredViewsManager {
 
     private val coroutineScopeIo: CoroutineScope = CoroutineScope(SupervisorJob() + ioDispatcher)
-    private val monitoredViews: MutableMap<MonitoredViewType, ViewMonitor> = mutableMapOf()
     private val monitoredClicks: MutableMap<MonitoredViewType, () -> Unit> = mutableMapOf()
     private val composePositions: MutableMap<MonitoredViewType, MutableStateFlow<Rect>> = mutableMapOf()
     private val composeTexts: MutableMap<MonitoredViewType, MutableStateFlow<String?>> = mutableMapOf()
@@ -82,31 +80,7 @@ internal class MonitoredViewsManagerImpl @Inject constructor(
         flow.value = text
     }
 
-    override fun attach(
-        type: MonitoredViewType,
-        monitoredView: View,
-        positioningType: ViewPositioningType,
-    ) {
-        if (!isViewMonitoringEnabled.value) return
-
-        val monitor = monitoredViews.getOrPut(type) { ViewMonitor(displayConfigManager) }
-        monitor.attachView(monitoredView, positioningType)
-
-        coroutineScopeIo.launch {
-            monitor.position.collect { pos ->
-                val flow = composePositions.getOrPut(type) { MutableStateFlow(Rect()) }
-                flow.value = pos
-            }
-        }
-        coroutineScopeIo.launch {
-            monitor.text.collect { txt ->
-                updateText(type, txt)
-            }
-        }
-    }
-
     override fun detach(type: MonitoredViewType) {
-        monitoredViews[type]?.detachView()
         composeClickHandlers.remove(type)
         composePositions[type]?.value = Rect()
         composeTexts[type]?.value = null
@@ -117,9 +91,7 @@ internal class MonitoredViewsManagerImpl @Inject constructor(
     }
 
     override fun getViewPosition(type: MonitoredViewType): StateFlow<Rect>? =
-        composePositions.getOrPut(type) {
-            monitoredViews[type]?.position as? MutableStateFlow<Rect> ?: MutableStateFlow(Rect())
-        }
+        composePositions.getOrPut(type) { MutableStateFlow(Rect()) }
 
     override fun performClick(type: MonitoredViewType): Boolean {
         notifyClick(type)
@@ -127,18 +99,16 @@ internal class MonitoredViewsManagerImpl @Inject constructor(
             handler.invoke()
             return true
         }
-        return monitoredViews[type]?.performClick() ?: false
+        return false
     }
 
     fun setExpectedViews(types: Set<MonitoredViewType>) {
         types.forEach { type ->
             if (!composePositions.contains(type)) composePositions[type] = MutableStateFlow(Rect())
-            if (!monitoredViews.contains(type)) monitoredViews[type] = ViewMonitor(displayConfigManager)
         }
     }
 
     fun clearExpectedViews() {
-        monitoredViews.clear()
         composePositions.clear()
         composeTexts.clear()
         composeClickHandlers.clear()

@@ -54,7 +54,6 @@ import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewMo
 import io.github.vibhor1102.macrion.feature.smart.config.ui.action.OnActionConfigCompleteListener
 import io.github.vibhor1102.macrion.feature.smart.config.ui.action.click.offset.ClickOffsetDialog
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredViewType
-import io.github.vibhor1102.macrion.feature.smart.config.ui.common.compose.LocalMonitoredViewsManager
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.compose.tutorialAnchor
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.dialogs.showCloseWithoutSavingDialog
 import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.selection.ScreenConditionSelectionDialog
@@ -78,9 +77,8 @@ class ClickDialog(private val listener: OnActionConfigCompleteListener) : Overla
     }
 
     @Composable private fun Content() {
-        CompositionLocalProvider(LocalMonitoredViewsManager provides viewModel.monitoredViewsManager) {
-            val ui by viewModel.uiState.collectAsStateWithLifecycle()
-            val state = ui ?: return@CompositionLocalProvider
+        val ui by viewModel.uiState.collectAsStateWithLifecycle()
+        val state = ui ?: return
             var name by rememberSaveable { mutableStateOf(state.name.orEmpty()) }
             var duration by rememberSaveable { mutableStateOf(state.pressDuration.orEmpty()) }
             LaunchedEffect(state.name) { if (state.name != name) name = state.name.orEmpty() }
@@ -105,7 +103,6 @@ class ClickDialog(private val listener: OnActionConfigCompleteListener) : Overla
                     }
                 }
             }
-        }
     }
 
     @Composable private fun TopBar(saveEnabled: Boolean) {

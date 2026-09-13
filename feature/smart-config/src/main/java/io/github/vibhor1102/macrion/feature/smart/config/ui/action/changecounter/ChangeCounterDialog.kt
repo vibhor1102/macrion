@@ -38,7 +38,6 @@ import io.github.vibhor1102.macrion.core.ui.compose.macrionDoneKeyboardOptions
 import io.github.vibhor1102.macrion.feature.smart.config.R
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
 import io.github.vibhor1102.macrion.feature.smart.config.ui.action.OnActionConfigCompleteListener
-import io.github.vibhor1102.macrion.feature.smart.config.ui.common.compose.LocalMonitoredViewsManager
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.compose.tutorialAnchor
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.dialogs.showCloseWithoutSavingDialog
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.formatters.toNaturalDisplayString
@@ -65,26 +64,24 @@ class ChangeCounterDialog(private val listener: OnActionConfigCompleteListener) 
     }
 
     @Composable private fun Content() {
-        CompositionLocalProvider(LocalMonitoredViewsManager provides viewModel.monitoredViewsManager) {
-            val state by viewModel.uiState.collectAsStateWithLifecycle()
-            val ui = state ?: return@CompositionLocalProvider
-            Surface(Modifier.fillMaxWidth().heightIn(max = 600.dp), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
-                Column {
-                    TopBar(ui.canBeSaved)
-                    Column(Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState())
-                        .padding(horizontal = 16.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        MacrionTextField(ui.name.orEmpty(), viewModel::setName, context.getString(R.string.generic_name),
-                            isError = ui.nameError, maxLength = context.resources.getInteger(R.integer.name_max_length))
-                        CounterField(ui.counter, ::selectCounterToChange, tutorialMonitored = true)
-                        OperandField(ui)
-                        ElevatedCard(Modifier.fillMaxWidth()) {
-                            Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
-                                verticalAlignment = Alignment.CenterVertically) {
-                                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                    Text(context.getString(R.string.field_change_counter_effect_title), style = MaterialTheme.typography.titleSmall)
-                                    Text(ui.actionEffectText, style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                }
+        val state by viewModel.uiState.collectAsStateWithLifecycle()
+        val ui = state ?: return
+        Surface(Modifier.fillMaxWidth().heightIn(max = 600.dp), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
+            Column {
+                TopBar(ui.canBeSaved)
+                Column(Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState())
+                    .padding(horizontal = 16.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    MacrionTextField(ui.name.orEmpty(), viewModel::setName, context.getString(R.string.generic_name),
+                        isError = ui.nameError, maxLength = context.resources.getInteger(R.integer.name_max_length))
+                    CounterField(ui.counter, ::selectCounterToChange, tutorialMonitored = true)
+                    OperandField(ui)
+                    ElevatedCard(Modifier.fillMaxWidth()) {
+                        Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically) {
+                            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                Text(context.getString(R.string.field_change_counter_effect_title), style = MaterialTheme.typography.titleSmall)
+                                Text(ui.actionEffectText, style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                         }
                     }

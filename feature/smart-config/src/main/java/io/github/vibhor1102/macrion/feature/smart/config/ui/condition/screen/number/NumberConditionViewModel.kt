@@ -18,12 +18,8 @@ package io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.nu
 
 import android.content.Context
 import android.graphics.Rect
-import android.view.View
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import io.github.vibhor1102.macrion.core.common.tutorial.domain.MonitoredViewsManager
-import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredViewType
-import io.github.vibhor1102.macrion.core.common.tutorial.impl.monitoring.ViewPositioningType
 
 import io.github.vibhor1102.macrion.core.domain.model.condition.ScreenCondition
 import io.github.vibhor1102.macrion.core.domain.model.counter.CounterOperationValue
@@ -55,7 +51,6 @@ import javax.inject.Inject
 class NumberConditionViewModel @Inject constructor(
     @ApplicationContext context: Context,
     private val editionRepository: EditionRepository,
-    private val monitoredViewsManager: MonitoredViewsManager,
 ) : ViewModel() {
 
     /** The condition being configured by the user. */
@@ -130,48 +125,6 @@ class NumberConditionViewModel @Inject constructor(
         updateEditedCondition { it.copy(numberFormatType = item.toNumberFormatType()) }
     }
 
-    fun monitorSaveButtonView(view: View?) {
-        monitor(MonitoredViewType.NUMBER_CONDITION_DIALOG_BUTTON_SAVE, view)
-    }
-
-    fun monitorValueToDetectField(view: View?) {
-        monitor(MonitoredViewType.NUMBER_CONDITION_DIALOG_FIELD_VALUE_TO_DETECT, view)
-    }
-
-    fun monitorOperatorField(view: View?) {
-        monitor(MonitoredViewType.NUMBER_CONDITION_DIALOG_FIELD_OPERATOR_DROPDOWN, view)
-    }
-
-    fun monitorDetectionAreaField(view: View?) {
-        monitor(MonitoredViewType.NUMBER_CONDITION_DIALOG_FIELD_AREA_SELECTOR, view)
-    }
-
-    fun monitorDropdownItem(item: UiCounterOperatorDropdownItem, view: View?) {
-        if (item !is UiCounterOperatorDropdownItem.Comparison.GreaterItem) return
-
-        if (view != null) {
-            monitoredViewsManager.attach(
-                type = MonitoredViewType.NUMBER_CONDITION_DIALOG_FIELD_OPERATOR_DROPDOWN_ITEM_GREATER,
-                monitoredView = view,
-            )
-        } else {
-            monitoredViewsManager.detach(
-                MonitoredViewType.NUMBER_CONDITION_DIALOG_FIELD_OPERATOR_DROPDOWN_ITEM_GREATER,
-            )
-        }
-    }
-
-    fun detachMonitoredViews() {
-        monitoredViewsManager.detach(MonitoredViewType.NUMBER_CONDITION_DIALOG_BUTTON_SAVE)
-        monitoredViewsManager.detach(MonitoredViewType.NUMBER_CONDITION_DIALOG_FIELD_VALUE_TO_DETECT)
-        monitoredViewsManager.detach(MonitoredViewType.NUMBER_CONDITION_DIALOG_FIELD_OPERATOR_DROPDOWN)
-        monitoredViewsManager.detach(MonitoredViewType.NUMBER_CONDITION_DIALOG_FIELD_OPERATOR_DROPDOWN_ITEM_GREATER)
-        monitoredViewsManager.detach(MonitoredViewType.NUMBER_CONDITION_DIALOG_FIELD_AREA_SELECTOR)
-    }
-
-    private fun monitor(type: MonitoredViewType, view: View?) {
-        if (view == null) monitoredViewsManager.detach(type) else monitoredViewsManager.attach(type, view)
-    }
 
     private fun updateEditedCondition(closure: (oldValue: ScreenCondition.Number) -> ScreenCondition.Number?) {
         editionRepository.editionState.getEditedCondition<ScreenCondition.Number>()?.let { condition ->

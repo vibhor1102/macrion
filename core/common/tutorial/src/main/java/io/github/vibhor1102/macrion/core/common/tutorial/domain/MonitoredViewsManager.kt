@@ -17,19 +17,10 @@
 package io.github.vibhor1102.macrion.core.common.tutorial.domain
 
 import android.graphics.Rect
-import android.view.View
-import android.widget.EditText
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredViewType
-import io.github.vibhor1102.macrion.core.common.tutorial.impl.monitoring.ViewPositioningType
 import kotlinx.coroutines.flow.StateFlow
 
 interface MonitoredViewsManager {
-
-    fun attach(
-        type: MonitoredViewType,
-        monitoredView: View,
-        positioningType: ViewPositioningType = ViewPositioningType.SCREEN,
-    )
 
     fun detach(type: MonitoredViewType)
 

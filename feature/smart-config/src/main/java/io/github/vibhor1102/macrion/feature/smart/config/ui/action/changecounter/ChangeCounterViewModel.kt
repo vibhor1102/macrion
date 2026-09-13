@@ -17,11 +17,8 @@
 package io.github.vibhor1102.macrion.feature.smart.config.ui.action.changecounter
 
 import android.content.Context
-import android.view.View
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import io.github.vibhor1102.macrion.core.common.tutorial.domain.MonitoredViewsManager
-import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredViewType
 import io.github.vibhor1102.macrion.core.domain.model.counter.CounterOperationValue
 
 import io.github.vibhor1102.macrion.core.domain.model.action.ChangeCounter
@@ -54,7 +51,6 @@ import kotlinx.coroutines.flow.combine
 class ChangeCounterViewModel @Inject constructor(
     @ApplicationContext context: Context,
     private val editionRepository: EditionRepository,
-    internal val monitoredViewsManager: MonitoredViewsManager,
 ) : ViewModel() {
 
     /** The action being configured by the user. */
@@ -110,20 +106,6 @@ class ChangeCounterViewModel @Inject constructor(
         }
     }
 
-    fun monitorSelectCounterView(view: View?) {
-        if (view != null) monitoredViewsManager.attach(MonitoredViewType.COUNTER_ACTION_DIALOG_FIELD_SELECT_COUNTER, view)
-        else monitoredViewsManager.detach(MonitoredViewType.COUNTER_ACTION_DIALOG_FIELD_SELECT_COUNTER)
-    }
-
-    fun monitorSaveButtonView(view: View?) {
-        if (view != null) monitoredViewsManager.attach(MonitoredViewType.COUNTER_ACTION_DIALOG_BUTTON_SAVE, view)
-        else monitoredViewsManager.detach(MonitoredViewType.COUNTER_ACTION_DIALOG_BUTTON_SAVE)
-    }
-
-    fun detachMonitoredViews() {
-        monitoredViewsManager.detach(MonitoredViewType.COUNTER_ACTION_DIALOG_FIELD_SELECT_COUNTER)
-        monitoredViewsManager.detach(MonitoredViewType.COUNTER_ACTION_DIALOG_BUTTON_SAVE)
-    }
 
     private fun updateEditedChangeCounter(closure: (old: ChangeCounter) -> ChangeCounter) {
         editionRepository.editionState.getEditedAction<ChangeCounter>()?.let { old ->

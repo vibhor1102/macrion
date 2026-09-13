@@ -19,7 +19,6 @@ package io.github.vibhor1102.macrion.feature.smart.config.ui.action.click
 import android.content.Context
 import android.content.SharedPreferences
 import android.graphics.Point
-import android.view.View
 import androidx.core.content.ContextCompat
 
 import androidx.lifecycle.ViewModel
@@ -33,8 +32,6 @@ import io.github.vibhor1102.macrion.core.domain.model.action.Click
 import io.github.vibhor1102.macrion.core.domain.model.event.Event
 import io.github.vibhor1102.macrion.core.domain.model.event.ScreenEvent
 import io.github.vibhor1102.macrion.core.domain.model.event.TriggerEvent
-import io.github.vibhor1102.macrion.core.common.tutorial.domain.MonitoredViewsManager
-import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredViewType
 import io.github.vibhor1102.macrion.core.domain.model.condition.ScreenCondition
 import io.github.vibhor1102.macrion.core.ui.utils.createColorIndicatorDrawable
 import io.github.vibhor1102.macrion.feature.smart.config.R
@@ -68,7 +65,6 @@ class ClickViewModel @Inject constructor(
     @ApplicationContext context: Context,
     private val bitmapRepository: BitmapRepository,
     private val editionRepository: EditionRepository,
-    internal val monitoredViewsManager: MonitoredViewsManager,
 ) : ViewModel() {
 
     /** Event configuration shared preferences. */
@@ -166,21 +162,6 @@ class ClickViewModel @Inject constructor(
         }
     }
 
-    fun monitorConditionTypeView(view: View?) = monitorView(MonitoredViewType.CLICK_DIALOG_FIELD_POSITION_TYPE_ITEM_ON_CONDITION, view)
-    fun monitorSelectorView(view: View?) = monitorView(MonitoredViewType.CLICK_DIALOG_FIELD_SELECT_POSITION_OR_CONDITION, view)
-    fun monitorSaveView(view: View?) = monitorView(MonitoredViewType.CLICK_DIALOG_BUTTON_SAVE, view)
-
-    private fun monitorView(type: MonitoredViewType, view: View?) {
-        if (view == null) monitoredViewsManager.detach(type) else monitoredViewsManager.attach(type, view)
-    }
-
-    fun detachMonitoredViews() {
-        monitoredViewsManager.apply {
-            detach(MonitoredViewType.CLICK_DIALOG_BUTTON_SAVE)
-            detach(MonitoredViewType.CLICK_DIALOG_FIELD_SELECT_POSITION_OR_CONDITION)
-            detach(MonitoredViewType.CLICK_DIALOG_FIELD_POSITION_TYPE_ITEM_ON_CONDITION)
-        }
-    }
 
     private suspend fun Click.toDialogUiState(
         context: Context,

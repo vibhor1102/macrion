@@ -19,18 +19,14 @@ package io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.im
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Rect
-import android.view.View
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.github.vibhor1102.macrion.core.bitmaps.BitmapRepository
-
 import io.github.vibhor1102.macrion.core.domain.ext.getConditionBitmap
 import io.github.vibhor1102.macrion.core.domain.model.DetectionType
 import io.github.vibhor1102.macrion.core.domain.model.IN_AREA
 import io.github.vibhor1102.macrion.core.domain.model.condition.ScreenCondition
-import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredViewType
-import io.github.vibhor1102.macrion.core.common.tutorial.domain.MonitoredViewsManager
 import io.github.vibhor1102.macrion.feature.smart.config.R
 import io.github.vibhor1102.macrion.feature.smart.config.domain.EditionRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -57,7 +53,6 @@ class ImageConditionViewModel @Inject constructor(
     @ApplicationContext context: Context,
     private val bitmapRepository: BitmapRepository,
     private val editionRepository: EditionRepository,
-    private val monitoredViewsManager: MonitoredViewsManager,
 ) : ViewModel() {
 
     /** The condition being configured by the user. */
@@ -152,21 +147,6 @@ class ImageConditionViewModel @Inject constructor(
         editionRepository.editionState.isEditedConditionReferencedByClick()
 
 
-    fun monitorSaveButtonView(view: View?) = monitorView(MonitoredViewType.SCREEN_CONDITION_DIALOG_BUTTON_SAVE, view)
-    fun monitorDetectionTypeItemInAreaView(view: View?) = monitorView(MonitoredViewType.SCREEN_CONDITION_DIALOG_FIELD_TYPE_ITEM_IN_AREA, view)
-    fun monitorDetectionAreaSelector(view: View?) = monitorView(MonitoredViewType.SCREEN_CONDITION_DIALOG_FIELD_AREA_SELECTOR, view)
-    fun monitorVisibilityView(view: View?) = monitorView(MonitoredViewType.SCREEN_CONDITION_DIALOG_FIELD_VISIBILITY, view)
-
-    private fun monitorView(type: MonitoredViewType, view: View?) {
-        if (view == null) monitoredViewsManager.detach(type) else monitoredViewsManager.attach(type, view)
-    }
-
-    fun detachMonitoredViews() {
-        monitoredViewsManager.detach(MonitoredViewType.SCREEN_CONDITION_DIALOG_BUTTON_SAVE)
-        monitoredViewsManager.detach(MonitoredViewType.SCREEN_CONDITION_DIALOG_FIELD_TYPE_ITEM_IN_AREA)
-        monitoredViewsManager.detach(MonitoredViewType.SCREEN_CONDITION_DIALOG_FIELD_AREA_SELECTOR)
-        monitoredViewsManager.detach(MonitoredViewType.SCREEN_CONDITION_DIALOG_FIELD_VISIBILITY)
-    }
 
     private fun sanitizeAreaForCondition(area: Rect, conditionArea: Rect): Rect {
         val left = max(area.left, 0)
