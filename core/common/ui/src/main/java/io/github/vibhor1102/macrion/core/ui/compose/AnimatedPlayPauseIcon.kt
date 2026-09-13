@@ -15,7 +15,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun AnimatedPlayPauseIcon(isPlaying: Boolean, modifier: Modifier = Modifier.size(32.dp)) {
+fun AnimatedPlayPauseIcon(isPlaying: Boolean, modifier: Modifier = Modifier.size(40.dp)) {
     val vector = AnimatedImageVector.animatedVectorResource(R.drawable.anim_play_pause)
     Icon(
         painter = rememberAnimatedVectorPainter(vector, atEnd = isPlaying),

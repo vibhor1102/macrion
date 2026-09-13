@@ -215,7 +215,7 @@ fun createOverlayMenuLayout(
                                                         Icon(
                                                             painterResource(button.currentIconResource),
                                                             null,
-                                                            Modifier.size(32.dp),
+                                                            Modifier.size(40.dp),
                                                             tint = colorResource(R.color.overlayMenuButtons),
                                                         )
                                                     }
@@ -230,7 +230,7 @@ fun createOverlayMenuLayout(
                                                     Icon(
                                                         painterResource(button.currentIconResource),
                                                         null,
-                                                        Modifier.size(32.dp),
+                                                        Modifier.size(40.dp),
                                                         tint = colorResource(R.color.overlayMenuButtons),
                                                     )
                                                 }
