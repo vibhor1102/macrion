@@ -100,9 +100,14 @@ interface GestureRecordViewFacade {
 
 class ItemsBriefOverlayViewBinding private constructor(
     val root: ComposeView,
-    private val orientation: Int,
-    private val displayConfig: DisplayConfig,
+    initialOrientation: Int,
+    initialDisplayConfig: DisplayConfig,
 ) {
+    var orientation by mutableIntStateOf(initialOrientation)
+        private set
+    var displayConfig by mutableStateOf(initialDisplayConfig)
+        private set
+
     val currentDescription = mutableStateOf<ItemBriefDescription?>(null)
     private val isAnimateEnabled = mutableStateOf(true)
     private var internalGestureCaptureListener: ((gesture: RecordedGesture?, isFinished: Boolean) -> Unit)? = null
@@ -208,6 +213,11 @@ class ItemsBriefOverlayViewBinding private constructor(
     fun updateBriefItems(items: List<ItemBrief>, focusedIndex: Int) {
         briefItems.value = items
         requestedBriefItemIndex.intValue = focusedIndex
+    }
+
+    fun updateDisplayConfig(newConfig: DisplayConfig) {
+        orientation = newConfig.orientation
+        displayConfig = newConfig
     }
 
     /** Mirrors the legacy brief panel's immediate reveal and three-second auto-hide timer. */

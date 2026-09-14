@@ -25,6 +25,8 @@ import android.content.res.Configuration
 import android.graphics.Point
 import android.hardware.display.DisplayManager
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.Surface
 import android.view.WindowManager
@@ -46,7 +48,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class DisplayConfigManager @Inject constructor(
-    @ApplicationContext context: Context,
+    @ApplicationContext private val context: Context,
 ): Dumpable {
 
     /** The Android window manager. */
@@ -58,6 +60,17 @@ class DisplayConfigManager @Inject constructor(
 
     /** The listeners upon orientation changes. */
     private val orientationListeners: MutableSet<((Context) -> Unit)> = mutableSetOf()
+
+    /** Listen to display changes directly from DisplayManager for near-instant orientation detection. */
+    private val displayListener = object : DisplayManager.DisplayListener {
+        override fun onDisplayAdded(displayId: Int) = Unit
+        override fun onDisplayRemoved(displayId: Int) = Unit
+        override fun onDisplayChanged(displayId: Int) {
+            if (displayId == display.displayId) {
+                onAndroidConfigurationChanged(context)
+            }
+        }
+    }
 
     /** Listen to the configuration changes and calls [orientationListeners] when needed. */
     private val configChangedReceiver = object : SafeBroadcastReceiver(IntentFilter(Intent.ACTION_CONFIGURATION_CHANGED)) {
@@ -77,11 +90,13 @@ class DisplayConfigManager @Inject constructor(
         )
 
         configChangedReceiver.register(context)
+        displayManager?.registerDisplayListener(displayListener, Handler(Looper.getMainLooper()))
     }
 
     /** Stop the monitoring of the screen metrics. All listeners will be unregistered. */
     fun stopMonitoring() {
         configChangedReceiver.unregister()
+        displayManager?.unregisterDisplayListener(displayListener)
         orientationListeners.clear()
     }
 

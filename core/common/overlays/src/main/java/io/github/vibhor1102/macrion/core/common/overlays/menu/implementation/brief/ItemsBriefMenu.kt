@@ -36,7 +36,7 @@ abstract class ItemBriefMenu(
     @StyleRes theme: Int? = null,
     @field:StringRes private val noItemText: Int,
     private val initialItemIndex: Int = 0,
-) : OverlayMenu(theme = theme, recreateOverlayViewOnRotation = true) {
+) : OverlayMenu(theme = theme, recreateOverlayViewOnRotation = false) {
 
 
     /** The view binding for the position selector. */
@@ -122,6 +122,14 @@ abstract class ItemBriefMenu(
 
     override fun onScreenOverlayVisibilityChanged(isVisible: Boolean) {
         if (isVisible) briefViewBinding.showOrResetPanelTimer()
+    }
+
+    override fun onOrientationChanged() {
+        super.onOrientationChanged()
+        if (this::briefViewBinding.isInitialized) {
+            briefViewBinding.updateDisplayConfig(displayConfigManager.displayConfig)
+            updateBriefButtons(briefItems.size)
+        }
     }
 
     @CallSuper
