@@ -22,6 +22,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import android.app.Dialog
+import android.net.Uri
 import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayDialog
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTextField
@@ -30,6 +31,7 @@ import io.github.vibhor1102.macrion.feature.smart.config.R
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
 import io.github.vibhor1102.macrion.feature.smart.config.ui.action.OnActionConfigCompleteListener
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.dialogs.showCloseWithoutSavingDialog
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.starters.newWebBrowserStarterOverlay
 import kotlinx.coroutines.launch
 
 class ExternalActionDialog(
@@ -89,9 +91,27 @@ class ExternalActionDialog(
                                 modifier = Modifier.fillMaxWidth()) {
                                 Text(context.getString(R.string.dialog_title_external_action_selection))
                             }
-                            Text(context.getString(R.string.field_external_action_help),
+                            Text(
+                                text = context.getString(R.string.field_external_action_help),
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            TextButton(
+                                onClick = ::onDocumentationClicked,
+                                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+                                modifier = Modifier.align(Alignment.Start),
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.ic_help),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(16.dp),
+                                )
+                                Spacer(Modifier.width(6.dp))
+                                Text(
+                                    text = context.getString(R.string.button_documentation),
+                                    style = MaterialTheme.typography.labelMedium,
+                                )
+                            }
                         }
                     }
                     Spacer(Modifier.height(8.dp))
@@ -133,9 +153,22 @@ class ExternalActionDialog(
             context, ExternalActionSelectionDialog(viewModel::setExternalActionName), hideCurrent = true)
     }
 
+    private fun onDocumentationClicked() {
+        debounceUserInteraction {
+            overlayManager.navigateTo(
+                context = context,
+                newOverlay = newWebBrowserStarterOverlay(EXTERNAL_ACTION_DOCS_URI),
+                hideCurrent = true,
+            )
+        }
+    }
+
     private fun onActionEditingStateChanged(isEditingAction: Boolean) {
         if (!isEditingAction) { Log.e(TAG, "Closing ExternalActionDialog because there is no action edited"); finish() }
     }
 }
 
 private const val TAG = "ExternalActionDialog"
+private val EXTERNAL_ACTION_DOCS_URI = Uri.parse(
+    "https://vibhor1102.github.io/macrion/documentation/actions/action-external#tasker-locale-plugin"
+)

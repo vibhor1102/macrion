@@ -445,7 +445,8 @@
 
     <string name="dialog_title_external_action">External Action</string>
     <string name="field_external_action_name_label">External action name</string>
-    <string name="field_external_action_help">Use this name in your automation app\'s Macrion external action trigger.</string>
+    <string name="field_external_action_help">Broadcasts an event received by automation apps such as Tasker, Macrion, or MacroDroid.</string>
+    <string name="button_documentation">Documentation</string>
     <string name="field_external_action_selection_title_empty">No external action selected</string>
     <string name="field_external_action_selection_desc_empty">Click here to reuse an external action name</string>
     <string name="field_external_action_selection_desc">Reusable automation trigger name</string>

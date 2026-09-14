@@ -331,7 +331,8 @@
     <string name="item_external_action_details_error">Tên hành động bên ngoài không hợp lệ</string>
     <string name="dialog_title_external_action">Hành động bên ngoài</string>
     <string name="field_external_action_name_label">Tên hành động bên ngoài</string>
-    <string name="field_external_action_help">Dùng tên này trong trình kích hoạt hành động bên ngoài Macrion của ứng dụng tự động hóa.</string>
+    <string name="field_external_action_help">Phát thông báo cho các ứng dụng tự động hóa như Tasker, Macrion hoặc MacroDroid.</string>
+    <string name="button_documentation">Tài liệu</string>
     <string name="field_external_action_selection_title_empty">Chưa chọn hành động bên ngoài</string>
     <string name="field_external_action_selection_desc_empty">Nhấn vào đây để dùng lại tên hành động bên ngoài</string>
     <string name="field_external_action_selection_desc">Tên trình kích hoạt tự động hóa có thể dùng lại</string>

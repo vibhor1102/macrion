@@ -504,7 +504,8 @@
     <string name="item_external_action_details_error">O nome da ação externa é inválido</string>
     <string name="dialog_title_external_action">Ação externa</string>
     <string name="field_external_action_name_label">Nome da ação externa</string>
-    <string name="field_external_action_help">Use este nome no acionador de ação externa do Macrion no seu aplicativo de automação.</string>
+    <string name="field_external_action_help">Envia uma transmissão recebida por aplicativos de automação como Tasker, Macrion ou MacroDroid.</string>
+    <string name="button_documentation">Documentação</string>
     <string name="field_external_action_selection_title_empty">Nenhuma ação externa selecionada</string>
     <string name="field_external_action_selection_desc_empty">Toque aqui para reutilizar o nome de uma ação externa</string>
     <string name="field_external_action_selection_desc">Nome reutilizável do acionador de automação</string>

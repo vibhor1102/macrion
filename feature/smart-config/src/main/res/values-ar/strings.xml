@@ -508,7 +508,8 @@
     <string name="item_external_action_details_error">اسم الإجراء الخارجي غير صالح</string>
     <string name="dialog_title_external_action">إجراء خارجي</string>
     <string name="field_external_action_name_label">اسم الإجراء الخارجي</string>
-    <string name="field_external_action_help">استخدم هذا الاسم في مشغّل الإجراء الخارجي لـ Macrion داخل تطبيق الأتمتة.</string>
+    <string name="field_external_action_help">يرسل بثًا تستقبله تطبيقات الأتمتة مثل Tasker أو Macrion أو MacroDroid.</string>
+    <string name="button_documentation">التوثيق</string>
     <string name="field_external_action_selection_title_empty">لم يتم تحديد إجراء خارجي</string>
     <string name="field_external_action_selection_desc_empty">انقر هنا لإعادة استخدام اسم إجراء خارجي</string>
     <string name="field_external_action_selection_desc">اسم مشغّل أتمتة قابل لإعادة الاستخدام</string>

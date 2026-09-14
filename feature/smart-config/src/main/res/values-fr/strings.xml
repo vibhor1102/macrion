@@ -488,7 +488,8 @@
     <string name="item_external_action_details_error">Le nom de l’action externe n’est pas valide</string>
     <string name="dialog_title_external_action">Action externe</string>
     <string name="field_external_action_name_label">Nom de l’action externe</string>
-    <string name="field_external_action_help">Utilisez ce nom dans le déclencheur d’action externe Macrion de votre application d’automatisation.</string>
+    <string name="field_external_action_help">Diffuse un événement reçu par des applications d’automatisation comme Tasker, Macrion ou MacroDroid.</string>
+    <string name="button_documentation">Documentation</string>
     <string name="field_external_action_selection_title_empty">Aucune action externe sélectionnée</string>
     <string name="field_external_action_selection_desc_empty">Appuyez ici pour réutiliser le nom d’une action externe</string>
     <string name="field_external_action_selection_desc">Nom réutilisable du déclencheur d’automatisation</string>

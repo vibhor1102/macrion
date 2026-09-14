@@ -511,7 +511,8 @@
     <string name="item_external_action_details_error">Неприпустима назва зовнішньої дії</string>
     <string name="dialog_title_external_action">Зовнішня дія</string>
     <string name="field_external_action_name_label">Назва зовнішньої дії</string>
-    <string name="field_external_action_help">Використовуйте цю назву в тригері зовнішньої дії Macrion у застосунку автоматизації.</string>
+    <string name="field_external_action_help">Надсилає широкомовне повідомлення для застосунків автоматизації, таких як Tasker, Macrion або MacroDroid.</string>
+    <string name="button_documentation">Документація</string>
     <string name="field_external_action_selection_title_empty">Зовнішню дію не вибрано</string>
     <string name="field_external_action_selection_desc_empty">Торкніться тут, щоб повторно використати назву зовнішньої дії</string>
     <string name="field_external_action_selection_desc">Багаторазова назва тригера автоматизації</string>
