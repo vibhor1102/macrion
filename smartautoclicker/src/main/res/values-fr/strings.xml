@@ -199,6 +199,9 @@
     <string name="settings_section_device_compatibility">Compatibilité de l’appareil</string>
     <string name="settings_section_account">Compte et confidentialité</string>
     <string name="settings_section_help">Aide et diagnostics</string>
-    <string name="settings_section_version">Version</string>
     <string name="version_copied_to_clipboard">Version copiée dans le presse-papiers</string>
+    <string name="settings_section_about">À propos</string>
+    <string name="settings_version_title">Version</string>
+    <string name="settings_install_source_title">Source d\'installation</string>
+    <string name="install_source_unknown">Inconnu</string>
 </resources>

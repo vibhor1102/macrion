@@ -23,6 +23,7 @@ import android.os.Build
 import android.widget.Toast
 import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -46,6 +47,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -104,12 +106,19 @@ internal fun SettingsRoute(
             Toast.makeText(context, R.string.version_copied_to_clipboard, Toast.LENGTH_SHORT).show()
         }
     }
-    val versionSection = SettingsSection(
-        R.string.settings_section_version,
+    val installationSource = remember { detectInstallationSource(context) }
+    val aboutSection = SettingsSection(
+        R.string.settings_section_about,
         listOf(
             SettingsItem.Info(
-                text = BuildConfig.VERSION_NAME,
+                title = R.string.settings_version_title,
+                value = BuildConfig.VERSION_NAME,
+                showCopyIcon = true,
                 onClick = onCopyVersion,
+            ),
+            SettingsItem.Info(
+                title = R.string.settings_install_source_title,
+                value = installationSource.getLabel(context),
             ),
         ),
     )
@@ -160,7 +169,7 @@ internal fun SettingsRoute(
                     ),
                 )
             },
-            versionSection = versionSection,
+            aboutSection = aboutSection,
             onNavigateBack = onNavigateBack,
             onOpenGithub = onOpenGithub,
             onJoinDiscord = onJoinDiscord,
@@ -179,7 +188,7 @@ internal fun SettingsRoute(
 @OptIn(ExperimentalMaterial3Api::class)
 private fun SettingsScreen(
     sections: List<SettingsSection>,
-    versionSection: SettingsSection,
+    aboutSection: SettingsSection,
     onNavigateBack: () -> Unit,
     onOpenGithub: () -> Unit,
     onJoinDiscord: () -> Unit,
@@ -217,7 +226,7 @@ private fun SettingsScreen(
                 )
             }
             item {
-                SettingsSection(versionSection)
+                SettingsSection(aboutSection)
             }
             item {
                 Spacer(Modifier.height(16.dp))
@@ -323,21 +332,32 @@ private fun SettingsRow(item: SettingsItem) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable(role = Role.Button, onClick = item.onClick)
+                    .then(if (item.showCopyIcon) Modifier.clickable(role = Role.Button, onClick = item.onClick) else Modifier)
                     .padding(horizontal = 16.dp, vertical = 16.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text(
-                    text = item.text,
+                Column(
                     modifier = Modifier.weight(1f),
-                    style = MaterialTheme.typography.bodyLarge,
-                )
-                Icon(
-                    painter = painterResource(R.drawable.ic_copy),
-                    contentDescription = stringResource(R.string.crash_report_copy),
-                    modifier = Modifier.size(20.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    Text(
+                        text = stringResource(item.title),
+                        style = MaterialTheme.typography.bodyLarge,
+                    )
+                    Text(
+                        text = item.value,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
+                if (item.showCopyIcon) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_copy),
+                        contentDescription = stringResource(R.string.crash_report_copy),
+                        modifier = Modifier.size(20.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
         }
     }
@@ -359,8 +379,10 @@ private sealed interface SettingsItem {
     ) : SettingsItem
 
     data class Info(
-        val text: String,
-        override val onClick: () -> Unit,
+        @param:StringRes val title: Int,
+        val value: String,
+        val showCopyIcon: Boolean = false,
+        override val onClick: () -> Unit = {},
     ) : SettingsItem
 }
 

@@ -200,6 +200,9 @@
     <string name="crash_reports_sample">Create synthetic report (debug only)</string>
     <string name="crash_report_label">Report %1$s</string>
 
-    <string name="settings_section_version">Version</string>
     <string name="version_copied_to_clipboard">Version copied to clipboard</string>
+    <string name="settings_section_about">About</string>
+    <string name="settings_version_title">Version</string>
+    <string name="settings_install_source_title">Installation source</string>
+    <string name="install_source_unknown">Unknown</string>
 </resources>

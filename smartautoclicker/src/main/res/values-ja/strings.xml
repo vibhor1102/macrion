@@ -143,6 +143,9 @@
     <string name="settings_section_device_compatibility">端末の互換性</string>
     <string name="settings_section_account">アカウントとプライバシー</string>
     <string name="settings_section_help">ヘルプと診断</string>
-    <string name="settings_section_version">バージョン</string>
     <string name="version_copied_to_clipboard">バージョンをクリップボードにコピーしました</string>
+    <string name="settings_section_about">アプリについて</string>
+    <string name="settings_version_title">バージョン</string>
+    <string name="settings_install_source_title">インストール元</string>
+    <string name="install_source_unknown">不明</string>
 </resources>

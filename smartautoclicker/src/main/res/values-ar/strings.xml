@@ -205,6 +205,9 @@
     <string name="settings_section_device_compatibility">توافق الجهاز</string>
     <string name="settings_section_account">الحساب والخصوصية</string>
     <string name="settings_section_help">المساعدة والتشخيص</string>
-    <string name="settings_section_version">الإصدار</string>
     <string name="version_copied_to_clipboard">تم نسخ الإصدار إلى الحافظة</string>
+    <string name="settings_section_about">حول</string>
+    <string name="settings_version_title">الإصدار</string>
+    <string name="settings_install_source_title">مصدر التثبيت</string>
+    <string name="install_source_unknown">غير معروف</string>
 </resources>

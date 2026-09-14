@@ -122,6 +122,9 @@
     <string name="settings_section_device_compatibility">Tương thích thiết bị</string>
     <string name="settings_section_account">Tài khoản và quyền riêng tư</string>
     <string name="settings_section_help">Trợ giúp và chẩn đoán</string>
-    <string name="settings_section_version">Phiên bản</string>
     <string name="version_copied_to_clipboard">Đã sao chép phiên bản vào khay nhớ tạm</string>
+    <string name="settings_section_about">Giới thiệu</string>
+    <string name="settings_version_title">Phiên bản</string>
+    <string name="settings_install_source_title">Nguồn cài đặt</string>
+    <string name="install_source_unknown">Không xác định</string>
 </resources>

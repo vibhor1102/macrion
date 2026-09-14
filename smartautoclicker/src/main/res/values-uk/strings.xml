@@ -198,6 +198,9 @@
     <string name="settings_section_device_compatibility">Сумісність пристрою</string>
     <string name="settings_section_account">Обліковий запис і конфіденційність</string>
     <string name="settings_section_help">Довідка та діагностика</string>
-    <string name="settings_section_version">Версія</string>
     <string name="version_copied_to_clipboard">Версію скопійовано в буфер обміну</string>
+    <string name="settings_section_about">Про додаток</string>
+    <string name="settings_version_title">Версія</string>
+    <string name="settings_install_source_title">Джерело встановлення</string>
+    <string name="install_source_unknown">Невідомо</string>
 </resources>
