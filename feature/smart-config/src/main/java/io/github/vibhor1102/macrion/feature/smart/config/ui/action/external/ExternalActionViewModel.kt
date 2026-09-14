@@ -10,24 +10,27 @@ package io.github.vibhor1102.macrion.feature.smart.config.ui.action.external
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import io.github.vibhor1102.macrion.core.base.identifier.Identifier
+import io.github.vibhor1102.macrion.core.domain.IRepository
 import io.github.vibhor1102.macrion.core.domain.model.action.ExternalAction
 import io.github.vibhor1102.macrion.feature.smart.config.domain.EditionRepository
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.combine
 import javax.inject.Inject
 
 @OptIn(FlowPreview::class)
 class ExternalActionViewModel @Inject constructor(
     private val editionRepository: EditionRepository,
+    private val smartRepository: IRepository,
 ) : ViewModel() {
 
     private val configuredExternalAction = editionRepository.editionState.editedActionState
@@ -38,17 +41,32 @@ class ExternalActionViewModel @Inject constructor(
         .distinctUntilChanged()
         .debounce(1000)
 
-    val knownExternalActionNames: Flow<List<String>> =
+    private val editedScenarioEventsId: Flow<Set<Identifier>> =
         editionRepository.editionState.allEditedEventsFlow
-            .map { events ->
-                events
-                    .flatMap { event -> event.actions }
-                    .filterIsInstance<ExternalAction>()
-                    .map { action -> action.externalActionName.trim() }
-                    .filter { name -> name.isNotEmpty() }
-                    .distinct()
-                    .sortedBy { name -> name.lowercase() }
-            }
+            .map { events -> events.mapNotNull { it.id }.toSet() }
+
+    val knownExternalActionNames: Flow<List<String>> =
+        combine(
+            smartRepository.allActions,
+            editionRepository.editionState.allEditedEventsFlow,
+            editedScenarioEventsId,
+        ) { dbActions, editedEvents, currentEventIds ->
+            val fromOtherScenariosInDb = dbActions.asSequence()
+                .filter { action -> action.eventId !in currentEventIds }
+                .filterIsInstance<ExternalAction>()
+                .map { it.externalActionName.trim() }
+
+            val fromCurrentEditedScenario = editedEvents.asSequence()
+                .flatMap { it.actions }
+                .filterIsInstance<ExternalAction>()
+                .map { it.externalActionName.trim() }
+
+            (fromOtherScenariosInDb + fromCurrentEditedScenario)
+                .filter { it.isNotEmpty() }
+                .distinct()
+                .sortedBy { it.lowercase() }
+                .toList()
+        }
 
     val uiState: StateFlow<ExternalActionUiState?> = combine(
         configuredExternalAction,
