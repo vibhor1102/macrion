@@ -66,33 +66,31 @@ class ItemsReorderDialog(
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
                 MacrionTheme {
-                    Content()
+                    this@ItemsReorderDialog.ReorderDialogContent()
                 }
             }
         }
     }
 
     @Composable
-    private fun Content() {
+    private fun ReorderDialogContent() {
         val sourceItems by itemsFlow.collectAsState(initial = null)
-        var displayedItems by remember { mutableStateOf(emptyList<ItemBrief>()) }
+        var displayedItems by remember { mutableStateOf<List<ItemBrief>>(emptyList()) }
         var isReordering by remember { mutableStateOf(false) }
         var dragStartIndex by remember { mutableIntStateOf(-1) }
         val haptic = LocalHapticFeedback.current
 
-        if (!isReordering && sourceItems != null && displayedItems != sourceItems) {
-            displayedItems = sourceItems.orEmpty()
-        }
-
         LaunchedEffect(sourceItems) {
-            if (!isReordering) {
+            if (!isReordering && sourceItems != null) {
                 displayedItems = sourceItems.orEmpty()
             }
         }
 
+        val currentItems = if (displayedItems.isNotEmpty() || isReordering) displayedItems else sourceItems.orEmpty()
+
         val listState = rememberLazyListState()
         val reorderState = rememberReorderableLazyListState(listState) { from, to ->
-            displayedItems = displayedItems.toMutableList().apply {
+            displayedItems = currentItems.toMutableList().apply {
                 add(to.index, removeAt(from.index))
             }
         }
@@ -124,7 +122,7 @@ class ItemsReorderDialog(
                 Box(Modifier.fillMaxWidth().weight(1f)) {
                     when {
                         sourceItems == null -> CircularProgressIndicator(Modifier.align(Alignment.Center))
-                        displayedItems.isEmpty() -> {
+                        currentItems.isEmpty() -> {
                             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                                 Text(
                                     text = stringResource(R.string.dialog_reorder_empty),
@@ -136,7 +134,7 @@ class ItemsReorderDialog(
                         else -> {
                             LazyColumn(Modifier.fillMaxSize(), state = listState) {
                                 itemsIndexed(
-                                    items = displayedItems,
+                                    items = currentItems,
                                     key = { _, item -> item.id.toString() },
                                 ) { index, item ->
                                     val descriptor = itemDescriptor(item)
@@ -155,7 +153,7 @@ class ItemsReorderDialog(
                                                     },
                                                     onDragStopped = {
                                                         val start = dragStartIndex
-                                                        val end = displayedItems.indexOfFirst { it.id == item.id }
+                                                        val end = currentItems.indexOfFirst { it.id == item.id }
                                                         if (start >= 0 && end >= 0 && start != end) {
                                                             onReorder(start, end)
                                                         }
