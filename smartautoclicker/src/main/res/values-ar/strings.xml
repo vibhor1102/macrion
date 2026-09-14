@@ -205,4 +205,6 @@
     <string name="settings_section_device_compatibility">توافق الجهاز</string>
     <string name="settings_section_account">الحساب والخصوصية</string>
     <string name="settings_section_help">المساعدة والتشخيص</string>
+    <string name="settings_section_version">الإصدار</string>
+    <string name="version_copied_to_clipboard">تم نسخ الإصدار إلى الحافظة</string>
 </resources>

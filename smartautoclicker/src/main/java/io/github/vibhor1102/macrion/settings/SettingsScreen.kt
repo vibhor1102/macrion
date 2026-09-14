@@ -16,6 +16,11 @@
  */
 package io.github.vibhor1102.macrion.settings
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
+import android.os.Build
+import android.widget.Toast
 import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -46,11 +51,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import io.github.vibhor1102.macrion.BuildConfig
 import io.github.vibhor1102.macrion.R
 import io.github.vibhor1102.macrion.core.common.quality.ui.AccessibilityTroubleshootingDialog
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionActionField
@@ -88,6 +95,24 @@ internal fun SettingsRoute(
     val shouldShowPrivacySettings by viewModel.shouldShowPrivacySettings.collectAsStateWithLifecycle(false)
     val shouldShowPurchase by viewModel.shouldShowPurchase.collectAsStateWithLifecycle(false)
     var showTroubleshooting by rememberSaveable { mutableStateOf(false) }
+
+    val context = LocalContext.current
+    val onCopyVersion = {
+        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        clipboard.setPrimaryClip(ClipData.newPlainText("Macrion version", BuildConfig.VERSION_NAME))
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            Toast.makeText(context, R.string.version_copied_to_clipboard, Toast.LENGTH_SHORT).show()
+        }
+    }
+    val versionSection = SettingsSection(
+        R.string.settings_section_version,
+        listOf(
+            SettingsItem.Info(
+                text = BuildConfig.VERSION_NAME,
+                onClick = onCopyVersion,
+            ),
+        ),
+    )
 
     MacrionTheme {
         SettingsScreen(
@@ -135,6 +160,7 @@ internal fun SettingsRoute(
                     ),
                 )
             },
+            versionSection = versionSection,
             onNavigateBack = onNavigateBack,
             onOpenGithub = onOpenGithub,
             onJoinDiscord = onJoinDiscord,
@@ -153,6 +179,7 @@ internal fun SettingsRoute(
 @OptIn(ExperimentalMaterial3Api::class)
 private fun SettingsScreen(
     sections: List<SettingsSection>,
+    versionSection: SettingsSection,
     onNavigateBack: () -> Unit,
     onOpenGithub: () -> Unit,
     onJoinDiscord: () -> Unit,
@@ -188,6 +215,12 @@ private fun SettingsScreen(
                     onJoinDiscord = onJoinDiscord,
                     onReportBug = onReportBug,
                 )
+            }
+            item {
+                SettingsSection(versionSection)
+            }
+            item {
+                Spacer(Modifier.height(16.dp))
             }
         }
     }
@@ -280,28 +313,53 @@ private fun SettingsRow(item: SettingsItem) {
             title = stringResource(item.title),
             trailingContent = {
                 Icon(
-                painter = painterResource(R.drawable.ic_chevron_right),
-                contentDescription = null,
+                    painter = painterResource(R.drawable.ic_chevron_right),
+                    contentDescription = null,
                 )
             },
             onClick = item.onClick,
         )
+        is SettingsItem.Info -> {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(role = Role.Button, onClick = item.onClick)
+                    .padding(horizontal = 16.dp, vertical = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = item.text,
+                    modifier = Modifier.weight(1f),
+                    style = MaterialTheme.typography.bodyLarge,
+                )
+                Icon(
+                    painter = painterResource(R.drawable.ic_copy),
+                    contentDescription = stringResource(R.string.crash_report_copy),
+                    modifier = Modifier.size(20.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
     }
 }
 
 private sealed interface SettingsItem {
-    @get:StringRes val title: Int
     val onClick: () -> Unit
 
     data class Switch(
-        @param:StringRes override val title: Int,
+        @param:StringRes val title: Int,
         @param:StringRes val description: Int,
         val checked: Boolean,
         override val onClick: () -> Unit,
     ) : SettingsItem
 
     data class Action(
-        @param:StringRes override val title: Int,
+        @param:StringRes val title: Int,
+        override val onClick: () -> Unit,
+    ) : SettingsItem
+
+    data class Info(
+        val text: String,
         override val onClick: () -> Unit,
     ) : SettingsItem
 }

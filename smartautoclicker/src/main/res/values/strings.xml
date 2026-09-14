@@ -200,4 +200,6 @@
     <string name="crash_reports_sample">Create synthetic report (debug only)</string>
     <string name="crash_report_label">Report %1$s</string>
 
+    <string name="settings_section_version">Version</string>
+    <string name="version_copied_to_clipboard">Version copied to clipboard</string>
 </resources>

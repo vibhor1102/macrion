@@ -122,4 +122,6 @@
     <string name="settings_section_device_compatibility">Tương thích thiết bị</string>
     <string name="settings_section_account">Tài khoản và quyền riêng tư</string>
     <string name="settings_section_help">Trợ giúp và chẩn đoán</string>
+    <string name="settings_section_version">Phiên bản</string>
+    <string name="version_copied_to_clipboard">Đã sao chép phiên bản vào khay nhớ tạm</string>
 </resources>

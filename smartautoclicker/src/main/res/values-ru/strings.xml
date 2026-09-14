@@ -195,4 +195,6 @@
     <string name="settings_section_device_compatibility">Совместимость устройства</string>
     <string name="settings_section_account">Аккаунт и конфиденциальность</string>
     <string name="settings_section_help">Справка и диагностика</string>
+    <string name="settings_section_version">Версия</string>
+    <string name="version_copied_to_clipboard">Версия скопирована в буфер обмена</string>
 </resources>

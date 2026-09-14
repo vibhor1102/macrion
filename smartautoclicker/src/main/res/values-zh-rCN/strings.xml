@@ -143,4 +143,6 @@
     <string name="settings_section_device_compatibility">设备兼容性</string>
     <string name="settings_section_account">账户与隐私</string>
     <string name="settings_section_help">帮助与诊断</string>
+    <string name="settings_section_version">版本</string>
+    <string name="version_copied_to_clipboard">版本已复制到剪贴板</string>
 </resources>

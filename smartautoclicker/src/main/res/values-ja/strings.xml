@@ -143,4 +143,6 @@
     <string name="settings_section_device_compatibility">端末の互換性</string>
     <string name="settings_section_account">アカウントとプライバシー</string>
     <string name="settings_section_help">ヘルプと診断</string>
+    <string name="settings_section_version">バージョン</string>
+    <string name="version_copied_to_clipboard">バージョンをクリップボードにコピーしました</string>
 </resources>

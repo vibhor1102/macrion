@@ -197,4 +197,6 @@
     <string name="settings_section_device_compatibility">Compatibilità del dispositivo</string>
     <string name="settings_section_account">Account e privacy</string>
     <string name="settings_section_help">Guida e diagnostica</string>
+    <string name="settings_section_version">Versione</string>
+    <string name="version_copied_to_clipboard">Versione copiata negli appunti</string>
 </resources>

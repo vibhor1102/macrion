@@ -198,4 +198,6 @@
     <string name="settings_section_device_compatibility">Сумісність пристрою</string>
     <string name="settings_section_account">Обліковий запис і конфіденційність</string>
     <string name="settings_section_help">Довідка та діагностика</string>
+    <string name="settings_section_version">Версія</string>
+    <string name="version_copied_to_clipboard">Версію скопійовано в буфер обміну</string>
 </resources>
