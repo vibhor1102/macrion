@@ -19,7 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.navbar.NavBarDialogContent
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.navbar.viewModels
@@ -92,7 +92,6 @@ private fun ConditionOccurrenceList(
     onThumbnailClick: (EventOccurrenceItem.Screen, Bitmap?, Boolean) -> Unit,
     onTriggerThumbnailClick: (TriggerCondition) -> Unit,
 ) {
-    val context = LocalContext.current
     val listState = rememberLazyListState()
     Box(Modifier.fillMaxSize()) {
         LazyColumn(state = listState, modifier = Modifier.fillMaxSize()) {
@@ -105,7 +104,7 @@ private fun ConditionOccurrenceList(
             }) { item ->
                 when (item) {
                     is EventOccurrenceItem.Header -> ReportKeyValueCard(
-                        title = context.getString(R.string.item_event_occurrence_details_header_title),
+                        title = stringResource(R.string.item_event_occurrence_details_header_title),
                         value = item.conditionOperatorValueText,
                     )
                     is EventOccurrenceItem.Screen -> ScreenConditionOccurrenceItem(
@@ -124,7 +123,7 @@ private fun ConditionOccurrenceList(
         }
         ReportFastScroller(
             state = listState,
-            contentDescription = context.getString(R.string.content_desc_event_occurrence_fast_scroller),
+            contentDescription = stringResource(R.string.content_desc_event_occurrence_fast_scroller),
             modifier = Modifier.align(Alignment.CenterEnd),
         )
     }

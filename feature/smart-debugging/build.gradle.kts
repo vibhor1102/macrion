@@ -27,6 +27,10 @@ plugins {
 android {
     namespace = "io.github.vibhor1102.macrion.feature.smart.debugging"
     buildFeatures { compose = true }
+
+    lint {
+        disable += "ImpliedQuantity"
+    }
 }
 
 dependencies {

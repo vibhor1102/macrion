@@ -31,6 +31,7 @@ class ExternalActionEventConfigurationActivity : ComponentActivity() {
 
     private val viewModel: ExternalActionEventConfigurationViewModel by viewModels()
     private var names by mutableStateOf(emptyList<String>())
+    private var knownNames by mutableStateOf(emptyList<String>())
     private var restoredName: String? = null
     private var selectedName by mutableStateOf<String?>(null)
     private var hasAppliedRestore = false
@@ -52,7 +53,7 @@ class ExternalActionEventConfigurationActivity : ComponentActivity() {
                     names = names,
                     selectedName = selectedName,
                     restoredNameIsMissing = selectedName == restoredName &&
-                        restoredName != null && restoredName !in viewModel.knownExternalActionNames.value,
+                        restoredName != null && restoredName !in knownNames,
                     onNameSelected = { selectedName = it },
                     onCancel = {
                         setResult(Activity.RESULT_CANCELED)
@@ -71,6 +72,7 @@ class ExternalActionEventConfigurationActivity : ComponentActivity() {
     }
 
     private fun updateNames(knownNames: List<String>) {
+        this.knownNames = knownNames
         if (!hasAppliedRestore) {
             hasAppliedRestore = true
             selectedName = restoredName ?: knownNames.firstOrNull()

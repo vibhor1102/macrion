@@ -37,6 +37,9 @@ internal class CustomLayoutNotificationBuilder(
     private val appComponentsProvider: AppComponentsProvider,
 ) : ServiceNotificationBuilder(context, channelId) {
 
+    private var customContentView: RemoteViews? = null
+    private var customBigContentView: RemoteViews? = null
+
     init {
         setSmallIcon(notificationIconResId())
         setCategory(Notification.CATEGORY_SERVICE)
@@ -50,13 +53,17 @@ internal class CustomLayoutNotificationBuilder(
 
     fun checkCustomViewsInflation(context: Context) {
         val parent = FrameLayout(context)
-        contentView?.apply(context, parent)
-        bigContentView?.apply(context, parent)
+        customContentView?.apply(context, parent)
+        customBigContentView?.apply(context, parent)
     }
 
     override fun updateState(context: Context, state: ServiceNotificationState) {
-        setCustomContentView(getCustomContentView(context, state))
-        setCustomBigContentView(getCustomBigContentView(context, state))
+        val contentView = getCustomContentView(context, state)
+        val bigContentView = getCustomBigContentView(context, state)
+        customContentView = contentView
+        customBigContentView = bigContentView
+        setCustomContentView(contentView)
+        setCustomBigContentView(bigContentView)
     }
 
     private fun getCustomContentView(context: Context, state: ServiceNotificationState): RemoteViews =

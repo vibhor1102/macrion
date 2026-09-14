@@ -42,7 +42,7 @@ import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.Rep
 import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.ReportFastScroller
 import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.ReportLoading
 import androidx.compose.foundation.lazy.items
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.adapter.ReportActivityRow
 import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.adapter.ReportSectionHeader
 
@@ -90,7 +90,6 @@ private fun EventActivityList(
     selectedSort: EventActivitySort,
     onSortSelected: (EventActivitySort) -> Unit,
 ) {
-    val context = LocalContext.current
     val listState = rememberLazyListState()
     var sortMenuExpanded by remember { mutableStateOf(false) }
     Box(Modifier.fillMaxSize()) {
@@ -112,11 +111,11 @@ private fun EventActivityList(
                             EventActivityType.TRIGGER -> R.string.item_event_activity_trigger_events
                         }
                         val icon = if (item.type == EventActivityType.SCREEN) R.drawable.ic_screen_event else R.drawable.ic_trigger_event
-                        ReportSectionHeader(context.getString(title), icon)
+                        ReportSectionHeader(stringResource(title), icon)
                     }
                     is EventActivityListItem.Event -> ReportActivityRow(
                         name = item.activity.name,
-                        count = context.getString(R.string.item_event_activity_occurrence_count, item.activity.occurrenceCount),
+                        count = stringResource(R.string.item_event_activity_occurrence_count, item.activity.occurrenceCount),
                         reached = item.activity.occurrenceCount != 0,
                     )
                 }
@@ -124,14 +123,14 @@ private fun EventActivityList(
         }
         ReportFastScroller(
             state = listState,
-            contentDescription = context.getString(R.string.content_desc_event_activity_fast_scroller),
+            contentDescription = stringResource(R.string.content_desc_event_activity_fast_scroller),
             modifier = Modifier.align(Alignment.CenterEnd),
         )
         Box(Modifier.align(Alignment.BottomEnd).padding(16.dp)) {
             FloatingActionButton(onClick = { sortMenuExpanded = true }) {
                 Icon(
                     painter = painterResource(R.drawable.ic_sort),
-                    contentDescription = context.getString(R.string.content_desc_event_activity_sort),
+                    contentDescription = stringResource(R.string.content_desc_event_activity_sort),
                 )
             }
             DropdownMenu(
@@ -142,7 +141,7 @@ private fun EventActivityList(
                     DropdownMenuItem(
                         text = {
                             Text(
-                                text = context.getString(sort.labelRes),
+                                text = stringResource(sort.labelRes),
                                 color = MaterialTheme.colorScheme.onSurface,
                             )
                         },

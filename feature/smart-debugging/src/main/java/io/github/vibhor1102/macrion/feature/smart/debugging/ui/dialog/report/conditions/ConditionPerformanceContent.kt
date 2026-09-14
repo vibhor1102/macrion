@@ -23,7 +23,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.navbar.NavBarDialogContent
@@ -140,9 +141,7 @@ private fun ConditionPerformanceList(
         }
         ReportFastScroller(
             state = listState,
-            contentDescription = LocalContext.current.getString(
-                R.string.content_desc_condition_performance_fast_scroller,
-            ),
+            contentDescription = stringResource(R.string.content_desc_condition_performance_fast_scroller),
             modifier = Modifier.align(Alignment.CenterEnd),
         )
     }
@@ -154,7 +153,6 @@ private fun ConditionPerformanceItem(
     bitmapProvider: (ScreenCondition.Image, (Bitmap?) -> Unit) -> Job,
     onThumbnailClick: (ConditionPerformanceEntry, Bitmap?, Boolean) -> Unit,
 ) {
-    val context = LocalContext.current
     var bitmap by remember(entry.condition.id) { mutableStateOf<Bitmap?>(null) }
     var bitmapFailed by remember(entry.condition.id) { mutableStateOf(false) }
     DisposableEffect(entry.condition) {
@@ -169,24 +167,24 @@ private fun ConditionPerformanceItem(
     val fulfilledCount = formatCount(entry.fulfilledCount)
     val checkCount = formatCount(entry.checkCount)
     val average = formatAverageDuration(entry.totalDurationNs, entry.checkCount)?.let { value ->
-        context.getString(R.string.item_condition_performance_average, value)
-    } ?: context.getString(R.string.item_condition_performance_average_unavailable)
+        stringResource(R.string.item_condition_performance_average, value)
+    } ?: stringResource(R.string.item_condition_performance_average_unavailable)
     ConditionPerformanceRow(
         state = ConditionPerformanceRowState(
             entry = entry,
-            totalTime = context.getString(
+            totalTime = stringResource(
                 R.string.item_condition_performance_total_time,
                 formatTotalDuration(entry.totalDurationNs),
             ),
-            fulfilled = context.getString(
+            fulfilled = stringResource(
                 R.string.item_condition_performance_fulfilled,
                 fulfilledCount,
-                context.resources.getQuantityString(
+                pluralStringResource(
                     R.plurals.item_condition_performance_time,
                     entry.fulfilledCount.coerceAtMost(Int.MAX_VALUE.toLong()).toInt(),
                 ),
                 checkCount,
-                context.resources.getQuantityString(
+                pluralStringResource(
                     R.plurals.item_condition_performance_check,
                     entry.checkCount.coerceAtMost(Int.MAX_VALUE.toLong()).toInt(),
                 ),

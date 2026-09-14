@@ -13,7 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.navbar.NavBarDialogContent
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.navbar.viewModels
@@ -50,8 +50,8 @@ class DebugCounterStateContent(
         when (state) {
             DebugCounterStateContentUiState.Loading -> ReportLoading()
             DebugCounterStateContentUiState.Empty -> ReportEmptyMessage(
-                context.getString(R.string.title_event_occurrence_counters_empty),
-                context.getString(R.string.desc_event_occurrence_counters_empty),
+                stringResource(R.string.title_event_occurrence_counters_empty),
+                stringResource(R.string.desc_event_occurrence_counters_empty),
             )
             is DebugCounterStateContentUiState.Available -> CounterStateList(state.countersState)
         }
@@ -60,28 +60,28 @@ class DebugCounterStateContent(
 
 @Composable
 private fun CounterStateList(items: List<CounterStateItem>) {
-    val context = LocalContext.current
     val listState = rememberLazyListState()
     Box(Modifier.fillMaxSize()) {
         LazyColumn(state = listState, modifier = Modifier.fillMaxSize()) {
             items(items, key = CounterStateItem::counterName) { item ->
-                ReportNameValueRow(item.counterName, item.toValueDisplayText(context))
+                ReportNameValueRow(item.counterName, item.toValueDisplayText())
             }
         }
         ReportFastScroller(
             state = listState,
-            contentDescription = context.getString(R.string.content_desc_event_occurrence_fast_scroller),
+            contentDescription = stringResource(R.string.content_desc_event_occurrence_fast_scroller),
             modifier = Modifier.align(Alignment.CenterEnd),
         )
     }
 }
 
-private fun CounterStateItem.toValueDisplayText(context: Context): String {
+@Composable
+private fun CounterStateItem.toValueDisplayText(): String {
     val oldValue = oldCounterValue
     return if (oldValue == null) {
-        context.getString(R.string.item_counter_state_value_same, currentCounterValue.toNaturalDisplayString())
+        stringResource(R.string.item_counter_state_value_same, currentCounterValue.toNaturalDisplayString())
     } else {
-        context.getString(
+        stringResource(
             R.string.item_counter_state_value_changed,
             oldValue.toNaturalDisplayString(),
             currentCounterValue.toNaturalDisplayString(),
