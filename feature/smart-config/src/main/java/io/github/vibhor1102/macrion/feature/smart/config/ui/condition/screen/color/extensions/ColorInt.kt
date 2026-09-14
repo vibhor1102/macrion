@@ -44,3 +44,19 @@ fun rgbToColorInt(red: Int, green: Int, blue: Int): Int =
         green.coerceIn(0, 255),
         blue.coerceIn(0, 255),
     )
+
+fun Int.toHsv(outHsv: FloatArray = FloatArray(3)): FloatArray {
+    Color.colorToHSV(this, outHsv)
+    return outHsv
+}
+
+@ColorInt
+fun hsvToColorInt(hue: Float, saturation: Float, value: Float): Int =
+    Color.HSVToColor(
+        floatArrayOf(
+            hue.coerceIn(0f, 360f),
+            saturation.coerceIn(0f, 1f),
+            value.coerceIn(0f, 1f),
+        )
+    )
+

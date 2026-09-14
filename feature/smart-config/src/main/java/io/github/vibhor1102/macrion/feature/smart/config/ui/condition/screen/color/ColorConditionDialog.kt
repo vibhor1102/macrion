@@ -43,7 +43,8 @@ import io.github.vibhor1102.macrion.feature.smart.config.ui.common.dialogs.showC
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.dialogs.showDeleteConditionsWithAssociatedActionsDialog
 import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.OnConditionConfigCompleteListener
 import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.color.capture.ColorCaptureMenu
-import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.color.extensions.rgbToColorInt
+import androidx.compose.ui.draw.clip
+import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.color.extensions.hsvToColorInt
 import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.image.MAX_THRESHOLD
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
@@ -115,15 +116,41 @@ class ColorConditionDialog(private val listener: OnConditionConfigCompleteListen
                 }
                 Box(Modifier.padding(horizontal = 8.dp).width(1.dp).height(152.dp).background(MaterialTheme.colorScheme.outlineVariant))
                 Column(Modifier.weight(1f)) {
-                    RgbSlider(ui.redValue, Color(0, ui.greenValue, ui.blueValue), Color(255, ui.greenValue, ui.blueValue), Color(ui.redValue, 0, 0)) {
-                        viewModel.setColor(rgbToColorInt(it, ui.greenValue, ui.blueValue))
+                    val hueBrush = remember {
+                        Brush.horizontalGradient(
+                            listOf(
+                                Color(0xFFFF0000),
+                                Color(0xFFFFFF00),
+                                Color(0xFF00FF00),
+                                Color(0xFF00FFFF),
+                                Color(0xFF0000FF),
+                                Color(0xFFFF00FF),
+                                Color(0xFFFF0000),
+                            )
+                        )
                     }
-                    RgbSlider(ui.greenValue, Color(ui.redValue, 0, ui.blueValue), Color(ui.redValue, 255, ui.blueValue), Color(0, ui.greenValue, 0)) {
-                        viewModel.setColor(rgbToColorInt(ui.redValue, it, ui.blueValue))
+                    val hueThumb = remember(ui.hue) { Color(hsvToColorInt(ui.hue, 1f, 1f)) }
+                    HsvSlider(ui.hue, 0f..360f, hueBrush, hueThumb, viewModel::setHue)
+
+                    val saturationBrush = remember(ui.hue, ui.value) {
+                        Brush.horizontalGradient(
+                            listOf(
+                                Color(hsvToColorInt(ui.hue, 0f, ui.value)),
+                                Color(hsvToColorInt(ui.hue, 1f, ui.value)),
+                            )
+                        )
                     }
-                    RgbSlider(ui.blueValue, Color(ui.redValue, ui.greenValue, 0), Color(ui.redValue, ui.greenValue, 255), Color(0, 0, ui.blueValue)) {
-                        viewModel.setColor(rgbToColorInt(ui.redValue, ui.greenValue, it))
+                    HsvSlider(ui.saturation, 0f..1f, saturationBrush, Color(ui.conditionColor), viewModel::setSaturation)
+
+                    val valueBrush = remember(ui.hue, ui.saturation) {
+                        Brush.horizontalGradient(
+                            listOf(
+                                Color(hsvToColorInt(ui.hue, ui.saturation, 0f)),
+                                Color(hsvToColorInt(ui.hue, ui.saturation, 1f)),
+                            )
+                        )
                     }
+                    HsvSlider(ui.value, 0f..1f, valueBrush, Color(ui.conditionColor), viewModel::setValue)
                 }
             }
             HorizontalDivider(Modifier.padding(vertical = 4.dp))
@@ -131,12 +158,34 @@ class ColorConditionDialog(private val listener: OnConditionConfigCompleteListen
         } }
     }
 
-    @Composable private fun RgbSlider(value: Int, start: Color, end: Color, thumb: Color, onValueChanged: (Int) -> Unit) {
+    @Composable private fun HsvSlider(
+        value: Float,
+        valueRange: ClosedFloatingPointRange<Float>,
+        brush: Brush,
+        thumb: Color,
+        onValueChanged: (Float) -> Unit,
+    ) {
         Box(Modifier.fillMaxWidth().height(48.dp), contentAlignment = Alignment.Center) {
-            Box(Modifier.fillMaxWidth().height(6.dp).background(Brush.horizontalGradient(listOf(start, end))))
-            Slider(value.toFloat(), { onValueChanged(it.roundToInt()) }, valueRange = 0f..255f, steps = 254,
-                colors = SliderDefaults.colors(thumbColor = thumb, activeTrackColor = Color.Transparent,
-                    inactiveTrackColor = Color.Transparent, activeTickColor = Color.Transparent, inactiveTickColor = Color.Transparent))
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .height(6.dp)
+                    .clip(CircleShape)
+                    .border(0.5.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)
+                    .background(brush)
+            )
+            Slider(
+                value = value,
+                onValueChange = onValueChanged,
+                valueRange = valueRange,
+                colors = SliderDefaults.colors(
+                    thumbColor = thumb,
+                    activeTrackColor = Color.Transparent,
+                    inactiveTrackColor = Color.Transparent,
+                    activeTickColor = Color.Transparent,
+                    inactiveTickColor = Color.Transparent,
+                ),
+            )
         }
     }
 

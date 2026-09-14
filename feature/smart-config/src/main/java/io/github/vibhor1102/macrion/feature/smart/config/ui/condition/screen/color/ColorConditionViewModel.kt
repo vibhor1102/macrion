@@ -24,9 +24,8 @@ import androidx.lifecycle.viewModelScope
 
 import io.github.vibhor1102.macrion.core.domain.model.condition.ScreenCondition
 import io.github.vibhor1102.macrion.feature.smart.config.domain.EditionRepository
-import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.color.extensions.getBlueValue
-import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.color.extensions.getGreenValue
-import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.color.extensions.getRedValue
+import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.color.extensions.hsvToColorInt
+import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.color.extensions.toHsv
 import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.color.extensions.toRgbaHexString
 
 import kotlinx.coroutines.FlowPreview
@@ -44,6 +43,9 @@ import javax.inject.Inject
 class ColorConditionViewModel  @Inject constructor(
     private val editionRepository: EditionRepository,
 ) : ViewModel()  {
+
+    private var currentHsv: FloatArray? = null
+    private var lastColorInt: Int? = null
 
     /** The condition being configured by the user. */
     private val configuredCondition = editionRepository.editionState.editedScreenConditionState
@@ -80,6 +82,39 @@ class ColorConditionViewModel  @Inject constructor(
         updateEditedCondition { it.copy(color = colorInt) }
     }
 
+    fun setHue(hue: Float) {
+        val hsv = currentHsv?.copyOf()
+            ?: editionRepository.editionState.getEditedCondition<ScreenCondition.Color>()?.color?.toHsv()
+            ?: FloatArray(3)
+        hsv[0] = hue.coerceIn(0f, 360f)
+        currentHsv = hsv
+        val newColor = hsvToColorInt(hsv[0], hsv[1], hsv[2])
+        lastColorInt = newColor
+        setColor(newColor)
+    }
+
+    fun setSaturation(saturation: Float) {
+        val hsv = currentHsv?.copyOf()
+            ?: editionRepository.editionState.getEditedCondition<ScreenCondition.Color>()?.color?.toHsv()
+            ?: FloatArray(3)
+        hsv[1] = saturation.coerceIn(0f, 1f)
+        currentHsv = hsv
+        val newColor = hsvToColorInt(hsv[0], hsv[1], hsv[2])
+        lastColorInt = newColor
+        setColor(newColor)
+    }
+
+    fun setValue(value: Float) {
+        val hsv = currentHsv?.copyOf()
+            ?: editionRepository.editionState.getEditedCondition<ScreenCondition.Color>()?.color?.toHsv()
+            ?: FloatArray(3)
+        hsv[2] = value.coerceIn(0f, 1f)
+        currentHsv = hsv
+        val newColor = hsvToColorInt(hsv[0], hsv[1], hsv[2])
+        lastColorInt = newColor
+        setColor(newColor)
+    }
+
     fun setPosition(position: PointF) {
         updateEditedCondition {
             val x = position.x.toInt()
@@ -109,18 +144,27 @@ class ColorConditionViewModel  @Inject constructor(
         }
     }
 
-    private fun ScreenCondition.Color.toUiState(): ColorConditionUiState =
-        ColorConditionUiState(
+    private fun ScreenCondition.Color.toUiState(): ColorConditionUiState {
+        val hsv = if (currentHsv != null && lastColorInt == color) {
+            currentHsv!!
+        } else {
+            color.toHsv().also {
+                currentHsv = it
+                lastColorInt = color
+            }
+        }
+        return ColorConditionUiState(
             canBeSaved = isComplete(),
             conditionName = name,
             conditionNameError = name.isEmpty(),
             conditionColor = color,
             conditionColorText = color.toRgbaHexString(),
             conditionPosition = PointF(detectionArea.left.toFloat(), detectionArea.top.toFloat()),
-            redValue = color.getRedValue(),
-            greenValue = color.getGreenValue(),
-            blueValue = color.getBlueValue(),
+            hue = hsv[0],
+            saturation = hsv[1],
+            value = hsv[2],
             shouldBeDetectedChecked = shouldBeDetected,
             detectionThreshold = threshold,
         )
+    }
 }
