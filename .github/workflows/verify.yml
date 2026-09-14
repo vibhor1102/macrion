@@ -40,7 +40,7 @@ jobs:
     - name: Run unit tests
       shell: bash
       run: |
-        ./gradlew --no-daemon --max-workers=6 --parallel --build-cache \
+        ./gradlew --no-daemon --max-workers=6 --parallel --build-cache --continue \
           testFDroidDebugUnitTest
       env:
         JAVA_TOOL_OPTIONS: -Djava.net.preferIPv4Stack=true
@@ -86,7 +86,7 @@ jobs:
     - name: Run Android Lint
       shell: bash
       run: |
-        ./gradlew --no-daemon --max-workers=6 --parallel --build-cache \
+        ./gradlew --no-daemon --max-workers=6 --parallel --build-cache --continue \
           lintFDroidDebug
       env:
         JAVA_TOOL_OPTIONS: -Djava.net.preferIPv4Stack=true
