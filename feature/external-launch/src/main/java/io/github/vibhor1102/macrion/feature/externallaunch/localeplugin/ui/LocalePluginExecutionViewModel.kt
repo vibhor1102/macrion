@@ -65,8 +65,13 @@ internal class LocalePluginExecutionViewModel @Inject constructor(
 
     fun launchDumb(action: ResolvedLocalePluginAction.LaunchDumb) = executor.launchDumb(action)
 
-    fun launchSmart(resultCode: Int, data: Intent, action: ResolvedLocalePluginAction.LaunchSmart) =
-        executor.launchSmart(resultCode, data, action)
+    fun launchSmart(
+        resultCode: Int,
+        data: Intent,
+        action: ResolvedLocalePluginAction.LaunchSmart,
+        autoRun: Boolean = false,
+    ) =
+        executor.launchSmart(resultCode, data, action, autoRun = autoRun)
 
     fun executeStop() = executor.executeStop()
 

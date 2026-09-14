@@ -33,7 +33,7 @@ interface ExternalLaunchActionHandler {
     fun launchDumbScenario(dumbScenario: DumbScenario)
     fun launchSmartScenario(resultCode: Int, data: Intent, scenario: Scenario)
     fun replaceDumbScenario(dumbScenario: DumbScenario)
-    fun replaceSmartScenario(resultCode: Int, data: Intent, scenario: Scenario)
+    fun replaceSmartScenario(resultCode: Int, data: Intent, scenario: Scenario, autoStart: Boolean = false)
     fun replaceSmartScenarioWithCurrentProjection(scenario: Scenario)
     fun runCurrentScenario()
     fun stop()

@@ -68,30 +68,32 @@ class LocalePluginFireReceiver : BroadcastReceiver() {
             return
         }
 
-        val requestId = UUID.randomUUID().toString()
-        directLaunchTracker.markPending(requestId)
-        launchFailureStore.clearLaunchPending()
-        launchFailureStore.clearFallbackPending()
-        launchFailureStore.markLaunchPending(requestId)
-
         when (val action = executor.resolve(configuration)) {
             null -> {
-                directLaunchTracker.abandon(requestId)
                 notifications.showError(R.string.locale_plugin_error_missing_scenario)
             }
             ResolvedLocalePluginAction.Stop -> {
-                directLaunchTracker.abandon(requestId)
-                launchFailureStore.clearLaunchPending()
+                directLaunchTracker.clearAllAutoRun()
                 notifications.cancelLaunchFallback()
                 executor.executeStop()
             }
             ResolvedLocalePluginAction.RunCurrent -> {
-                directLaunchTracker.abandon(requestId)
-                launchFailureStore.clearLaunchPending()
-                notifications.cancelLaunchFallback()
-                executor.executeRunCurrent()
+                val awaitingId = directLaunchTracker.getAwaitingProjectionRequestId()
+                if (awaitingId != null) {
+                    Log.i(TAG, "RunCurrent received while awaiting media projection for $awaitingId; armed auto-run")
+                    directLaunchTracker.markAutoRunPending(awaitingId)
+                } else {
+                    notifications.cancelLaunchFallback()
+                    executor.executeRunCurrent()
+                }
             }
             is ResolvedLocalePluginAction.LaunchDumb -> {
+                val requestId = UUID.randomUUID().toString()
+                directLaunchTracker.markPending(requestId)
+                launchFailureStore.clearLaunchPending()
+                launchFailureStore.clearFallbackPending()
+                launchFailureStore.markLaunchPending(requestId)
+
                 if (deferForOpenScenarioConfiguration(configurationJson, action.scenario.name, requestId)) {
                     return
                 } else if (executor.areBasePermissionsReady(context)) {
@@ -101,6 +103,12 @@ class LocalePluginFireReceiver : BroadcastReceiver() {
                 } else requestUserCompletion(context, configurationJson, action.scenario.name, requestId)
             }
             is ResolvedLocalePluginAction.LaunchSmart -> {
+                val requestId = UUID.randomUUID().toString()
+                directLaunchTracker.markPending(requestId)
+                launchFailureStore.clearLaunchPending()
+                launchFailureStore.clearFallbackPending()
+                launchFailureStore.markLaunchPending(requestId)
+
                 if (deferForOpenScenarioConfiguration(configurationJson, action.scenario.name, requestId)) {
                     return
                 }

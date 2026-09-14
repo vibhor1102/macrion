@@ -20,8 +20,11 @@ internal class LocalePluginDirectLaunchTracker @Inject constructor() {
     private val openedRequests = ConcurrentHashMap.newKeySet<String>()
     private val latestRequestId = AtomicReference<String?>(null)
     private val activeExecutionRequestId = AtomicReference<String?>(null)
+    private val awaitingProjectionDirectRequestId = AtomicReference<String?>(null)
+    private val autoRunRequestIds = ConcurrentHashMap.newKeySet<String>()
 
     fun markPending(configurationJson: String) {
+        clearAllAutoRun()
         latestRequestId.set(configurationJson)
         pendingRequests.add(configurationJson)
         openedRequests.remove(configurationJson)
@@ -68,6 +71,8 @@ internal class LocalePluginDirectLaunchTracker @Inject constructor() {
     }
 
     fun abandon(requestId: String) {
+        clearAwaitingProjection(requestId)
+        autoRunRequestIds.remove(requestId)
         pendingRequests.remove(requestId)
         openedRequests.remove(requestId)
     }
@@ -82,7 +87,44 @@ internal class LocalePluginDirectLaunchTracker @Inject constructor() {
             pendingRequests.any { it != requestId }
 
     fun markExecutionClosed(requestId: String?) {
-        if (requestId != null) activeExecutionRequestId.compareAndSet(requestId, null)
+        if (requestId != null) {
+            clearAwaitingProjection(requestId)
+            autoRunRequestIds.remove(requestId)
+            activeExecutionRequestId.compareAndSet(requestId, null)
+        }
+    }
+
+    fun markAwaitingProjection(requestId: String) {
+        if (isCurrentExecution(requestId)) {
+            awaitingProjectionDirectRequestId.set(requestId)
+        }
+    }
+
+    fun clearAwaitingProjection(requestId: String?) {
+        if (requestId != null) {
+            awaitingProjectionDirectRequestId.compareAndSet(requestId, null)
+        }
+    }
+
+    fun getAwaitingProjectionRequestId(): String? {
+        val id = awaitingProjectionDirectRequestId.get() ?: return null
+        return if (isCurrentExecution(id)) id else null
+    }
+
+    fun markAutoRunPending(requestId: String) {
+        if (getAwaitingProjectionRequestId() == requestId) {
+            autoRunRequestIds.add(requestId)
+        }
+    }
+
+    fun consumeAutoRun(requestId: String): Boolean {
+        clearAwaitingProjection(requestId)
+        return autoRunRequestIds.remove(requestId)
+    }
+
+    fun clearAllAutoRun() {
+        awaitingProjectionDirectRequestId.set(null)
+        autoRunRequestIds.clear()
     }
 
     fun isLatest(requestId: String): Boolean = latestRequestId.get() == requestId

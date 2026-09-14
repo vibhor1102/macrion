@@ -141,18 +141,26 @@ class LocalePluginExecutionActivity : ComponentActivity() {
             is ResolvedLocalePluginAction.LaunchSmart -> {
                 smartAction = action
                 requestPermissions {
+                    val currentRequestId = requestId
+                    if (!launchedFromFallback && currentRequestId != null) {
+                        directLaunchTracker.markAwaitingProjection(currentRequestId)
+                    }
                     mediaProjectionRequest.showMediaProjectionWarning(
                         context = this,
                         forceEntireScreen = viewModel.isEntireScreenCaptureForced(),
                         onSuccess = success@{ resultCode, data ->
+                            val autoRun = currentRequestId?.let { directLaunchTracker.consumeAutoRun(it) } ?: false
+                            directLaunchTracker.clearAwaitingProjection(currentRequestId)
                             if (!isCurrentRequest()) {
                                 close()
                                 return@success
                             }
-                            viewModel.launchSmart(resultCode, data, action)
+                            viewModel.launchSmart(resultCode, data, action, autoRun = autoRun)
                             close()
                         },
                         onFailure = {
+                            directLaunchTracker.clearAwaitingProjection(currentRequestId)
+                            currentRequestId?.let { directLaunchTracker.consumeAutoRun(it) }
                             if (isCurrentRequest()) fail(R.string.locale_plugin_error_projection)
                             else close()
                         },
@@ -181,6 +189,8 @@ class LocalePluginExecutionActivity : ComponentActivity() {
 
     private fun handleProjectionLaunchError() {
         val id = requestId
+        directLaunchTracker.clearAwaitingProjection(id)
+        id?.let { directLaunchTracker.consumeAutoRun(it) }
         val configuration = configurationJson
         val action = smartAction
         if (!isCurrentRequest()) {

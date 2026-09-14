@@ -187,8 +187,8 @@ class ExternalLaunchRepository @Inject constructor(
     internal fun replaceDumbScenario(scenario: DumbScenario) =
         actionHandler?.replaceDumbScenario(scenario)
 
-    internal fun replaceSmartScenario(resultCode: Int, data: Intent, scenario: Scenario) =
-        actionHandler?.replaceSmartScenario(resultCode, data, scenario)
+    internal fun replaceSmartScenario(resultCode: Int, data: Intent, scenario: Scenario, autoStart: Boolean = false) =
+        actionHandler?.replaceSmartScenario(resultCode, data, scenario, autoStart = autoStart)
 
     internal fun replaceSmartScenarioWithCurrentProjection(scenario: Scenario) =
         actionHandler?.replaceSmartScenarioWithCurrentProjection(scenario)

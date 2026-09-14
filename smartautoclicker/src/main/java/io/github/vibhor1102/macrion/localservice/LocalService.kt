@@ -201,7 +201,12 @@ class LocalService(
      * [android.app.Activity.onActivityResult]
      * @param scenario the identifier of the scenario of clicks to be used for detection.
      */
-    override fun launchSmartScenario(resultCode: Int, data: Intent, scenario: Scenario): Boolean {
+    override fun launchSmartScenario(
+        resultCode: Int,
+        data: Intent,
+        scenario: Scenario,
+        autoStart: Boolean,
+    ): Boolean {
         if (!isCleanForFreshLaunch()) return false
         state = LocalServiceState(isStarted = true, isSmartLoaded = true, sessionId = ++nextServiceSessionId)
 
@@ -242,6 +247,11 @@ class LocalService(
                 resultCode = resultCode,
                 data = data,
             )
+
+            if (autoStart) {
+                if (shouldStartPaywall()) startPaywall(onlyIfRootVisible = true)
+                else startSmartScenario(onlyIfRootVisible = true)
+            }
         }
         return true
     }
@@ -278,10 +288,15 @@ class LocalService(
         }
     }
 
-    override fun replaceSmartScenario(resultCode: Int, data: Intent, scenario: Scenario) {
+    override fun replaceSmartScenario(
+        resultCode: Int,
+        data: Intent,
+        scenario: Scenario,
+        autoStart: Boolean,
+    ) {
         serviceScope.launch {
             scenarioChangeMutex.withLock {
-                if (stopAndWait()) launchSmartScenario(resultCode, data, scenario)
+                if (stopAndWait()) launchSmartScenario(resultCode, data, scenario, autoStart = autoStart)
             }
         }
     }
