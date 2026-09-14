@@ -12,10 +12,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.MutatePriority
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.drag
 import androidx.compose.foundation.lazy.LazyListState
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.HorizontalDivider
@@ -213,32 +218,45 @@ internal fun ReportFastScroller(
             .onSizeChanged { heightPx = it.height }
             .semantics { this.contentDescription = contentDescription }
             .pointerInput(Unit) {
-                awaitEachGesture {
-                    val down = awaitFirstDown(requireUnconsumed = false)
-                    val bounds = latestThumbBounds.value
-                    val touchPadding = (max(bounds.height, bounds.minimumTouchHeight) - bounds.height) / 2
-                    val touchTop = bounds.top - touchPadding
-                    val touchBottom = bounds.top + bounds.height + touchPadding
-                    if (down.position.y !in touchTop..touchBottom) return@awaitEachGesture
+                coroutineScope {
+                    awaitEachGesture {
+                        val down = awaitFirstDown(requireUnconsumed = false)
+                        val bounds = latestThumbBounds.value
+                        val touchPadding = (max(bounds.height, bounds.minimumTouchHeight) - bounds.height) / 2
+                        val touchTop = bounds.top - touchPadding
+                        val touchBottom = bounds.top + bounds.height + touchPadding
+                        if (down.position.y !in touchTop..touchBottom) return@awaitEachGesture
 
-                    try {
-                        thumbVisible = true
-                        draggedThumbTop = bounds.top
-                        dragging = true
-                        drag(down.id) { change ->
-                            val dragAmount = change.positionChange().y
-                            if (dragAmount != 0f) {
-                                change.consume()
-                                val currentBounds = latestThumbBounds.value
-                                draggedThumbTop = (draggedThumbTop + dragAmount).coerceIn(
-                                    currentBounds.minimumTop,
-                                    currentBounds.maximumTop,
-                                )
-                                state.dispatchRawDelta(dragAmount * latestScrollMultiplier.value)
+                        val dragChannel = Channel<Float>(Channel.UNLIMITED)
+                        val dragJob = this@coroutineScope.launch(start = CoroutineStart.UNDISPATCHED) {
+                            state.scroll(MutatePriority.UserInput) {
+                                for (delta in dragChannel) {
+                                    scrollBy(delta)
+                                }
                             }
                         }
-                    } finally {
-                        dragging = false
+                        draggedThumbTop = latestThumbBounds.value.top
+                        thumbVisible = true
+                        dragging = true
+
+                        try {
+                            drag(down.id) { change ->
+                                val dragAmount = change.positionChange().y
+                                if (dragAmount != 0f) {
+                                    change.consume()
+                                    val currentBounds = latestThumbBounds.value
+                                    draggedThumbTop = (draggedThumbTop + dragAmount).coerceIn(
+                                        currentBounds.minimumTop,
+                                        currentBounds.maximumTop,
+                                    )
+                                    dragChannel.trySend(dragAmount * latestScrollMultiplier.value)
+                                }
+                            }
+                        } finally {
+                            dragChannel.close()
+                            dragJob.cancel()
+                            dragging = false
+                        }
                     }
                 }
             },
