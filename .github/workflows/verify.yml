@@ -20,7 +20,6 @@ jobs:
     timeout-minutes: 15
     permissions:
       contents: read
-      checks: write
 
     steps:
     - name: Checkout repository
@@ -46,14 +45,11 @@ jobs:
       env:
         JAVA_TOOL_OPTIONS: -Djava.net.preferIPv4Stack=true
 
-    - name: Publish unit-test report
+    - name: Generate unit-test job summary
       if: ${{ !cancelled() }}
-      uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2 # v3.0.0
-      with:
-        name: Unit-test report
-        path: '**/build/test-results/testFDroidDebugUnitTest/TEST-*.xml'
-        reporter: java-junit
-        fail-on-error: false
+      shell: bash
+      run: |
+        python3 scripts/ci/format_unit_test_summary.py
 
     - name: Upload unit-test results
       if: ${{ !cancelled() }}
@@ -62,4 +58,51 @@ jobs:
         name: unit-test-results
         retention-days: 14
         path: '**/build/test-results/testFDroidDebugUnitTest/TEST-*.xml'
+        if-no-files-found: warn
+
+  lint:
+    name: Run Android Lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+    - name: Set up JDK 25 and restore Gradle cache
+      uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c # v6.0.0
+      with:
+        distribution: zulu
+        java-version: '25'
+        cache: gradle
+        cache-dependency-path: |
+          **/*.gradle
+          **/*.gradle.kts
+          gradle/libs.versions.toml
+          gradle/wrapper/gradle-wrapper.properties
+
+    - name: Run Android Lint
+      shell: bash
+      run: |
+        ./gradlew --no-daemon --max-workers=6 --parallel --build-cache \
+          lintFDroidDebug
+      env:
+        JAVA_TOOL_OPTIONS: -Djava.net.preferIPv4Stack=true
+
+    - name: Generate lint job summary
+      if: ${{ !cancelled() }}
+      shell: bash
+      run: |
+        python3 scripts/ci/format_lint_summary.py
+
+    - name: Upload lint results
+      if: ${{ !cancelled() }}
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      with:
+        name: lint-results
+        retention-days: 14
+        path: |
+          **/build/reports/lint-results*.*
         if-no-files-found: warn
