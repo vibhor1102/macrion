@@ -18,7 +18,7 @@ package io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.de
 
 import androidx.annotation.DrawableRes
 import io.github.vibhor1102.macrion.core.domain.model.condition.ScreenCondition
-
+import io.github.vibhor1102.macrion.core.domain.model.condition.TriggerCondition
 
 sealed interface DebugConditionContentUiState {
 
@@ -50,5 +50,6 @@ sealed interface EventOccurrenceItem {
         val conditionName: String,
         @field:DrawableRes val iconRes: Int,
         val description: String,
+        val condition: TriggerCondition,
     ) : EventOccurrenceItem
 }

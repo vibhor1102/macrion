@@ -175,6 +175,7 @@ class DebugConditionContentViewModel @Inject constructor(
                         conditionName = condition.name,
                         iconRes = condition.getIcon(),
                         description = condition.getDescription(context),
+                        condition = condition,
                     )
                 }
             }

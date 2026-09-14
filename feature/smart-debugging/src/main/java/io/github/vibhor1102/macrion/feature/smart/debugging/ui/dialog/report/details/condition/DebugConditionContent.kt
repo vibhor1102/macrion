@@ -34,6 +34,7 @@ import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.ada
 import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.details.condition.adapter.ScreenConditionResultRow
 import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.details.condition.adapter.ScreenConditionResultState
 import io.github.vibhor1102.macrion.core.domain.model.condition.ScreenCondition
+import io.github.vibhor1102.macrion.core.domain.model.condition.TriggerCondition
 import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.preview.ConditionPreviewData
 import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.preview.ConditionPreviewDialog
 import kotlinx.coroutines.Job
@@ -68,6 +69,9 @@ class DebugConditionContent(
                     onThumbnailClick = { screenItem, bitmap, bitmapFailed ->
                         previewData = ConditionPreviewData(screenItem.condition, bitmap, bitmapFailed)
                     },
+                    onTriggerThumbnailClick = { triggerCondition ->
+                        previewData = ConditionPreviewData(triggerCondition)
+                    },
                 )
             }
             previewData?.let { data ->
@@ -86,6 +90,7 @@ private fun ConditionOccurrenceList(
     items: List<EventOccurrenceItem>,
     bitmapProvider: (ScreenCondition.Image, (Bitmap?) -> Unit) -> Job?,
     onThumbnailClick: (EventOccurrenceItem.Screen, Bitmap?, Boolean) -> Unit,
+    onTriggerThumbnailClick: (TriggerCondition) -> Unit,
 ) {
     val context = LocalContext.current
     val listState = rememberLazyListState()
@@ -109,9 +114,10 @@ private fun ConditionOccurrenceList(
                         onThumbnailClick = onThumbnailClick,
                     )
                     is EventOccurrenceItem.Trigger -> ReportTriggerConditionCard(
-                        item.conditionName,
-                        item.description,
-                        item.iconRes,
+                        name = item.conditionName,
+                        description = item.description,
+                        iconRes = item.iconRes,
+                        onThumbnailClick = { onTriggerThumbnailClick(item.condition) },
                     )
                 }
             }

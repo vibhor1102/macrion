@@ -27,8 +27,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -171,6 +174,7 @@ internal fun ReportTriggerConditionCard(
     name: String,
     description: String,
     @DrawableRes iconRes: Int,
+    onThumbnailClick: (() -> Unit)? = null,
 ) {
     ElevatedCard(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
@@ -182,7 +186,16 @@ internal fun ReportTriggerConditionCard(
             Box(
                 modifier = Modifier
                     .size(50.dp)
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                    .clipToBounds()
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                    .then(
+                        if (onThumbnailClick != null) {
+                            Modifier.clickable(
+                                onClickLabel = stringResource(R.string.content_desc_condition_preview),
+                                onClick = onThumbnailClick,
+                            )
+                        } else Modifier,
+                    ),
                 contentAlignment = Alignment.Center,
             ) {
                 Image(

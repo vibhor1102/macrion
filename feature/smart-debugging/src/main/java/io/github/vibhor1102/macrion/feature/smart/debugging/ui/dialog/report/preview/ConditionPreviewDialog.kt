@@ -27,6 +27,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -60,6 +61,7 @@ import io.github.vibhor1102.macrion.core.domain.model.condition.ScreenCondition
 import io.github.vibhor1102.macrion.core.domain.model.condition.TriggerCondition
 import io.github.vibhor1102.macrion.core.domain.model.counter.ComparisonOperation
 import io.github.vibhor1102.macrion.core.domain.model.counter.CounterOperationValue
+import io.github.vibhor1102.macrion.core.ui.utils.formatDuration
 import io.github.vibhor1102.macrion.feature.smart.debugging.R
 import kotlinx.coroutines.Job
 
@@ -277,20 +279,8 @@ private fun TextConditionPreview(condition: ScreenCondition.Text) {
 
 @Composable
 private fun NumberConditionPreview(condition: ScreenCondition.Number) {
-    val symbol = when (condition.comparisonOperation) {
-        ComparisonOperation.EQUALS -> "=="
-        ComparisonOperation.GREATER -> ">"
-        ComparisonOperation.GREATER_OR_EQUALS -> ">="
-        ComparisonOperation.LOWER -> "<"
-        ComparisonOperation.LOWER_OR_EQUALS -> "<="
-    }
-    val operand = when (val value = condition.counterValue) {
-        is CounterOperationValue.Counter -> value.value
-        is CounterOperationValue.Number -> {
-            if (value.value % 1.0 == 0.0) value.value.toLong().toString()
-            else value.value.toString()
-        }
-    }
+    val symbol = condition.comparisonOperation.toSymbol()
+    val operand = condition.counterValue.toNaturalDisplayString()
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
@@ -322,29 +312,221 @@ private fun NumberConditionPreview(condition: ScreenCondition.Number) {
 
 @Composable
 private fun TriggerConditionPreview(condition: TriggerCondition) {
-    val iconRes = when (condition) {
-        is TriggerCondition.OnBroadcastReceived -> R.drawable.ic_broadcast_received
-        is TriggerCondition.OnCounterCountReached -> R.drawable.ic_counter_reached
-        is TriggerCondition.OnTimerReached -> R.drawable.ic_timer_reached
+    when (condition) {
+        is TriggerCondition.OnBroadcastReceived -> BroadcastConditionPreview(condition)
+        is TriggerCondition.OnCounterCountReached -> CounterConditionPreview(condition)
+        is TriggerCondition.OnTimerReached -> TimerConditionPreview(condition)
     }
+}
+
+@Composable
+private fun BroadcastConditionPreview(condition: TriggerCondition.OnBroadcastReceived) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
         modifier = Modifier.padding(horizontal = 16.dp),
     ) {
-        Icon(
-            painter = painterResource(iconRes),
-            contentDescription = null,
-            modifier = Modifier.size(48.dp),
-            tint = MaterialTheme.colorScheme.primary,
-        )
+        Surface(
+            shape = CircleShape,
+            color = MaterialTheme.colorScheme.primaryContainer,
+            modifier = Modifier.size(56.dp),
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_broadcast_received),
+                    contentDescription = null,
+                    modifier = Modifier.size(32.dp),
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                )
+            }
+        }
         Text(
             text = condition.name,
-            style = MaterialTheme.typography.titleMedium,
+            style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface,
             textAlign = TextAlign.Center,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
             modifier = Modifier.padding(top = 12.dp),
         )
+        Surface(
+            shape = RoundedCornerShape(8.dp),
+            color = MaterialTheme.colorScheme.surfaceVariant,
+            modifier = Modifier.padding(top = 8.dp),
+        ) {
+            Text(
+                text = stringResource(R.string.title_trigger_type_broadcast),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+            )
+        }
+        Surface(
+            shape = RoundedCornerShape(12.dp),
+            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 12.dp),
+        ) {
+            Column(
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Text(
+                    text = stringResource(R.string.label_trigger_intent_action),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Text(
+                    text = condition.intentAction,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    textAlign = TextAlign.Center,
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(top = 2.dp),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun CounterConditionPreview(condition: TriggerCondition.OnCounterCountReached) {
+    val symbol = condition.comparisonOperation.toSymbol()
+    val operand = condition.counterValue.toNaturalDisplayString()
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+        modifier = Modifier.padding(horizontal = 16.dp),
+    ) {
+        Surface(
+            shape = CircleShape,
+            color = MaterialTheme.colorScheme.primaryContainer,
+            modifier = Modifier.size(56.dp),
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_counter_reached),
+                    contentDescription = null,
+                    modifier = Modifier.size(32.dp),
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                )
+            }
+        }
+        Text(
+            text = condition.name,
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface,
+            textAlign = TextAlign.Center,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.padding(top = 12.dp),
+        )
+        Text(
+            text = "${condition.counterName} $symbol $operand",
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.primary,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(top = 8.dp),
+        )
+        Surface(
+            shape = RoundedCornerShape(8.dp),
+            color = MaterialTheme.colorScheme.surfaceVariant,
+            modifier = Modifier.padding(top = 8.dp),
+        ) {
+            Text(
+                text = stringResource(R.string.title_trigger_type_counter),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+            )
+        }
+    }
+}
+
+@Composable
+private fun TimerConditionPreview(condition: TriggerCondition.OnTimerReached) {
+    val durationText = formatDuration(condition.durationMs).ifEmpty { "${condition.durationMs} ms" }
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+        modifier = Modifier.padding(horizontal = 16.dp),
+    ) {
+        Surface(
+            shape = CircleShape,
+            color = MaterialTheme.colorScheme.primaryContainer,
+            modifier = Modifier.size(56.dp),
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_timer_reached),
+                    contentDescription = null,
+                    modifier = Modifier.size(32.dp),
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                )
+            }
+        }
+        Text(
+            text = condition.name,
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface,
+            textAlign = TextAlign.Center,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.padding(top = 12.dp),
+        )
+        Text(
+            text = durationText,
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.primary,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(top = 8.dp),
+        )
+        if (condition.durationMs >= 1000L && condition.durationMs % 1000L != 0L) {
+            Text(
+                text = "${condition.durationMs} ms",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 2.dp),
+            )
+        }
+        Surface(
+            shape = RoundedCornerShape(8.dp),
+            color = MaterialTheme.colorScheme.surfaceVariant,
+            modifier = Modifier.padding(top = 8.dp),
+        ) {
+            Text(
+                text = stringResource(
+                    if (condition.restartWhenReached) R.string.label_trigger_timer_repeating
+                    else R.string.label_trigger_timer_once,
+                ),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+            )
+        }
+    }
+}
+
+private fun ComparisonOperation.toSymbol(): String = when (this) {
+    ComparisonOperation.EQUALS -> "=="
+    ComparisonOperation.GREATER -> ">"
+    ComparisonOperation.GREATER_OR_EQUALS -> ">="
+    ComparisonOperation.LOWER -> "<"
+    ComparisonOperation.LOWER_OR_EQUALS -> "<="
+}
+
+private fun CounterOperationValue.toNaturalDisplayString(): String = when (this) {
+    is CounterOperationValue.Counter -> value
+    is CounterOperationValue.Number -> {
+        if (value % 1.0 == 0.0) value.toLong().toString()
+        else value.toString()
     }
 }
