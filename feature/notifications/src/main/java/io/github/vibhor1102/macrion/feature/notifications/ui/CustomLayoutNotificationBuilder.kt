@@ -61,10 +61,7 @@ internal class CustomLayoutNotificationBuilder(
 
     private fun getCustomContentView(context: Context, state: ServiceNotificationState): RemoteViews =
         RemoteViews(context.packageName, R.layout.notification_service).apply {
-            setTextViewText(
-                R.id.text_scenario_name,
-                context.getString(R.string.notification_title, "\n${state.scenarioName}")
-            )
+            setTextViewText(R.id.text_scenario_name, state.scenarioName)
 
             addAction(
                 context,

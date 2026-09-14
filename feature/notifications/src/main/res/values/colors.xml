@@ -19,6 +19,7 @@
     <!-- Kept in sync with the launcher icon background; app variants can override it. -->
     <color name="macrion_icon_background">#0B5F63</color>
     <color name="notification_text_color">@color/md_theme_light_onSurface</color>
+    <color name="notification_text_secondary_color">@color/md_theme_light_onSurfaceVariant</color>
     <color name="notification_icon_color">@color/md_theme_light_onSurface</color>
     <color name="notification_icon_color_filled">@color/md_theme_light_onPrimary</color>
     <color name="notification_icon_color_secondary">@color/md_theme_dark_onSurface</color>

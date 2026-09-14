@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="notification_title">场景：%1$s</string>
+    <string name="notification_scenario_label">场景</string>
     <string name="notification_message">点按即可更换场景</string>
     <string name="notification_button_play">开始</string>
     <string name="notification_button_pause">暂停</string>

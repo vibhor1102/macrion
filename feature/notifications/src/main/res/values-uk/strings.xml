@@ -19,6 +19,7 @@
 <resources>
 
     <string name="notification_title">Сценарій: %1$s</string>
+    <string name="notification_scenario_label">Сценарій</string>
     <string name="notification_message">Натисніть щоб змінити сценарій</string>
     <string name="notification_button_play">Відтворити</string>
     <string name="notification_button_pause">Пауза</string>

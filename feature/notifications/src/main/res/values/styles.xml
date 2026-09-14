@@ -34,4 +34,23 @@
         <item name="android:background">@drawable/background_button_outlined</item>
     </style>
 
+    <!-- Notification text appearances. -->
+    <style name="AppTheme.TextAppearance.Notification" />
+
+    <style name="AppTheme.TextAppearance.Notification.Label">
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:textColor">@color/notification_text_secondary_color</item>
+        <item name="android:includeFontPadding">false</item>
+    </style>
+
+    <style name="AppTheme.TextAppearance.Notification.Title">
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">@color/notification_text_color</item>
+        <item name="android:includeFontPadding">false</item>
+    </style>
+
 </resources>

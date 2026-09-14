@@ -32,7 +32,9 @@
         android:layout_marginBottom="16dp"
         android:gravity="center"
         android:textColor="@color/notification_text_color"
+        android:singleLine="true"
         android:maxLines="1"
+        android:ellipsize="end"
         tools:text="My cool scenario name"/>
 
     <LinearLayout
