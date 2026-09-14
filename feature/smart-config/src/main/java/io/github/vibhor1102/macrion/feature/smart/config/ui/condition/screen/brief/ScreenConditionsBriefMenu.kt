@@ -161,7 +161,7 @@ class ScreenConditionsBriefMenu(
                         },
                     )
                 },
-                onReorder = { from, to -> viewModel.moveConditions(from, to) },
+                onSaveOrder = { viewModel.updateConditionsOrder(it) },
             ),
             hideCurrent = true,
         )

@@ -48,6 +48,7 @@ import io.github.vibhor1102.macrion.feature.smart.config.domain.EditionRepositor
 import io.github.vibhor1102.macrion.feature.smart.config.domain.model.EditedListState
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.formatters.toEffectDescription
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.formatters.toNaturalDisplayString
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.condition.UiScreenCondition
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.condition.toUiScreenCondition
 
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -171,6 +172,9 @@ class ScreenConditionsBriefViewModel @Inject constructor(
 
         editionRepository.updateScreenConditionsOrder(imageConditions)
     }
+
+    fun updateConditionsOrder(conditionsBrief: List<ItemBrief>) =
+        editionRepository.updateScreenConditionsOrder(conditionsBrief.map { brief -> (brief.data as UiScreenCondition).condition })
 
     fun createColorCondition(context: Context, position: PointF, @ColorInt color: Int, completed: (ScreenCondition.Color) -> Unit) {
          viewModelScope.launch(Dispatchers.IO) {

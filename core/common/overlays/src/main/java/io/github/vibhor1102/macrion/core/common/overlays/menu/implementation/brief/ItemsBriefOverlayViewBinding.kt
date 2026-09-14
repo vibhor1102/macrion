@@ -629,7 +629,6 @@ private fun BriefItemsCarousel(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(horizontal = horizontalPadding),
                 pageSpacing = 8.dp,
-                key = { page -> items[page].id.toString() },
             ) { page ->
                 val brief = items[page]
                 BriefItemContainer(
@@ -649,7 +648,6 @@ private fun BriefItemsCarousel(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(vertical = verticalPadding),
                 pageSpacing = 8.dp,
-                key = { page -> items[page].id.toString() },
             ) { page ->
                 val brief = items[page]
                 BriefItemContainer(

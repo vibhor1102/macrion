@@ -9,6 +9,7 @@
 package io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.reorder
 
 import android.view.ViewGroup
+import androidx.activity.compose.BackHandler
 import androidx.annotation.StringRes
 import androidx.annotation.StyleRes
 import androidx.compose.animation.animateColorAsState
@@ -41,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import io.github.vibhor1102.macrion.core.common.overlays.R
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayDialog
 import io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.brief.ItemBrief
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionMessageAlertDialog
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.core.ui.compose.OverlayDialogShape
 import io.github.vibhor1102.macrion.core.ui.R as UiR
@@ -59,7 +61,7 @@ class ItemsReorderDialog(
     @StringRes private val titleRes: Int,
     private val itemsFlow: Flow<List<ItemBrief>>,
     private val itemDescriptor: (ItemBrief) -> ReorderItemDescriptor,
-    private val onReorder: (from: Int, to: Int) -> Unit,
+    private val onSaveOrder: (List<ItemBrief>) -> Unit,
 ) : OverlayDialog(theme) {
 
     override fun onCreateView(): ViewGroup {
@@ -76,22 +78,56 @@ class ItemsReorderDialog(
     @Composable
     private fun ReorderDialogContent() {
         val sourceItems by itemsFlow.collectAsState(initial = null)
+        var initialItems by remember { mutableStateOf<List<ItemBrief>?>(null) }
         var displayedItems by remember { mutableStateOf<List<ItemBrief>>(emptyList()) }
-        var isReordering by remember { mutableStateOf(false) }
-        var dragStartIndex by remember { mutableIntStateOf(-1) }
+        var showDiscardDialog by remember { mutableStateOf(false) }
         val haptic = LocalHapticFeedback.current
 
         LaunchedEffect(sourceItems) {
-            if (!isReordering && sourceItems != null) {
+            if (initialItems == null && sourceItems != null) {
+                initialItems = sourceItems
                 displayedItems = sourceItems.orEmpty()
             }
         }
 
-        val currentItems = if (displayedItems.isNotEmpty() || isReordering) displayedItems else sourceItems.orEmpty()
+        val hasUnsavedChanges = remember(displayedItems, initialItems) {
+            initialItems != null && displayedItems.map { it.id } != initialItems!!.map { it.id }
+        }
+
+        val onDismissAttempt = {
+            if (hasUnsavedChanges) {
+                showDiscardDialog = true
+            } else {
+                back()
+            }
+        }
+
+        val onSave = {
+            onSaveOrder(displayedItems)
+            back()
+        }
+
+        BackHandler(enabled = hasUnsavedChanges, onBack = onDismissAttempt)
+
+        if (showDiscardDialog) {
+            MacrionMessageAlertDialog(
+                title = stringResource(R.string.dialog_reorder_discard_title),
+                message = stringResource(R.string.dialog_reorder_discard_message),
+                confirmLabel = R.string.dialog_reorder_discard_confirm,
+                cancelLabel = android.R.string.cancel,
+                onConfirm = {
+                    showDiscardDialog = false
+                    back()
+                },
+                onDismissRequest = {
+                    showDiscardDialog = false
+                },
+            )
+        }
 
         val listState = rememberLazyListState()
         val reorderState = rememberReorderableLazyListState(listState) { from, to ->
-            displayedItems = currentItems.toMutableList().apply {
+            displayedItems = displayedItems.toMutableList().apply {
                 add(to.index, removeAt(from.index))
             }
         }
@@ -115,7 +151,7 @@ class ItemsReorderDialog(
                             .padding(horizontal = 8.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        IconButton(onClick = ::back) {
+                        IconButton(onClick = onDismissAttempt) {
                             Icon(
                                 painter = painterResource(UiR.drawable.ic_cancel),
                                 contentDescription = null,
@@ -131,12 +167,21 @@ class ItemsReorderDialog(
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                         )
+                        FilledIconButton(
+                            onClick = onSave,
+                            enabled = hasUnsavedChanges,
+                        ) {
+                            Icon(
+                                painter = painterResource(UiR.drawable.ic_save_filled),
+                                contentDescription = null,
+                            )
+                        }
                     }
                 }
                 Box(Modifier.fillMaxWidth().weight(1f)) {
                     when {
                         sourceItems == null -> CircularProgressIndicator(Modifier.align(Alignment.Center))
-                        currentItems.isEmpty() -> {
+                        displayedItems.isEmpty() -> {
                             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                                 Text(
                                     text = stringResource(R.string.dialog_reorder_empty),
@@ -148,9 +193,9 @@ class ItemsReorderDialog(
                         else -> {
                             LazyColumn(Modifier.fillMaxSize(), state = listState) {
                                 itemsIndexed(
-                                    items = currentItems,
+                                    items = displayedItems,
                                     key = { _, item -> item.id.toString() },
-                                ) { index, item ->
+                                ) { _, item ->
                                     val descriptor = itemDescriptor(item)
                                     ReorderableItem(reorderState, key = item.id.toString()) { isBeingDragged ->
                                         Column {
@@ -162,17 +207,6 @@ class ItemsReorderDialog(
                                                 reorderHandleModifier = Modifier.draggableHandle(
                                                     onDragStarted = {
                                                         haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
-                                                        dragStartIndex = index
-                                                        isReordering = true
-                                                    },
-                                                    onDragStopped = {
-                                                        val start = dragStartIndex
-                                                        val end = currentItems.indexOfFirst { it.id == item.id }
-                                                        if (start >= 0 && end >= 0 && start != end) {
-                                                            onReorder(start, end)
-                                                        }
-                                                        dragStartIndex = -1
-                                                        isReordering = false
                                                     },
                                                     dragGestureDetector = DualDragGestureDetector,
                                                 ),

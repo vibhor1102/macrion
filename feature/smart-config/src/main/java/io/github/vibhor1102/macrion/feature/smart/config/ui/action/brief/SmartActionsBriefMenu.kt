@@ -193,7 +193,7 @@ class SmartActionsBriefMenu(initialItemIndex: Int) : ItemBriefMenu(
                         },
                     )
                 },
-                onReorder = { from, to -> viewModel.moveAction(from, to) },
+                onSaveOrder = { viewModel.updateActionOrder(it) },
             ),
             hideCurrent = true,
         )

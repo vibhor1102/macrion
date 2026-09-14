@@ -168,7 +168,7 @@ class DumbScenarioBriefMenu(
                         },
                     )
                 },
-                onReorder = { from, to -> viewModel.moveDumbAction(from, to) },
+                onSaveOrder = { viewModel.updateDumbActionsOrder(it) },
             ),
             hideCurrent = true,
         )

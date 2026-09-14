@@ -159,6 +159,8 @@ abstract class ItemBriefMenu(
             previousItems.isEmpty() -> initialItemIndex.coerceIn(0, actions.lastIndex)
             actions.size > previousItems.size -> actions.indexOfLast { item -> previousItems.none { it.id == item.id } }
                 .takeIf { it >= 0 } ?: focusedItemIndex.coerceIn(0, actions.lastIndex)
+            actions.size == previousItems.size && actions.map { it.id } != previousItems.map { it.id } ->
+                focusedItemIndex.coerceIn(0, actions.lastIndex)
             else -> actions.indexOfFirst { it.id == previouslyFocusedId }
                 .takeIf { it >= 0 } ?: focusedItemIndex.coerceIn(0, actions.lastIndex)
         }

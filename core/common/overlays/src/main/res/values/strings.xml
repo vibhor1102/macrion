@@ -20,6 +20,9 @@
     <string name="dialog_jump_to_title">Jump to</string>
     <string name="dialog_move_to_position_label">Index</string>
     <string name="dialog_reorder_empty">No items</string>
+    <string name="dialog_reorder_discard_title">Discard changes?</string>
+    <string name="dialog_reorder_discard_message">You have unsaved changes. Are you sure you want to discard them?</string>
+    <string name="dialog_reorder_discard_confirm">Discard</string>
     <string name="overlay_instructions_gesture_record">Recording gesture…</string>
 
     <string name="item_brief_items_count_port" translatable="false">%1$d/%2$d</string>
