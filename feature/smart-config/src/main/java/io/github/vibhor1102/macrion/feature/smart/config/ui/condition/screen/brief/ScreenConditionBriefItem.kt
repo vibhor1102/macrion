@@ -25,7 +25,7 @@ import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.conditi
 @Composable
 internal fun ScreenConditionBriefItem(details: UiScreenCondition, orientation: Int, onClick: () -> Unit) {
     val portrait = orientation == Configuration.ORIENTATION_PORTRAIT
-    Box(Modifier.fillMaxSize().then(if (portrait) Modifier.padding(horizontal = 16.dp) else Modifier.padding(vertical = 16.dp)), if (portrait) Alignment.BottomCenter else Alignment.CenterStart) {
+    Box(Modifier.fillMaxSize(), if (portrait) Alignment.BottomCenter else Alignment.CenterStart) {
         ElevatedCard(onClick = onClick, modifier = if (portrait) Modifier.fillMaxWidth().height(80.dp) else Modifier.width(124.dp).fillMaxHeight()) {
             Box(Modifier.fillMaxSize()) {
                 if (portrait) ConditionPortrait(details) else ConditionLandscape(details)

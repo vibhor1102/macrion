@@ -31,6 +31,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
@@ -101,24 +102,37 @@ class ItemsReorderDialog(
             color = MaterialTheme.colorScheme.surfaceContainerLowest,
         ) {
             Column {
-                Row(
+                Surface(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 8.dp, vertical = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
+                        .height(dimensionResource(UiR.dimen.dialog_top_bar_height)),
+                    color = MaterialTheme.colorScheme.surfaceContainerLow,
+                    shadowElevation = 3.dp,
                 ) {
-                    IconButton(onClick = ::back) {
-                        Icon(painterResource(UiR.drawable.ic_cancel), contentDescription = null)
-                    }
-                    Text(
-                        text = stringResource(titleRes),
+                    Row(
                         modifier = Modifier
-                            .weight(1f)
+                            .fillMaxSize()
                             .padding(horizontal = 8.dp),
-                        style = MaterialTheme.typography.titleLarge,
-                    )
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        IconButton(onClick = ::back) {
+                            Icon(
+                                painter = painterResource(UiR.drawable.ic_cancel),
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurface,
+                            )
+                        }
+                        Text(
+                            text = stringResource(titleRes),
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(horizontal = 8.dp),
+                            style = MaterialTheme.typography.titleLarge,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
                 }
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                 Box(Modifier.fillMaxWidth().weight(1f)) {
                     when {
                         sourceItems == null -> CircularProgressIndicator(Modifier.align(Alignment.Center))
@@ -261,7 +275,7 @@ private fun DragHandle(
         contentAlignment = Alignment.Center,
     ) {
         Icon(
-            painter = painterResource(UiR.drawable.ic_swap_vert),
+            painter = painterResource(UiR.drawable.ic_drag_indicator),
             contentDescription = null,
             modifier = Modifier.size(24.dp),
             tint = handleTint,

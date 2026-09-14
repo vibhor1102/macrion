@@ -35,6 +35,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.vibhor1102.macrion.feature.dumb.config.R
+import io.github.vibhor1102.macrion.core.ui.R as UiR
 import io.github.vibhor1102.macrion.feature.dumb.config.ui.actions.copy.DumbActionDetails
 
 import androidx.compose.animation.animateColorAsState
@@ -95,7 +96,7 @@ internal fun DumbActionListItem(
                 contentAlignment = Alignment.Center,
             ) {
                 androidx.compose.material3.Icon(
-                    painter = painterResource(R.drawable.ic_reorder),
+                    painter = painterResource(UiR.drawable.ic_drag_indicator),
                     contentDescription = stringResource(R.string.content_desc_drag_and_drop),
                     modifier = Modifier.size(24.dp),
                     tint = animatedHandleTint,

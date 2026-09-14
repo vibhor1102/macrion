@@ -20,7 +20,7 @@ import io.github.vibhor1102.macrion.feature.dumb.config.ui.actions.copy.DumbActi
 internal fun DumbActionBriefItem(details: DumbActionDetails, orientation: Int, onClick: () -> Unit) {
     val portrait = orientation == Configuration.ORIENTATION_PORTRAIT
     Box(
-        modifier = Modifier.fillMaxSize().then(if (portrait) Modifier.padding(horizontal = 16.dp) else Modifier.padding(vertical = 12.dp)),
+        modifier = Modifier.fillMaxSize(),
         contentAlignment = if (portrait) Alignment.BottomCenter else Alignment.CenterStart,
     ) {
         ElevatedCard(

@@ -43,6 +43,7 @@ import androidx.compose.material3.ripple
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import io.github.vibhor1102.macrion.core.ui.R as UiR
 
 import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayDialog
@@ -220,7 +221,7 @@ private fun ActionRow(
                 )
                 .then(reorderHandleModifier),
             contentAlignment = Alignment.Center,
-        ) { Icon(painterResource(R.drawable.ic_reorder), null, Modifier.size(24.dp), tint = animatedHandleTint) }
+        ) { Icon(painterResource(UiR.drawable.ic_drag_indicator), null, Modifier.size(24.dp), tint = animatedHandleTint) }
         Column(Modifier.weight(1f).padding(start = 8.dp, end = 12.dp)) {
             Text(details.name, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
             Text(details.description, style = MaterialTheme.typography.bodySmall, fontStyle = FontStyle.Italic, maxLines = 1, overflow = TextOverflow.Ellipsis)

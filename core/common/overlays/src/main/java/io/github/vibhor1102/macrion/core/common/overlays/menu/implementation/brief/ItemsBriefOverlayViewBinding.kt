@@ -18,7 +18,6 @@ package io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.br
 
 import android.content.res.Configuration
 import android.view.LayoutInflater
-import android.view.ViewConfiguration
 import kotlinx.coroutines.delay
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.spring
@@ -28,20 +27,15 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.animation.rememberSplineBasedDecay
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.snapping.SnapLayoutInfoProvider
-import androidx.compose.foundation.gestures.snapping.snapFlingBehavior
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.VerticalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.FilledTonalIconButton
@@ -610,118 +604,64 @@ private fun BriefItemsCarousel(
     firstItemModifier: Modifier,
     onInteraction: () -> Unit,
 ) {
-    val listState = rememberLazyListState()
-    var hasInitiallyScrolled by remember { mutableStateOf(false) }
-
-    LaunchedEffect(items) {
-        if (items.isNotEmpty() && !hasInitiallyScrolled) {
-            listState.scrollToItem(requestedIndex.coerceIn(0, items.lastIndex))
-            hasInitiallyScrolled = true
-        }
+    val initialPage = remember(items.isNotEmpty()) {
+        if (items.isEmpty()) 0 else requestedIndex.coerceIn(0, items.lastIndex)
     }
+    val pagerState = rememberPagerState(initialPage = initialPage) { items.size }
+
     LaunchedEffect(requestedIndex) {
-        if (items.isNotEmpty() && hasInitiallyScrolled && listState.firstVisibleItemIndex != requestedIndex) {
-            listState.animateScrollToItem(requestedIndex.coerceIn(0, items.lastIndex))
+        if (items.isNotEmpty() && pagerState.currentPage != requestedIndex) {
+            val target = requestedIndex.coerceIn(0, items.lastIndex)
+            pagerState.animateScrollToPage(target)
         }
     }
-    LaunchedEffect(listState, items.size) {
-        snapshotFlow { listState.focusedItemIndex() }
-            .collect { index -> if (index != null) onFocusedItemChanged(index) }
+    LaunchedEffect(pagerState) {
+        snapshotFlow { pagerState.currentPage }
+            .collect { page -> onFocusedItemChanged(page) }
     }
 
-    val flingBehavior = rememberBriefCarouselFlingBehavior(listState)
     BoxWithConstraints(modifier = modifier) {
         if (orientation == Configuration.ORIENTATION_PORTRAIT) {
             val cardFraction = 0.84f
             val horizontalPadding = (maxWidth * (1f - cardFraction)) / 2
-            LazyRow(
+            HorizontalPager(
+                state = pagerState,
                 modifier = Modifier.fillMaxSize(),
-                state = listState,
-                flingBehavior = flingBehavior,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
                 contentPadding = PaddingValues(horizontal = horizontalPadding),
-            ) {
-                itemsIndexed(items, key = { _, brief -> brief.id.toString() }) { index, brief ->
-                    BriefItemContainer(
-                        modifier = Modifier
-                            .fillParentMaxWidth(cardFraction)
-                            .fillMaxHeight(),
-                        firstItemModifier = firstItemModifier,
-                        isFirstItem = index == 0,
-                        onInteraction = onInteraction,
-                    ) {
-                        itemContent(brief, orientation) { onItemClicked(index, brief) }
-                    }
+                pageSpacing = 8.dp,
+                key = { page -> items[page].id.toString() },
+            ) { page ->
+                val brief = items[page]
+                BriefItemContainer(
+                    modifier = Modifier.fillMaxSize(),
+                    firstItemModifier = firstItemModifier,
+                    isFirstItem = page == 0,
+                    onInteraction = onInteraction,
+                ) {
+                    itemContent(brief, orientation) { onItemClicked(page, brief) }
                 }
             }
         } else {
             val cardFraction = 0.72f
             val verticalPadding = (maxHeight * (1f - cardFraction)) / 2
-            LazyColumn(
+            VerticalPager(
+                state = pagerState,
                 modifier = Modifier.fillMaxSize(),
-                state = listState,
-                flingBehavior = flingBehavior,
-                verticalArrangement = Arrangement.spacedBy(8.dp),
                 contentPadding = PaddingValues(vertical = verticalPadding),
-            ) {
-                itemsIndexed(items, key = { _, brief -> brief.id.toString() }) { index, brief ->
-                    BriefItemContainer(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .fillParentMaxHeight(cardFraction),
-                        firstItemModifier = firstItemModifier,
-                        isFirstItem = index == 0,
-                        onInteraction = onInteraction,
-                    ) {
-                        itemContent(brief, orientation) { onItemClicked(index, brief) }
-                    }
+                pageSpacing = 8.dp,
+                key = { page -> items[page].id.toString() },
+            ) { page ->
+                val brief = items[page]
+                BriefItemContainer(
+                    modifier = Modifier.fillMaxSize(),
+                    firstItemModifier = firstItemModifier,
+                    isFirstItem = page == 0,
+                    onInteraction = onInteraction,
+                ) {
+                    itemContent(brief, orientation) { onItemClicked(page, brief) }
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun rememberBriefCarouselFlingBehavior(listState: LazyListState): androidx.compose.foundation.gestures.FlingBehavior {
-    val context = LocalContext.current
-    val decayAnimationSpec = rememberSplineBasedDecay<Float>()
-    val maximumFlingVelocity = remember(context) {
-        ViewConfiguration.get(context).scaledMaximumFlingVelocity.toFloat()
-    }
-    val defaultSnapProvider = remember(listState) { SnapLayoutInfoProvider(listState) }
-    val tunedSnapProvider = remember(listState, defaultSnapProvider, maximumFlingVelocity) {
-        object : SnapLayoutInfoProvider {
-            override fun calculateApproachOffset(velocity: Float, decayOffset: Float): Float {
-                val defaultApproach = defaultSnapProvider.calculateApproachOffset(velocity, decayOffset)
-                val pageSize = listState.layoutInfo.visibleItemsInfo.firstOrNull()?.size ?: return defaultApproach
-                if (pageSize == 0 || maximumFlingVelocity == 0f) return defaultApproach
-
-                // A gently accelerating quadratic keeps the response continuous and predictable:
-                // its slope changes linearly and its second derivative is constant. There are no
-                // velocity thresholds or page-count caps.
-                val normalizedVelocity = kotlin.math.abs(velocity) / maximumFlingVelocity
-                val additionalPages =
-                    FLING_LINEAR_FACTOR * normalizedVelocity +
-                        FLING_QUADRATIC_FACTOR * normalizedVelocity * normalizedVelocity
-                val desiredApproach = additionalPages * pageSize
-
-                return kotlin.math.min(desiredApproach, kotlin.math.abs(defaultApproach)) *
-                    kotlin.math.sign(decayOffset)
-            }
-
-            override fun calculateSnapOffset(velocity: Float): Float =
-                defaultSnapProvider.calculateSnapOffset(velocity)
-        }
-    }
-    return remember(tunedSnapProvider, decayAnimationSpec) {
-        snapFlingBehavior(
-            snapLayoutInfoProvider = tunedSnapProvider,
-            decayAnimationSpec = decayAnimationSpec,
-            snapAnimationSpec = spring(
-                dampingRatio = EXPRESSIVE_SNAP_DAMPING_RATIO,
-                stiffness = EXPRESSIVE_SNAP_STIFFNESS,
-            ),
-        )
     }
 }
 
@@ -748,20 +688,6 @@ private fun BriefItemContainer(
     }
 }
 
-private fun LazyListState.focusedItemIndex(): Int? {
-    val visibleItems = layoutInfo.visibleItemsInfo
-    if (visibleItems.isEmpty()) return null
-
-    val viewportCenter = (layoutInfo.viewportStartOffset + layoutInfo.viewportEndOffset) / 2
-    return visibleItems.minBy { item ->
-        kotlin.math.abs(item.offset + item.size / 2 - viewportCenter)
-    }.index
-}
-
-private const val FLING_LINEAR_FACTOR = 2f
-private const val FLING_QUADRATIC_FACTOR = 2f
-private const val EXPRESSIVE_SNAP_DAMPING_RATIO = 0.8f
-private const val EXPRESSIVE_SNAP_STIFFNESS = 380f
 private val PORTRAIT_FADE_HEIGHT = 180.dp
 private val LANDSCAPE_FADE_WIDTH = 252.dp
 

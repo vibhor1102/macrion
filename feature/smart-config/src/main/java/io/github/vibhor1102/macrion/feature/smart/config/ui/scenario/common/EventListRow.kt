@@ -43,6 +43,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.vibhor1102.macrion.feature.smart.config.R
+import io.github.vibhor1102.macrion.core.ui.R as UiR
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
@@ -150,7 +151,7 @@ private fun DragHandle(
         contentAlignment = Alignment.Center,
     ) {
         Icon(
-            painter = painterResource(R.drawable.ic_reorder),
+            painter = painterResource(UiR.drawable.ic_drag_indicator),
             contentDescription = null,
             modifier = Modifier.size(24.dp),
             tint = handleTint,
