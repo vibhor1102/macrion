@@ -102,6 +102,10 @@ abstract class OverlayMenu(
 
     private val animations: OverlayMenuAnimations = OverlayMenuAnimations()
 
+    /** Tracks whether an orientation change occurred while this overlay menu was not started/visible. */
+    private var pendingOrientationChange: Boolean = false
+    private var lastAppliedOrientation: Int = Configuration.ORIENTATION_UNDEFINED
+
     internal var resumeOnceShown: Boolean = false
         private set
     internal var destroyOnceHidden: Boolean = false
@@ -215,7 +219,8 @@ abstract class OverlayMenu(
         menuLayoutParams.gravity = Gravity.TOP or Gravity.START
         overlayLayoutParams.gravity = Gravity.TOP or Gravity.START
         positionDataSource.addOnLockedPositionChangedListener(onLockedPositionChangedListener)
-        loadMenuPosition(displayConfigManager.displayConfig.orientation)
+        lastAppliedOrientation = displayConfigManager.displayConfig.orientation
+        loadMenuPosition(lastAppliedOrientation)
         moveButton?.isVisible = !positionDataSource.isPositionLocked()
 
         // Add the overlay, if any. It needs to be below the menu or user won't be able to click on the menu.
@@ -276,6 +281,14 @@ abstract class OverlayMenu(
         if (!menuLayout.isAttachedToWindow) {
             menuLayout.post(::start)
             return
+        }
+
+        val currentOrientation = displayConfigManager.displayConfig.orientation
+        if (pendingOrientationChange || (lastAppliedOrientation != Configuration.ORIENTATION_UNDEFINED && lastAppliedOrientation != currentOrientation)) {
+            pendingOrientationChange = false
+            lastAppliedOrientation = currentOrientation
+            loadMenuPosition(currentOrientation)
+            applyOrientationChangeToViews()
         }
 
         super.start()
@@ -377,27 +390,38 @@ abstract class OverlayMenu(
      * orientation.
      */
     override fun onOrientationChanged() {
-        saveMenuPosition(
-            if (displayConfigManager.displayConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) Configuration.ORIENTATION_PORTRAIT
+        val currentOrientation = displayConfigManager.displayConfig.orientation
+        val previousOrientation =
+            if (currentOrientation == Configuration.ORIENTATION_LANDSCAPE) Configuration.ORIENTATION_PORTRAIT
             else Configuration.ORIENTATION_LANDSCAPE
-        )
-        loadMenuPosition(displayConfigManager.displayConfig.orientation)
+
+        saveMenuPosition(previousOrientation)
+        loadMenuPosition(currentOrientation)
 
         if (lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
-            windowManager.safeUpdateViewLayout(menuLayout, menuLayoutParams)
-
-            val overlayView = screenOverlayView ?: return
-            if (recreateOverlayViewOnRotation) {
-                recreateOverlayViewForRotation(overlayView)
-                return
-            }
-
-            displayConfigManager.displayConfig.sizePx.let { size ->
-                overlayLayoutParams.width = size.x
-                overlayLayoutParams.height = size.y
-            }
-            windowManager.safeUpdateViewLayout(overlayView, overlayLayoutParams)
+            applyOrientationChangeToViews()
+            lastAppliedOrientation = currentOrientation
+            pendingOrientationChange = false
+        } else {
+            Log.d(TAG, "Overlay menu ${hashCode()} is hidden (lifecycle=${lifecycle.currentState}), deferring orientation change")
+            pendingOrientationChange = true
         }
+    }
+
+    private fun applyOrientationChangeToViews() {
+        windowManager.safeUpdateViewLayout(menuLayout, menuLayoutParams)
+
+        val overlayView = screenOverlayView ?: return
+        if (recreateOverlayViewOnRotation) {
+            recreateOverlayViewForRotation(overlayView)
+            return
+        }
+
+        displayConfigManager.displayConfig.sizePx.let { size ->
+            overlayLayoutParams.width = size.x
+            overlayLayoutParams.height = size.y
+        }
+        windowManager.safeUpdateViewLayout(overlayView, overlayLayoutParams)
     }
 
     /**
@@ -408,16 +432,16 @@ abstract class OverlayMenu(
      * @param oldOverlayView the overlay view before the rotation.
      */
     private fun recreateOverlayViewForRotation(oldOverlayView: View) {
+        val previousState = lifecycle.currentState
+        lifecycleRegistry.currentState = Lifecycle.State.CREATED
+
         screenOverlayView = onCreateOverlayView()?.apply {
-            visibility = if (isUserOverlayVisible) View.VISIBLE else View.GONE
+            visibility = if (previousState.isAtLeast(Lifecycle.State.STARTED) && isUserOverlayVisible) View.VISIBLE else View.GONE
         }
         screenOverlayView?.installOverlayViewTreeOwners()
         overlayLayoutParams = onCreateOverlayViewLayoutParams().apply {
             gravity = Gravity.TOP or Gravity.START
         }
-
-        val previousState = lifecycle.currentState
-        lifecycleRegistry.currentState = Lifecycle.State.CREATED
 
         windowManager.apply {
             safeRemoveView(oldOverlayView)
@@ -437,7 +461,13 @@ abstract class OverlayMenu(
 
         lifecycleRegistry.currentState = previousState
 
-        setOverlayViewVisibility(isUserOverlayVisible)
+        if (previousState.isAtLeast(Lifecycle.State.STARTED)) {
+            setOverlayViewVisibility(isUserOverlayVisible)
+        } else {
+            menuLayout.visibility = View.GONE
+            menuBackground.visibility = View.GONE
+            screenOverlayView?.visibility = View.GONE
+        }
     }
 
     /**

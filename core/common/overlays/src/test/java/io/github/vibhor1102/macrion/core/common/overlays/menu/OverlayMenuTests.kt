@@ -376,6 +376,40 @@ class OverlayMenuTests {
     }
 
     @Test
+    fun changeOrientation_whenStopped_isDeferredUntilStart() {
+        val testController = OverlayMenuTestImpl(overlayMenuControllerImpl, recreateOverlayViewOnRotation = true)
+        val overlayView1 = mock(View::class.java)
+        val overlayView2 = mock(View::class.java)
+        mockViewsFromImpl(mock(ComposeOverlayMenuHost::class.java), overlayView1)
+        mockWhen(overlayMenuControllerImpl.onCreateOverlayView())
+            .thenReturn(overlayView1)
+            .thenReturn(overlayView2)
+
+        testController.create(mockContext)
+
+        // Simulate display rotation to landscape
+        val landscapeDisplayConfig = DisplayConfig(
+            sizePx = Point(TEST_DATA_DISPLAY_HEIGHT, TEST_DATA_DISPLAY_WIDTH),
+            orientation = 1,
+            safeInsetTopPx = 0,
+            roundedCorners = emptyMap(),
+        )
+        mockWhen(mockDisplayConfigManager.displayConfig).thenReturn(landscapeDisplayConfig)
+
+        // Rotation occurs while stopped in background
+        testController.changeOrientation()
+
+        // overlayView2 should NOT be created yet while stopped
+        verify(overlayMenuControllerImpl, times(1)).onCreateOverlayView()
+
+        // Now restarted/brought back to foreground
+        testController.start()
+
+        // overlayView2 should now be created upon start()
+        verify(overlayMenuControllerImpl, times(2)).onCreateOverlayView()
+    }
+
+    @Test
     fun destroy_removeView() {
         overlayMenuController = OverlayMenuTestImpl(overlayMenuControllerImpl)
         val menuView = mock(ComposeOverlayMenuHost::class.java)

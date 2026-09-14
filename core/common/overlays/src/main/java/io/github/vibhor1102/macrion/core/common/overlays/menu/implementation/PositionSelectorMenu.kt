@@ -37,11 +37,12 @@ class PositionSelectorMenu(
     private val itemBriefDescription: ItemBriefDescription,
     private val onConfirm: (ItemBriefDescription) -> Unit,
     private val onDismiss: (() -> Unit)? = null,
-) : OverlayMenu() {
+) : OverlayMenu(recreateOverlayViewOnRotation = true) {
 
     /** The view binding for the position selector. */
     private lateinit var selectorViews: PositionSelectorViews
     private lateinit var confirmButton: View
+    private var currentDescription: ItemBriefDescription = itemBriefDescription
 
     private var confirmListener: (() -> Unit)? = null
     private var cancelListener: (() -> Unit)? = null
@@ -49,11 +50,6 @@ class PositionSelectorMenu(
     override fun tutorialMonitoringTag(): String = tutorialMonitoringTag
 
     override fun onCreateMenu(layoutInflater: LayoutInflater): ViewGroup {
-        selectorViews = PositionSelectorViews(
-            context = context,
-            displayConfig = displayConfigManager.displayConfig,
-        )
-
         return createOverlayMenuLayout(
             context,
             listOf(
@@ -66,21 +62,26 @@ class PositionSelectorMenu(
     }
 
     override fun onCreateOverlayView(): View {
+        if (this::selectorViews.isInitialized) {
+            selectorViews.dispose()
+        }
+        selectorViews = PositionSelectorViews(
+            context = context,
+            displayConfig = displayConfigManager.displayConfig,
+        )
+        setActionDescription(currentDescription)
         return selectorViews.root
     }
 
-    override fun onStart() {
-        super.onStart()
-        setActionDescription(itemBriefDescription)
-    }
-
     override fun onDestroy() {
-        selectorViews.dispose()
+        if (this::selectorViews.isInitialized) {
+            selectorViews.dispose()
+        }
         super.onDestroy()
     }
 
     override fun onScreenOverlayVisibilityChanged(isVisible: Boolean) {
-        if (isVisible) selectorViews.showOrResetInstructionsTimer()
+        if (isVisible && this::selectorViews.isInitialized) selectorViews.showOrResetInstructionsTimer()
     }
 
     override fun onMenuItemClicked(viewId: Int) {
@@ -100,6 +101,7 @@ class PositionSelectorMenu(
     }
 
     private fun setClickDescription(description: ClickDescription) {
+        currentDescription = description
         selectorViews.setInstruction(R.string.toast_configure_single_click)
         selectorViews.setDescription(description)
         selectorViews.onTouchListener = { position ->
@@ -119,6 +121,7 @@ class PositionSelectorMenu(
     }
 
     private fun toSelectSwipeFromState(description: SwipeDescription) {
+        currentDescription = description
         selectorViews.setInstruction(R.string.toast_configure_swipe_from)
         selectorViews.setDescription(description)
         selectorViews.onTouchListener = { position ->
@@ -135,6 +138,7 @@ class PositionSelectorMenu(
     }
 
     private fun toSelectSwipeToState(description: SwipeDescription) {
+        currentDescription = description
         selectorViews.setInstruction(R.string.toast_configure_swipe_to)
         selectorViews.setDescription(description)
         selectorViews.onTouchListener = { position ->
