@@ -40,6 +40,8 @@ import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.con
 import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.sort.DebugReportSortOption
 import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.sort.DebugReportSortMenu
 import io.github.vibhor1102.macrion.core.domain.model.condition.ScreenCondition
+import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.preview.ConditionPreviewData
+import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.preview.ConditionPreviewDialog
 import kotlinx.coroutines.Job
 
 class ConditionPerformanceContent(appContext: Context) : NavBarDialogContent(appContext) {
@@ -64,9 +66,10 @@ class ConditionPerformanceContent(appContext: Context) : NavBarDialogContent(app
 
     @Composable private fun Content() {
         val state = viewModel.uiState.collectAsStateWithLifecycle().value
-        LaunchedEffect(state) {
+        var previewData by remember { mutableStateOf<ConditionPreviewData?>(null) }
+        LaunchedEffect(state, previewData) {
             dialogController.floatingActionButtons.root.visibility =
-                if (state is ConditionPerformanceUiState.Available) View.VISIBLE else View.GONE
+                if (state is ConditionPerformanceUiState.Available && previewData == null) View.VISIBLE else View.GONE
         }
         Box(Modifier.fillMaxSize()) {
             when (state) {
@@ -77,6 +80,9 @@ class ConditionPerformanceContent(appContext: Context) : NavBarDialogContent(app
                 is ConditionPerformanceUiState.Available -> ConditionPerformanceList(
                     entries = state.entries,
                     bitmapProvider = viewModel::getConditionBitmap,
+                    onThumbnailClick = { entry, bitmap, bitmapFailed ->
+                        previewData = ConditionPreviewData(entry.condition, bitmap, bitmapFailed)
+                    },
                 )
             }
             Box(Modifier.align(Alignment.BottomEnd).padding(end = 16.dp, bottom = 16.dp)) {
@@ -99,6 +105,13 @@ class ConditionPerformanceContent(appContext: Context) : NavBarDialogContent(app
                     onSelected = viewModel::setSort,
                 )
             }
+            previewData?.let { data ->
+                ConditionPreviewDialog(
+                    data = data,
+                    onDismiss = { previewData = null },
+                    bitmapProvider = viewModel::getConditionBitmap,
+                )
+            }
         }
     }
 
@@ -111,6 +124,7 @@ class ConditionPerformanceContent(appContext: Context) : NavBarDialogContent(app
 private fun ConditionPerformanceList(
     entries: List<ConditionPerformanceEntry>,
     bitmapProvider: (ScreenCondition.Image, (Bitmap?) -> Unit) -> Job,
+    onThumbnailClick: (ConditionPerformanceEntry, Bitmap?, Boolean) -> Unit,
 ) {
     val listState = rememberLazyListState()
     Box(Modifier.fillMaxSize()) {
@@ -120,7 +134,7 @@ private fun ConditionPerformanceList(
             contentPadding = PaddingValues(bottom = 88.dp),
         ) {
             items(entries, key = { it.condition.id.databaseId }) { entry ->
-                ConditionPerformanceItem(entry, bitmapProvider)
+                ConditionPerformanceItem(entry, bitmapProvider, onThumbnailClick)
             }
             item { ConditionPerformanceFooter() }
         }
@@ -138,6 +152,7 @@ private fun ConditionPerformanceList(
 private fun ConditionPerformanceItem(
     entry: ConditionPerformanceEntry,
     bitmapProvider: (ScreenCondition.Image, (Bitmap?) -> Unit) -> Job,
+    onThumbnailClick: (ConditionPerformanceEntry, Bitmap?, Boolean) -> Unit,
 ) {
     val context = LocalContext.current
     var bitmap by remember(entry.condition.id) { mutableStateOf<Bitmap?>(null) }
@@ -157,7 +172,7 @@ private fun ConditionPerformanceItem(
         context.getString(R.string.item_condition_performance_average, value)
     } ?: context.getString(R.string.item_condition_performance_average_unavailable)
     ConditionPerformanceRow(
-        ConditionPerformanceRowState(
+        state = ConditionPerformanceRowState(
             entry = entry,
             totalTime = context.getString(
                 R.string.item_condition_performance_total_time,
@@ -181,5 +196,6 @@ private fun ConditionPerformanceItem(
             bitmap = bitmap,
             bitmapFailed = bitmapFailed,
         ),
+        onThumbnailClick = { onThumbnailClick(entry, bitmap, bitmapFailed) },
     )
 }

@@ -27,6 +27,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.foundation.clickable
 import androidx.compose.ui.unit.dp
 import io.github.vibhor1102.macrion.core.domain.model.condition.ScreenCondition
 import io.github.vibhor1102.macrion.feature.smart.debugging.R
@@ -39,7 +40,10 @@ internal data class ScreenConditionResultState(
 )
 
 @Composable
-internal fun ScreenConditionResultRow(state: ScreenConditionResultState) {
+internal fun ScreenConditionResultRow(
+    state: ScreenConditionResultState,
+    onThumbnailClick: (() -> Unit)? = null,
+) {
     val item = state.item
     val primary = MaterialTheme.colorScheme.onSurface
     val secondary = MaterialTheme.colorScheme.onSurfaceVariant
@@ -49,7 +53,18 @@ internal fun ScreenConditionResultRow(state: ScreenConditionResultState) {
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Box(
-                Modifier.size(100.dp).clipToBounds().background(MaterialTheme.colorScheme.surfaceVariant),
+                Modifier
+                    .size(100.dp)
+                    .clipToBounds()
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                    .then(
+                        if (onThumbnailClick != null) {
+                            Modifier.clickable(
+                                onClickLabel = stringResource(R.string.content_desc_condition_preview),
+                                onClick = onThumbnailClick,
+                            )
+                        } else Modifier,
+                    ),
                 contentAlignment = Alignment.Center,
             ) {
                 ScreenConditionPreview(state)

@@ -40,6 +40,8 @@ import io.github.vibhor1102.macrion.core.domain.model.condition.TriggerCondition
 import io.github.vibhor1102.macrion.feature.smart.debugging.R
 import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.conditions.ConditionPerformanceEntry
 
+import androidx.compose.foundation.clickable
+
 internal data class ConditionPerformanceRowState(
     val entry: ConditionPerformanceEntry,
     val totalTime: String,
@@ -51,7 +53,10 @@ internal data class ConditionPerformanceRowState(
 )
 
 @Composable
-internal fun ConditionPerformanceRow(state: ConditionPerformanceRowState) {
+internal fun ConditionPerformanceRow(
+    state: ConditionPerformanceRowState,
+    onThumbnailClick: (() -> Unit)? = null,
+) {
     val primary = MaterialTheme.colorScheme.onSurface
     val secondary = MaterialTheme.colorScheme.onSurfaceVariant
     ElevatedCard(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
@@ -60,7 +65,18 @@ internal fun ConditionPerformanceRow(state: ConditionPerformanceRowState) {
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Box(
-                Modifier.size(72.dp).clipToBounds().background(MaterialTheme.colorScheme.surfaceVariant),
+                Modifier
+                    .size(72.dp)
+                    .clipToBounds()
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                    .then(
+                        if (onThumbnailClick != null) {
+                            Modifier.clickable(
+                                onClickLabel = stringResource(R.string.content_desc_condition_preview),
+                                onClick = onThumbnailClick,
+                            )
+                        } else Modifier,
+                    ),
                 contentAlignment = Alignment.Center,
             ) {
                 ConditionPreview(state)

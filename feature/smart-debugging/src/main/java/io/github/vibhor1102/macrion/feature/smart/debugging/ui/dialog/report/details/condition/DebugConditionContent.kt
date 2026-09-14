@@ -34,6 +34,8 @@ import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.ada
 import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.details.condition.adapter.ScreenConditionResultRow
 import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.details.condition.adapter.ScreenConditionResultState
 import io.github.vibhor1102.macrion.core.domain.model.condition.ScreenCondition
+import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.preview.ConditionPreviewData
+import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.preview.ConditionPreviewDialog
 import kotlinx.coroutines.Job
 
 class DebugConditionContent(
@@ -56,12 +58,25 @@ class DebugConditionContent(
 
     @Composable private fun Content() {
         val state = viewModel.uiState.collectAsStateWithLifecycle().value
-        when (state) {
-            DebugConditionContentUiState.Loading -> ReportLoading()
-            is DebugConditionContentUiState.Available -> ConditionOccurrenceList(
-                state.items,
-                viewModel::getConditionBitmap,
-            )
+        var previewData by remember { mutableStateOf<ConditionPreviewData?>(null) }
+        Box(Modifier.fillMaxSize()) {
+            when (state) {
+                DebugConditionContentUiState.Loading -> ReportLoading()
+                is DebugConditionContentUiState.Available -> ConditionOccurrenceList(
+                    items = state.items,
+                    bitmapProvider = viewModel::getConditionBitmap,
+                    onThumbnailClick = { screenItem, bitmap, bitmapFailed ->
+                        previewData = ConditionPreviewData(screenItem.condition, bitmap, bitmapFailed)
+                    },
+                )
+            }
+            previewData?.let { data ->
+                ConditionPreviewDialog(
+                    data = data,
+                    onDismiss = { previewData = null },
+                    bitmapProvider = viewModel::getConditionBitmap,
+                )
+            }
         }
     }
 }
@@ -70,6 +85,7 @@ class DebugConditionContent(
 private fun ConditionOccurrenceList(
     items: List<EventOccurrenceItem>,
     bitmapProvider: (ScreenCondition.Image, (Bitmap?) -> Unit) -> Job?,
+    onThumbnailClick: (EventOccurrenceItem.Screen, Bitmap?, Boolean) -> Unit,
 ) {
     val context = LocalContext.current
     val listState = rememberLazyListState()
@@ -87,7 +103,11 @@ private fun ConditionOccurrenceList(
                         title = context.getString(R.string.item_event_occurrence_details_header_title),
                         value = item.conditionOperatorValueText,
                     )
-                    is EventOccurrenceItem.Screen -> ScreenConditionOccurrenceItem(item, bitmapProvider)
+                    is EventOccurrenceItem.Screen -> ScreenConditionOccurrenceItem(
+                        item = item,
+                        bitmapProvider = bitmapProvider,
+                        onThumbnailClick = onThumbnailClick,
+                    )
                     is EventOccurrenceItem.Trigger -> ReportTriggerConditionCard(
                         item.conditionName,
                         item.description,
@@ -108,6 +128,7 @@ private fun ConditionOccurrenceList(
 private fun ScreenConditionOccurrenceItem(
     item: EventOccurrenceItem.Screen,
     bitmapProvider: (ScreenCondition.Image, (Bitmap?) -> Unit) -> Job?,
+    onThumbnailClick: (EventOccurrenceItem.Screen, Bitmap?, Boolean) -> Unit,
 ) {
     var bitmap by remember(item.id) { mutableStateOf<Bitmap?>(null) }
     var bitmapFailed by remember(item.id) { mutableStateOf(false) }
@@ -120,5 +141,8 @@ private fun ScreenConditionOccurrenceItem(
         }
         onDispose { job?.cancel() }
     }
-    ScreenConditionResultRow(ScreenConditionResultState(item, bitmap, bitmapFailed))
+    ScreenConditionResultRow(
+        state = ScreenConditionResultState(item, bitmap, bitmapFailed),
+        onThumbnailClick = { onThumbnailClick(item, bitmap, bitmapFailed) },
+    )
 }
