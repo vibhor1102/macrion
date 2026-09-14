@@ -1,6 +1,7 @@
 /* Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.core.common.overlays.menu
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Outline
 import android.view.MotionEvent
@@ -57,6 +58,7 @@ data class OverlayMenuButton(
 )
 
 /** Stable native interaction/tutorial anchor; Compose owns the visual icon and placement. */
+@SuppressLint("ViewConstructor")
 class OverlayMenuButtonView(context: Context, icon: Int) : FrameLayout(context) {
     private var iconResource by mutableIntStateOf(icon)
     internal var composeVisibility by mutableIntStateOf(View.VISIBLE)
@@ -85,6 +87,7 @@ class OverlayMenuButtonView(context: Context, icon: Int) : FrameLayout(context) 
 /**
  * Non-rendering compatibility anchor for a Compose content panel.
  */
+@SuppressLint("ViewConstructor")
 class OverlayMenuContentAnchor(
     context: Context,
     initiallyVisible: Boolean = true,

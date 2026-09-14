@@ -204,12 +204,17 @@ class ItemsReorderDialog(
                                                 subtitle = descriptor.subtitle,
                                                 trailingContent = descriptor.trailingContent,
                                                 isBeingDragged = isBeingDragged,
-                                                reorderHandleModifier = Modifier.draggableHandle(
-                                                    onDragStarted = {
-                                                        haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
-                                                    },
-                                                    dragGestureDetector = DualDragGestureDetector,
-                                                ),
+                                                dragHandle = {
+                                                    DragHandle(
+                                                        isBeingDragged = isBeingDragged,
+                                                        modifier = Modifier.draggableHandle(
+                                                            onDragStarted = {
+                                                                haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                                                            },
+                                                            dragGestureDetector = DualDragGestureDetector,
+                                                        ),
+                                                    )
+                                                },
                                             )
                                             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                                         }
@@ -230,21 +235,22 @@ private fun ReorderItemRow(
     subtitle: String?,
     trailingContent: @Composable () -> Unit,
     isBeingDragged: Boolean,
-    reorderHandleModifier: Modifier,
+    dragHandle: @Composable () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val rowBackground by animateColorAsState(
         if (isBeingDragged) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f) else Color.Transparent,
         label = "reorder_row_drag_bg",
     )
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .height(72.dp)
             .background(rowBackground)
             .padding(start = 8.dp, end = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        DragHandle(reorderHandleModifier, isBeingDragged)
+        dragHandle()
         Column(
             modifier = Modifier
                 .weight(1f)
@@ -274,8 +280,8 @@ private fun ReorderItemRow(
 
 @Composable
 private fun DragHandle(
-    reorderHandleModifier: Modifier,
     isBeingDragged: Boolean,
+    modifier: Modifier = Modifier,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
@@ -293,7 +299,7 @@ private fun DragHandle(
     )
 
     Box(
-        modifier = Modifier
+        modifier = modifier
             .size(48.dp)
             .background(containerColor, CircleShape)
             .clickable(
@@ -304,8 +310,7 @@ private fun DragHandle(
                     radius = 24.dp,
                 ),
                 onClick = {},
-            )
-            .then(reorderHandleModifier),
+            ),
         contentAlignment = Alignment.Center,
     ) {
         Icon(

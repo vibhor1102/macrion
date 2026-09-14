@@ -50,6 +50,7 @@ abstract class ItemBriefMenu(
     @androidx.compose.runtime.Composable
     protected abstract fun ItemBriefContent(item: ItemBrief, orientation: Int, onClick: () -> Unit)
     @Composable
+    @Suppress("ModifierFactoryExtensionFunction")
     protected open fun firstBriefItemModifier(): Modifier = Modifier
 
     protected open fun onItemBriefClicked(index: Int, item: ItemBrief): Unit = Unit

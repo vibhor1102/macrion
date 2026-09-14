@@ -23,7 +23,6 @@ import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import android.provider.Settings
 import io.github.vibhor1102.macrion.core.base.data.getNotificationSettingsIntent
 
 @SuppressLint("InlinedApi")
@@ -44,8 +43,12 @@ data class PermissionPostNotification(
     override val permissionString: String
         get() = Manifest.permission.POST_NOTIFICATIONS
 
-    override val fallbackSettingsIntent: Intent
-        get() = getNotificationSettingsIntent()
+    override val fallbackSettingsIntent: Intent?
+        get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            getNotificationSettingsIntent()
+        } else {
+            null
+        }
 
     override fun isGranted(context: Context): Boolean =
         context.getSystemService(NotificationManager::class.java).areNotificationsEnabled()

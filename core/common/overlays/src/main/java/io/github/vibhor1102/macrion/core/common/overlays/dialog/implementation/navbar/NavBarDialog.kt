@@ -160,6 +160,7 @@ abstract class NavBarDialog(@StyleRes theme: Int) : OverlayDialog(theme) {
 
     /** Compose modifier hook for attaching tutorial anchors to navigation bar/rail items. */
     @androidx.compose.runtime.Composable
+    @Suppress("ModifierFactoryExtensionFunction")
     open fun navigationItemModifier(item: DialogNavigationItem): Modifier = Modifier
 
     /** Adds content that remains visible above every navigation page. */

@@ -75,10 +75,10 @@ internal class DumbScenarioSerializer : ScenarioBackupSerializer<DumbScenarioBac
      *
      * @return the scenario backup deserialized from the json.
      */
-    override fun deserialize(json: InputStream, format: BackupArchiveFormat): DumbScenarioBackup? {
+    override fun deserialize(jsonStream: InputStream, format: BackupArchiveFormat): DumbScenarioBackup? {
         Log.d(TAG, "Deserializing dumb scenario")
 
-        val jsonBackup = Json.parseToJsonElement(json.readBytes().toString(Charsets.UTF_8)).jsonObject
+        val jsonBackup = Json.parseToJsonElement(jsonStream.readBytes().toString(Charsets.UTF_8)).jsonObject
         val declaredFormat = jsonBackup.getString("format")
         if (
             (format == BackupArchiveFormat.MACRION_NATIVE && declaredFormat != MACRION_FORMAT_NAME) ||
