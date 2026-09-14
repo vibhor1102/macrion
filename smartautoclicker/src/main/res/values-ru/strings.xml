@@ -201,8 +201,5 @@
     <string name="settings_install_source_title">Источник установки</string>
     <string name="install_source_unknown">Неизвестно</string>
     <string name="settings_toolbar_size_title">Размер панели инструментов</string>
-    <string name="settings_toolbar_size_preview_label">Предпросмотр</string>
-    <string name="settings_toolbar_size_reset">Сбросить</string>
     <string name="settings_toolbar_size_dialog_description">Настройка размера плавающей панели инструментов и панели отладки.</string>
-    <string name="settings_toolbar_size_default">По умолчанию</string>
 </resources>

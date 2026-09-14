@@ -46,13 +46,13 @@ class AppOverlayScaleProviderTest {
         val tutorialFlow = MutableStateFlow<TutorialState>(TutorialState.Stopped)
         every { tutorialRepository.tutorialState } returns tutorialFlow
         every { tutorialRepository.isTutorialStarted() } returns false
-        every { settingsRepository.toolbarScalePercentFlow } returns flowOf(160)
-        every { settingsRepository.getToolbarScalePercent() } returns 160
+        every { settingsRepository.toolbarScalePercentFlow } returns flowOf(140)
+        every { settingsRepository.getToolbarScalePercent() } returns 140
 
         val provider = AppOverlayScaleProvider(settingsRepository, tutorialRepository)
 
-        assertEquals(1.6f, provider.getScale(), 0.001f)
-        assertEquals(1.6f, provider.scaleFlow.first(), 0.001f)
+        assertEquals(1.4f, provider.getScale(), 0.001f)
+        assertEquals(1.4f, provider.scaleFlow.first(), 0.001f)
     }
 
     @Test

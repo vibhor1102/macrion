@@ -15,20 +15,20 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -48,12 +48,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import io.github.vibhor1102.macrion.R
 import kotlin.math.roundToInt
 
-private val SCALE_STOPS = listOf(50, 60, 70, 80, 90, 100, 120, 140, 160, 180, 200)
-private const val DEFAULT_STOP_INDEX = 5 // 100%
+private val SCALE_STOPS = listOf(50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150)
 
 @Composable
 internal fun ToolbarSizeDialog(
@@ -72,29 +70,51 @@ internal fun ToolbarSizeDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
-            Text(
-                text = stringResource(R.string.settings_toolbar_size_title),
-                style = MaterialTheme.typography.headlineSmall,
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = stringResource(R.string.settings_toolbar_size_title),
+                    style = MaterialTheme.typography.headlineSmall,
+                )
+                Surface(
+                    shape = RoundedCornerShape(12.dp),
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                ) {
+                    Text(
+                        text = "$selectedPercent%",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                    )
+                }
+            }
         },
         text = {
             Column(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState()),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Text(
                     text = stringResource(R.string.settings_toolbar_size_dialog_description),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(bottom = 16.dp),
-                )
-
-                // Live Preview Surface
-                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(170.dp)
-                        .clip(RoundedCornerShape(16.dp))
+                        .padding(bottom = 16.dp),
+                )
+
+                // Dedicated vertical preview stage
+                Box(
+                    modifier = Modifier
+                        .width(136.dp)
+                        .height(290.dp)
+                        .clip(RoundedCornerShape(20.dp))
                         .background(MaterialTheme.colorScheme.surfaceContainerHighest),
                     contentAlignment = Alignment.Center,
                 ) {
@@ -112,17 +132,7 @@ internal fun ToolbarSizeDialog(
                     }
                 }
 
-                Spacer(Modifier.height(16.dp))
-
-                // Current percentage display
-                Text(
-                    text = "$selectedPercent%",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
-                )
-
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(20.dp))
 
                 // Slider with center tick mark
                 val tickColor = MaterialTheme.colorScheme.primary
@@ -168,13 +178,13 @@ internal fun ToolbarSizeDialog(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     Text(
-                        text = "100% (${stringResource(R.string.settings_toolbar_size_default)})",
+                        text = "100%",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.SemiBold,
+                        fontWeight = FontWeight.Bold,
                     )
                     Text(
-                        text = "200%",
+                        text = "150%",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -187,13 +197,8 @@ internal fun ToolbarSizeDialog(
             }
         },
         dismissButton = {
-            Row {
-                TextButton(onClick = { sliderIndex = DEFAULT_STOP_INDEX.toFloat() }) {
-                    Text(stringResource(R.string.settings_toolbar_size_reset))
-                }
-                TextButton(onClick = onDismiss) {
-                    Text(stringResource(android.R.string.cancel))
-                }
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(android.R.string.cancel))
             }
         },
     )
@@ -207,19 +212,14 @@ private fun ToolbarLivePreview() {
             .clip(RoundedCornerShape(10.dp))
             .background(bg),
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
+        Column(
+            modifier = Modifier.padding(4.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Column(
-                modifier = Modifier.padding(4.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                PreviewButton(io.github.vibhor1102.macrion.core.ui.R.drawable.ic_play_arrow)
-                PreviewButton(io.github.vibhor1102.macrion.core.ui.R.drawable.ic_stop)
-                PreviewButton(io.github.vibhor1102.macrion.core.ui.R.drawable.ic_settings_filled)
-                PreviewButton(io.github.vibhor1102.macrion.core.ui.R.drawable.ic_move)
-            }
-            SampleLiveDebugPanel()
+            PreviewButton(io.github.vibhor1102.macrion.core.ui.R.drawable.ic_play_arrow)
+            PreviewButton(io.github.vibhor1102.macrion.core.ui.R.drawable.ic_stop)
+            PreviewButton(io.github.vibhor1102.macrion.core.ui.R.drawable.ic_settings_filled)
+            PreviewButton(io.github.vibhor1102.macrion.core.ui.R.drawable.ic_move)
         }
     }
 }
@@ -236,73 +236,5 @@ private fun PreviewButton(iconRes: Int) {
             modifier = Modifier.size(40.dp),
             tint = colorResource(io.github.vibhor1102.macrion.core.ui.R.color.overlayMenuButtons),
         )
-    }
-}
-
-@Composable
-private fun SampleLiveDebugPanel() {
-    val primary = colorResource(io.github.vibhor1102.macrion.core.ui.R.color.overlayViewPrimary)
-    val iconColor = colorResource(io.github.vibhor1102.macrion.core.ui.R.color.overlayMenuButtons)
-    val divider = primary.copy(alpha = 19f / 255f)
-
-    Box(
-        modifier = Modifier
-            .width(170.dp)
-            .height(90.dp),
-    ) {
-        Box(
-            Modifier
-                .width(2.dp)
-                .fillMaxHeight()
-                .background(divider),
-        )
-        Column(Modifier.fillMaxSize()) {
-            Row(
-                Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-                    .padding(horizontal = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Icon(
-                    painter = painterResource(io.github.vibhor1102.macrion.core.ui.R.drawable.ic_image_condition),
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp),
-                    tint = iconColor,
-                )
-                Text(
-                    text = "Event 1",
-                    modifier = Modifier.padding(start = 6.dp),
-                    color = primary,
-                    maxLines = 1,
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Medium,
-                )
-            }
-            HorizontalDivider(thickness = 2.dp, color = divider)
-            Row(
-                Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-                    .padding(horizontal = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Icon(
-                    painter = painterResource(io.github.vibhor1102.macrion.core.ui.R.drawable.ic_confirm),
-                    contentDescription = null,
-                    modifier = Modifier.size(16.dp),
-                    tint = iconColor,
-                )
-                Text("1", Modifier.padding(start = 4.dp), color = primary, fontSize = 12.sp)
-                Spacer(Modifier.weight(1f))
-                Icon(
-                    painter = painterResource(io.github.vibhor1102.macrion.core.ui.R.drawable.ic_duration),
-                    contentDescription = null,
-                    modifier = Modifier.size(16.dp),
-                    tint = iconColor,
-                )
-                Text("0.5s", Modifier.padding(start = 4.dp), color = primary, fontSize = 12.sp)
-            }
-        }
     }
 }

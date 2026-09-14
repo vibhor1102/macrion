@@ -206,8 +206,5 @@
     <string name="settings_install_source_title">Installation source</string>
     <string name="install_source_unknown">Unknown</string>
     <string name="settings_toolbar_size_title">Toolbar size</string>
-    <string name="settings_toolbar_size_preview_label">Preview</string>
-    <string name="settings_toolbar_size_reset">Reset</string>
-    <string name="settings_toolbar_size_dialog_description">Adjust the size of the floating toolbar and debug panel.</string>
-    <string name="settings_toolbar_size_default">Default</string>
+    <string name="settings_toolbar_size_dialog_description">Adjust the size of the overlay toolbar.</string>
 </resources>

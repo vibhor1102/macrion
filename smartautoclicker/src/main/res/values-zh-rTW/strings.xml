@@ -149,8 +149,5 @@
     <string name="settings_install_source_title">安裝來源</string>
     <string name="install_source_unknown">未知</string>
     <string name="settings_toolbar_size_title">工具列大小</string>
-    <string name="settings_toolbar_size_preview_label">預覽</string>
-    <string name="settings_toolbar_size_reset">重設</string>
     <string name="settings_toolbar_size_dialog_description">調整懸浮工具列和偵錯面板的大小。</string>
-    <string name="settings_toolbar_size_default">預設</string>
 </resources>

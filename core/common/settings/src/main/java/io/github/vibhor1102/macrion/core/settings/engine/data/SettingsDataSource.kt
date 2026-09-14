@@ -144,6 +144,6 @@ internal class SettingsDataSource @Inject constructor(
 
     internal suspend fun setToolbarScalePercent(percent: Int) =
         dataStore.edit { preferences ->
-            preferences[KEY_TOOLBAR_SCALE_PERCENT] = percent.coerceIn(50, 200)
+            preferences[KEY_TOOLBAR_SCALE_PERCENT] = percent.coerceIn(50, 150)
         }
 }

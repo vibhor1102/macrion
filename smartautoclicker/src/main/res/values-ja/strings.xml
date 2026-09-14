@@ -149,8 +149,5 @@
     <string name="settings_install_source_title">インストール元</string>
     <string name="install_source_unknown">不明</string>
     <string name="settings_toolbar_size_title">ツールバーのサイズ</string>
-    <string name="settings_toolbar_size_preview_label">プレビュー</string>
-    <string name="settings_toolbar_size_reset">リセット</string>
     <string name="settings_toolbar_size_dialog_description">フローティングツールバーとデバッグパネルのサイズを調整します。</string>
-    <string name="settings_toolbar_size_default">デフォルト</string>
 </resources>

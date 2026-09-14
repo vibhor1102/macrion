@@ -203,8 +203,5 @@
     <string name="settings_install_source_title">Origem da instalação</string>
     <string name="install_source_unknown">Desconhecido</string>
     <string name="settings_toolbar_size_title">Tamanho da barra de ferramentas</string>
-    <string name="settings_toolbar_size_preview_label">Pré-visualização</string>
-    <string name="settings_toolbar_size_reset">Redefinir</string>
     <string name="settings_toolbar_size_dialog_description">Ajuste o tamanho da barra de ferramentas flutuante e do painel de depuração.</string>
-    <string name="settings_toolbar_size_default">Padrão</string>
 </resources>
