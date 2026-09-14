@@ -112,9 +112,9 @@
     <string name="button_export">匯出</string>
 
     <string name="dialog_title_locale_plugin_background_launch">背景啟動遭到封鎖</string>
-    <string name="message_locale_plugin_background_launch">Klick\'r 無法自動開啟螢幕擷取提示。\n\n為了完成情境啟動，Klick\'r 改為顯示通知。\n\n部分 Android 手機對背景應用程式限制更嚴格。請參考此指南以提高權限穩定性。</string>
+    <string name="message_locale_plugin_background_launch">Macrion 無法自動開啟螢幕擷取提示。\n\n為了完成情境啟動，Macrion 改為顯示通知。\n\n部分 Android 手機對背景應用程式限制更嚴格。請參考此指南以提高權限穩定性。</string>
     <string name="field_tutorial_title">教學</string>
-    <string name="field_tutorial_desc">瞭解如何使用 Klick\'r</string>
+    <string name="field_tutorial_desc">瞭解如何使用 Macrion</string>
     <string name="dialog_title_copy_scenario">複製情境</string>
     <string name="content_desc_back">返回</string>
     <string name="crash_reports_title">本機當機報告</string>

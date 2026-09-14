@@ -174,9 +174,9 @@
     <string name="button_export">تصدير</string>
 
     <string name="dialog_title_locale_plugin_background_launch">تم حظر التشغيل في الخلفية</string>
-    <string name="message_locale_plugin_background_launch">تعذر على Klick\'r فتح نافذة تسجيل الشاشة تلقائيًا.\n\nلإكمال تشغيل السيناريو، أظهر إشعارًا بدلًا من ذلك.\n\nتفرض بعض هواتف Android قيودًا أكبر على التطبيقات في الخلفية. راجع هذا الدليل لتحسين استقرار الأذونات.</string>
+    <string name="message_locale_plugin_background_launch">تعذر على Macrion فتح نافذة تسجيل الشاشة تلقائيًا.\n\nلإكمال تشغيل السيناريو، أظهر إشعارًا بدلًا من ذلك.\n\nتفرض بعض هواتف Android قيودًا أكبر على التطبيقات في الخلفية. راجع هذا الدليل لتحسين استقرار الأذونات.</string>
     <string name="field_tutorial_title">البرنامج التعليمي</string>
-    <string name="field_tutorial_desc">تعرّف على كيفية استخدام Klick\'r</string>
+    <string name="field_tutorial_desc">تعرّف على كيفية استخدام Macrion</string>
     <string name="dialog_title_copy_scenario">نسخ السيناريو</string>
     <string name="content_desc_back">رجوع</string>
     <string name="crash_reports_title">تقارير الأعطال المحلية</string>

@@ -508,7 +508,7 @@
     <string name="item_external_action_details_error">Недопустимое имя внешнего действия</string>
     <string name="dialog_title_external_action">Внешнее действие</string>
     <string name="field_external_action_name_label">Имя внешнего действия</string>
-    <string name="field_external_action_help">Используйте это имя в триггере внешнего действия Klick\'r в приложении автоматизации.</string>
+    <string name="field_external_action_help">Используйте это имя в триггере внешнего действия Macrion в приложении автоматизации.</string>
     <string name="field_external_action_selection_title_empty">Внешнее действие не выбрано</string>
     <string name="field_external_action_selection_desc_empty">Нажмите здесь, чтобы повторно использовать имя внешнего действия</string>
     <string name="field_external_action_selection_desc">Повторно используемое имя триггера автоматизации</string>

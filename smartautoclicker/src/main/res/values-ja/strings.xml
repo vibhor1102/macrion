@@ -112,9 +112,9 @@
     <string name="button_export">エクスポート</string>
 
     <string name="dialog_title_locale_plugin_background_launch">バックグラウンド起動がブロックされました</string>
-    <string name="message_locale_plugin_background_launch">Klick\'r は画面キャプチャの確認画面を自動で開けませんでした。\n\nシナリオの起動を完了するため、代わりに通知を表示しました。\n\n一部の Android 端末では、バックグラウンドアプリにより厳しい制限があります。このガイドを確認して権限の安定性を改善してください。</string>
+    <string name="message_locale_plugin_background_launch">Macrion は画面キャプチャの確認画面を自動で開けませんでした。\n\nシナリオの起動を完了するため、代わりに通知を表示しました。\n\n一部の Android 端末では、バックグラウンドアプリにより厳しい制限があります。このガイドを確認して権限の安定性を改善してください。</string>
     <string name="field_tutorial_title">チュートリアル</string>
-    <string name="field_tutorial_desc">Klick\'r の使い方を確認します</string>
+    <string name="field_tutorial_desc">Macrion の使い方を確認します</string>
     <string name="dialog_title_copy_scenario">シナリオをコピー</string>
     <string name="content_desc_back">戻る</string>
     <string name="crash_reports_title">ローカルのクラッシュレポート</string>

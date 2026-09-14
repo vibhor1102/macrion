@@ -167,9 +167,9 @@
     <string name="button_export">Exportar</string>
 
     <string name="dialog_title_locale_plugin_background_launch">Inicio en segundo plano bloqueado</string>
-    <string name="message_locale_plugin_background_launch">Klick\'r no pudo abrir automáticamente la ventana de captura de pantalla.\n\nPara terminar de iniciar el escenario, mostró una notificación.\n\nAlgunos teléfonos Android restringen más las aplicaciones en segundo plano. Consulta esta guía para mejorar la estabilidad de los permisos.</string>
+    <string name="message_locale_plugin_background_launch">Macrion no pudo abrir automáticamente la ventana de captura de pantalla.\n\nPara terminar de iniciar el escenario, mostró una notificación.\n\nAlgunos teléfonos Android restringen más las aplicaciones en segundo plano. Consulta esta guía para mejorar la estabilidad de los permisos.</string>
     <string name="field_tutorial_title">Tutorial</string>
-    <string name="field_tutorial_desc">Aprende a usar Klick\'r</string>
+    <string name="field_tutorial_desc">Aprende a usar Macrion</string>
     <string name="dialog_title_copy_scenario">Copiar escenario</string>
     <string name="content_desc_back">Volver</string>
     <string name="crash_reports_title">Informes de fallos locales</string>

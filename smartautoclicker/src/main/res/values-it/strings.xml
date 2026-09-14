@@ -166,9 +166,9 @@
     <string name="button_export">Esporta</string>
 
     <string name="dialog_title_locale_plugin_background_launch">Avvio in background bloccato</string>
-    <string name="message_locale_plugin_background_launch">Klick\'r non ha potuto aprire automaticamente la finestra di cattura dello schermo.\n\nPer completare l\'avvio dello scenario, è stata mostrata una notifica.\n\nAlcuni telefoni Android impongono restrizioni maggiori alle app in background. Consulta questa guida per migliorare la stabilità delle autorizzazioni.</string>
+    <string name="message_locale_plugin_background_launch">Macrion non ha potuto aprire automaticamente la finestra di cattura dello schermo.\n\nPer completare l\'avvio dello scenario, è stata mostrata una notifica.\n\nAlcuni telefoni Android impongono restrizioni maggiori alle app in background. Consulta questa guida per migliorare la stabilità delle autorizzazioni.</string>
     <string name="field_tutorial_title">Tutorial</string>
-    <string name="field_tutorial_desc">Scopri come usare Klick\'r</string>
+    <string name="field_tutorial_desc">Scopri come usare Macrion</string>
     <string name="dialog_title_copy_scenario">Copia scenario</string>
     <string name="content_desc_back">Torna indietro</string>
     <string name="crash_reports_title">Rapporti sugli arresti anomali locali</string>

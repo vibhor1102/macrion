@@ -89,7 +89,7 @@
       -->
     <string name="message_delete_scenario">This will delete %1$s. Are you sure ?</string>
     <string name="dialog_title_locale_plugin_background_launch">Background launch blocked</string>
-    <string name="message_locale_plugin_background_launch">Klick\'r could not open the screen-capture prompt automatically.\n\n
+    <string name="message_locale_plugin_background_launch">Macrion could not open the screen-capture prompt automatically.\n\n
     To finish launching the scenario, it showed a notification instead.\n\n
     Some Android phones restrict background apps more than standard Android. Refer to this guide to improve the permission stability.</string>
 
@@ -178,7 +178,7 @@
     <string name="button_export">Export</string>
 
     <string name="field_tutorial_title">Tutorial</string>
-    <string name="field_tutorial_desc">Learn how to use Klick\'r</string>
+    <string name="field_tutorial_desc">Learn how to use Macrion</string>
 
     <!-- Crash reporting -->
     <string name="crash_reports_title">Local crash reports</string>

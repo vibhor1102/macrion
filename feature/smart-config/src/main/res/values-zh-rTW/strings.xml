@@ -484,7 +484,7 @@
     <string name="item_external_action_details_error">外部動作名稱無效</string>
     <string name="dialog_title_external_action">外部動作</string>
     <string name="field_external_action_name_label">外部動作名稱</string>
-    <string name="field_external_action_help">請在自動化應用程式的 Klick\'r 外部動作觸發器中使用此名稱。</string>
+    <string name="field_external_action_help">請在自動化應用程式的 Macrion 外部動作觸發器中使用此名稱。</string>
     <string name="field_external_action_selection_title_empty">未選取外部動作</string>
     <string name="field_external_action_selection_desc_empty">點按此處以重複使用外部動作名稱</string>
     <string name="field_external_action_selection_desc">可重複使用的自動化觸發器名稱</string>

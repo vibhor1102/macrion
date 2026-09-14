@@ -164,9 +164,9 @@
     <string name="button_export">Экспортировать</string>
 
     <string name="dialog_title_locale_plugin_background_launch">Фоновый запуск заблокирован</string>
-    <string name="message_locale_plugin_background_launch">Klick\'r не удалось автоматически открыть окно записи экрана.\n\nЧтобы завершить запуск сценария, было показано уведомление.\n\nНекоторые телефоны Android сильнее ограничивают фоновые приложения. Обратитесь к этому руководству, чтобы повысить стабильность разрешений.</string>
+    <string name="message_locale_plugin_background_launch">Macrion не удалось автоматически открыть окно записи экрана.\n\nЧтобы завершить запуск сценария, было показано уведомление.\n\nНекоторые телефоны Android сильнее ограничивают фоновые приложения. Обратитесь к этому руководству, чтобы повысить стабильность разрешений.</string>
     <string name="field_tutorial_title">Обучение</string>
-    <string name="field_tutorial_desc">Узнайте, как пользоваться Klick\'r</string>
+    <string name="field_tutorial_desc">Узнайте, как пользоваться Macrion</string>
     <string name="dialog_title_copy_scenario">Копировать сценарий</string>
     <string name="content_desc_back">Назад</string>
     <string name="crash_reports_title">Локальные отчёты о сбоях</string>
