@@ -3,7 +3,7 @@ paddlepaddle==3.1.0
 onnx==1.22.0
 onnxsim-prebuilt==0.4.39.post2
 numpy==2.0.2
-pyyaml==6.0.2
+pyyaml==6.0.3
 requests==2.34.2
 onnxruntime==1.29.0
 pnnx
