@@ -137,4 +137,10 @@
     <string name="crash_report_label">报告 %1$s</string>
     <string name="field_stop_confirmation_title">停止前确认</string>
     <string name="field_stop_confirmation_desc">从悬浮工具栏停止 Macrion 前请求确认。</string>
+    <string name="settings_section_scenario_list">方案列表</string>
+    <string name="settings_section_overlay">悬浮窗控制</string>
+    <string name="settings_section_compatibility">兼容性</string>
+    <string name="settings_section_device_compatibility">设备兼容性</string>
+    <string name="settings_section_account">账户与隐私</string>
+    <string name="settings_section_help">帮助与诊断</string>
 </resources>

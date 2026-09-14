@@ -517,4 +517,6 @@
     <string name="dialog_stop_confirmation_title">Parar o Macrion?</string>
     <string name="dialog_stop_confirmation_message">O cenário atual será interrompido.</string>
     <string name="dialog_stop_confirmation_stop">Parar</string>
+    <string name="action_move_event_up">Mover evento para cima</string>
+    <string name="action_move_event_down">Mover evento para baixo</string>
 </resources>

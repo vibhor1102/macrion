@@ -141,4 +141,13 @@
     <string name="overlay_title_results">Résultats</string>
     <string name="overlay_title_threshold">Seuil</string>
 
+    <string name="content_desc_condition_preview">Aperçu de la condition</string>
+    <string name="content_desc_close_condition_preview">Fermer l’aperçu</string>
+    <string name="title_condition_preview_image_failed">Image non disponible</string>
+    <string name="title_trigger_type_broadcast">Diffusion</string>
+    <string name="title_trigger_type_counter">Compteur</string>
+    <string name="title_trigger_type_timer">Minuteur</string>
+    <string name="label_trigger_intent_action">Action d’intent</string>
+    <string name="label_trigger_timer_repeating">Se répète une fois atteint</string>
+    <string name="label_trigger_timer_once">S’exécute une seule fois</string>
 </resources>

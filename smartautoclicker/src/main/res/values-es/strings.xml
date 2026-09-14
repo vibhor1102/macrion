@@ -192,4 +192,10 @@
     <string name="crash_report_label">Informe %1$s</string>
     <string name="field_stop_confirmation_title">Confirmar antes de detener</string>
     <string name="field_stop_confirmation_desc">Solicita confirmación antes de detener Macrion desde la barra de herramientas superpuesta.</string>
+    <string name="settings_section_scenario_list">Lista de escenarios</string>
+    <string name="settings_section_overlay">Controles superpuestos</string>
+    <string name="settings_section_compatibility">Compatibilidad</string>
+    <string name="settings_section_device_compatibility">Compatibilidad del dispositivo</string>
+    <string name="settings_section_account">Cuenta y privacidad</string>
+    <string name="settings_section_help">Ayuda y diagnóstico</string>
 </resources>

@@ -29,11 +29,11 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun ColorIndicator(
     color: Int,
-    modifier: Modifier = Modifier.size(48.dp),
+    modifier: Modifier = Modifier,
     borderColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
     borderWidth: Dp? = null,
 ) {
-    Canvas(modifier) {
+    Canvas(Modifier.size(48.dp).then(modifier)) {
         val strokePx = borderWidth?.toPx() ?: (size.minDimension * 0.08f)
         val radius = (size.minDimension - strokePx) / 2f
         drawCircle(color = Color(color), radius = radius, center = center)

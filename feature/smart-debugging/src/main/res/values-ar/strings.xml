@@ -142,4 +142,13 @@
     <string name="overlay_title_threshold">عتبة</string>
 
 
+    <string name="content_desc_condition_preview">معاينة الشرط</string>
+    <string name="content_desc_close_condition_preview">إغلاق المعاينة</string>
+    <string name="title_condition_preview_image_failed">الصورة غير متوفرة</string>
+    <string name="title_trigger_type_broadcast">بث</string>
+    <string name="title_trigger_type_counter">عداد</string>
+    <string name="title_trigger_type_timer">مؤقت</string>
+    <string name="label_trigger_intent_action">إجراء Intent</string>
+    <string name="label_trigger_timer_repeating">يتكرر عند الوصول</string>
+    <string name="label_trigger_timer_once">يعمل مرة واحدة</string>
 </resources>

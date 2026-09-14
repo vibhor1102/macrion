@@ -116,4 +116,10 @@
     <string name="crash_reports_sample">Tạo báo cáo mô phỏng (chỉ gỡ lỗi)</string>
     <string name="crash_report_label">Báo cáo %1$s</string>
 
+    <string name="settings_section_scenario_list">Danh sách kịch bản</string>
+    <string name="settings_section_overlay">Điều khiển lớp phủ</string>
+    <string name="settings_section_compatibility">Tương thích</string>
+    <string name="settings_section_device_compatibility">Tương thích thiết bị</string>
+    <string name="settings_section_account">Tài khoản và quyền riêng tư</string>
+    <string name="settings_section_help">Trợ giúp và chẩn đoán</string>
 </resources>

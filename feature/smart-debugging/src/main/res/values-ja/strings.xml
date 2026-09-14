@@ -89,4 +89,13 @@
     <string name="field_debug_filter_events_show_title">フィルター</string>
     <string name="field_debug_filter_events_show_select_desc">%1$d 件のイベント</string>
     <string name="field_debug_filter_events_show_select_desc_none">イベントなし</string>
+    <string name="content_desc_condition_preview">条件プレビュー</string>
+    <string name="content_desc_close_condition_preview">プレビューを閉じる</string>
+    <string name="title_condition_preview_image_failed">画像を利用できません</string>
+    <string name="title_trigger_type_broadcast">ブロードキャスト</string>
+    <string name="title_trigger_type_counter">カウンター</string>
+    <string name="title_trigger_type_timer">タイマー</string>
+    <string name="label_trigger_intent_action">Intentアクション</string>
+    <string name="label_trigger_timer_repeating">到達時に繰り返す</string>
+    <string name="label_trigger_timer_once">1回のみ実行</string>
 </resources>

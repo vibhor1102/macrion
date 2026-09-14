@@ -191,4 +191,10 @@
     <string name="crash_report_label">Relatório %1$s</string>
     <string name="field_stop_confirmation_title">Confirmar antes de parar</string>
     <string name="field_stop_confirmation_desc">Peça confirmação antes de parar o Macrion pela barra de ferramentas sobreposta.</string>
+    <string name="settings_section_scenario_list">Lista de cenários</string>
+    <string name="settings_section_overlay">Controles de sobreposição</string>
+    <string name="settings_section_compatibility">Compatibilidade</string>
+    <string name="settings_section_device_compatibility">Compatibilidade do dispositivo</string>
+    <string name="settings_section_account">Conta e privacidade</string>
+    <string name="settings_section_help">Ajuda e diagnóstico</string>
 </resources>

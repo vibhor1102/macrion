@@ -356,4 +356,6 @@
     <string name="scenario_switcher_retry">Thử lại</string>
     <string name="scenario_switcher_switching">Đang chuyển sang %1$s</string>
 
+    <string name="action_move_event_up">Di chuyển sự kiện lên</string>
+    <string name="action_move_event_down">Di chuyển sự kiện xuống</string>
 </resources>

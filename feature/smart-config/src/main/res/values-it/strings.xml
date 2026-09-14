@@ -500,4 +500,6 @@
     <string name="dialog_stop_confirmation_title">Interrompere Macrion?</string>
     <string name="dialog_stop_confirmation_message">Lo scenario corrente verrà interrotto.</string>
     <string name="dialog_stop_confirmation_stop">Interrompi</string>
+    <string name="action_move_event_up">Sposta evento in alto</string>
+    <string name="action_move_event_down">Sposta evento in basso</string>
 </resources>

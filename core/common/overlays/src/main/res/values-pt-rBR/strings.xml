@@ -19,4 +19,9 @@
     <string name="dialog_move_to_title">Mover para</string>
     <string name="dialog_move_to_position_label">Índice</string>
     <string name="overlay_instructions_gesture_record">Registrando o gesto…</string>
+    <string name="dialog_jump_to_title">Ir para</string>
+    <string name="dialog_reorder_empty">Nenhum item</string>
+    <string name="dialog_reorder_discard_title">Descartar alterações?</string>
+    <string name="dialog_reorder_discard_message">Você tem alterações não salvas. Tem certeza de que deseja descartá-las?</string>
+    <string name="dialog_reorder_discard_confirm">Descartar</string>
 </resources>

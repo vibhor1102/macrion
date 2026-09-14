@@ -497,4 +497,6 @@
     <string name="dialog_stop_confirmation_title">停止 Macrion？</string>
     <string name="dialog_stop_confirmation_message">当前方案将停止。</string>
     <string name="dialog_stop_confirmation_stop">停止</string>
+    <string name="action_move_event_up">上移事件</string>
+    <string name="action_move_event_down">下移事件</string>
 </resources>

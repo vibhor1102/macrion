@@ -19,4 +19,9 @@
     <string name="dialog_move_to_title">Переміститись до</string>
     <string name="dialog_move_to_position_label">Індекс</string>
     <string name="overlay_instructions_gesture_record">Запис жесту…</string>
+    <string name="dialog_jump_to_title">Перейти до</string>
+    <string name="dialog_reorder_empty">Немає елементів</string>
+    <string name="dialog_reorder_discard_title">Відкинути зміни?</string>
+    <string name="dialog_reorder_discard_message">У вас є незбережені зміни. Ви впевнені, що хочете їх відкинути?</string>
+    <string name="dialog_reorder_discard_confirm">Відкинути</string>
 </resources>

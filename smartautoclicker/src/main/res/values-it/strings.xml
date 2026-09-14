@@ -191,4 +191,10 @@
     <string name="crash_report_label">Rapporto %1$s</string>
     <string name="field_stop_confirmation_title">Conferma prima di interrompere</string>
     <string name="field_stop_confirmation_desc">Chiedi conferma prima di interrompere Macrion dalla barra degli strumenti in sovrimpressione.</string>
+    <string name="settings_section_scenario_list">Elenco degli scenari</string>
+    <string name="settings_section_overlay">Controlli in sovrimpressione</string>
+    <string name="settings_section_compatibility">Compatibilità</string>
+    <string name="settings_section_device_compatibility">Compatibilità del dispositivo</string>
+    <string name="settings_section_account">Account e privacy</string>
+    <string name="settings_section_help">Guida e diagnostica</string>
 </resources>

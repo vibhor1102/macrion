@@ -21,4 +21,9 @@
     <string name="dialog_move_to_position_label">Chỉ mục</string>
     <string name="overlay_instructions_gesture_record">Đang ghi lại cử chỉ…</string>
 
+    <string name="dialog_jump_to_title">Chuyển đến</string>
+    <string name="dialog_reorder_empty">Không có mục nào</string>
+    <string name="dialog_reorder_discard_title">Hủy thay đổi?</string>
+    <string name="dialog_reorder_discard_message">Bạn có thay đổi chưa lưu. Bạn có chắc chắn muốn hủy chúng không?</string>
+    <string name="dialog_reorder_discard_confirm">Hủy</string>
 </resources>

@@ -521,4 +521,6 @@
     <string name="dialog_stop_confirmation_title">¿Detener Macrion?</string>
     <string name="dialog_stop_confirmation_message">Se detendrá el escenario actual.</string>
     <string name="dialog_stop_confirmation_stop">Detener</string>
+    <string name="action_move_event_up">Mover evento arriba</string>
+    <string name="action_move_event_down">Mover evento abajo</string>
 </resources>

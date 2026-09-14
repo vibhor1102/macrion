@@ -199,4 +199,10 @@
     <string name="crash_report_label">التقرير %1$s</string>
     <string name="field_stop_confirmation_title">تأكيد قبل الإيقاف</string>
     <string name="field_stop_confirmation_desc">اطلب التأكيد قبل إيقاف Macrion من شريط أدوات التراكب.</string>
+    <string name="settings_section_scenario_list">قائمة السيناريوهات</string>
+    <string name="settings_section_overlay">عناصر التحكم في التراكب</string>
+    <string name="settings_section_compatibility">التوافق</string>
+    <string name="settings_section_device_compatibility">توافق الجهاز</string>
+    <string name="settings_section_account">الحساب والخصوصية</string>
+    <string name="settings_section_help">المساعدة والتشخيص</string>
 </resources>

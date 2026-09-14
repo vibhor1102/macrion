@@ -189,4 +189,10 @@
     <string name="crash_report_label">Отчёт %1$s</string>
     <string name="field_stop_confirmation_title">Подтверждать остановку</string>
     <string name="field_stop_confirmation_desc">Запрашивать подтверждение перед остановкой Macrion с панели наложения.</string>
+    <string name="settings_section_scenario_list">Список сценариев</string>
+    <string name="settings_section_overlay">Элементы управления оверлеем</string>
+    <string name="settings_section_compatibility">Совместимость</string>
+    <string name="settings_section_device_compatibility">Совместимость устройства</string>
+    <string name="settings_section_account">Аккаунт и конфиденциальность</string>
+    <string name="settings_section_help">Справка и диагностика</string>
 </resources>

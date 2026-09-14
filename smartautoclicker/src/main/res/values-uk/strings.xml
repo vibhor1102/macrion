@@ -192,4 +192,10 @@
     <string name="crash_report_label">Звіт %1$s</string>
     <string name="field_stop_confirmation_title">Підтверджувати зупинку</string>
     <string name="field_stop_confirmation_desc">Запитувати підтвердження перед зупинкою Macrion з панелі накладання.</string>
+    <string name="settings_section_scenario_list">Список сценаріїв</string>
+    <string name="settings_section_overlay">Керування накладенням</string>
+    <string name="settings_section_compatibility">Сумісність</string>
+    <string name="settings_section_device_compatibility">Сумісність пристрою</string>
+    <string name="settings_section_account">Обліковий запис і конфіденційність</string>
+    <string name="settings_section_help">Довідка та діагностика</string>
 </resources>

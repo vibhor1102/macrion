@@ -20,4 +20,9 @@
     <string name="dialog_move_to_position_label">فِهرِس</string>
     <string name="overlay_instructions_gesture_record">إيماءة التسجيل…</string>
 
+    <string name="dialog_jump_to_title">الانتقال إلى</string>
+    <string name="dialog_reorder_empty">لا توجد عناصر</string>
+    <string name="dialog_reorder_discard_title">تجاهل التغييرات؟</string>
+    <string name="dialog_reorder_discard_message">لديك تغييرات غير محفوظة. هل أنت متأكد من رغبتك في تجاهلها؟</string>
+    <string name="dialog_reorder_discard_confirm">تجاهل</string>
 </resources>

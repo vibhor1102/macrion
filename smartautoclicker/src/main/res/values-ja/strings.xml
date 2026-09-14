@@ -137,4 +137,10 @@
     <string name="crash_report_label">レポート %1$s</string>
     <string name="field_stop_confirmation_title">停止前に確認</string>
     <string name="field_stop_confirmation_desc">オーバーレイツールバーから Macrion を停止する前に確認します。</string>
+    <string name="settings_section_scenario_list">シナリオ一覧</string>
+    <string name="settings_section_overlay">オーバーレイ操作</string>
+    <string name="settings_section_compatibility">互換性</string>
+    <string name="settings_section_device_compatibility">端末の互換性</string>
+    <string name="settings_section_account">アカウントとプライバシー</string>
+    <string name="settings_section_help">ヘルプと診断</string>
 </resources>

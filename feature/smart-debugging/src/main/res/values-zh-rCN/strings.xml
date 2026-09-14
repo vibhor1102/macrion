@@ -89,4 +89,13 @@
     <string name="field_debug_filter_events_show_title">筛选</string>
     <string name="field_debug_filter_events_show_select_desc">%1$d 个事件</string>
     <string name="field_debug_filter_events_show_select_desc_none">无事件</string>
+    <string name="content_desc_condition_preview">预览条件</string>
+    <string name="content_desc_close_condition_preview">关闭预览</string>
+    <string name="title_condition_preview_image_failed">图像不可用</string>
+    <string name="title_trigger_type_broadcast">广播</string>
+    <string name="title_trigger_type_counter">计数器</string>
+    <string name="title_trigger_type_timer">定时器</string>
+    <string name="label_trigger_intent_action">Intent 操作</string>
+    <string name="label_trigger_timer_repeating">达到后重复</string>
+    <string name="label_trigger_timer_once">仅运行一次</string>
 </resources>

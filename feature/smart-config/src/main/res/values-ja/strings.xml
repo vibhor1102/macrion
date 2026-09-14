@@ -359,4 +359,6 @@
     <string name="dialog_stop_confirmation_title">Macrion を停止しますか？</string>
     <string name="dialog_stop_confirmation_message">現在のシナリオが停止します。</string>
     <string name="dialog_stop_confirmation_stop">停止</string>
+    <string name="action_move_event_up">イベントを上に移動</string>
+    <string name="action_move_event_down">イベントを下に移動</string>
 </resources>
