@@ -213,7 +213,7 @@
     <string name="settings_advanced_dialog_message">Ці налаштування можуть мати непередбачені наслідки. Переконайтеся, що ви розумієте кожне налаштування перед увімкненням.</string>
     <string name="settings_advanced_dialog_confirm">Увімкнути</string>
     <string name="settings_max_difference_title">Максимально допустима різниця</string>
-    <string name="settings_max_difference_desc">Дозволити збіг умов з більшою різницею (нижчий поріг схожості).</string>
+    <string name="settings_max_difference_desc">Дозволити збіг умов з більшою різницею.</string>
     <string name="settings_max_difference_dialog_title">Максимально допустима різниця</string>
     <string name="settings_max_difference_item_default">%1$d%% (За замовчуванням)</string>
     <string name="settings_max_difference_item">%1$d%%</string>

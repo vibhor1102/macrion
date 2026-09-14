@@ -137,7 +137,7 @@
     <string name="settings_advanced_dialog_message">Các cài đặt này có thể dẫn đến hậu quả không lường trước. Hãy đảm bảo bạn hiểu rõ từng cài đặt trước khi bật.</string>
     <string name="settings_advanced_dialog_confirm">Bật</string>
     <string name="settings_max_difference_title">Chênh lệch tối đa cho phép</string>
-    <string name="settings_max_difference_desc">Cho phép điều kiện khớp với độ chênh lệch cao hơn (ngưỡng tương đồng thấp hơn).</string>
+    <string name="settings_max_difference_desc">Cho phép điều kiện khớp với độ chênh lệch cao hơn.</string>
     <string name="settings_max_difference_dialog_title">Chênh lệch tối đa cho phép</string>
     <string name="settings_max_difference_item_default">%1$d%% (Mặc định)</string>
     <string name="settings_max_difference_item">%1$d%%</string>

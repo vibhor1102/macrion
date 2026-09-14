@@ -212,7 +212,7 @@
     <string name="settings_advanced_dialog_message">Essas configurações podem ter consequências imprevistas. Certifique-se de entender cada configuração antes de ativá-la.</string>
     <string name="settings_advanced_dialog_confirm">Ativar</string>
     <string name="settings_max_difference_title">Diferença tolerada máxima</string>
-    <string name="settings_max_difference_desc">Permitir que as condições correspondam com uma diferença maior (limiar de similaridade mais baixo).</string>
+    <string name="settings_max_difference_desc">Permitir que as condições correspondam com uma diferença maior.</string>
     <string name="settings_max_difference_dialog_title">Diferença tolerada máxima</string>
     <string name="settings_max_difference_item_default">%1$d%% (Padrão)</string>
     <string name="settings_max_difference_item">%1$d%%</string>

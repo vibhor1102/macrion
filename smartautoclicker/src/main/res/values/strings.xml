@@ -215,7 +215,7 @@
     <string name="settings_advanced_dialog_message">These settings may have unintended consequences. Make sure you understand each setting before enabling.</string>
     <string name="settings_advanced_dialog_confirm">Enable</string>
     <string name="settings_max_difference_title">Maximum tolerated difference</string>
-    <string name="settings_max_difference_desc">Allow conditions to match with a higher difference (lower similarity threshold).</string>
+    <string name="settings_max_difference_desc">Allow conditions to match with a higher difference.</string>
     <string name="settings_max_difference_dialog_title">Maximum tolerated difference</string>
     <string name="settings_max_difference_item_default">%1$d%% (Default)</string>
     <string name="settings_max_difference_item">%1$d%%</string>

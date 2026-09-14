@@ -210,7 +210,7 @@
     <string name="settings_advanced_dialog_message">Эти настройки могут привести к непредвиденным последствиям. Убедитесь, что вы понимаете каждый параметр перед включением.</string>
     <string name="settings_advanced_dialog_confirm">Включить</string>
     <string name="settings_max_difference_title">Максимально допустимое отличие</string>
-    <string name="settings_max_difference_desc">Разрешить совпадение условий с большим отличием (более низкий порог сходства).</string>
+    <string name="settings_max_difference_desc">Разрешить совпадение условий с большим отличием.</string>
     <string name="settings_max_difference_dialog_title">Максимально допустимое отличие</string>
     <string name="settings_max_difference_item_default">%1$d%% (По умолчанию)</string>
     <string name="settings_max_difference_item">%1$d%%</string>

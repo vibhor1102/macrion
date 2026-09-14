@@ -220,7 +220,7 @@
     <string name="settings_advanced_dialog_message">قد تؤدي هذه الإعدادات إلى نتائج غير متوقعة. يرجى التأكد من فهم كل إعداد قبل تفعيله.</string>
     <string name="settings_advanced_dialog_confirm">تفعيل</string>
     <string name="settings_max_difference_title">الحد الأقصى للفرق المسموح به</string>
-    <string name="settings_max_difference_desc">السماح للشروط بالتطابق مع فرق أعلى (عتبة تشابه أقل).</string>
+    <string name="settings_max_difference_desc">السماح للشروط بالتطابق مع فرق أعلى.</string>
     <string name="settings_max_difference_dialog_title">الحد الأقصى للفرق المسموح به</string>
     <string name="settings_max_difference_item_default">%1$d%% (افتراضي)</string>
     <string name="settings_max_difference_item">%1$d%%</string>

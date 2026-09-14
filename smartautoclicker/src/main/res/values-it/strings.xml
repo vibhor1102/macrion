@@ -212,7 +212,7 @@
     <string name="settings_advanced_dialog_message">Queste impostazioni possono avere conseguenze impreviste. Assicurati di comprendere ciascuna impostazione prima di abilitarla.</string>
     <string name="settings_advanced_dialog_confirm">Abilita</string>
     <string name="settings_max_difference_title">Differenza massima consentita</string>
-    <string name="settings_max_difference_desc">Consenti alle condizioni di corrispondere con una differenza maggiore (soglia di somiglianza più bassa).</string>
+    <string name="settings_max_difference_desc">Consenti alle condizioni di corrispondere con una differenza maggiore.</string>
     <string name="settings_max_difference_dialog_title">Differenza massima consentita</string>
     <string name="settings_max_difference_item_default">%1$d%% (Predefinito)</string>
     <string name="settings_max_difference_item">%1$d%%</string>
