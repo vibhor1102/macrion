@@ -38,6 +38,9 @@ class SettingsViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
 ) : ViewModel() {
 
+    val toolbarScalePercent: Flow<Int> =
+        settingsRepository.toolbarScalePercentFlow
+
     val isScenarioFiltersUiEnabled: Flow<Boolean> =
         settingsRepository.isFilterScenarioUiEnabledFlow
 
@@ -115,5 +118,9 @@ class SettingsViewModel @Inject constructor(
 
     fun showPurchaseActivity(context: Context) {
         revenueRepository.startPurchaseUiFlow(context)
+    }
+
+    fun setToolbarScalePercent(percent: Int) {
+        settingsRepository.setToolbarScalePercent(percent)
     }
 }

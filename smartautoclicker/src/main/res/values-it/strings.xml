@@ -202,4 +202,9 @@
     <string name="settings_version_title">Versione</string>
     <string name="settings_install_source_title">Origine dell\'installazione</string>
     <string name="install_source_unknown">Sconosciuto</string>
+    <string name="settings_toolbar_size_title">Dimensioni della barra degli strumenti</string>
+    <string name="settings_toolbar_size_preview_label">Anteprima</string>
+    <string name="settings_toolbar_size_reset">Reimposta</string>
+    <string name="settings_toolbar_size_dialog_description">Regola le dimensioni della barra degli strumenti mobile e del pannello di debug.</string>
+    <string name="settings_toolbar_size_default">Predefinito</string>
 </resources>

@@ -96,12 +96,16 @@ class MainMenuModel @Inject constructor(
         .map { it == DetectionState.RECORDING || it == DetectionState.DETECTING }
         .stateIn(viewModelScope, SharingStarted.Eagerly, true)
 
+    val isTutorial: Boolean
+        get() = tutorialRepository.isTutorialStarted()
+
     val isSwitchButtonVisible: StateFlow<Boolean> = combine(
         detectionState,
         isMediaProjectionStarted,
         settingsRepository.isScenarioSwitcherEnabledFlow,
-    ) { state, isProjectionStarted, isEnabled ->
-        state == UiState.Idle && isProjectionStarted && isEnabled
+        tutorialRepository.tutorialState,
+    ) { state, isProjectionStarted, isEnabled, _ ->
+        !isTutorial && state == UiState.Idle && isProjectionStarted && isEnabled
     }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     /** The condition being configured by the user. */

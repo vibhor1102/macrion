@@ -96,7 +96,9 @@ internal fun SettingsRoute(
     val shouldShowInputBlockWorkaround by viewModel.shouldShowInputBlockWorkaround.collectAsStateWithLifecycle(false)
     val shouldShowPrivacySettings by viewModel.shouldShowPrivacySettings.collectAsStateWithLifecycle(false)
     val shouldShowPurchase by viewModel.shouldShowPurchase.collectAsStateWithLifecycle(false)
+    val toolbarScalePercent by viewModel.toolbarScalePercent.collectAsStateWithLifecycle(100)
     var showTroubleshooting by rememberSaveable { mutableStateOf(false) }
+    var showToolbarSizeDialog by rememberSaveable { mutableStateOf(false) }
 
     val context = LocalContext.current
     val onCopyVersion = {
@@ -136,6 +138,11 @@ internal fun SettingsRoute(
                     SettingsSection(
                         R.string.settings_section_overlay,
                         listOf(
+                            SettingsItem.Action(
+                                title = R.string.settings_toolbar_size_title,
+                                value = "$toolbarScalePercent%",
+                                onClick = { showToolbarSizeDialog = true },
+                            ),
                             SettingsItem.Switch(R.string.field_scenario_switcher_title, R.string.field_scenario_switcher_desc, isScenarioSwitcherEnabled, viewModel::toggleScenarioSwitcher),
                             SettingsItem.Switch(R.string.field_home_button_title, R.string.field_home_button_desc, isHomeButtonEnabled, viewModel::toggleHomeButton),
                             SettingsItem.Switch(R.string.field_stop_confirmation_title, R.string.field_stop_confirmation_desc, isStopConfirmationEnabled, viewModel::toggleStopConfirmation),
@@ -179,6 +186,17 @@ internal fun SettingsRoute(
         if (showTroubleshooting) {
             AccessibilityTroubleshootingDialog(
                 onDismiss = { showTroubleshooting = false },
+            )
+        }
+
+        if (showToolbarSizeDialog) {
+            ToolbarSizeDialog(
+                currentPercent = toolbarScalePercent,
+                onDismiss = { showToolbarSizeDialog = false },
+                onConfirm = { percent ->
+                    viewModel.setToolbarScalePercent(percent)
+                    showToolbarSizeDialog = false
+                },
             )
         }
     }
@@ -321,10 +339,20 @@ private fun SettingsRow(item: SettingsItem) {
         is SettingsItem.Action -> MacrionActionField(
             title = stringResource(item.title),
             trailingContent = {
-                Icon(
-                    painter = painterResource(R.drawable.ic_chevron_right),
-                    contentDescription = null,
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (item.value != null) {
+                        Text(
+                            text = item.value,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(end = 8.dp),
+                        )
+                    }
+                    Icon(
+                        painter = painterResource(R.drawable.ic_chevron_right),
+                        contentDescription = null,
+                    )
+                }
             },
             onClick = item.onClick,
         )
@@ -375,8 +403,14 @@ private sealed interface SettingsItem {
 
     data class Action(
         @param:StringRes val title: Int,
+        val value: String? = null,
         override val onClick: () -> Unit,
-    ) : SettingsItem
+    ) : SettingsItem {
+        constructor(
+            @StringRes title: Int,
+            onClick: () -> Unit,
+        ) : this(title = title, value = null, onClick = onClick)
+    }
 
     data class Info(
         @param:StringRes val title: Int,

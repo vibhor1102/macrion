@@ -54,6 +54,10 @@ interface SettingsRepository {
     fun isInputBlockWorkaroundEnabled(): Boolean
     fun toggleInputBlockWorkaround()
 
+    val toolbarScalePercentFlow: Flow<Int>
+    fun getToolbarScalePercent(): Int
+    fun setToolbarScalePercent(percent: Int)
+
 
     val scenarioSortSettings: Flow<ScenarioSortSettings>
     fun setScenarioSortType(type: ScenarioSortType)

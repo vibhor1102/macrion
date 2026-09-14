@@ -127,4 +127,9 @@
     <string name="settings_version_title">Phiên bản</string>
     <string name="settings_install_source_title">Nguồn cài đặt</string>
     <string name="install_source_unknown">Không xác định</string>
+    <string name="settings_toolbar_size_title">Kích thước thanh công cụ</string>
+    <string name="settings_toolbar_size_preview_label">Xem trước</string>
+    <string name="settings_toolbar_size_reset">Đặt lại</string>
+    <string name="settings_toolbar_size_dialog_description">Điều chỉnh kích thước thanh công cụ nổi và bảng gỡ lỗi.</string>
+    <string name="settings_toolbar_size_default">Mặc định</string>
 </resources>

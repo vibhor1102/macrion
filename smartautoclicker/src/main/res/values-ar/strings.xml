@@ -210,4 +210,9 @@
     <string name="settings_version_title">الإصدار</string>
     <string name="settings_install_source_title">مصدر التثبيت</string>
     <string name="install_source_unknown">غير معروف</string>
+    <string name="settings_toolbar_size_title">حجم شريط الأدوات</string>
+    <string name="settings_toolbar_size_preview_label">معاينة</string>
+    <string name="settings_toolbar_size_reset">إعادة ضبط</string>
+    <string name="settings_toolbar_size_dialog_description">ضبط حجم شريط الأدوات العائم ولوحة التصحيح.</string>
+    <string name="settings_toolbar_size_default">افتراضي</string>
 </resources>

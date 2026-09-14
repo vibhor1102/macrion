@@ -204,4 +204,9 @@
     <string name="settings_version_title">Version</string>
     <string name="settings_install_source_title">Source d\'installation</string>
     <string name="install_source_unknown">Inconnu</string>
+    <string name="settings_toolbar_size_title">Taille de la barre d\'outils</string>
+    <string name="settings_toolbar_size_preview_label">Aperçu</string>
+    <string name="settings_toolbar_size_reset">Réinitialiser</string>
+    <string name="settings_toolbar_size_dialog_description">Ajuster la taille de la barre d\'outils flottante et du panneau de débogage.</string>
+    <string name="settings_toolbar_size_default">Par défaut</string>
 </resources>

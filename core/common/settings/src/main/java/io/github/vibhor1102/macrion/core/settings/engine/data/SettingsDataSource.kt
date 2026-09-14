@@ -20,6 +20,7 @@ package io.github.vibhor1102.macrion.core.settings.engine.data
 import android.content.Context
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.intPreferencesKey
 
 import io.github.vibhor1102.macrion.core.base.PreferencesDataStore
 import io.github.vibhor1102.macrion.core.base.di.Dispatcher
@@ -44,6 +45,8 @@ internal class SettingsDataSource @Inject constructor(
     internal companion object {
         const val PREFERENCES_FILE_NAME = "settings"
 
+        val KEY_TOOLBAR_SCALE_PERCENT: Preferences.Key<Int> =
+            intPreferencesKey("toolbarScalePercent")
         val KEY_IS_FILTER_SCENARIO_UI_ENABLED: Preferences.Key<Boolean> =
             booleanPreferencesKey("isFilterScenarioUiEnabled")
         val KEY_IS_SCENARIO_SWITCHER_ENABLED: Preferences.Key<Boolean> =
@@ -135,4 +138,12 @@ internal class SettingsDataSource @Inject constructor(
             preferences[KEY_INPUT_BLOCK_WORKAROUND] = !(preferences[KEY_INPUT_BLOCK_WORKAROUND] ?: false)
         }
     }
+
+    internal fun toolbarScalePercent(): Flow<Int> =
+        dataStore.data.map { preferences -> preferences[KEY_TOOLBAR_SCALE_PERCENT] ?: 100 }
+
+    internal suspend fun setToolbarScalePercent(percent: Int) =
+        dataStore.edit { preferences ->
+            preferences[KEY_TOOLBAR_SCALE_PERCENT] = percent.coerceIn(50, 200)
+        }
 }

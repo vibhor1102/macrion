@@ -222,8 +222,9 @@ class LocalService(
         )
 
         startJob = serviceScope.launch {
-            val isScenarioSwitcherEnabled = settingsRepository.isScenarioSwitcherEnabled()
-            val isHomeButtonEnabled = settingsRepository.isHomeButtonEnabled()
+            val isTutorial = tutorialRepository.isTutorialStarted()
+            val isScenarioSwitcherEnabled = !isTutorial && settingsRepository.isScenarioSwitcherEnabled()
+            val isHomeButtonEnabled = !isTutorial && settingsRepository.isHomeButtonEnabled()
             val mainMenu = MainMenu(
                 onStopClicked = ::stopScenario,
                 onOpenHomeClicked = ::stopScenarioAndOpenHome,

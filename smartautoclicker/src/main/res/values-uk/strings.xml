@@ -203,4 +203,9 @@
     <string name="settings_version_title">Версія</string>
     <string name="settings_install_source_title">Джерело встановлення</string>
     <string name="install_source_unknown">Невідомо</string>
+    <string name="settings_toolbar_size_title">Розмір панелі інструментів</string>
+    <string name="settings_toolbar_size_preview_label">Попередній перегляд</string>
+    <string name="settings_toolbar_size_reset">Скинути</string>
+    <string name="settings_toolbar_size_dialog_description">Налаштування розміру плаваючої панелі інструментів та панелі налагодження.</string>
+    <string name="settings_toolbar_size_default">За замовчуванням</string>
 </resources>

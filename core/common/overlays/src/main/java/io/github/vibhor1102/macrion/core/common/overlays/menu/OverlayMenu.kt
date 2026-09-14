@@ -243,6 +243,14 @@ abstract class OverlayMenu(
 
         // Compose measures and animates the content; WindowManager follows its wrap-content size.
         if (animateOverlayView()) menuBackground.visibility = View.GONE
+
+        menuLayout.addOnLayoutChangeListener(onMenuLayoutChangeListener)
+    }
+
+    private val onMenuLayoutChangeListener = View.OnLayoutChangeListener { _, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom ->
+        if (right - left != oldRight - oldLeft || bottom - top != oldBottom - oldTop) {
+            updateMenuPosition(Point(menuLayoutParams.x, menuLayoutParams.y))
+        }
     }
 
     private fun View.installOverlayViewTreeOwners() {
@@ -374,6 +382,7 @@ abstract class OverlayMenu(
 
         // Save last user position
         positionDataSource.removeOnLockedPositionChangedListener(onLockedPositionChangedListener)
+        menuLayout.removeOnLayoutChangeListener(onMenuLayoutChangeListener)
         saveMenuPosition(displayConfigManager.displayConfig.orientation)
 
         windowManager.safeRemoveView(menuLayout)

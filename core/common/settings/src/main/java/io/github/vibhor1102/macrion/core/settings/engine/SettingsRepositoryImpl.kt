@@ -89,6 +89,18 @@ internal class SettingsRepositoryImpl @Inject constructor(
         .stateIn(coroutineScope, SharingStarted.Eagerly, false)
     override val isInputBlockWorkaroundEnabledFlow: Flow<Boolean> = _isInputBlockWorkaroundEnabledFlow
 
+    private val _toolbarScalePercentFlow: StateFlow<Int> = dataSource.toolbarScalePercent()
+        .stateIn(coroutineScope, SharingStarted.Eagerly, 100)
+    override val toolbarScalePercentFlow: Flow<Int> = _toolbarScalePercentFlow
+
+    override fun getToolbarScalePercent(): Int = _toolbarScalePercentFlow.value
+
+    override fun setToolbarScalePercent(percent: Int) {
+        coroutineScope.launch {
+            dataSource.setToolbarScalePercent(percent)
+        }
+    }
+
     override val scenarioSortSettings: Flow<ScenarioSortSettings> = scenarioSortSettingsDatasource.getSortConfig()
 
 

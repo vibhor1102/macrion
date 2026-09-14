@@ -137,8 +137,9 @@ class MainMenu(
                 AnimatedPlayPauseIcon(isDetecting)
             },
         )
-        viewBinding.btnSwitchScenario.isVisible = isSwitchButtonInitiallyVisible
-        viewBinding.btnOpenHome.isVisible = isHomeButtonInitiallyVisible
+        val isTutorial = viewModel.isTutorial
+        viewBinding.btnSwitchScenario.isVisible = !isTutorial && isSwitchButtonInitiallyVisible
+        viewBinding.btnOpenHome.isVisible = !isTutorial && isHomeButtonInitiallyVisible
         return viewBinding.root
     }
 
@@ -288,19 +289,20 @@ class MainMenu(
         setMenuItemViewEnabled(viewBinding.btnPlay, canStartDetection)
 
     private fun updateSwitchButtonVisibility(isVisible: Boolean) {
+        val effectiveVisible = !viewModel.isTutorial && isVisible
         if (!hasReceivedSwitchVisibility) {
             hasReceivedSwitchVisibility = true
-            if (isVisible != isSwitchButtonInitiallyVisible) return
+            if (effectiveVisible != isSwitchButtonInitiallyVisible) return
         }
-        if (viewBinding.btnSwitchScenario.isVisible == isVisible) return
+        if (viewBinding.btnSwitchScenario.isVisible == effectiveVisible) return
 
         if (viewBinding.btnPlay.tag == null) {
-            viewBinding.btnSwitchScenario.visibility = if (isVisible) View.VISIBLE else View.GONE
+            viewBinding.btnSwitchScenario.visibility = if (effectiveVisible) View.VISIBLE else View.GONE
             return
         }
 
         animateLayoutChanges {
-            setMenuItemVisibility(viewBinding.btnSwitchScenario, isVisible)
+            setMenuItemVisibility(viewBinding.btnSwitchScenario, effectiveVisible)
         }
     }
 
@@ -312,19 +314,20 @@ class MainMenu(
 
         viewBinding.btnPlay.tag = newState
         isDetecting = newState is UiState.Detecting
+        val isTutorial = viewModel.isTutorial
         when (newState) {
             UiState.Idle -> {
                 if (currentState == null) {
                     viewBinding.btnStop.isVisible = true
                     viewBinding.btnClickList.isVisible = true
-                    viewBinding.btnSwitchScenario.isVisible = isSwitchButtonInitiallyVisible
-                    viewBinding.btnOpenHome.isVisible = isHomeButtonInitiallyVisible
+                    viewBinding.btnSwitchScenario.isVisible = !isTutorial && isSwitchButtonInitiallyVisible
+                    viewBinding.btnOpenHome.isVisible = !isTutorial && isHomeButtonInitiallyVisible
                 } else {
                     animateLayoutChanges {
                         setMenuItemVisibility(viewBinding.btnStop, true)
                         setMenuItemVisibility(viewBinding.btnClickList, true)
-                        setMenuItemVisibility(viewBinding.btnSwitchScenario, viewModel.isSwitchButtonVisible.value)
-                        setMenuItemVisibility(viewBinding.btnOpenHome, isHomeButtonInitiallyVisible)
+                        setMenuItemVisibility(viewBinding.btnSwitchScenario, !isTutorial && viewModel.isSwitchButtonVisible.value)
+                        setMenuItemVisibility(viewBinding.btnOpenHome, !isTutorial && isHomeButtonInitiallyVisible)
                     }
                 }
             }
@@ -366,15 +369,18 @@ class MainMenu(
      * @param isVisible true when the debug view should be shown, false to hide it.
      */
     private fun updateDebugOverlayViewVisibility(isVisible: Boolean) {
-        if (isVisible && debugObservableJob == null) {
+        val effectiveVisible = !viewModel.isTutorial && isVisible
+        if (effectiveVisible && debugObservableJob == null) {
             viewBinding.layoutDebug.visibility = View.VISIBLE
             debugObservableJob = observeDebugValues()
 
-        } else if (!isVisible && debugObservableJob != null) {
+        } else if (!effectiveVisible && debugObservableJob != null) {
             debugObservableJob?.cancel()
             debugObservableJob = null
 
             updateLiveDebugUiState(null)
+            viewBinding.layoutDebug.visibility = View.GONE
+        } else if (!effectiveVisible) {
             viewBinding.layoutDebug.visibility = View.GONE
         }
     }
