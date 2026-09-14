@@ -205,4 +205,16 @@
     <string name="install_source_unknown">Невідомо</string>
     <string name="settings_toolbar_size_title">Розмір панелі інструментів</string>
     <string name="settings_toolbar_size_dialog_description">Налаштування розміру плаваючої панелі інструментів та панелі налагодження.</string>
+
+    <string name="settings_section_advanced">Розширені</string>
+    <string name="settings_enable_advanced_title">Увімкнути розширені налаштування</string>
+    <string name="settings_enable_advanced_desc">Показувати експериментальні налаштування для досвідчених користувачів.</string>
+    <string name="settings_advanced_dialog_title">Увімкнути розширені налаштування?</string>
+    <string name="settings_advanced_dialog_message">Ці налаштування можуть мати непередбачені наслідки. Переконайтеся, що ви розумієте кожне налаштування перед увімкненням.</string>
+    <string name="settings_advanced_dialog_confirm">Увімкнути</string>
+    <string name="settings_max_difference_title">Максимально допустима різниця</string>
+    <string name="settings_max_difference_desc">Дозволити збіг умов з більшою різницею (нижчий поріг схожості).</string>
+    <string name="settings_max_difference_dialog_title">Максимально допустима різниця</string>
+    <string name="settings_max_difference_item_default">%1$d%% (За замовчуванням)</string>
+    <string name="settings_max_difference_item">%1$d%%</string>
 </resources>

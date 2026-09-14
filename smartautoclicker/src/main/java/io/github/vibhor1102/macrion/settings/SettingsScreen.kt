@@ -35,6 +35,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -43,6 +45,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -97,8 +100,14 @@ internal fun SettingsRoute(
     val shouldShowPrivacySettings by viewModel.shouldShowPrivacySettings.collectAsStateWithLifecycle(false)
     val shouldShowPurchase by viewModel.shouldShowPurchase.collectAsStateWithLifecycle(false)
     val toolbarScalePercent by viewModel.toolbarScalePercent.collectAsStateWithLifecycle(100)
+    val areAdvancedSettingsEnabled by viewModel.areAdvancedSettingsEnabled.collectAsStateWithLifecycle(false)
+    val hasSeenAdvancedWarning by viewModel.hasSeenAdvancedWarning.collectAsStateWithLifecycle(false)
+    val maxToleratedDifference by viewModel.maxToleratedDifference.collectAsStateWithLifecycle(20)
+
     var showTroubleshooting by rememberSaveable { mutableStateOf(false) }
     var showToolbarSizeDialog by rememberSaveable { mutableStateOf(false) }
+    var showAdvancedNoticeDialog by rememberSaveable { mutableStateOf(false) }
+    var showMaxDifferenceDialog by rememberSaveable { mutableStateOf(false) }
 
     val context = LocalContext.current
     val onCopyVersion = {
@@ -175,6 +184,45 @@ internal fun SettingsRoute(
                         ),
                     ),
                 )
+                add(
+                    SettingsSection(
+                        R.string.settings_section_advanced,
+                        buildList {
+                            add(
+                                SettingsItem.Switch(
+                                    title = R.string.settings_enable_advanced_title,
+                                    description = R.string.settings_enable_advanced_desc,
+                                    checked = areAdvancedSettingsEnabled,
+                                    onClick = {
+                                        if (!areAdvancedSettingsEnabled) {
+                                            if (!hasSeenAdvancedWarning) {
+                                                showAdvancedNoticeDialog = true
+                                            } else {
+                                                viewModel.setAdvancedSettingsEnabled(true)
+                                            }
+                                        } else {
+                                            viewModel.setAdvancedSettingsEnabled(false)
+                                        }
+                                    },
+                                ),
+                            )
+                            if (areAdvancedSettingsEnabled) {
+                                val maxDiffLabel = if (maxToleratedDifference == 20) {
+                                    stringResource(R.string.settings_max_difference_item_default, 20)
+                                } else {
+                                    stringResource(R.string.settings_max_difference_item, maxToleratedDifference)
+                                }
+                                add(
+                                    SettingsItem.Action(
+                                        title = R.string.settings_max_difference_title,
+                                        value = maxDiffLabel,
+                                        onClick = { showMaxDifferenceDialog = true },
+                                    ),
+                                )
+                            }
+                        },
+                    ),
+                )
             },
             aboutSection = aboutSection,
             onNavigateBack = onNavigateBack,
@@ -196,6 +244,45 @@ internal fun SettingsRoute(
                 onConfirm = { percent ->
                     viewModel.setToolbarScalePercent(percent)
                     showToolbarSizeDialog = false
+                },
+            )
+        }
+
+        if (showAdvancedNoticeDialog) {
+            AlertDialog(
+                onDismissRequest = { showAdvancedNoticeDialog = false },
+                title = {
+                    Text(stringResource(R.string.settings_advanced_dialog_title))
+                },
+                text = {
+                    Text(stringResource(R.string.settings_advanced_dialog_message))
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            viewModel.setHasSeenAdvancedWarning(true)
+                            viewModel.setAdvancedSettingsEnabled(true)
+                            showAdvancedNoticeDialog = false
+                        },
+                    ) {
+                        Text(stringResource(R.string.settings_advanced_dialog_confirm))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showAdvancedNoticeDialog = false }) {
+                        Text(stringResource(android.R.string.cancel))
+                    }
+                },
+            )
+        }
+
+        if (showMaxDifferenceDialog) {
+            MaxDifferenceDialog(
+                currentDifference = maxToleratedDifference,
+                onDismiss = { showMaxDifferenceDialog = false },
+                onConfirm = { diff ->
+                    viewModel.setMaxToleratedDifference(diff)
+                    showMaxDifferenceDialog = false
                 },
             )
         }

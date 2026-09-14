@@ -29,6 +29,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -98,6 +99,46 @@ internal class SettingsRepositoryImpl @Inject constructor(
     override fun setToolbarScalePercent(percent: Int) {
         coroutineScope.launch {
             dataSource.setToolbarScalePercent(percent)
+        }
+    }
+
+    private val _areAdvancedSettingsEnabledFlow: StateFlow<Boolean> = dataSource.areAdvancedSettingsEnabled()
+        .stateIn(coroutineScope, SharingStarted.Eagerly, false)
+    override val areAdvancedSettingsEnabledFlow: Flow<Boolean> = _areAdvancedSettingsEnabledFlow
+
+    override fun areAdvancedSettingsEnabled(): Boolean = _areAdvancedSettingsEnabledFlow.value
+
+    override fun setAdvancedSettingsEnabled(enabled: Boolean) {
+        coroutineScope.launch {
+            dataSource.setAdvancedSettingsEnabled(enabled)
+        }
+    }
+
+    private val _hasSeenAdvancedWarningFlow: StateFlow<Boolean> = dataSource.hasSeenAdvancedWarning()
+        .stateIn(coroutineScope, SharingStarted.Eagerly, false)
+    override val hasSeenAdvancedWarningFlow: Flow<Boolean> = _hasSeenAdvancedWarningFlow
+
+    override fun hasSeenAdvancedWarning(): Boolean = _hasSeenAdvancedWarningFlow.value
+
+    override fun setHasSeenAdvancedWarning(seen: Boolean) {
+        coroutineScope.launch {
+            dataSource.setHasSeenAdvancedWarning(seen)
+        }
+    }
+
+    private val _maxToleratedDifferenceFlow: StateFlow<Int> = combine(
+        dataSource.areAdvancedSettingsEnabled(),
+        dataSource.maxToleratedDifference(),
+    ) { areAdvancedEnabled, maxDiff ->
+        if (areAdvancedEnabled) maxDiff else 20
+    }.stateIn(coroutineScope, SharingStarted.Eagerly, 20)
+    override val maxToleratedDifferenceFlow: Flow<Int> = _maxToleratedDifferenceFlow
+
+    override fun getMaxToleratedDifference(): Int = _maxToleratedDifferenceFlow.value
+
+    override fun setMaxToleratedDifference(difference: Int) {
+        coroutineScope.launch {
+            dataSource.setMaxToleratedDifference(difference)
         }
     }
 

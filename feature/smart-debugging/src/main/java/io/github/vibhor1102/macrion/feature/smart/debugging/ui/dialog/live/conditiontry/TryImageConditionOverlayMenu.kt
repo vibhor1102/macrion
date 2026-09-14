@@ -20,7 +20,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -47,6 +50,7 @@ import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.live.creat
 import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.live.uistate.ScreenConditionResultUiState
 import io.github.vibhor1102.macrion.feature.smart.debugging.ui.view.DebugOverlayView
 import kotlinx.coroutines.launch
+import kotlin.math.roundToInt
 
 class TryImageConditionOverlayMenu(
     private val scenario: Scenario,
@@ -59,6 +63,7 @@ class TryImageConditionOverlayMenu(
     )
     private var result by mutableStateOf<ScreenConditionResultUiState?>(null)
     private var thresholdText by mutableStateOf("")
+    private var maxThreshold by mutableFloatStateOf(MAX_THRESHOLD)
 
     override fun onCreateMenu(layoutInflater: LayoutInflater): ViewGroup =
         createDebugOverlayMenu(context, contentWidthDp = 287, contentHeightDp = 152) { ResultPanel() }
@@ -74,6 +79,7 @@ class TryImageConditionOverlayMenu(
                 (screenOverlayView as? DebugOverlayView)?.setResults(state?.let(::listOf) ?: emptyList())
             } }
             launch { viewModel.thresholdText.collect { thresholdText = it } }
+            launch { viewModel.maxThreshold.collect { maxThreshold = it } }
         } }
         viewModel.startTry(context, scenario, imageCondition)
     }
@@ -109,11 +115,11 @@ class TryImageConditionOverlayMenu(
             }
             Box(Modifier.fillMaxWidth().height(52.dp).padding(top = 4.dp)) {
                 Slider(
-                    value = viewModel.getSelectedThreshold().toFloat(),
+                    value = viewModel.getSelectedThreshold().toFloat().coerceIn(MIN_THRESHOLD, maxThreshold),
                     onValueChange = { viewModel.setThreshold(it.toInt()) },
                     modifier = Modifier.fillMaxWidth().height(48.dp),
-                    valueRange = MIN_THRESHOLD..MAX_THRESHOLD,
-                    steps = (MAX_THRESHOLD - MIN_THRESHOLD - 1).toInt(),
+                    valueRange = MIN_THRESHOLD..maxThreshold,
+                    steps = (maxThreshold - MIN_THRESHOLD - 1).roundToInt().coerceAtLeast(0),
                     colors = SliderDefaults.colors(
                         thumbColor = controlColor,
                         activeTrackColor = controlColor,

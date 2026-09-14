@@ -150,4 +150,16 @@
     <string name="install_source_unknown">不明</string>
     <string name="settings_toolbar_size_title">ツールバーのサイズ</string>
     <string name="settings_toolbar_size_dialog_description">フローティングツールバーとデバッグパネルのサイズを調整します。</string>
+
+    <string name="settings_section_advanced">高度な設定</string>
+    <string name="settings_enable_advanced_title">高度な設定を有効にする</string>
+    <string name="settings_enable_advanced_desc">実験的およびパワーユーザー向けの設定を表示します。</string>
+    <string name="settings_advanced_dialog_title">高度な設定を有効にしますか？</string>
+    <string name="settings_advanced_dialog_message">これらの設定は予期しない結果をもたらす可能性があります。有効にする前に各設定を理解していることを確認してください。</string>
+    <string name="settings_advanced_dialog_confirm">有効にする</string>
+    <string name="settings_max_difference_title">許容する最大差異</string>
+    <string name="settings_max_difference_desc">条件の一致判定でより大きな差異（より低い類似度しきい値）を許可します。</string>
+    <string name="settings_max_difference_dialog_title">許容する最大差異</string>
+    <string name="settings_max_difference_item_default">%1$d%%（デフォルト）</string>
+    <string name="settings_max_difference_item">%1$d%%</string>
 </resources>

@@ -150,4 +150,16 @@
     <string name="install_source_unknown">未知</string>
     <string name="settings_toolbar_size_title">工具栏大小</string>
     <string name="settings_toolbar_size_dialog_description">调整悬浮工具栏和调试面板的大小。</string>
+
+    <string name="settings_section_advanced">高级</string>
+    <string name="settings_enable_advanced_title">启用高级设置</string>
+    <string name="settings_enable_advanced_desc">显示实验性和高级用户设置。</string>
+    <string name="settings_advanced_dialog_title">启用高级设置？</string>
+    <string name="settings_advanced_dialog_message">这些设置可能会产生非预期的后果。在启用之前，请确保了解每项设置。</string>
+    <string name="settings_advanced_dialog_confirm">启用</string>
+    <string name="settings_max_difference_title">最大允许差异</string>
+    <string name="settings_max_difference_desc">允许条件以更高的差异（更低的相似度阈值）进行匹配。</string>
+    <string name="settings_max_difference_dialog_title">最大允许差异</string>
+    <string name="settings_max_difference_item_default">%1$d%%（默认）</string>
+    <string name="settings_max_difference_item">%1$d%%</string>
 </resources>

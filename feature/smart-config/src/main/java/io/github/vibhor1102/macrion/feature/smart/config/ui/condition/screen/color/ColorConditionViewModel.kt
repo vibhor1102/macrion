@@ -35,14 +35,20 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterIsInstance
+import io.github.vibhor1102.macrion.core.settings.domain.SettingsRepository
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
-class ColorConditionViewModel  @Inject constructor(
+class ColorConditionViewModel @Inject constructor(
     private val editionRepository: EditionRepository,
+    settingsRepository: SettingsRepository,
 ) : ViewModel()  {
+
+    val maxThreshold: StateFlow<Float> = settingsRepository.maxToleratedDifferenceFlow
+        .map { it.toFloat() }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, 20f)
 
     private var currentHsv: FloatArray? = null
     private var lastColorInt: Int? = null

@@ -206,4 +206,16 @@
     <string name="install_source_unknown">Inconnu</string>
     <string name="settings_toolbar_size_title">Taille de la barre d\'outils</string>
     <string name="settings_toolbar_size_dialog_description">Ajuster la taille de la barre d\'outils flottante et du panneau de débogage.</string>
+
+    <string name="settings_section_advanced">Avancé</string>
+    <string name="settings_enable_advanced_title">Activer les paramètres avancés</string>
+    <string name="settings_enable_advanced_desc">Afficher les paramètres expérimentaux et pour utilisateurs avancés.</string>
+    <string name="settings_advanced_dialog_title">Activer les paramètres avancés ?</string>
+    <string name="settings_advanced_dialog_message">Ces paramètres peuvent avoir des conséquences imprévues. Assurez-vous de bien comprendre chaque paramètre avant de l\'activer.</string>
+    <string name="settings_advanced_dialog_confirm">Activer</string>
+    <string name="settings_max_difference_title">Différence tolérée maximale</string>
+    <string name="settings_max_difference_desc">Autoriser les conditions à correspondre avec une différence plus élevée (seuil de similarité plus bas).</string>
+    <string name="settings_max_difference_dialog_title">Différence tolérée maximale</string>
+    <string name="settings_max_difference_item_default">%1$d %% (Par défaut)</string>
+    <string name="settings_max_difference_item">%1$d %%</string>
 </resources>

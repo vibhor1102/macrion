@@ -129,4 +129,16 @@
     <string name="install_source_unknown">Không xác định</string>
     <string name="settings_toolbar_size_title">Kích thước thanh công cụ</string>
     <string name="settings_toolbar_size_dialog_description">Điều chỉnh kích thước thanh công cụ nổi và bảng gỡ lỗi.</string>
+
+    <string name="settings_section_advanced">Nâng cao</string>
+    <string name="settings_enable_advanced_title">Bật cài đặt nâng cao</string>
+    <string name="settings_enable_advanced_desc">Hiển thị cài đặt thử nghiệm và nâng cao.</string>
+    <string name="settings_advanced_dialog_title">Bật cài đặt nâng cao?</string>
+    <string name="settings_advanced_dialog_message">Các cài đặt này có thể dẫn đến hậu quả không lường trước. Hãy đảm bảo bạn hiểu rõ từng cài đặt trước khi bật.</string>
+    <string name="settings_advanced_dialog_confirm">Bật</string>
+    <string name="settings_max_difference_title">Chênh lệch tối đa cho phép</string>
+    <string name="settings_max_difference_desc">Cho phép điều kiện khớp với độ chênh lệch cao hơn (ngưỡng tương đồng thấp hơn).</string>
+    <string name="settings_max_difference_dialog_title">Chênh lệch tối đa cho phép</string>
+    <string name="settings_max_difference_item_default">%1$d%% (Mặc định)</string>
+    <string name="settings_max_difference_item">%1$d%%</string>
 </resources>

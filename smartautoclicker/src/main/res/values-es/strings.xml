@@ -205,4 +205,16 @@
     <string name="install_source_unknown">Desconocido</string>
     <string name="settings_toolbar_size_title">Tamaño de la barra de herramientas</string>
     <string name="settings_toolbar_size_dialog_description">Ajusta el tamaño de la barra de herramientas flotante y el panel de depuración.</string>
+
+    <string name="settings_section_advanced">Avanzado</string>
+    <string name="settings_enable_advanced_title">Activar ajustes avanzados</string>
+    <string name="settings_enable_advanced_desc">Mostrar ajustes experimentales y para usuarios avanzados.</string>
+    <string name="settings_advanced_dialog_title">¿Activar ajustes avanzados?</string>
+    <string name="settings_advanced_dialog_message">Estos ajustes pueden tener consecuencias imprevistas. Asegúrate de entender cada ajuste antes de activarlo.</string>
+    <string name="settings_advanced_dialog_confirm">Activar</string>
+    <string name="settings_max_difference_title">Diferencia tolerada máxima</string>
+    <string name="settings_max_difference_desc">Permitir que las condiciones coincidan con una mayor diferencia (umbral de similitud más bajo).</string>
+    <string name="settings_max_difference_dialog_title">Diferencia tolerada máxima</string>
+    <string name="settings_max_difference_item_default">%1$d%% (Predeterminado)</string>
+    <string name="settings_max_difference_item">%1$d%%</string>
 </resources>

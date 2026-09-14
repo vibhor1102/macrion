@@ -27,6 +27,7 @@ import io.github.vibhor1102.macrion.core.domain.ext.getConditionBitmap
 import io.github.vibhor1102.macrion.core.domain.model.DetectionType
 import io.github.vibhor1102.macrion.core.domain.model.IN_AREA
 import io.github.vibhor1102.macrion.core.domain.model.condition.ScreenCondition
+import io.github.vibhor1102.macrion.core.settings.domain.SettingsRepository
 import io.github.vibhor1102.macrion.feature.smart.config.R
 import io.github.vibhor1102.macrion.feature.smart.config.domain.EditionRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -53,7 +54,12 @@ class ImageConditionViewModel @Inject constructor(
     @ApplicationContext context: Context,
     private val bitmapRepository: BitmapRepository,
     private val editionRepository: EditionRepository,
+    settingsRepository: SettingsRepository,
 ) : ViewModel() {
+
+    val maxThreshold: StateFlow<Float> = settingsRepository.maxToleratedDifferenceFlow
+        .map { it.toFloat() }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, 20f)
 
     /** The condition being configured by the user. */
     private val configuredCondition = editionRepository.editionState.editedScreenConditionState

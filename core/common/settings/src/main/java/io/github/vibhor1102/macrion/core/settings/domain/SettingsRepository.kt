@@ -58,6 +58,18 @@ interface SettingsRepository {
     fun getToolbarScalePercent(): Int
     fun setToolbarScalePercent(percent: Int)
 
+    val areAdvancedSettingsEnabledFlow: Flow<Boolean>
+    fun areAdvancedSettingsEnabled(): Boolean
+    fun setAdvancedSettingsEnabled(enabled: Boolean)
+
+    val hasSeenAdvancedWarningFlow: Flow<Boolean>
+    fun hasSeenAdvancedWarning(): Boolean
+    fun setHasSeenAdvancedWarning(seen: Boolean)
+
+    val maxToleratedDifferenceFlow: Flow<Int>
+    fun getMaxToleratedDifference(): Int
+    fun setMaxToleratedDifference(difference: Int)
+
 
     val scenarioSortSettings: Flow<ScenarioSortSettings>
     fun setScenarioSortType(type: ScenarioSortType)

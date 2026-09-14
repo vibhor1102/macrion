@@ -46,12 +46,18 @@ import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
+import io.github.vibhor1102.macrion.core.settings.domain.SettingsRepository
 import javax.inject.Inject
 
 class NumberConditionViewModel @Inject constructor(
     @ApplicationContext context: Context,
     private val editionRepository: EditionRepository,
+    settingsRepository: SettingsRepository,
 ) : ViewModel() {
+
+    val maxThreshold: StateFlow<Float> = settingsRepository.maxToleratedDifferenceFlow
+        .map { it.toFloat() }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, 20f)
 
     /** The condition being configured by the user. */
     private val configuredCondition = editionRepository.editionState.editedScreenConditionState

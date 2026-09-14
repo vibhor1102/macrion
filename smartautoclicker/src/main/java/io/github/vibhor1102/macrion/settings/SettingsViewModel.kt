@@ -123,4 +123,25 @@ class SettingsViewModel @Inject constructor(
     fun setToolbarScalePercent(percent: Int) {
         settingsRepository.setToolbarScalePercent(percent)
     }
+
+    val areAdvancedSettingsEnabled: Flow<Boolean> =
+        settingsRepository.areAdvancedSettingsEnabledFlow
+
+    val hasSeenAdvancedWarning: Flow<Boolean> =
+        settingsRepository.hasSeenAdvancedWarningFlow
+
+    val maxToleratedDifference: Flow<Int> =
+        settingsRepository.maxToleratedDifferenceFlow
+
+    fun setAdvancedSettingsEnabled(enabled: Boolean) {
+        settingsRepository.setAdvancedSettingsEnabled(enabled)
+    }
+
+    fun setHasSeenAdvancedWarning(seen: Boolean) {
+        settingsRepository.setHasSeenAdvancedWarning(seen)
+    }
+
+    fun setMaxToleratedDifference(difference: Int) {
+        settingsRepository.setMaxToleratedDifference(difference)
+    }
 }

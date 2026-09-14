@@ -63,6 +63,12 @@ internal class SettingsDataSource @Inject constructor(
             booleanPreferencesKey("forceEntireScreen")
         val KEY_INPUT_BLOCK_WORKAROUND: Preferences.Key<Boolean> =
             booleanPreferencesKey("inputBlockWorkaround")
+        val KEY_ARE_ADVANCED_SETTINGS_ENABLED: Preferences.Key<Boolean> =
+            booleanPreferencesKey("areAdvancedSettingsEnabled")
+        val KEY_HAS_SEEN_ADVANCED_WARNING: Preferences.Key<Boolean> =
+            booleanPreferencesKey("hasSeenAdvancedWarning")
+        val KEY_MAX_TOLERATED_DIFFERENCE: Preferences.Key<Int> =
+            intPreferencesKey("maxToleratedDifference")
     }
 
     private val dataStore: PreferencesDataStore =
@@ -145,5 +151,29 @@ internal class SettingsDataSource @Inject constructor(
     internal suspend fun setToolbarScalePercent(percent: Int) =
         dataStore.edit { preferences ->
             preferences[KEY_TOOLBAR_SCALE_PERCENT] = percent.coerceIn(50, 150)
+        }
+
+    internal fun areAdvancedSettingsEnabled(): Flow<Boolean> =
+        dataStore.data.map { preferences -> preferences[KEY_ARE_ADVANCED_SETTINGS_ENABLED] ?: false }
+
+    internal suspend fun setAdvancedSettingsEnabled(enabled: Boolean) =
+        dataStore.edit { preferences ->
+            preferences[KEY_ARE_ADVANCED_SETTINGS_ENABLED] = enabled
+        }
+
+    internal fun hasSeenAdvancedWarning(): Flow<Boolean> =
+        dataStore.data.map { preferences -> preferences[KEY_HAS_SEEN_ADVANCED_WARNING] ?: false }
+
+    internal suspend fun setHasSeenAdvancedWarning(seen: Boolean) =
+        dataStore.edit { preferences ->
+            preferences[KEY_HAS_SEEN_ADVANCED_WARNING] = seen
+        }
+
+    internal fun maxToleratedDifference(): Flow<Int> =
+        dataStore.data.map { preferences -> preferences[KEY_MAX_TOLERATED_DIFFERENCE] ?: 20 }
+
+    internal suspend fun setMaxToleratedDifference(difference: Int) =
+        dataStore.edit { preferences ->
+            preferences[KEY_MAX_TOLERATED_DIFFERENCE] = difference.coerceIn(20, 50)
         }
 }

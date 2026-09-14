@@ -204,4 +204,16 @@
     <string name="install_source_unknown">Sconosciuto</string>
     <string name="settings_toolbar_size_title">Dimensioni della barra degli strumenti</string>
     <string name="settings_toolbar_size_dialog_description">Regola le dimensioni della barra degli strumenti mobile e del pannello di debug.</string>
+
+    <string name="settings_section_advanced">Avanzate</string>
+    <string name="settings_enable_advanced_title">Abilita impostazioni avanzate</string>
+    <string name="settings_enable_advanced_desc">Mostra le impostazioni sperimentali e per utenti esperti.</string>
+    <string name="settings_advanced_dialog_title">Abilitare le impostazioni avanzate?</string>
+    <string name="settings_advanced_dialog_message">Queste impostazioni possono avere conseguenze impreviste. Assicurati di comprendere ciascuna impostazione prima di abilitarla.</string>
+    <string name="settings_advanced_dialog_confirm">Abilita</string>
+    <string name="settings_max_difference_title">Differenza massima consentita</string>
+    <string name="settings_max_difference_desc">Consenti alle condizioni di corrispondere con una differenza maggiore (soglia di somiglianza più bassa).</string>
+    <string name="settings_max_difference_dialog_title">Differenza massima consentita</string>
+    <string name="settings_max_difference_item_default">%1$d%% (Predefinito)</string>
+    <string name="settings_max_difference_item">%1$d%%</string>
 </resources>

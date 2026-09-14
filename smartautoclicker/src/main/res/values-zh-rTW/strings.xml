@@ -150,4 +150,16 @@
     <string name="install_source_unknown">未知</string>
     <string name="settings_toolbar_size_title">工具列大小</string>
     <string name="settings_toolbar_size_dialog_description">調整懸浮工具列和偵錯面板的大小。</string>
+
+    <string name="settings_section_advanced">進階</string>
+    <string name="settings_enable_advanced_title">啟用進階設定</string>
+    <string name="settings_enable_advanced_desc">顯示實驗性與進階使用者設定。</string>
+    <string name="settings_advanced_dialog_title">啟用進階設定？</string>
+    <string name="settings_advanced_dialog_message">這些設定可能會產生非預期的後果。在啟用之前，請確保了解每項設定。</string>
+    <string name="settings_advanced_dialog_confirm">啟用</string>
+    <string name="settings_max_difference_title">最大允許差異</string>
+    <string name="settings_max_difference_desc">允許條件以更高的差異（更低的相似度閾值）進行匹配。</string>
+    <string name="settings_max_difference_dialog_title">最大允許差異</string>
+    <string name="settings_max_difference_item_default">%1$d%%（預設）</string>
+    <string name="settings_max_difference_item">%1$d%%</string>
 </resources>

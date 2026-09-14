@@ -25,6 +25,7 @@ import io.github.vibhor1102.macrion.core.domain.model.condition.ScreenCondition
 import io.github.vibhor1102.macrion.core.domain.model.scenario.Scenario
 import io.github.vibhor1102.macrion.core.processing.domain.SmartProcessingRepository
 import io.github.vibhor1102.macrion.core.processing.domain.model.DetectionState
+import io.github.vibhor1102.macrion.core.settings.domain.SettingsRepository
 import io.github.vibhor1102.macrion.core.smart.debugging.domain.model.live.DebugLiveEventConditionResult
 import io.github.vibhor1102.macrion.core.smart.debugging.domain.usecase.GetDebugLiveDetectionResultUseCase
 import io.github.vibhor1102.macrion.core.smart.debugging.utils.formatDebugConfidenceRate
@@ -36,9 +37,12 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 import javax.inject.Inject
@@ -48,7 +52,12 @@ import kotlin.time.Duration.Companion.milliseconds
 class TryImageConditionViewModel @Inject constructor(
     detectionResultUseCase: GetDebugLiveDetectionResultUseCase,
     private val smartProcessingRepository: SmartProcessingRepository,
+    settingsRepository: SettingsRepository,
 ) : ViewModel() {
+
+    val maxThreshold: StateFlow<Float> = settingsRepository.maxToleratedDifferenceFlow
+        .map { it.toFloat() }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, 20f)
 
     private var tryStartJob: Job? = null
 

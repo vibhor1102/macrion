@@ -184,13 +184,18 @@ class TextConditionDialog(private val listener: OnConditionConfigCompleteListene
     }
 
     @Composable private fun ThresholdCard(value: Int) {
+        val maxThreshold by viewModel.maxThreshold.collectAsStateWithLifecycle()
         ElevatedCard(Modifier.fillMaxWidth()) { Column(Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text(context.getString(R.string.generic_condition_threshold_title), style = MaterialTheme.typography.titleSmall)
                 Text("$value%", style = MaterialTheme.typography.bodyMedium)
             }
-            Slider(value.toFloat(), { viewModel.setThreshold(it.roundToInt()) }, valueRange = 0f..MAX_THRESHOLD,
-                steps = MAX_THRESHOLD.roundToInt() - 1)
+            Slider(
+                value = value.toFloat().coerceIn(0f, maxThreshold),
+                onValueChange = { viewModel.setThreshold(it.roundToInt()) },
+                valueRange = 0f..maxThreshold,
+                steps = (maxThreshold.roundToInt() - 1).coerceAtLeast(0),
+            )
         } }
     }
 
