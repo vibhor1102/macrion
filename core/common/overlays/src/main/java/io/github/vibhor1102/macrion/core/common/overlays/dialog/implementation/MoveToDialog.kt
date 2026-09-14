@@ -20,6 +20,7 @@ import android.app.Dialog
 import android.view.KeyEvent
 import android.view.WindowManager
 
+import androidx.annotation.StringRes
 import androidx.annotation.StyleRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -74,6 +75,7 @@ class MoveToDialog(
     @StyleRes theme: Int,
     private val defaultValue: Int,
     private val itemCount: Int,
+    @StringRes private val titleRes: Int = R.string.dialog_jump_to_title,
     private val onValueSelected: ((Int) -> Unit),
 ) : BaseOverlay(theme, recreateOnRotation = true) {
 
@@ -101,7 +103,7 @@ class MoveToDialog(
                                     .padding(top = 24.dp, bottom = 8.dp),
                             ) {
                                 Text(
-                                    text = stringResource(R.string.dialog_move_to_title),
+                                    text = stringResource(titleRes),
                                     style = MaterialTheme.typography.headlineSmall,
                                     modifier = Modifier.padding(horizontal = 24.dp),
                                 )

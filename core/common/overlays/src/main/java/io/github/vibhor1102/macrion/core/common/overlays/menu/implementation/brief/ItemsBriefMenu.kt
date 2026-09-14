@@ -54,6 +54,7 @@ abstract class ItemBriefMenu(
 
     protected open fun onItemBriefClicked(index: Int, item: ItemBrief): Unit = Unit
     protected open fun onItemPositionCardClicked(index: Int, itemCount: Int): Unit = Unit
+    protected open fun onReorderClicked(): Unit = Unit
     protected open fun onMoveItemClicked(from: Int, to: Int) = Unit
     protected abstract fun onPlayItemClicked(index: Int)
     protected abstract fun onDeleteItemClicked(index: Int)
@@ -84,10 +85,6 @@ abstract class ItemBriefMenu(
             setEmptyText(noItemText)
 
             setControlCallbacks(
-                onMovePrevious = { debounceUserInteraction {
-                    showOrResetPanelTimer()
-                    onMoveItemClicked(focusedItemIndex, focusedItemIndex - 1)
-                } },
                 onDelete = { debounceUserInteraction {
                     showOrResetPanelTimer()
                     onDeleteItemClicked(focusedItemIndex)
@@ -98,9 +95,9 @@ abstract class ItemBriefMenu(
                 onPlay = { debounceUserInteraction {
                     onPlayItemClicked(focusedItemIndex)
                 } },
-                onMoveNext = { debounceUserInteraction {
+                onReorder = { debounceUserInteraction {
                     showOrResetPanelTimer()
-                    onMoveItemClicked(focusedItemIndex, focusedItemIndex + 1)
+                    onReorderClicked()
                 } },
             )
         }
@@ -214,11 +211,10 @@ abstract class ItemBriefMenu(
         briefViewBinding.updateControls(
             ItemBriefControlsState(
                 indexText = getIndexText(currentIndex = if (hasItems) index + 1 else 0, itemCount = itemCount),
-                canMovePrevious = hasItems && index != 0,
                 canDelete = hasItems,
-                canSelectPosition = hasItems,
+                canReorder = hasItems && itemCount >= 2,
+                canSelectPosition = hasItems && itemCount >= 2,
                 canPlay = hasItems,
-                canMoveNext = hasItems && index != itemCount - 1,
             )
         )
     }

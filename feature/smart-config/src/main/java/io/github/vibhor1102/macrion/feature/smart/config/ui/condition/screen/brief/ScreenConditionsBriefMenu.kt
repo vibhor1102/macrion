@@ -57,6 +57,15 @@ import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.live.condi
 import kotlinx.coroutines.launch
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredOverlayType
 
+import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.reorder.ItemsReorderDialog
+import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.reorder.ReorderItemDescriptor
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.unit.dp
 
 class ScreenConditionsBriefMenu(
     initialFocusedIndex: Int,
@@ -125,13 +134,54 @@ class ScreenConditionsBriefMenu(
         }
     }
 
-    override fun onMoveItemClicked(from: Int, to: Int) {
-        viewModel.swapConditions(from, to)
+    override fun onReorderClicked() {
+        overlayManager.navigateTo(
+            context = context,
+            newOverlay = ItemsReorderDialog(
+                theme = R.style.ScenarioConfigTheme,
+                titleRes = R.string.menu_item_title_conditions,
+                itemsFlow = viewModel.conditionBriefList,
+                itemDescriptor = { brief ->
+                    val cond = brief.data as UiScreenCondition
+                    ReorderItemDescriptor(
+                        title = cond.name,
+                        subtitle = cond.thresholdText,
+                        trailingContent = {
+                            Box(Modifier.size(32.dp), contentAlignment = Alignment.Center) {
+                                ConditionIcon(cond)
+                                if (cond.haveError) {
+                                    Box(
+                                        Modifier
+                                            .align(Alignment.TopEnd)
+                                            .size(8.dp)
+                                            .background(MaterialTheme.colorScheme.error, CircleShape),
+                                    )
+                                }
+                            }
+                        },
+                    )
+                },
+                onReorder = { from, to -> viewModel.moveConditions(from, to) },
+            ),
+            hideCurrent = true,
+        )
     }
 
     override fun onItemPositionCardClicked(index: Int, itemCount: Int) {
         if (itemCount < 2) return
-        showMoveToDialog(index, itemCount)
+        overlayManager.navigateTo(
+            context = context,
+            newOverlay = MoveToDialog(
+                theme = R.style.ScenarioConfigTheme,
+                defaultValue = index + 1,
+                itemCount = itemCount,
+                titleRes = io.github.vibhor1102.macrion.core.common.overlays.R.string.dialog_jump_to_title,
+                onValueSelected = { value ->
+                    val targetIndex = (value - 1).coerceIn(0, itemCount - 1)
+                    briefViewBinding.scrollToItem(targetIndex)
+                },
+            ),
+        )
     }
 
     override fun onItemBriefClicked(index: Int, item: ItemBrief) {
@@ -266,18 +316,4 @@ class ScreenConditionsBriefMenu(
         )
     }
 
-    private fun showMoveToDialog(index: Int, itemCount: Int) {
-        overlayManager.navigateTo(
-            context = context,
-            newOverlay = MoveToDialog(
-                theme = R.style.ScenarioConfigTheme,
-                defaultValue = index + 1,
-                itemCount = itemCount,
-                onValueSelected = { value ->
-                    if (value - 1 == index) return@MoveToDialog
-                    viewModel.moveConditions(index, value - 1)
-                }
-            ),
-        )
-    }
 }

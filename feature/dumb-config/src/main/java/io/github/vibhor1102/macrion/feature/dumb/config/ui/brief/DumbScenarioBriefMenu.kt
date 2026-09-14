@@ -43,6 +43,19 @@ import io.github.vibhor1102.macrion.feature.dumb.config.ui.actions.startDumbActi
 import io.github.vibhor1102.macrion.feature.dumb.config.ui.actions.startDumbActionEditionUiFlow
 import io.github.vibhor1102.macrion.feature.dumb.config.ui.actions.copy.DumbActionDetails
 
+import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.reorder.ItemsReorderDialog
+import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.reorder.ReorderItemDescriptor
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
+
 import kotlinx.coroutines.launch
 
 class DumbScenarioBriefMenu(
@@ -124,8 +137,41 @@ class DumbScenarioBriefMenu(
         viewModel.setFocusedDumbActionIndex(index)
     }
 
-    override fun onMoveItemClicked(from: Int, to: Int) {
-        viewModel.swapDumbActions(from, to)
+    override fun onReorderClicked() {
+        overlayManager.navigateTo(
+            context = context,
+            newOverlay = ItemsReorderDialog(
+                theme = R.style.AppTheme,
+                titleRes = R.string.menu_item_title_dumb_actions,
+                itemsFlow = viewModel.dumbActionsBriefList,
+                itemDescriptor = { brief ->
+                    val action = brief.data as DumbActionDetails
+                    ReorderItemDescriptor(
+                        title = action.name,
+                        subtitle = action.detailsText,
+                        trailingContent = {
+                            Box(Modifier.size(32.dp), contentAlignment = Alignment.Center) {
+                                Icon(
+                                    painter = painterResource(action.icon),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(24.dp),
+                                )
+                                if (action.haveError) {
+                                    Box(
+                                        Modifier
+                                            .align(Alignment.TopEnd)
+                                            .size(8.dp)
+                                            .background(MaterialTheme.colorScheme.error, CircleShape),
+                                    )
+                                }
+                            }
+                        },
+                    )
+                },
+                onReorder = { from, to -> viewModel.moveDumbAction(from, to) },
+            ),
+            hideCurrent = true,
+        )
     }
 
     override fun onDeleteItemClicked(index: Int) {
@@ -141,7 +187,19 @@ class DumbScenarioBriefMenu(
 
     override fun onItemPositionCardClicked(index: Int, itemCount: Int) {
         if (itemCount < 2) return
-        showMoveToDialog(index, itemCount)
+        overlayManager.navigateTo(
+            context = context,
+            newOverlay = MoveToDialog(
+                theme = R.style.AppTheme,
+                defaultValue = index + 1,
+                itemCount = itemCount,
+                titleRes = io.github.vibhor1102.macrion.core.common.overlays.R.string.dialog_jump_to_title,
+                onValueSelected = { value ->
+                    val targetIndex = (value - 1).coerceIn(0, itemCount - 1)
+                    briefViewBinding.scrollToItem(targetIndex)
+                },
+            ),
+        )
     }
 
     override fun onItemBriefClicked(index: Int, item: ItemBrief) {
@@ -249,18 +307,4 @@ class DumbScenarioBriefMenu(
             listener = updateActionUiFlowListener,
         )
 
-    private fun showMoveToDialog(index: Int, itemCount: Int) {
-        overlayManager.navigateTo(
-            context = context,
-            newOverlay = MoveToDialog(
-                theme = R.style.AppTheme,
-                defaultValue = index + 1,
-                itemCount = itemCount,
-                onValueSelected = { value ->
-                    if (value - 1 == index) return@MoveToDialog
-                    viewModel.moveDumbAction(index, value - 1)
-                }
-            ),
-        )
-    }
 }

@@ -47,6 +47,7 @@ import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Composable
@@ -151,11 +152,10 @@ class ItemsBriefOverlayViewBinding private constructor(
     private var onFocusedItemChanged: (Int) -> Unit = {}
     private var firstItemModifier by mutableStateOf<@Composable () -> Modifier>({ Modifier })
 
-    private var onMovePrevious: () -> Unit = {}
     private var onDelete: () -> Unit = {}
     private var onPosition: () -> Unit = {}
     private var onPlay: () -> Unit = {}
-    private var onMoveNext: () -> Unit = {}
+    private var onReorder: () -> Unit = {}
 
     companion object {
 
@@ -179,17 +179,20 @@ class ItemsBriefOverlayViewBinding private constructor(
     }
 
     fun setControlCallbacks(
-        onMovePrevious: () -> Unit,
         onDelete: () -> Unit,
         onPosition: () -> Unit,
         onPlay: () -> Unit,
-        onMoveNext: () -> Unit,
+        onReorder: () -> Unit,
     ) {
-        this.onMovePrevious = onMovePrevious
         this.onDelete = onDelete
         this.onPosition = onPosition
         this.onPlay = onPlay
-        this.onMoveNext = onMoveNext
+        this.onReorder = onReorder
+    }
+
+    fun scrollToItem(index: Int) {
+        requestedBriefItemIndex.intValue = index
+        showOrResetPanelTimer()
     }
 
     fun updateControls(state: ItemBriefControlsState) {
@@ -474,11 +477,10 @@ class ItemsBriefOverlayViewBinding private constructor(
     private fun Controls() = ItemBriefControls(
         state = controlState.value,
         isPortrait = orientation == Configuration.ORIENTATION_PORTRAIT,
-        onMovePrevious = onMovePrevious,
         onDelete = onDelete,
+        onReorder = onReorder,
         onPosition = onPosition,
         onPlay = onPlay,
-        onMoveNext = onMoveNext,
     )
 
     /**
@@ -518,37 +520,33 @@ class ItemsBriefOverlayViewBinding private constructor(
 @Immutable
 data class ItemBriefControlsState(
     val indexText: String = "",
-    val canMovePrevious: Boolean = false,
     val canDelete: Boolean = false,
+    val canReorder: Boolean = false,
     val canSelectPosition: Boolean = false,
     val canPlay: Boolean = false,
-    val canMoveNext: Boolean = false,
 )
 
 @androidx.compose.runtime.Composable
 private fun ItemBriefControls(
     state: ItemBriefControlsState,
     isPortrait: Boolean,
-    onMovePrevious: () -> Unit,
     onDelete: () -> Unit,
+    onReorder: () -> Unit,
     onPosition: () -> Unit,
     onPlay: () -> Unit,
-    onMoveNext: () -> Unit,
 ) {
     if (isPortrait) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(start = 32.dp, end = 32.dp, top = 8.dp, bottom = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            BriefIconButton(UiR.drawable.ic_move_left, state.canMovePrevious, onMovePrevious)
-            Spacer(Modifier.width(16.dp))
             BriefIconButton(UiR.drawable.ic_delete, state.canDelete, onDelete)
-            Spacer(Modifier.width(32.dp))
-            PositionCard(state, onPosition, Modifier.weight(1f).height(48.dp))
-            Spacer(Modifier.width(32.dp))
-            BriefIconButton(UiR.drawable.ic_play_arrow, state.canPlay, onPlay)
             Spacer(Modifier.width(16.dp))
-            BriefIconButton(UiR.drawable.ic_move_right, state.canMoveNext, onMoveNext)
+            BriefIconButton(UiR.drawable.ic_swap_vert, state.canReorder, onReorder)
+            Spacer(Modifier.width(20.dp))
+            PositionCard(state, onPosition, Modifier.weight(1f).height(48.dp))
+            Spacer(Modifier.width(20.dp))
+            BriefIconButton(UiR.drawable.ic_play_arrow, state.canPlay, onPlay)
         }
     } else {
         Column(
@@ -556,15 +554,13 @@ private fun ItemBriefControls(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
-            BriefIconButton(UiR.drawable.ic_move_up, state.canMovePrevious, onMovePrevious)
-            Spacer(Modifier.height(16.dp))
             BriefIconButton(UiR.drawable.ic_delete, state.canDelete, onDelete)
-            Spacer(Modifier.height(28.dp))
-            PositionCard(state, onPosition, Modifier.width(48.dp))
-            Spacer(Modifier.height(28.dp))
-            BriefIconButton(UiR.drawable.ic_play_arrow, state.canPlay, onPlay)
             Spacer(Modifier.height(16.dp))
-            BriefIconButton(UiR.drawable.ic_move_down, state.canMoveNext, onMoveNext)
+            BriefIconButton(UiR.drawable.ic_swap_vert, state.canReorder, onReorder)
+            Spacer(Modifier.height(20.dp))
+            PositionCard(state, onPosition, Modifier.width(48.dp))
+            Spacer(Modifier.height(20.dp))
+            BriefIconButton(UiR.drawable.ic_play_arrow, state.canPlay, onPlay)
         }
     }
 }
@@ -615,10 +611,17 @@ private fun BriefItemsCarousel(
     onInteraction: () -> Unit,
 ) {
     val listState = rememberLazyListState()
+    var hasInitiallyScrolled by remember { mutableStateOf(false) }
 
-    LaunchedEffect(items, requestedIndex) {
-        if (items.isNotEmpty()) {
+    LaunchedEffect(items) {
+        if (items.isNotEmpty() && !hasInitiallyScrolled) {
             listState.scrollToItem(requestedIndex.coerceIn(0, items.lastIndex))
+            hasInitiallyScrolled = true
+        }
+    }
+    LaunchedEffect(requestedIndex) {
+        if (items.isNotEmpty() && hasInitiallyScrolled && listState.firstVisibleItemIndex != requestedIndex) {
+            listState.animateScrollToItem(requestedIndex.coerceIn(0, items.lastIndex))
         }
     }
     LaunchedEffect(listState, items.size) {
@@ -627,39 +630,51 @@ private fun BriefItemsCarousel(
     }
 
     val flingBehavior = rememberBriefCarouselFlingBehavior(listState)
-    if (orientation == Configuration.ORIENTATION_PORTRAIT) {
-        LazyRow(
-            modifier = modifier,
-            state = listState,
-            flingBehavior = flingBehavior,
-            contentPadding = PaddingValues(horizontal = 16.dp),
-        ) {
-            itemsIndexed(items, key = { _, brief -> brief.id.toString() }) { index, brief ->
-                BriefItemContainer(
-                    modifier = Modifier.fillParentMaxSize(),
-                    firstItemModifier = firstItemModifier,
-                    isFirstItem = index == 0,
-                    onInteraction = onInteraction,
-                ) {
-                    itemContent(brief, orientation) { onItemClicked(index, brief) }
+    BoxWithConstraints(modifier = modifier) {
+        if (orientation == Configuration.ORIENTATION_PORTRAIT) {
+            val cardFraction = 0.84f
+            val horizontalPadding = (maxWidth * (1f - cardFraction)) / 2
+            LazyRow(
+                modifier = Modifier.fillMaxSize(),
+                state = listState,
+                flingBehavior = flingBehavior,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding = PaddingValues(horizontal = horizontalPadding),
+            ) {
+                itemsIndexed(items, key = { _, brief -> brief.id.toString() }) { index, brief ->
+                    BriefItemContainer(
+                        modifier = Modifier
+                            .fillParentMaxWidth(cardFraction)
+                            .fillMaxHeight(),
+                        firstItemModifier = firstItemModifier,
+                        isFirstItem = index == 0,
+                        onInteraction = onInteraction,
+                    ) {
+                        itemContent(brief, orientation) { onItemClicked(index, brief) }
+                    }
                 }
             }
-        }
-    } else {
-        LazyColumn(
-            modifier = modifier,
-            state = listState,
-            flingBehavior = flingBehavior,
-            contentPadding = PaddingValues(vertical = 64.dp),
-        ) {
-            itemsIndexed(items, key = { _, brief -> brief.id.toString() }) { index, brief ->
-                BriefItemContainer(
-                    modifier = Modifier.fillParentMaxSize(),
-                    firstItemModifier = firstItemModifier,
-                    isFirstItem = index == 0,
-                    onInteraction = onInteraction,
-                ) {
-                    itemContent(brief, orientation) { onItemClicked(index, brief) }
+        } else {
+            val cardFraction = 0.72f
+            val verticalPadding = (maxHeight * (1f - cardFraction)) / 2
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                state = listState,
+                flingBehavior = flingBehavior,
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding = PaddingValues(vertical = verticalPadding),
+            ) {
+                itemsIndexed(items, key = { _, brief -> brief.id.toString() }) { index, brief ->
+                    BriefItemContainer(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .fillParentMaxHeight(cardFraction),
+                        firstItemModifier = firstItemModifier,
+                        isFirstItem = index == 0,
+                        onInteraction = onInteraction,
+                    ) {
+                        itemContent(brief, orientation) { onItemClicked(index, brief) }
+                    }
                 }
             }
         }
@@ -749,3 +764,4 @@ private const val EXPRESSIVE_SNAP_DAMPING_RATIO = 0.8f
 private const val EXPRESSIVE_SNAP_STIFFNESS = 380f
 private val PORTRAIT_FADE_HEIGHT = 180.dp
 private val LANDSCAPE_FADE_WIDTH = 252.dp
+

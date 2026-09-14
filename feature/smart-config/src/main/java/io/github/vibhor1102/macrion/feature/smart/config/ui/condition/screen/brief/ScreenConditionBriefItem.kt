@@ -56,7 +56,7 @@ internal fun ScreenConditionBriefItem(details: UiScreenCondition, orientation: I
     tint = MaterialTheme.colorScheme.onPrimaryContainer,
 )
 
-@Composable private fun ConditionIcon(details: UiScreenCondition, modifier: Modifier = Modifier) = when (val condition = details.condition) {
+@Composable internal fun ConditionIcon(details: UiScreenCondition, modifier: Modifier = Modifier) = when (val condition = details.condition) {
     is ScreenCondition.Color -> ColorIndicator(condition.color, modifier.size(32.dp))
     is ScreenCondition.Image -> BriefConditionIcon(details.detectionTypeIconRes, modifier)
     is ScreenCondition.Number -> BriefConditionIcon(R.drawable.ic_number_condition, modifier)

@@ -45,6 +45,18 @@ import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredViewType
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.compose.tutorialAnchor
 
+import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.reorder.ItemsReorderDialog
+import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.reorder.ReorderItemDescriptor
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
+
 class SmartActionsBriefMenu(initialItemIndex: Int) : ItemBriefMenu(
     theme = R.style.ScenarioConfigTheme,
     noItemText = R.string.brief_empty_actions,
@@ -150,8 +162,41 @@ class SmartActionsBriefMenu(initialItemIndex: Int) : ItemBriefMenu(
         setMenuItemViewEnabled(menuView.findOverlayView(R.id.btn_record), isVisible)
     }
 
-    override fun onMoveItemClicked(from: Int, to: Int) {
-        viewModel.swapActions(from, to)
+    override fun onReorderClicked() {
+        overlayManager.navigateTo(
+            context = context,
+            newOverlay = ItemsReorderDialog(
+                theme = R.style.ScenarioConfigTheme,
+                titleRes = R.string.menu_item_title_actions,
+                itemsFlow = viewModel.actionBriefList,
+                itemDescriptor = { brief ->
+                    val action = brief.data as UiAction
+                    ReorderItemDescriptor(
+                        title = action.name,
+                        subtitle = action.description,
+                        trailingContent = {
+                            Box(Modifier.size(32.dp), contentAlignment = Alignment.Center) {
+                                Icon(
+                                    painter = painterResource(action.icon),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(24.dp),
+                                )
+                                if (action.haveError) {
+                                    Box(
+                                        Modifier
+                                            .align(Alignment.TopEnd)
+                                            .size(8.dp)
+                                            .background(MaterialTheme.colorScheme.error, CircleShape),
+                                    )
+                                }
+                            }
+                        },
+                    )
+                },
+                onReorder = { from, to -> viewModel.moveAction(from, to) },
+            ),
+            hideCurrent = true,
+        )
     }
 
     override fun onDeleteItemClicked(index: Int) {
@@ -164,7 +209,19 @@ class SmartActionsBriefMenu(initialItemIndex: Int) : ItemBriefMenu(
 
     override fun onItemPositionCardClicked(index: Int, itemCount: Int) {
         if (itemCount < 2) return
-        showMoveToDialog(index, itemCount)
+        overlayManager.navigateTo(
+            context = context,
+            newOverlay = MoveToDialog(
+                theme = R.style.ScenarioConfigTheme,
+                defaultValue = index + 1,
+                itemCount = itemCount,
+                titleRes = io.github.vibhor1102.macrion.core.common.overlays.R.string.dialog_jump_to_title,
+                onValueSelected = { value ->
+                    val targetIndex = (value - 1).coerceIn(0, itemCount - 1)
+                    briefViewBinding.scrollToItem(targetIndex)
+                },
+            ),
+        )
     }
 
     private fun onBackClicked() {
@@ -225,20 +282,6 @@ class SmartActionsBriefMenu(initialItemIndex: Int) : ItemBriefMenu(
         setBriefPanelAutoHide(!isTutorialEnabled)
     }
 
-    private fun showMoveToDialog(index: Int, itemCount: Int) {
-        overlayManager.navigateTo(
-            context = context,
-            newOverlay = MoveToDialog(
-                theme = R.style.ScenarioConfigTheme,
-                defaultValue = index + 1,
-                itemCount = itemCount,
-                onValueSelected = { value ->
-                    if (value - 1 == index) return@MoveToDialog
-                    viewModel.moveAction(index, value - 1)
-                }
-            ),
-        )
-    }
 
     private fun showNewActionDialog() {
         showActionTypeSelectionDialog(viewModel)
