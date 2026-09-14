@@ -23,7 +23,7 @@
             android:name=".qstile.ui.QSTileService"
             android:exported="true"
             android:label="@string/tile_label_launch_scenario"
-            android:icon="@drawable/ic_click"
+            android:icon="@drawable/ic_click_filled"
             android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
 
             <intent-filter>
