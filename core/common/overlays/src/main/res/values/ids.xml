@@ -27,4 +27,5 @@
     <item name="btn_back" type="id"/>
     <item name="btn_confirm" type="id"/>
     <item name="btn_cancel" type="id"/>
+    <item name="btn_tuck" type="id"/>
 </resources>

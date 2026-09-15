@@ -85,6 +85,14 @@ class DisplayConfigManagerTests {
         return receiverCaptor.value
     }
 
+    /** @return the display listener registered upon startMonitoring */
+    private fun getDisplayListener(): DisplayManager.DisplayListener {
+        val listenerCaptor = ArgumentCaptor.forClass(DisplayManager.DisplayListener::class.java)
+        verify(mockDisplayManager).registerDisplayListener(listenerCaptor.capture(), any())
+
+        return listenerCaptor.value
+    }
+
     @Suppress("DEPRECATION")
     private fun mockLegacyGetDisplaySize(width: Int = DISPLAY_SIZE_X, height: Int = DISPLAY_SIZE_Y) =
         Mockito.doAnswer { invocation ->
@@ -286,5 +294,20 @@ class DisplayConfigManagerTests {
         receiver.onReceive(mockContext, Intent())
 
         verify(mockOrientationListener, never()).onOrientationChanged()
+    }
+
+    @Test
+    fun orientationChanged_viaDisplayListener() {
+        mockWhen(mockDisplay.rotation).thenReturn(Surface.ROTATION_0)
+        mockWhen(mockDisplay.displayId).thenReturn(0)
+        mockCurrentWindowMetrics()
+        displayConfigManager = DisplayConfigManager(mockContext)
+        displayConfigManager.startMonitoring(mockContext)
+
+        displayConfigManager.addOrientationListener { mockOrientationListener.onOrientationChanged() }
+        mockWhen(mockDisplay.rotation).thenReturn(Surface.ROTATION_90)
+        getDisplayListener().onDisplayChanged(0)
+
+        verify(mockOrientationListener).onOrientationChanged()
     }
 }

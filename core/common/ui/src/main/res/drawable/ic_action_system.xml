@@ -1,49 +1,9 @@
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp"
     android:height="24dp"
-    android:viewportWidth="20"
-    android:viewportHeight="20"
-    android:tint="?attr/colorControlNormal">
-
-  <!-- BACK -->
-  <group
-      android:pivotX="8.5"
-      android:pivotY="3"
-      android:scaleX="0.4"
-      android:scaleY="0.4">
-
-    <path
-        android:fillColor="@android:color/black"
-        android:pathData="M15.5417 1.66669C15.1833 1.66669 14.8417 1.76669 14.5333 1.94169L3.21667 8.74169C2.775 9.00002 2.5 9.48335 2.5 10C2.5 10.5167 2.775 11 3.21667 11.2584L14.5333 18.05C14.8417 18.2334 15.1833 18.325 15.5417 18.325C16.625 18.325 17.5 17.45 17.5 16.3667V3.62502C17.5 2.54169 16.625 1.66669 15.5417 1.66669Z" />
-
-  </group>
-
-
-  <!-- HOME -->
-  <group
-      android:pivotX="2"
-      android:pivotY="17"
-      android:scaleX="0.4"
-      android:scaleY="0.4">
-
-    <path
-        android:fillColor="@android:color/black"
-        android:pathData="M10.0001 18.3334C5.40008 18.3334 1.66675 14.6 1.66675 10C1.66675 5.40002 5.40008 1.66669 10.0001 1.66669C14.6001 1.66669 18.3334 5.40002 18.3334 10C18.3334 14.6 14.6001 18.3334 10.0001 18.3334Z" />
-
-  </group>
-
-  <!-- RECENT APPS -->
-  <group
-      android:pivotX="18"
-      android:pivotY="17"
-      android:scaleX="0.4"
-      android:scaleY="0.4">
-
-    <path
-        android:fillColor="@android:color/black"
-        android:pathData="M4.47634 2.5H15.5241C16.6164 2.5 17.5002 3.38382 17.5002 4.4761V15.5239C17.5002 16.6162 16.6164 17.5 15.5241 17.5H4.47634C3.38407 17.5 2.50024 16.6162 2.50024 15.5239V4.4761C2.50024 3.38382 3.38407 2.5 4.47634 2.5Z" />
-
-  </group>
-
-
+    android:viewportWidth="960"
+    android:viewportHeight="960">
+  <path
+      android:fillColor="@android:color/white"
+      android:pathData="M645,162.7L645,367.3Q645,445 575.5,410.3L370.9,307.9Q285,265 370.9,222.1L575.5,119.7Q645,85 645,162.7ZM561.8,193.7L447.8,250.7Q419.2,265 447.8,279.3L561.8,336.3Q585,347.9 585,322L585,208Q585,182.1 561.8,193.7ZM265,515A180,180 0 1,0 265,875A180,180 0 1,0 265,515ZM265,575A120,120 0 1,1 265,815A120,120 0 1,1 265,575ZM587,515H803Q875,515 875,587V803Q875,875 803,875H587Q515,875 515,803V587Q515,515 587,515ZM591,575Q575,575 575,591V799Q575,815 591,815H799Q815,815 815,799V591Q815,575 799,575Z"/>
 </vector>

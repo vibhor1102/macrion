@@ -20,6 +20,7 @@ package io.github.vibhor1102.macrion.core.settings.engine.data
 import android.content.Context
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.intPreferencesKey
 
 import io.github.vibhor1102.macrion.core.base.PreferencesDataStore
 import io.github.vibhor1102.macrion.core.base.di.Dispatcher
@@ -44,6 +45,8 @@ internal class SettingsDataSource @Inject constructor(
     internal companion object {
         const val PREFERENCES_FILE_NAME = "settings"
 
+        val KEY_TOOLBAR_SCALE_PERCENT: Preferences.Key<Int> =
+            intPreferencesKey("toolbarScalePercent")
         val KEY_IS_FILTER_SCENARIO_UI_ENABLED: Preferences.Key<Boolean> =
             booleanPreferencesKey("isFilterScenarioUiEnabled")
         val KEY_IS_SCENARIO_SWITCHER_ENABLED: Preferences.Key<Boolean> =
@@ -60,6 +63,16 @@ internal class SettingsDataSource @Inject constructor(
             booleanPreferencesKey("forceEntireScreen")
         val KEY_INPUT_BLOCK_WORKAROUND: Preferences.Key<Boolean> =
             booleanPreferencesKey("inputBlockWorkaround")
+        val KEY_ARE_ADVANCED_SETTINGS_ENABLED: Preferences.Key<Boolean> =
+            booleanPreferencesKey("areAdvancedSettingsEnabled")
+        val KEY_HAS_SEEN_ADVANCED_WARNING: Preferences.Key<Boolean> =
+            booleanPreferencesKey("hasSeenAdvancedWarning")
+        val KEY_MAX_TOLERATED_DIFFERENCE: Preferences.Key<Int> =
+            intPreferencesKey("maxToleratedDifference")
+        val KEY_IS_TOOLBAR_AUTO_HIDE_ENABLED: Preferences.Key<Boolean> =
+            booleanPreferencesKey("isToolbarAutoHideEnabled")
+        val KEY_TOOLBAR_AUTO_HIDE_DELAY_SECONDS: Preferences.Key<Int> =
+            intPreferencesKey("toolbarAutoHideDelaySeconds")
     }
 
     private val dataStore: PreferencesDataStore =
@@ -135,4 +148,52 @@ internal class SettingsDataSource @Inject constructor(
             preferences[KEY_INPUT_BLOCK_WORKAROUND] = !(preferences[KEY_INPUT_BLOCK_WORKAROUND] ?: false)
         }
     }
+
+    internal fun toolbarScalePercent(): Flow<Int> =
+        dataStore.data.map { preferences -> preferences[KEY_TOOLBAR_SCALE_PERCENT] ?: 100 }
+
+    internal suspend fun setToolbarScalePercent(percent: Int) =
+        dataStore.edit { preferences ->
+            preferences[KEY_TOOLBAR_SCALE_PERCENT] = percent.coerceIn(50, 150)
+        }
+
+    internal fun areAdvancedSettingsEnabled(): Flow<Boolean> =
+        dataStore.data.map { preferences -> preferences[KEY_ARE_ADVANCED_SETTINGS_ENABLED] ?: false }
+
+    internal suspend fun setAdvancedSettingsEnabled(enabled: Boolean) =
+        dataStore.edit { preferences ->
+            preferences[KEY_ARE_ADVANCED_SETTINGS_ENABLED] = enabled
+        }
+
+    internal fun hasSeenAdvancedWarning(): Flow<Boolean> =
+        dataStore.data.map { preferences -> preferences[KEY_HAS_SEEN_ADVANCED_WARNING] ?: false }
+
+    internal suspend fun setHasSeenAdvancedWarning(seen: Boolean) =
+        dataStore.edit { preferences ->
+            preferences[KEY_HAS_SEEN_ADVANCED_WARNING] = seen
+        }
+
+    internal fun maxToleratedDifference(): Flow<Int> =
+        dataStore.data.map { preferences -> preferences[KEY_MAX_TOLERATED_DIFFERENCE] ?: 20 }
+
+    internal suspend fun setMaxToleratedDifference(difference: Int) =
+        dataStore.edit { preferences ->
+            preferences[KEY_MAX_TOLERATED_DIFFERENCE] = difference.coerceIn(20, 50)
+        }
+
+    internal fun isToolbarAutoHideEnabled(): Flow<Boolean> =
+        dataStore.data.map { preferences -> preferences[KEY_IS_TOOLBAR_AUTO_HIDE_ENABLED] ?: true }
+
+    internal suspend fun setToolbarAutoHideEnabled(enabled: Boolean) =
+        dataStore.edit { preferences ->
+            preferences[KEY_IS_TOOLBAR_AUTO_HIDE_ENABLED] = enabled
+        }
+
+    internal fun toolbarAutoHideDelaySeconds(): Flow<Int> =
+        dataStore.data.map { preferences -> preferences[KEY_TOOLBAR_AUTO_HIDE_DELAY_SECONDS] ?: 120 }
+
+    internal suspend fun setToolbarAutoHideDelaySeconds(seconds: Int) =
+        dataStore.edit { preferences ->
+            preferences[KEY_TOOLBAR_AUTO_HIDE_DELAY_SECONDS] = seconds
+        }
 }

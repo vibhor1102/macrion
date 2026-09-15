@@ -117,4 +117,6 @@
     <string name="content_desc_confirm">Підтвердити</string>
     <string name="content_desc_go_back">Повернутися до діалогу</string>
 
+    <string name="content_desc_tuck_toolbar">Згорнути панель інструментів до краю екрана</string>
+    <string name="content_desc_expand_toolbar">Розгорнути панель інструментів</string>
 </resources>

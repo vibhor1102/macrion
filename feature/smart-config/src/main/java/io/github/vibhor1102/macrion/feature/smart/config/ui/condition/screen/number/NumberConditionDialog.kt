@@ -1,6 +1,8 @@
 /* Copyright (C) 2026 Kevin Buzeau; Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.number
 
+import io.github.vibhor1102.macrion.core.ui.compose.OverlayDialogShape
+
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
@@ -31,12 +33,13 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import com.google.android.material.bottomsheet.BottomSheetDialog
+import android.app.Dialog
 import io.github.vibhor1102.macrion.core.common.navigation.getTutorialNavigator
 import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayDialog
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.Tip
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredOverlayType
+import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredViewType
 import io.github.vibhor1102.macrion.core.domain.model.counter.CounterOperationValue
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTextField
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
@@ -44,8 +47,8 @@ import io.github.vibhor1102.macrion.core.ui.compose.macrionDoneKeyboardActions
 import io.github.vibhor1102.macrion.core.ui.compose.macrionDoneKeyboardOptions
 import io.github.vibhor1102.macrion.feature.smart.config.R
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
-import io.github.vibhor1102.macrion.feature.smart.config.ui.common.compose.TutorialClickAnchor
-import io.github.vibhor1102.macrion.feature.smart.config.ui.common.compose.TutorialViewAnchor
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.compose.tutorialAnchor
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.compose.tutorialTextAnchor
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.dialogs.showCloseWithoutSavingDialog
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.dialogs.showDeleteConditionsWithAssociatedActionsDialog
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.formatters.toNaturalDisplayString
@@ -64,34 +67,24 @@ class NumberConditionDialog(private val listener: OnConditionConfigCompleteListe
         entryPoint = ScenarioConfigViewModelsEntryPoint::class.java,
         creator = { numberConditionViewModel() },
     )
-    private var saveAnchor: View? = null
-    private var operatorAnchor: View? = null
-    private var valueAnchor: View? = null
-    private var areaAnchor: View? = null
 
     override fun onCreateView(): ViewGroup = ComposeView(context).apply {
         setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
         setContent { MacrionTheme { this@NumberConditionDialog.Content() } }
     }
-    override fun onDialogCreated(dialog: BottomSheetDialog) {
+    override fun onDialogCreated(dialog: Dialog) {
         lifecycleScope.launch { repeatOnLifecycle(Lifecycle.State.CREATED) {
             viewModel.isEditingCondition.collect { if (!it) { Log.e(TAG, "Closing NumberConditionDialog because there is no condition edited"); finish() } }
         } }
     }
-    override fun onStart() {
-        super.onStart()
-        viewModel.monitorSaveButtonView(saveAnchor)
-        viewModel.monitorOperatorField(operatorAnchor)
-        viewModel.monitorValueToDetectField(valueAnchor)
-        viewModel.monitorDetectionAreaField(areaAnchor)
-    }
-    override fun onStop() { viewModel.detachMonitoredViews(); super.onStop() }
 
     @Composable private fun Content() {
         val state by viewModel.uiState.collectAsStateWithLifecycle()
         val ui = state ?: return
         var name by rememberSaveable { mutableStateOf(ui.name) }
-        Surface(Modifier.fillMaxWidth().heightIn(max = 600.dp), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
+        Surface(
+            shape = OverlayDialogShape,
+            modifier = Modifier.fillMaxWidth().heightIn(max = 600.dp), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
             Column {
                 TopBar(ui.canBeSaved)
                 Column(Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState())
@@ -118,10 +111,15 @@ class NumberConditionDialog(private val listener: OnConditionConfigCompleteListe
                 style = MaterialTheme.typography.titleLarge, maxLines = 1, overflow = TextOverflow.Clip)
             FilledTonalIconButton(onClick = ::onDeleteClicked) { Icon(painterResource(R.drawable.ic_delete), null) }
             Spacer(Modifier.width(8.dp))
-            Box {
-                FilledIconButton(onClick = ::save, enabled = saveEnabled) { Icon(painterResource(R.drawable.ic_save_filled), null) }
-                TutorialClickAnchor({ saveAnchor = it; viewModel.monitorSaveButtonView(it) }, ::save, saveEnabled)
-            }
+            FilledIconButton(
+                onClick = ::save,
+                enabled = saveEnabled,
+                modifier = Modifier.tutorialAnchor(
+                    MonitoredViewType.SCREEN_CONDITION_DIALOG_BUTTON_SAVE,
+                    onClick = ::save,
+                    enabled = saveEnabled,
+                ),
+            ) { Icon(painterResource(R.drawable.ic_save_filled), null) }
         }
     }
 
@@ -131,7 +129,14 @@ class NumberConditionDialog(private val listener: OnConditionConfigCompleteListe
         ElevatedCard(Modifier.fillMaxWidth()) { Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Box(Modifier.weight(1f)) {
+                Box(
+                    Modifier
+                        .weight(1f)
+                        .tutorialAnchor(
+                            MonitoredViewType.NUMBER_CONDITION_DIALOG_FIELD_OPERATOR_DROPDOWN,
+                            onClick = { expanded = true },
+                        )
+                ) {
                     ExposedDropdownMenuBox(expanded, { expanded = it }) {
                         OutlinedTextField(stringResource(ui.selectorOperatorDropdownItem.title), {}, readOnly = true,
                             label = { Text(context.getString(R.string.dropdown_comparison_operator_label)) },
@@ -139,18 +144,26 @@ class NumberConditionDialog(private val listener: OnConditionConfigCompleteListe
                             modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable).fillMaxWidth())
                         ExposedDropdownMenu(expanded, { expanded = false }) {
                             allCounterComparisonOperatorDropdownItems().forEach { item ->
-                                Box(Modifier.fillMaxWidth()) {
-                                    DropdownMenuItem(text = { Text(stringResource(item.title)) }, onClick = {
-                                        viewModel.setComparisonOperator(item); expanded = false
-                                    })
-                                    if (item is UiCounterOperatorDropdownItem.Comparison.GreaterItem) TutorialClickAnchor(
-                                        onViewChanged = { viewModel.monitorDropdownItem(item, it) },
-                                        onClick = { viewModel.setComparisonOperator(item); expanded = false })
-                                }
+                                val isGreater = item is UiCounterOperatorDropdownItem.Comparison.GreaterItem
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(item.title)) },
+                                    onClick = {
+                                        viewModel.setComparisonOperator(item)
+                                        expanded = false
+                                    },
+                                    modifier = if (isGreater) {
+                                        Modifier.tutorialAnchor(
+                                            MonitoredViewType.NUMBER_CONDITION_DIALOG_FIELD_OPERATOR_ITEM_GREATER,
+                                            onClick = {
+                                                viewModel.setComparisonOperator(item)
+                                                expanded = false
+                                            },
+                                        )
+                                    } else Modifier,
+                                )
                             }
                         }
                     }
-                    TutorialClickAnchor({ operatorAnchor = it; viewModel.monitorOperatorField(it) }, { expanded = true })
                 }
                 OperandTypeButtons(ui.operandValue)
             }
@@ -181,15 +194,28 @@ class NumberConditionDialog(private val listener: OnConditionConfigCompleteListe
     @Composable private fun StaticValueField(operand: UiStaticOrCounterSelection.StaticValue) {
         var text by rememberSaveable { mutableStateOf(operand.value.toNaturalDisplayString()) }
         val focusRequester = remember { FocusRequester() }
-        Box {
-            TutorialViewAnchor({ valueAnchor = it; viewModel.monitorValueToDetectField(it) },
-                { focusRequester.requestFocus() }, Modifier.matchParentSize())
-            OutlinedTextField(text, { newText -> text = newText; newText.toDoubleOrNull()?.let {
-                viewModel.setOperationValue(CounterOperationValue.Number(it)) } }, Modifier.fillMaxWidth().focusRequester(focusRequester),
-                label = { Text(context.getString(R.string.field_counter_operation_value_label)) },
-                keyboardOptions = macrionDoneKeyboardOptions(KeyboardType.Decimal),
-                keyboardActions = macrionDoneKeyboardActions(), singleLine = true)
-        }
+        OutlinedTextField(
+            value = text,
+            onValueChange = { newText ->
+                text = newText
+                newText.toDoubleOrNull()?.let { viewModel.setOperationValue(CounterOperationValue.Number(it)) }
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .focusRequester(focusRequester)
+                .tutorialAnchor(
+                    MonitoredViewType.NUMBER_CONDITION_DIALOG_FIELD_VALUE_TO_DETECT,
+                    onClick = { focusRequester.requestFocus() },
+                )
+                .tutorialTextAnchor(
+                    MonitoredViewType.NUMBER_CONDITION_DIALOG_FIELD_VALUE_TO_DETECT,
+                    text = text,
+                ),
+            label = { Text(context.getString(R.string.field_counter_operation_value_label)) },
+            keyboardOptions = macrionDoneKeyboardOptions(KeyboardType.Decimal),
+            keyboardActions = macrionDoneKeyboardActions(),
+            singleLine = true,
+        )
     }
 
     @Composable private fun CounterField(operand: UiStaticOrCounterSelection.CounterValue) {
@@ -225,32 +251,39 @@ class NumberConditionDialog(private val listener: OnConditionConfigCompleteListe
                 }
             }
             HorizontalDivider(Modifier.padding(top = 8.dp))
-            Box {
-                Row(Modifier.fillMaxWidth().clickable(onClick = ::showDetectionAreaSelector)
-                    .padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text(context.getString(R.string.generic_detection_area_title), style = MaterialTheme.typography.titleSmall)
-                        Text(ui.detectionAreaDescription, style = MaterialTheme.typography.bodySmall,
-                            color = if (ui.detectionAreaError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                    Icon(painterResource(R.drawable.ic_chevron_right), null)
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .tutorialAnchor(
+                        MonitoredViewType.NUMBER_CONDITION_DIALOG_FIELD_AREA_SELECTOR,
+                        onClick = ::showDetectionAreaSelector,
+                    )
+                    .clickable(onClick = ::showDetectionAreaSelector)
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(context.getString(R.string.generic_detection_area_title), style = MaterialTheme.typography.titleSmall)
+                    Text(ui.detectionAreaDescription, style = MaterialTheme.typography.bodySmall,
+                        color = if (ui.detectionAreaError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant)
                 }
-                TutorialClickAnchor({ areaAnchor = it; viewModel.monitorDetectionAreaField(it) }, ::showDetectionAreaSelector)
+                Icon(painterResource(R.drawable.ic_chevron_right), null)
             }
         } }
     }
 
     @Composable private fun ThresholdCard(value: Int) {
+        val maxThreshold by viewModel.maxThreshold.collectAsStateWithLifecycle()
         ElevatedCard(Modifier.fillMaxWidth()) { Column(Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text(context.getString(R.string.generic_condition_threshold_title), style = MaterialTheme.typography.titleSmall)
                 Text("$value%", style = MaterialTheme.typography.bodyMedium)
             }
             Slider(
-                value = value.toFloat(),
+                value = value.toFloat().coerceIn(0f, maxThreshold),
                 onValueChange = { viewModel.setThreshold(it.roundToInt()) },
-                valueRange = 0f..MAX_THRESHOLD,
-                steps = MAX_THRESHOLD.roundToInt() - 1,
+                valueRange = 0f..maxThreshold,
+                steps = (maxThreshold.roundToInt() - 1).coerceAtLeast(0),
             )
         } }
     }

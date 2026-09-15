@@ -19,6 +19,7 @@
 <resources>
 
     <string name="notification_title">Escenario: %1$s</string>
+    <string name="notification_scenario_label">Escenario</string>
     <string name="notification_message">Pulsa para cambiar el escenario.</string>
     <string name="notification_button_play">Jugar</string>
     <string name="notification_button_pause">Pausa</string>

@@ -20,10 +20,8 @@ package io.github.vibhor1102.macrion.settings
 import android.app.Activity
 import android.content.Context
 import android.os.Build
-import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.ViewModel
 import io.github.vibhor1102.macrion.core.base.workarounds.isImpactedByInputBlock
-import io.github.vibhor1102.macrion.core.common.quality.domain.QualityRepository
 import io.github.vibhor1102.macrion.core.settings.domain.SettingsRepository
 import io.github.vibhor1102.macrion.feature.revenue.IRevenueRepository
 import io.github.vibhor1102.macrion.feature.revenue.UserBillingState
@@ -36,10 +34,12 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
-    private val qualityRepository: QualityRepository,
     private val revenueRepository: IRevenueRepository,
     private val settingsRepository: SettingsRepository,
 ) : ViewModel() {
+
+    val toolbarScalePercent: Flow<Int> =
+        settingsRepository.toolbarScalePercentFlow
 
     val isScenarioFiltersUiEnabled: Flow<Boolean> =
         settingsRepository.isFilterScenarioUiEnabledFlow
@@ -120,7 +120,46 @@ class SettingsViewModel @Inject constructor(
         revenueRepository.startPurchaseUiFlow(context)
     }
 
-    fun showTroubleshootingDialog(activity: FragmentActivity) {
-        qualityRepository.startTroubleshootingUiFlow(activity)
+    fun setToolbarScalePercent(percent: Int) {
+        settingsRepository.setToolbarScalePercent(percent)
+    }
+
+    val areAdvancedSettingsEnabled: Flow<Boolean> =
+        settingsRepository.areAdvancedSettingsEnabledFlow
+
+    val hasSeenAdvancedWarning: Flow<Boolean> =
+        settingsRepository.hasSeenAdvancedWarningFlow
+
+    val maxToleratedDifference: Flow<Int> =
+        settingsRepository.maxToleratedDifferenceFlow
+
+    fun setAdvancedSettingsEnabled(enabled: Boolean) {
+        settingsRepository.setAdvancedSettingsEnabled(enabled)
+    }
+
+    fun setHasSeenAdvancedWarning(seen: Boolean) {
+        settingsRepository.setHasSeenAdvancedWarning(seen)
+    }
+
+    fun setMaxToleratedDifference(difference: Int) {
+        settingsRepository.setMaxToleratedDifference(difference)
+    }
+
+    val isToolbarAutoHideEnabled: Flow<Boolean> =
+        settingsRepository.isToolbarAutoHideEnabledFlow
+
+    val toolbarAutoHideDelaySeconds: Flow<Int> =
+        settingsRepository.toolbarAutoHideDelaySecondsFlow
+
+    fun setToolbarAutoHideEnabled(enabled: Boolean) {
+        settingsRepository.setToolbarAutoHideEnabled(enabled)
+    }
+
+    fun toggleToolbarAutoHide() {
+        settingsRepository.toggleToolbarAutoHide()
+    }
+
+    fun setToolbarAutoHideDelaySeconds(seconds: Int) {
+        settingsRepository.setToolbarAutoHideDelaySeconds(seconds)
     }
 }

@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2024 Kevin Buzeau
+ * Copyright (C) 2026 Vibhor Goel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,35 +19,32 @@ package io.github.vibhor1102.macrion.core.common.permissions
 
 import android.content.Context
 import android.util.Log
-import androidx.appcompat.app.AppCompatActivity
-
-import io.github.vibhor1102.macrion.core.common.permissions.model.Permission
-import io.github.vibhor1102.macrion.core.common.permissions.ui.PermissionDialogFragment
-
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
-
 import dagger.hilt.android.scopes.ActivityRetainedScoped
-
+import io.github.vibhor1102.macrion.core.common.permissions.model.Permission
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
 
+sealed interface PermissionUiState {
+    data object Idle : PermissionUiState
+    data class Request(val permission: Permission) : PermissionUiState
+    data object MandatoryDenied : PermissionUiState
+}
+
 @ActivityRetainedScoped
 class PermissionsController @Inject constructor() {
 
-    private val permissionsRequestedLeft: MutableSet<Permission> =
-        mutableSetOf()
+    private val permissionsRequestedLeft: MutableSet<Permission> = mutableSetOf()
 
-    private val _currentRequestedPermission: MutableStateFlow<Permission?> =
-        MutableStateFlow(null)
-    val currentRequestedPermission: StateFlow<Permission?> = _currentRequestedPermission
+    private val _uiState: MutableStateFlow<PermissionUiState> = MutableStateFlow(PermissionUiState.Idle)
+    val uiState: StateFlow<PermissionUiState> = _uiState
 
+    private var currentContext: Context? = null
     private var allGrantedCallback: (() -> Unit)? = null
     private var mandatoryDeniedCallback: (() -> Unit)? = null
 
-
     fun startPermissionsUiFlow(
-        activity: AppCompatActivity,
+        activity: Context,
         permissions: List<Permission>,
         onAllGranted: () -> Unit,
         onMandatoryDenied: (() -> Unit)? = null,
@@ -56,6 +54,7 @@ class PermissionsController @Inject constructor() {
         permissionsRequestedLeft.clear()
         allGrantedCallback = onAllGranted
         mandatoryDeniedCallback = onMandatoryDenied
+        currentContext = activity
 
         permissions.forEach { permission ->
             if (!permission.checkIfGranted(activity)) permissionsRequestedLeft.add(permission)
@@ -66,7 +65,7 @@ class PermissionsController @Inject constructor() {
         handleNextPermission(activity)
     }
 
-    private fun handleNextPermission(activity: AppCompatActivity) {
+    private fun handleNextPermission(context: Context) {
         // All granted ? We are good
         if (permissionsRequestedLeft.isEmpty()) {
             Log.i(TAG, "All permission are granted !")
@@ -78,28 +77,47 @@ class PermissionsController @Inject constructor() {
         val nextPermission = permissionsRequestedLeft.popFirst()
 
         // This permission is optional and has already been requested, skip it
-        if (nextPermission.isOptionalAndRequestedBefore(activity)) {
+        if (nextPermission.isOptionalAndRequestedBefore(context)) {
             Log.d(TAG, "Skipping already requested permission $nextPermission")
-            handleNextPermission(activity)
+            handleNextPermission(context)
             return
         }
 
         // Show the dialog and handle the result
         Log.i(TAG, "show permission dialog for $nextPermission")
-        activity.showPermissionDialogFragment(nextPermission) { isGranted ->
-            Log.i(TAG, "onPermissionDialogResult: $nextPermission isGranted=$isGranted")
+        _uiState.value = PermissionUiState.Request(nextPermission)
+    }
 
-            if (isGranted || nextPermission.isOptional) handleNextPermission(activity)
-            else activity.showMandatoryPermissionDeniedDialog()
+    fun onPermissionResult(isGranted: Boolean) {
+        val currentRequest = _uiState.value as? PermissionUiState.Request ?: return
+        val currentPermission = currentRequest.permission
+        Log.i(TAG, "onPermissionResult: $currentPermission isGranted=$isGranted")
+
+        val context = currentContext
+        if (isGranted || currentPermission.isOptional) {
+            _uiState.value = PermissionUiState.Idle
+            if (context != null) {
+                handleNextPermission(context)
+            } else {
+                notifyAllGranted()
+            }
+        } else {
+            _uiState.value = PermissionUiState.MandatoryDenied
         }
     }
 
+    fun onMandatoryDeniedDismissed() {
+        notifyMandatoryDenied()
+    }
+
     private fun notifyAllGranted() {
+        _uiState.value = PermissionUiState.Idle
         allGrantedCallback?.invoke()
         clear()
     }
 
     private fun notifyMandatoryDenied() {
+        _uiState.value = PermissionUiState.Idle
         mandatoryDeniedCallback?.invoke()
         clear()
     }
@@ -107,49 +125,16 @@ class PermissionsController @Inject constructor() {
     private fun clear() {
         allGrantedCallback = null
         mandatoryDeniedCallback = null
-        _currentRequestedPermission.value = null
+        currentContext = null
+        _uiState.value = PermissionUiState.Idle
         permissionsRequestedLeft.clear()
-    }
-
-    private fun AppCompatActivity.showPermissionDialogFragment(permission: Permission, resultListener: (isGranted: Boolean) -> Unit) {
-        // Setup the result listener on the permission request
-        supportFragmentManager.setFragmentResultListener(FRAGMENT_RESULT_KEY_PERMISSION_STATE, this) { _, bundle ->
-            _currentRequestedPermission.value = null
-            resultListener(bundle.getBoolean(EXTRA_RESULT_KEY_PERMISSION_STATE))
-        }
-
-        // Show the permission request dialog
-        _currentRequestedPermission.value = permission
-        PermissionDialogFragment().show(supportFragmentManager, FRAGMENT_TAG_PERMISSION_DIALOG)
-    }
-
-    private fun AppCompatActivity.showMandatoryPermissionDeniedDialog() {
-        MaterialAlertDialogBuilder(this)
-            .setTitle(R.string.dialog_title_permission_mandatory_denied)
-            .setMessage(R.string.message_permission_mandatory_denied)
-            .setPositiveButton(android.R.string.ok) { _, _ -> notifyMandatoryDenied() }
-            .setOnCancelListener { notifyMandatoryDenied() }
-            .create()
-            .show()
     }
 
     private fun Permission.isOptionalAndRequestedBefore(context: Context) =
         isOptional && hasBeenRequestedBefore(context)
 
-    private fun MutableSet<Permission>.popFirst() : Permission =
+    private fun MutableSet<Permission>.popFirst(): Permission =
         first().also(::remove)
 }
-
-/** Tag for permission dialog fragment. */
-internal const val FRAGMENT_TAG_PERMISSION_DIALOG = "PermissionDialog"
-
-/** Fragment result key for the permission granted or not state once dialog is closed. */
-internal const val FRAGMENT_RESULT_KEY_PERMISSION_STATE = ":$FRAGMENT_TAG_PERMISSION_DIALOG:state"
-/**
- * Key for [FRAGMENT_RESULT_KEY_PERMISSION_STATE] result bundle.
- * Boolean indicating the permission state.
- */
-internal const val EXTRA_RESULT_KEY_PERMISSION_STATE = "$FRAGMENT_RESULT_KEY_PERMISSION_STATE:isGranted"
-
 
 private const val TAG = "PermissionsController"

@@ -54,6 +54,31 @@ interface SettingsRepository {
     fun isInputBlockWorkaroundEnabled(): Boolean
     fun toggleInputBlockWorkaround()
 
+    val toolbarScalePercentFlow: Flow<Int>
+    fun getToolbarScalePercent(): Int
+    fun setToolbarScalePercent(percent: Int)
+
+    val areAdvancedSettingsEnabledFlow: Flow<Boolean>
+    fun areAdvancedSettingsEnabled(): Boolean
+    fun setAdvancedSettingsEnabled(enabled: Boolean)
+
+    val hasSeenAdvancedWarningFlow: Flow<Boolean>
+    fun hasSeenAdvancedWarning(): Boolean
+    fun setHasSeenAdvancedWarning(seen: Boolean)
+
+    val maxToleratedDifferenceFlow: Flow<Int>
+    fun getMaxToleratedDifference(): Int
+    fun setMaxToleratedDifference(difference: Int)
+
+    val isToolbarAutoHideEnabledFlow: Flow<Boolean>
+    fun isToolbarAutoHideEnabled(): Boolean
+    fun setToolbarAutoHideEnabled(enabled: Boolean)
+    fun toggleToolbarAutoHide()
+
+    val toolbarAutoHideDelaySecondsFlow: Flow<Int>
+    fun getToolbarAutoHideDelaySeconds(): Int
+    fun setToolbarAutoHideDelaySeconds(seconds: Int)
+
 
     val scenarioSortSettings: Flow<ScenarioSortSettings>
     fun setScenarioSortType(type: ScenarioSortType)

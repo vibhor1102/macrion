@@ -26,9 +26,9 @@ data class ColorConditionUiState(
     val conditionPosition: PointF,
     @param:ColorInt val conditionColor: Int,
     val conditionColorText: String,
-    val redValue: Int,
-    val greenValue: Int,
-    val blueValue: Int,
+    val hue: Float,
+    val saturation: Float,
+    val value: Float,
     val shouldBeDetectedChecked: Boolean,
     val detectionThreshold: Int,
 )

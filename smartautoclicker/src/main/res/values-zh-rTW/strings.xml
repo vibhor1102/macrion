@@ -112,9 +112,9 @@
     <string name="button_export">匯出</string>
 
     <string name="dialog_title_locale_plugin_background_launch">背景啟動遭到封鎖</string>
-    <string name="message_locale_plugin_background_launch">Klick\'r 無法自動開啟螢幕擷取提示。\n\n為了完成情境啟動，Klick\'r 改為顯示通知。\n\n部分 Android 手機對背景應用程式限制更嚴格。請參考此指南以提高權限穩定性。</string>
+    <string name="message_locale_plugin_background_launch">Macrion 無法自動開啟螢幕擷取提示。\n\n為了完成情境啟動，Macrion 改為顯示通知。\n\n部分 Android 手機對背景應用程式限制更嚴格。請參考此指南以提高權限穩定性。</string>
     <string name="field_tutorial_title">教學</string>
-    <string name="field_tutorial_desc">瞭解如何使用 Klick\'r</string>
+    <string name="field_tutorial_desc">瞭解如何使用 Macrion</string>
     <string name="dialog_title_copy_scenario">複製情境</string>
     <string name="content_desc_back">返回</string>
     <string name="crash_reports_title">本機當機報告</string>
@@ -137,4 +137,41 @@
     <string name="crash_report_label">報告 %1$s</string>
     <string name="field_stop_confirmation_title">停止前確認</string>
     <string name="field_stop_confirmation_desc">從浮動工具列停止 Macrion 前要求確認。</string>
+    <string name="settings_section_scenario_list">腳本列表</string>
+    <string name="settings_section_overlay">懸浮窗控制</string>
+    <string name="settings_section_compatibility">相容性</string>
+    <string name="settings_section_device_compatibility">裝置相容性</string>
+    <string name="settings_section_account">帳戶與隱私</string>
+    <string name="settings_section_help">說明與診斷</string>
+    <string name="version_copied_to_clipboard">版本已複製到剪貼簿</string>
+    <string name="settings_section_about">關於</string>
+    <string name="settings_version_title">版本</string>
+    <string name="settings_install_source_title">安裝來源</string>
+    <string name="install_source_unknown">未知</string>
+    <string name="settings_toolbar_size_title">工具列大小</string>
+    <string name="settings_toolbar_size_dialog_description">調整懸浮工具列和偵錯面板的大小。</string>
+
+    <string name="settings_section_advanced">進階</string>
+    <string name="settings_enable_advanced_title">啟用進階設定</string>
+    <string name="settings_enable_advanced_desc">顯示實驗性與進階使用者設定。</string>
+    <string name="settings_advanced_dialog_title">啟用進階設定？</string>
+    <string name="settings_advanced_dialog_message">這些設定可能會產生非預期的後果。在啟用之前，請確保了解每項設定。</string>
+    <string name="settings_advanced_dialog_confirm">啟用</string>
+    <string name="settings_max_difference_title">最大允許差異</string>
+    <string name="settings_max_difference_desc">允許條件以更高的差異進行匹配。</string>
+    <string name="settings_max_difference_dialog_title">最大允許差異</string>
+    <string name="settings_max_difference_item_default">%1$d%%（預設）</string>
+    <string name="settings_max_difference_item">%1$d%%</string>
+    <string name="settings_toolbar_auto_hide_title">自動隱藏工具列</string>
+    <string name="settings_toolbar_auto_hide_desc">無操作時將工具列收起至螢幕邊緣。</string>
+    <string name="settings_toolbar_auto_hide_delay_title">自動隱藏延遲</string>
+    <string name="settings_toolbar_auto_hide_delay_dialog_title">自動隱藏延遲</string>
+    <string name="settings_toolbar_auto_hide_delay_seconds">%1$d 秒</string>
+    <string name="settings_toolbar_auto_hide_delay_seconds_default">%1$d 秒（預設）</string>
+    <string name="settings_toolbar_auto_hide_delay_1_minute">1 分鐘</string>
+    <string name="settings_toolbar_auto_hide_delay_minutes">%1$d 分鐘</string>
+    <string name="settings_toolbar_auto_hide_delay_minutes_default">%1$d 分鐘（預設）</string>
+    <string name="content_desc_tuck_toolbar">將工具列收起至螢幕邊緣</string>
+    <string name="content_desc_expand_toolbar">展開工具列</string>
+    <string name="toast_advanced_settings_restored_defaults">高級設定已恢復為預設值。</string>
 </resources>

@@ -10,8 +10,8 @@ package io.github.vibhor1102.macrion.feature.externallaunch.localeplugin.ui
 
 import android.app.Activity
 import android.os.Bundle
+import androidx.activity.ComponentActivity
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
 import io.github.vibhor1102.macrion.feature.externallaunch.R
 import io.github.vibhor1102.macrion.feature.externallaunch.localeplugin.domain.LocalePluginConfiguration
 import io.github.vibhor1102.macrion.feature.externallaunch.localeplugin.domain.LocalePluginContract
@@ -19,7 +19,7 @@ import io.github.vibhor1102.macrion.feature.externallaunch.localeplugin.domain.L
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class LocalePluginStopConfigurationActivity : AppCompatActivity() {
+class LocalePluginStopConfigurationActivity : ComponentActivity() {
 
     private val viewModel: LocalePluginConfigurationViewModel by viewModels()
 

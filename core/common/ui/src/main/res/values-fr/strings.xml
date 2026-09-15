@@ -113,4 +113,6 @@
     <string name="content_desc_stop_clicker">Quitter Macrion</string>
     <string name="content_desc_confirm">Confirmer</string>
     <string name="content_desc_go_back">Retour au dialog</string>
+    <string name="content_desc_tuck_toolbar">Replier la barre d\'outils sur le bord de l\'écran</string>
+    <string name="content_desc_expand_toolbar">Développer la barre d\'outils</string>
 </resources>

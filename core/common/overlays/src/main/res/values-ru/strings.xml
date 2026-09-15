@@ -19,4 +19,9 @@
     <string name="dialog_move_to_title">Перемещение</string>
     <string name="dialog_move_to_position_label">Индекс</string>
     <string name="overlay_instructions_gesture_record">Идёт запись жеста…</string>
+    <string name="dialog_jump_to_title">Перейти к</string>
+    <string name="dialog_reorder_empty">Нет элементов</string>
+    <string name="dialog_reorder_discard_title">Отменить изменения?</string>
+    <string name="dialog_reorder_discard_message">У вас есть несохраненные изменения. Вы уверены, что хотите отменить их?</string>
+    <string name="dialog_reorder_discard_confirm">Отменить</string>
 </resources>

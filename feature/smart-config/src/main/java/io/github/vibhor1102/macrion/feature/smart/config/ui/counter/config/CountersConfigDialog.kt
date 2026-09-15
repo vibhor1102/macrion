@@ -1,6 +1,8 @@
 /* Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.counter.config
 
+import io.github.vibhor1102.macrion.core.ui.compose.OverlayDialogShape
+
 import android.view.ViewGroup
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
@@ -25,7 +27,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.google.android.material.bottomsheet.BottomSheetDialog
 import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayDialog
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredOverlayType
@@ -52,14 +53,14 @@ class CountersConfigDialog : OverlayDialog(R.style.ScenarioConfigTheme) {
         setContent { MacrionTheme { this@CountersConfigDialog.Content() } }
     }
 
-    override fun onDialogCreated(dialog: BottomSheetDialog) = Unit
-
-    @Composable
+@Composable
     private fun Content() {
         val state by viewModel.uiState.collectAsStateWithLifecycle()
         val canDismiss = state is CountersUiState.Loaded || state is CountersUiState.Empty
         Surface(
-            Modifier.fillMaxWidth().heightIn(max = 680.dp),
+            shape = OverlayDialogShape,
+            
+            modifier = Modifier.fillMaxWidth().heightIn(max = 680.dp),
             color = MaterialTheme.colorScheme.surfaceContainerLowest,
         ) {
             Box(Modifier.fillMaxWidth()) {

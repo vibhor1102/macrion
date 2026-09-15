@@ -3,8 +3,8 @@
     android:height="24dp"
     android:viewportWidth="960"
     android:viewportHeight="960"
-    android:tint="?attr/colorControlNormal">
+    android:autoMirrored="true">
   <path
-      android:fillColor="@color/overlayMenuButtons"
-      android:pathData="M313,520L537,744L480,800L160,480L480,160L537,216L313,440L800,440L800,520L313,520Z"/>
+      android:fillColor="@android:color/white"
+      android:pathData="M293,524.8L512.5,744.3Q525.9,757.8 525.4,775.7Q524.8,793.6 511.4,807Q497.9,819.4 480,819.9Q462.1,820.5 448.6,807L153,511.4Q146.2,504.6 143.4,496.8Q140.6,489 140.6,480Q140.6,471 143.4,463.2Q146.2,455.4 153,448.6L448.6,153Q461,140.6 479.4,140.6Q497.9,140.6 511.4,153Q524.8,166.4 524.8,184.9Q524.8,203.4 511.4,216.8L293,435.2L793.6,435.2Q812.6,435.2 825.5,448.1Q838.4,461 838.4,480Q838.4,499 825.5,511.9Q812.6,524.8 793.6,524.8L293,524.8Z"/>
 </vector>

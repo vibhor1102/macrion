@@ -9,6 +9,7 @@
 package io.github.vibhor1102.macrion.feature.externallaunch.localeplugin.domain
 
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -115,4 +116,53 @@ class LocalePluginDirectLaunchTrackerTest {
         assertTrue(tracker.hasAnotherInFlightRequest("second"))
         assertFalse(tracker.isCurrentExecution("second"))
     }
+
+    @Test
+    fun `awaiting projection tracks active execution and allows auto-run pending`() {
+        tracker.markPending("first")
+        assertTrue(tracker.claimDirectLaunch("first"))
+
+        tracker.markAwaitingProjection("first")
+        org.junit.Assert.assertEquals("first", tracker.getAwaitingProjectionRequestId())
+
+        tracker.markAutoRunPending("first")
+        assertTrue(tracker.consumeAutoRun("first"))
+        assertFalse(tracker.consumeAutoRun("first"))
+        assertNull(tracker.getAwaitingProjectionRequestId())
+    }
+
+    @Test
+    fun `awaiting projection is ignored for non-current execution`() {
+        tracker.markPending("first")
+        tracker.markAwaitingProjection("first")
+
+        assertNull(tracker.getAwaitingProjectionRequestId())
+    }
+
+    @Test
+    fun `a newer launch request clears in-flight awaiting projection and auto-run`() {
+        tracker.markPending("first")
+        assertTrue(tracker.claimDirectLaunch("first"))
+        tracker.markAwaitingProjection("first")
+        tracker.markAutoRunPending("first")
+
+        tracker.markPending("second")
+
+        assertNull(tracker.getAwaitingProjectionRequestId())
+        assertFalse(tracker.consumeAutoRun("first"))
+    }
+
+    @Test
+    fun `clearAllAutoRun clears awaiting projection and auto run`() {
+        tracker.markPending("first")
+        assertTrue(tracker.claimDirectLaunch("first"))
+        tracker.markAwaitingProjection("first")
+        tracker.markAutoRunPending("first")
+
+        tracker.clearAllAutoRun()
+
+        assertNull(tracker.getAwaitingProjectionRequestId())
+        assertFalse(tracker.consumeAutoRun("first"))
+    }
 }
+

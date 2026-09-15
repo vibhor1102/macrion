@@ -63,12 +63,13 @@ import java.io.PrintWriter
  * show the overlay ui object.
  */
 abstract class BaseOverlay internal constructor(
-    private val theme: Int? = null,
+    protected val theme: Int? = null,
     private val recreateOnRotation: Boolean = false,
 ) : Overlay(), Dumpable, SavedStateRegistryOwner {
 
     /** The context for this overlay. */
     override lateinit var context: Context
+    private lateinit var parentAppContext: Context
 
     /** The metrics of the device screen. */
     protected val displayConfigManager: DisplayConfigManager by lazy {
@@ -148,6 +149,7 @@ abstract class BaseOverlay internal constructor(
         if (lifecycleRegistry.currentState != State.INITIALIZED) return
 
         Log.d(TAG, "create overlay ${hashCode()}")
+        parentAppContext = appContext
         if (!this::context.isInitialized) context = appContext
         context = newOverlayContext(appContext, theme) { displayConfigManager.displayConfig.orientation }
 
@@ -264,7 +266,7 @@ abstract class BaseOverlay internal constructor(
 
         lifecycleRegistry = LifecycleRegistry(this)
         savedStateController = SavedStateRegistryController.create(this)
-        create(context)
+        create(if (this::parentAppContext.isInitialized) parentAppContext else context)
     }
 
     /**
@@ -282,6 +284,10 @@ abstract class BaseOverlay internal constructor(
      */
     override fun changeOrientation() {
         Log.d(TAG, "onOrientationChanged for overlay ${hashCode()}")
+
+        if (this::parentAppContext.isInitialized) {
+            context = newOverlayContext(parentAppContext, theme) { displayConfigManager.displayConfig.orientation }
+        }
 
         onOrientationChanged()
 

@@ -1,6 +1,8 @@
 /* Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.action.intent
 
+import io.github.vibhor1102.macrion.core.ui.compose.OverlayDialogShape
+
 import android.content.ComponentName
 import android.util.Log
 import android.view.ViewGroup
@@ -31,7 +33,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import com.google.android.material.bottomsheet.BottomSheetDialog
+import android.app.Dialog
 import io.github.vibhor1102.macrion.core.android.application.AndroidApplicationInfo
 import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayDialog
@@ -69,7 +71,7 @@ class IntentDialog(
         setContent { MacrionTheme { this@IntentDialog.Content() } }
     }
 
-    override fun onDialogCreated(dialog: BottomSheetDialog) {
+    override fun onDialogCreated(dialog: Dialog) {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.CREATED) {
                 viewModel.isEditingAction.collect(::onActionEditingStateChanged)
@@ -85,6 +87,8 @@ class IntentDialog(
         val valid by viewModel.isValidAction.collectAsStateWithLifecycle(initialValue = false)
 
         Surface(
+            shape = OverlayDialogShape,
+            
             modifier = Modifier.fillMaxWidth().heightIn(max = 680.dp),
             color = MaterialTheme.colorScheme.surface,
             contentColor = MaterialTheme.colorScheme.onSurface,
@@ -306,7 +310,7 @@ class IntentDialog(
                 readOnly = true,
                 label = { Text(label) },
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
-                modifier = Modifier.menuAnchor().fillMaxWidth(),
+                modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable).fillMaxWidth(),
             )
             ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                 items.forEach { item ->

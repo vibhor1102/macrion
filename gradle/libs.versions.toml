@@ -11,30 +11,20 @@ googleProtobufGradlePlugin = "0.10.0"
 java = "21"
 kotlin = "2.4.10"
 kotlinxCoroutines = "1.11.0"
+reorderable = "3.1.0"
 ksp = "2.3.11"
 
 # Androidx
 androidxAnnotation = "1.10.0"
 androidxActivity = "1.13.0"
-androidxAppCompat = "1.8.0"
-androidxCardView = "1.0.0"
-androidxConstraintLayout = "2.2.2"
 androidxCoreKtx = "1.19.0"
 androidxDatastore = "1.2.1"
-androidxFragmentKtx = "1.9.0"
 androidxLifecycle = "2.10.0"
-androidxLifecycleExtension = "2.2.0"
-androidxNavigation = "2.10.0"
-androidxRecyclerView = "1.4.0"
-androidxViewPager2 = "1.1.0"
 androidxRoom = "2.8.4"
 androidxSplashScreen = "1.2.0"
 androidxVectorDrawable = "1.2.0"
 androidxComposeBom = "2026.08.00"
 
-# Other
-airbnbLottie = "6.7.1"
-googleMaterial = "1.14.0"
 kotlinSerializationJson = "1.11.0"
 openCv = "4.12.0"
 ncnn = "20260113"
@@ -78,37 +68,27 @@ robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "
 # Androidx
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "androidxActivity" }
 androidx-annotation = { group = "androidx.annotation", name = "annotation", version.ref = "androidxAnnotation" }
-androidx-appCompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "androidxAppCompat" }
-androidx-cardView = { group = "androidx.cardview", name = "cardview", version.ref = "androidxCardView" }
-androidx-constraintLayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "androidxConstraintLayout" }
 androidx-core = { group = "androidx.core", name = "core", version.ref = "androidxCoreKtx" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "androidxCoreKtx" }
 androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "androidxSplashScreen" }
 androidx-datastore = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "androidxDatastore" }
-androidx-fragment-ktx = { group = "androidx.fragment", name = "fragment-ktx", version.ref = "androidxFragmentKtx" }
-androidx-recyclerView = { group = "androidx.recyclerview", name = "recyclerview", version.ref = "androidxRecyclerView" }
-androidx-viewpager2 = { group = "androidx.viewpager2", name = "viewpager2", version.ref = "androidxViewPager2" }
 androidx-lifecycle-common-java8 = { group = "androidx.lifecycle", name = "lifecycle-common-java8", version.ref = "androidxLifecycle" }
-androidx-lifecycle-extensions = { group = "androidx.lifecycle", name = "lifecycle-extensions", version.ref = "androidxLifecycleExtension" }
 androidx-lifecycle-livedata-ktx = { group = "androidx.lifecycle", name = "lifecycle-livedata-ktx", version.ref = "androidxLifecycle" }
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "androidxLifecycle" }
 androidx-lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "androidxLifecycle" }
-androidx-navigation-fragment-ktx = { group = "androidx.navigation", name = "navigation-fragment-ktx", version.ref = "androidxNavigation" }
-androidx-navigation-ui-ktx = { group = "androidx.navigation", name = "navigation-ui-ktx", version.ref = "androidxNavigation" }
 androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "androidxRoom" }
 androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "androidxRoom" }
 androidx-vectorDrawable = { group = "androidx.vectordrawable", name = "vectordrawable-animated", version.ref = "androidxVectorDrawable" }
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "androidxComposeBom" }
+androidx-compose-animation-graphics = { group = "androidx.compose.animation", name = "animation-graphics" }
 androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation" }
 androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3" }
 androidx-compose-ui = { group = "androidx.compose.ui", name = "ui" }
 androidx-lifecycle-runtime-compose = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "androidxLifecycle" }
 
-# Other
-airbnb-lottie = { group = "com.airbnb.android", name = "lottie", version.ref = "airbnbLottie" }
-google-material = { group = "com.google.android.material", name = "material", version.ref = "googleMaterial" }
 kotlin-reflect = { group = "org.jetbrains.kotlin", name = "kotlin-reflect", version.ref = "kotlin" }
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
+reorderable = { module = "sh.calvin.reorderable:reorderable", version.ref = "reorderable" }
 google-dagger-hilt-compiler = { group = "com.google.dagger", name = "hilt-android-compiler", version.ref = "googleDaggerHilt" }
 google-dagger-hilt-testing = { group = "com.google.dagger", name = "hilt-android-testing", version.ref = "googleDaggerHilt" }
 google-protobuf-java = { group = "com.google.protobuf", name = "protobuf-java", version.ref = "googleProtobufRuntime" }
@@ -129,7 +109,6 @@ androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-co
 # Plugins from external providers
 androidApplication = { id = "com.android.application", version.ref = "androidGradlePlugin" }
 androidLibrary = { id = "com.android.library", version.ref = "androidGradlePlugin" }
-androidxNavigationSafeArgs = { id = "androidx.navigation.safeargs.kotlin", version.ref = "androidxNavigation" }
 androidxRoom = { id = "androidx.room", version.ref = "androidxRoom" }
 googleDaggerHiltAndroid = { id = "com.google.dagger.hilt.android", version.ref = "googleDaggerHilt" }
 googleKsp = { id = "com.google.devtools.ksp", version.ref = "ksp" }

@@ -1,158 +1,63 @@
-/*
- * Copyright (C) 2024 Kevin Buzeau
- * 
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+/* Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.common
 
-import android.util.Log
 import android.view.View
-import android.view.View.MeasureSpec
-import android.view.ViewGroup
-import android.view.animation.AlphaAnimation
-import android.view.animation.Animation
-import android.view.animation.DecelerateInterpolator
-
-import androidx.core.view.children
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Easing
+import androidx.compose.animation.core.tween
+import androidx.compose.ui.platform.AndroidUiDispatcher
 import io.github.vibhor1102.macrion.core.base.Dumpable
-
-import io.github.vibhor1102.macrion.core.base.extensions.setListener
 import java.io.PrintWriter
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 
+/** Compose's frame clock drives both WindowManager layers with the original fade timings. */
 internal class OverlayMenuAnimations : Dumpable {
-
-    /** Animation for showing the menu. */
-    private val showOverlayMenuAnimation: Animation = AlphaAnimation(0f, 1f).apply {
-        duration = SHOW_ANIMATION_DURATION_MS
-        interpolator = DecelerateInterpolator()
-    }
-    /** Animation for showing the overlayView. */
-    private val showOverlayViewAnimation: Animation = AlphaAnimation(0f, 1f).apply {
-        duration = SHOW_ANIMATION_DURATION_MS
-        interpolator = DecelerateInterpolator()
-    }
-    var showAnimationIsRunning: Boolean = false
+    private val scope = CoroutineScope(SupervisorJob() + AndroidUiDispatcher.Main)
+    private var animation: Job? = null
+    var showAnimationIsRunning = false
         private set
-
-    /** Animation for hiding the menu. */
-    private val hideOverlayMenuAnimation: Animation = AlphaAnimation(1f, 0f).apply {
-        duration = DISMISS_ANIMATION_DURATION_MS
-        interpolator = DecelerateInterpolator()
-    }
-    /** Animation for showing the overlayView. */
-    private val hideOverlayViewAnimation: Animation = AlphaAnimation(1f, 0f).apply {
-        duration = DISMISS_ANIMATION_DURATION_MS
-        interpolator = DecelerateInterpolator()
-    }
-    var hideAnimationIsRunning: Boolean = false
+    var hideAnimationIsRunning = false
         private set
 
     fun startShowAnimation(view: View, overlayView: View? = null, onAnimationEnded: () -> Unit) {
         if (showAnimationIsRunning) return
-        showAnimationIsRunning = true
-
-        Log.d(TAG, "Start show animation on view ${view} with visibility ${view.visibility}")
-
-        val timeoutCallback = Runnable {
-            Log.w(TAG, "Show animation timeout !")
-            showAnimationIsRunning = false
-            showOverlayMenuAnimation.cancel()
-            showOverlayViewAnimation.cancel()
-
-            view.alpha = 1f
-            if (overlayView is ViewGroup && overlayView.childCount == 1) overlayView.children.first().alpha = 1f
-
-            onAnimationEnded()
-        }
-        view.postDelayed(timeoutCallback, 1_000)
-
-        showOverlayMenuAnimation.setListener(
-            end = {
-                Log.d(TAG, "Show animation ended")
-                view.removeCallbacks(timeoutCallback)
-                showAnimationIsRunning = false
-                onAnimationEnded()
-            }
-        )
-
-        if (hideAnimationIsRunning) {
-            Log.d(TAG, "Hide animation is running, stopping it first.")
-            hideOverlayMenuAnimation.cancel()
-            hideOverlayViewAnimation.cancel()
-            hideAnimationIsRunning = false
-        }
-
-        view.measure(MeasureSpec.EXACTLY, MeasureSpec.EXACTLY)
-        view.startAnimation(showOverlayMenuAnimation)
-        if (overlayView is ViewGroup && overlayView.childCount == 1) {
-            overlayView.children.first().startAnimation(showOverlayViewAnimation)
-        }
+        animate(view, overlayView, showing = true, onAnimationEnded)
     }
 
     fun startHideAnimation(view: View, overlayView: View? = null, onAnimationEnded: () -> Unit) {
         if (hideAnimationIsRunning) return
-        hideAnimationIsRunning = true
+        animate(view, overlayView, showing = false, onAnimationEnded)
+    }
 
-        Log.d(TAG, "Start hide animation")
-
-        val timeoutCallback = Runnable {
-            Log.w(TAG, "Hide animation timeout !")
-            hideAnimationIsRunning = false
-            hideOverlayMenuAnimation.cancel()
-            hideOverlayViewAnimation.cancel()
-
-            view.alpha = 0f
-            if (overlayView is ViewGroup && overlayView.childCount == 1) overlayView.children.first().alpha = 0f
-
-            onAnimationEnded()
-        }
-
-        view.postDelayed(timeoutCallback, 1_000)
-        hideOverlayMenuAnimation.setListener(
-            end = {
-                Log.d(TAG, "Hide animation ended")
-                view.removeCallbacks(timeoutCallback)
-                hideAnimationIsRunning = false
-                onAnimationEnded()
+    private fun animate(view: View, overlay: View?, showing: Boolean, onEnded: () -> Unit) {
+        val wasAnimating = showAnimationIsRunning || hideAnimationIsRunning
+        animation?.cancel()
+        showAnimationIsRunning = showing
+        hideAnimationIsRunning = !showing
+        val initial = if (wasAnimating) view.alpha else if (showing) 0f else 1f
+        view.alpha = initial
+        overlay?.alpha = initial
+        animation = scope.launch {
+            Animatable(initial).animateTo(
+                if (showing) 1f else 0f,
+                tween(if (showing) 250 else 150, easing = Easing { 1f - (1f - it) * (1f - it) }),
+            ) {
+                view.alpha = value
+                overlay?.alpha = value
             }
-        )
-
-        if (showAnimationIsRunning) {
-            Log.d(TAG, "Show animation is running, stopping it first.")
-
-            showOverlayMenuAnimation.cancel()
-            showOverlayViewAnimation.cancel()
             showAnimationIsRunning = false
-        }
-
-        view.startAnimation(hideOverlayMenuAnimation)
-        if (overlayView is ViewGroup && overlayView.childCount == 1) {
-            overlayView.children.first().startAnimation(hideOverlayViewAnimation)
+            hideAnimationIsRunning = false
+            onEnded()
         }
     }
+
+    fun release() { scope.cancel() }
 
     override fun dump(writer: PrintWriter, prefix: CharSequence) {
-        writer.append(prefix)
-            .append("showIsRunning=$showAnimationIsRunning; ")
-            .append("hideIsRunning=$hideAnimationIsRunning; ")
-            .println()
+        writer.append(prefix).println("showIsRunning=$showAnimationIsRunning; hideIsRunning=$hideAnimationIsRunning")
     }
 }
-
-/** Duration of the show overlay menu animation. */
-private const val SHOW_ANIMATION_DURATION_MS = 250L
-/** Duration of the dismiss overlay menu animation. */
-private const val DISMISS_ANIMATION_DURATION_MS = 150L
-/** Tag for logs */
-private const val TAG = "OverlayMenuAnimations"

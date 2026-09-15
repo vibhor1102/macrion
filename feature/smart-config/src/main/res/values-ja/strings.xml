@@ -346,7 +346,8 @@
     <string name="item_external_action_details_error">外部アクション名が無効です</string>
     <string name="dialog_title_external_action">外部アクション</string>
     <string name="field_external_action_name_label">外部アクション名</string>
-    <string name="field_external_action_help">オートメーションアプリの Klick\'r 外部アクショントリガーでこの名前を使用します。</string>
+    <string name="field_external_action_help">Tasker、Macrion、MacroDroid などのオートメーションアプリが受信するブロードキャストを送信します。</string>
+    <string name="button_documentation">ドキュメント</string>
     <string name="field_external_action_selection_title_empty">外部アクションが選択されていません</string>
     <string name="field_external_action_selection_desc_empty">タップして外部アクション名を再利用</string>
     <string name="field_external_action_selection_desc">再利用できるオートメーショントリガー名</string>
@@ -358,4 +359,6 @@
     <string name="dialog_stop_confirmation_title">Macrion を停止しますか？</string>
     <string name="dialog_stop_confirmation_message">現在のシナリオが停止します。</string>
     <string name="dialog_stop_confirmation_stop">停止</string>
+    <string name="action_move_event_up">イベントを上に移動</string>
+    <string name="action_move_event_down">イベントを下に移動</string>
 </resources>

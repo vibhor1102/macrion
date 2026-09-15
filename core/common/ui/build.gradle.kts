@@ -25,7 +25,6 @@ plugins {
 android {
     namespace = "io.github.vibhor1102.macrion.core.ui"
     buildFeatures {
-        viewBinding = true
         compose = true
     }
 }
@@ -35,15 +34,14 @@ dependencies {
 
     implementation(libs.kotlinx.coroutines.core)
 
+    implementation(libs.androidx.activity.compose)
     implementation(composeBom)
-    implementation(libs.androidx.appCompat)
+    implementation(libs.androidx.compose.animation.graphics)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
-    implementation(libs.androidx.recyclerView)
 
-    implementation(libs.google.material)
 
     implementation(project(":core:common:base"))
     implementation(project(":core:common:display"))

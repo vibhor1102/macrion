@@ -10,15 +10,16 @@ package io.github.vibhor1102.macrion.feature.externallaunch.localeplugin.ui
 
 import android.app.Activity
 import android.os.Bundle
+import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import io.github.vibhor1102.macrion.core.common.permissions.ui.PermissionsHost
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.feature.externallaunch.R
 import io.github.vibhor1102.macrion.feature.externallaunch.localeplugin.domain.LocalePluginConfiguration
@@ -28,7 +29,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class LocalePluginConfigurationActivity : AppCompatActivity() {
+class LocalePluginConfigurationActivity : ComponentActivity() {
 
     private val viewModel: LocalePluginConfigurationViewModel by viewModels()
     private var scenarios by mutableStateOf(emptyList<LocalePluginScenarioItem>())
@@ -60,6 +61,7 @@ class LocalePluginConfigurationActivity : AppCompatActivity() {
                         viewModel.requestFallbackNotificationPermission(this, ::saveConfiguration)
                     },
                 )
+                PermissionsHost(viewModel.permissionController)
             }
         }
 

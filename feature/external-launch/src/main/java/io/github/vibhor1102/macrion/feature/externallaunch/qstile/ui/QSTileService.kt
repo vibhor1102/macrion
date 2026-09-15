@@ -19,6 +19,7 @@ package io.github.vibhor1102.macrion.feature.externallaunch.qstile.ui
 
 import android.content.ComponentName
 import android.content.Context
+import android.graphics.drawable.Icon
 import android.os.Build
 import android.service.quicksettings.Tile
 import android.service.quicksettings.TileService
@@ -135,6 +136,7 @@ class QSTileService : TileService() {
 
         Log.d(TAG, "updateTile with $tileDisplayInfo")
         qsTile?.apply {
+            icon = Icon.createWithResource(this@QSTileService, io.github.vibhor1102.macrion.core.ui.R.drawable.ic_click_filled)
             state = tileDisplayInfo.tileState
             label = tileDisplayInfo.tileTitle
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {

@@ -48,7 +48,7 @@ import javax.inject.Inject
 @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
 class TimerReachedConditionViewModel@Inject constructor(
     private val editionRepository: EditionRepository,
-    private val monitoredViewsManager: MonitoredViewsManager,
+    internal val monitoredViewsManager: MonitoredViewsManager,
 ): ViewModel() {
 
     /** The condition being configured by the user. */
@@ -133,19 +133,6 @@ class TimerReachedConditionViewModel@Inject constructor(
         }
     }
 
-    fun monitorAfterView(view: View?) = monitorView(MonitoredViewType.TIMER_REACHED_CONDITION_FIELD_AFTER, view)
-    fun monitorRestartView(view: View?) = monitorView(MonitoredViewType.TIMER_REACHED_CONDITION_FIELD_RESTART, view)
-    fun monitorSaveView(view: View?) = monitorView(MonitoredViewType.TIMER_REACHED_CONDITION_BUTTON_SAVE, view)
-
-    private fun monitorView(type: MonitoredViewType, view: View?) {
-        if (view == null) monitoredViewsManager.detach(type) else monitoredViewsManager.attach(type, view)
-    }
-
-    fun detachMonitoredViews() {
-        monitoredViewsManager.detach(MonitoredViewType.TIMER_REACHED_CONDITION_FIELD_AFTER)
-        monitoredViewsManager.detach(MonitoredViewType.TIMER_REACHED_CONDITION_FIELD_RESTART)
-        monitoredViewsManager.detach(MonitoredViewType.TIMER_REACHED_CONDITION_BUTTON_SAVE)
-    }
 
     private fun updateEditedCondition(
         closure: (oldValue: TriggerCondition.OnTimerReached) -> TriggerCondition.OnTimerReached?,

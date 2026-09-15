@@ -22,19 +22,21 @@ import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
-import android.widget.FrameLayout
 import android.widget.Toast
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
 
+import io.github.vibhor1102.macrion.core.common.permissions.ui.PermissionsHost
 import io.github.vibhor1102.macrion.core.display.recorder.MediaProjectionRequest
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.core.ui.errors.createNoMediaProjectionDialog
 import io.github.vibhor1102.macrion.feature.externallaunch.R
 
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class QSTileLauncherActivity : AppCompatActivity() {
+class QSTileLauncherActivity : ComponentActivity() {
 
     companion object {
 
@@ -57,7 +59,11 @@ class QSTileLauncherActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(FrameLayout(this).apply { setBackgroundColor(Color.TRANSPARENT) })
+        setContent {
+            MacrionTheme {
+                PermissionsHost(viewModel.permissionController)
+            }
+        }
 
         val scenarioId = intent?.getLongExtra(EXTRA_SCENARIO_ID, -1)
         val isSmartScenario = intent?.getBooleanExtra(EXTRA_IS_SMART_SCENARIO, false)

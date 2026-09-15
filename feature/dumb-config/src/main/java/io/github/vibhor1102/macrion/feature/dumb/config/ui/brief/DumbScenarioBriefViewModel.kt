@@ -34,6 +34,7 @@ import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.ClickDescr
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.PauseDescription
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.SwipeDescription
 import io.github.vibhor1102.macrion.feature.dumb.config.domain.DumbEditionRepository
+import io.github.vibhor1102.macrion.feature.dumb.config.ui.actions.copy.DumbActionDetails
 import io.github.vibhor1102.macrion.feature.dumb.config.ui.actions.copy.toDumbActionDetails
 
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -178,6 +179,9 @@ class DumbScenarioBriefViewModel @Inject constructor(
 
         dumbEditionRepository.updateDumbActions(actions)
     }
+
+    fun updateDumbActionsOrder(actionsBrief: List<ItemBrief>) =
+        dumbEditionRepository.updateDumbActions(actionsBrief.map { brief -> (brief.data as DumbActionDetails).action })
 
     fun deleteDumbAction(index: Int) {
         val actions = dumbEditionRepository.editedDumbScenario.value?.dumbActions ?: return

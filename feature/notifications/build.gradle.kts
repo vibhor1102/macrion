@@ -22,12 +22,10 @@ plugins {
 
 android {
     namespace = "io.github.vibhor1102.macrion.feature.notifications"
-    buildFeatures.viewBinding = true
 }
 
 dependencies {
     implementation(libs.androidx.core)
-    implementation(libs.androidx.appCompat)
 
     implementation(project(":core:common:actions"))
     implementation(project(":core:common:base"))

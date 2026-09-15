@@ -15,14 +15,21 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.color.capture
+import androidx.compose.runtime.setValue
+
+import io.github.vibhor1102.macrion.core.common.overlays.menu.findOverlayView
 
 import android.content.res.Configuration
+import android.graphics.Bitmap
 import android.graphics.PointF
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageButton
+import io.github.vibhor1102.macrion.core.common.overlays.menu.OverlayMenuButtonView
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.drag
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -39,25 +46,27 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.FilterQuality
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.clipRect
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 
 import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.menu.OverlayMenu
-import io.github.vibhor1102.macrion.core.ui.views.pixelselector.PixelSelectorView
-import io.github.vibhor1102.macrion.core.ui.views.zoomedView.ZoomedImageView
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.feature.smart.config.R
 import io.github.vibhor1102.macrion.feature.smart.config.ui.createColorCaptureOverlayToolbar
@@ -82,9 +91,7 @@ class ColorCaptureMenu (
     )
 
     private lateinit var menuView: ViewGroup
-    private val confirmButton get() = menuView.findViewById<ImageButton>(R.id.btn_confirm)
-    /** The view displaying the screenshot and the selector for the capture. */
-    private lateinit var selectorView: PixelSelectorView
+    private val confirmButton get() = menuView.findOverlayView<OverlayMenuButtonView>(R.id.btn_confirm)
     private var pixelSelectionState by mutableStateOf<PixelSelectionUiState?>(null)
 
     /** Orientation of the device. */
@@ -105,12 +112,6 @@ class ColorCaptureMenu (
     }
 
     override fun onCreateOverlayView(): View {
-        selectorView = PixelSelectorView(
-            context = context,
-            displayConfigManager = displayConfigManager,
-            onSelectedPositionChanged = viewModel::updateSelectedPosition,
-        )
-
         orientation = displayConfigManager.displayConfig.orientation
         return ComposeView(context).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
@@ -158,7 +159,7 @@ class ColorCaptureMenu (
 
         confirmButton.setImageResource(uiState.topButtonIcon)
         setMenuItemViewEnabled(confirmButton, uiState.topButtonEnabled)
-        setMenuItemViewEnabled(menuView.findViewById(R.id.btn_hide_overlay), uiState.showHideButtonEnabled)
+        setMenuItemViewEnabled(menuView.findOverlayView(R.id.btn_hide_overlay), uiState.showHideButtonEnabled)
     }
 
     private fun updateOverlay(uiState: PixelSelectionUiState) {
@@ -170,16 +171,7 @@ class ColorCaptureMenu (
         var overlaySize by androidx.compose.runtime.remember { mutableStateOf(Size.Zero) }
         val uiState = pixelSelectionState
         Box(Modifier.fillMaxSize().onSizeChanged { overlaySize = Size(it.width.toFloat(), it.height.toFloat()) }) {
-            AndroidView(
-                factory = { selectorView },
-                update = { view ->
-                    uiState?.let { state ->
-                        view.updateCapture(state.screenshot)
-                        state.selectedPosition?.let { view.updatePixelPosition(it.x, it.y) }
-                    }
-                },
-                modifier = Modifier.fillMaxSize(),
-            )
+            PixelSelector(uiState, Modifier.fillMaxSize())
 
             val position = uiState?.selectedPosition
             if (uiState != null && position != null && overlaySize != Size.Zero) {
@@ -208,16 +200,10 @@ class ColorCaptureMenu (
             elevation = CardDefaults.elevatedCardElevation(defaultElevation = 6.dp),
         ) {
             Box(Modifier.width(266.dp).height(266.dp).padding(horizontal = 8.dp)) {
-                AndroidView(
-                    factory = { context ->
-                        ZoomedImageView(context).apply {
-                            onPixelSelected = { x, y -> viewModel.updateSelectedPosition(PointF(x, y)) }
-                        }
-                    },
-                    update = { view ->
-                        view.setImageBitmap(uiState.screenshot)
-                        uiState.selectedPosition?.let(view::setZoomPosition)
-                    },
+                ZoomedPixelPreview(
+                    screenshot = uiState.screenshot,
+                    selectedPosition = uiState.selectedPosition,
+                    onPixelSelected = viewModel::updateSelectedPosition,
                     modifier = Modifier.align(Alignment.Center).size(250.dp),
                 )
                 OutlinedCard(
@@ -233,6 +219,89 @@ class ColorCaptureMenu (
                     }
                 }
             }
+        }
+    }
+
+    @Composable
+    private fun PixelSelector(uiState: PixelSelectionUiState?, modifier: Modifier) {
+        val screenshot = uiState?.screenshot
+        val selectedPosition = uiState?.selectedPosition
+        val selectorColor = colorResource(R.color.overlayViewPrimary)
+        val selectorThickness = dimensionResource(R.dimen.overlay_pixel_selector_thickness)
+        Canvas(
+            modifier.pointerInput(Unit) {
+                awaitEachGesture {
+                    val down = awaitFirstDown()
+                    fun select(position: androidx.compose.ui.geometry.Offset) =
+                        viewModel.updateSelectedPosition(PointF(position.x.toInt().toFloat(), position.y.toInt().toFloat()))
+                    select(down.position)
+                    drag(down.id) { change -> select(change.position); change.consume() }
+                }
+            },
+        ) {
+            screenshot?.let { bitmap ->
+                drawImage(
+                    image = bitmap.asImageBitmap(),
+                    dstSize = androidx.compose.ui.unit.IntSize(size.width.toInt(), size.height.toInt()),
+                    filterQuality = FilterQuality.None,
+                )
+            }
+            selectedPosition?.let { position ->
+                drawLine(selectorColor, androidx.compose.ui.geometry.Offset(0f, position.y), androidx.compose.ui.geometry.Offset(size.width, position.y), selectorThickness.toPx())
+                drawLine(selectorColor, androidx.compose.ui.geometry.Offset(position.x, 0f), androidx.compose.ui.geometry.Offset(position.x, size.height), selectorThickness.toPx())
+            }
+        }
+    }
+
+    @Composable
+    private fun ZoomedPixelPreview(
+        screenshot: Bitmap,
+        selectedPosition: PointF?,
+        onPixelSelected: (PointF) -> Unit,
+        modifier: Modifier,
+    ) {
+        val center = selectedPosition ?: return
+        val bitmap = screenshot.asImageBitmap()
+        Canvas(
+            modifier.pointerInput(screenshot, center.x, center.y) {
+                awaitEachGesture {
+                    val down = awaitFirstDown()
+                    drag(down.id) { change -> change.consume() }
+                    val scale = size.width * 0.1f
+                    onPixelSelected(PointF(
+                        ((down.position.x - (size.width - scale) / 2f) / scale + center.x).toInt().coerceIn(0, screenshot.width - 1).toFloat(),
+                        ((down.position.y - (size.height - scale) / 2f) / scale + center.y).toInt().coerceIn(0, screenshot.height - 1).toFloat(),
+                    ))
+                }
+            },
+        ) {
+            val scale = size.width * 0.1f
+            val topLeft = androidx.compose.ui.geometry.Offset(
+                (size.width - scale) / 2f - (center.x * scale),
+                (size.height - scale) / 2f - (center.y * scale),
+            )
+            drawImage(
+                image = bitmap,
+                dstOffset = androidx.compose.ui.unit.IntOffset(topLeft.x.toInt(), topLeft.y.toInt()),
+                dstSize = androidx.compose.ui.unit.IntSize((screenshot.width * scale).toInt(), (screenshot.height * scale).toInt()),
+                filterQuality = FilterQuality.None,
+            )
+            val cellLeft = (size.width - scale) / 2f
+            val cellTop = (size.height - scale) / 2f
+            clipRect(topLeft.x, topLeft.y, topLeft.x + screenshot.width * scale, topLeft.y + screenshot.height * scale) {
+                var x = cellLeft - scale / 2f
+                while (x > -scale) { drawLine(Color.White, androidx.compose.ui.geometry.Offset(x, 0f), androidx.compose.ui.geometry.Offset(x, size.height), 3f); drawLine(Color.Black, androidx.compose.ui.geometry.Offset(x, 0f), androidx.compose.ui.geometry.Offset(x, size.height), 1f); x -= scale }
+                x = cellLeft + scale / 2f
+                while (x < size.width + scale) { drawLine(Color.White, androidx.compose.ui.geometry.Offset(x, 0f), androidx.compose.ui.geometry.Offset(x, size.height), 3f); drawLine(Color.Black, androidx.compose.ui.geometry.Offset(x, 0f), androidx.compose.ui.geometry.Offset(x, size.height), 1f); x += scale }
+                var y = cellTop - scale / 2f
+                while (y > -scale) { drawLine(Color.White, androidx.compose.ui.geometry.Offset(0f, y), androidx.compose.ui.geometry.Offset(size.width, y), 3f); drawLine(Color.Black, androidx.compose.ui.geometry.Offset(0f, y), androidx.compose.ui.geometry.Offset(size.width, y), 1f); y -= scale }
+                y = cellTop + scale / 2f
+                while (y < size.height + scale) { drawLine(Color.White, androidx.compose.ui.geometry.Offset(0f, y), androidx.compose.ui.geometry.Offset(size.width, y), 3f); drawLine(Color.Black, androidx.compose.ui.geometry.Offset(0f, y), androidx.compose.ui.geometry.Offset(size.width, y), 1f); y += scale }
+            }
+            val rectTopLeft = androidx.compose.ui.geometry.Offset(cellLeft - 3.5f, cellTop - 3.5f)
+            val rectSize = Size(scale + 7f, scale + 7f)
+            drawRect(Color.Black, rectTopLeft, rectSize, style = Stroke(7f))
+            drawRect(Color.White, rectTopLeft, rectSize, style = Stroke(5f))
         }
     }
 

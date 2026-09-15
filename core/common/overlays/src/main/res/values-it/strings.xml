@@ -19,4 +19,9 @@
     <string name="dialog_move_to_title">Spostarsi a</string>
     <string name="dialog_move_to_position_label">Indice</string>
     <string name="overlay_instructions_gesture_record">Registrazione del gesto…</string>
+    <string name="dialog_jump_to_title">Salta a</string>
+    <string name="dialog_reorder_empty">Nessun elemento</string>
+    <string name="dialog_reorder_discard_title">Ignorare le modifiche?</string>
+    <string name="dialog_reorder_discard_message">Ci sono modifiche non salvate. Sei sicuro di volerle ignorare?</string>
+    <string name="dialog_reorder_discard_confirm">Ignora</string>
 </resources>

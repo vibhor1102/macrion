@@ -26,29 +26,30 @@ plugins {
 
 android {
     namespace = "io.github.vibhor1102.macrion.feature.smart.debugging"
-    buildFeatures { compose = true; viewBinding = true }
+    buildFeatures { compose = true }
+
+    lint {
+        disable += "ImpliedQuantity"
+    }
 }
 
 dependencies {
     val composeBom = platform(libs.androidx.compose.bom)
 
-    implementation(libs.androidx.appCompat)
     implementation(composeBom)
     implementation(libs.androidx.compose.foundation)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.fragment.ktx)
-    implementation(libs.androidx.recyclerView)
-
-    implementation(libs.google.material)
 
     implementation(project(":core:common:base"))
     implementation(project(":core:common:bitmaps"))
     implementation(project(":core:common:overlays"))
+    implementation(project(":core:common:settings"))
     implementation(project(":core:common:ui"))
     implementation(project(":core:smart:debugging"))
     implementation(project(":core:smart:detection"))
+    implementation(project(":core:smart:detection-models"))
     implementation(project(":core:smart:domain"))
     implementation(project(":core:smart:processing"))
 }

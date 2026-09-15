@@ -1,6 +1,8 @@
 /* Copyright (C) 2026 Kevin Buzeau; Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.timeline.filter
 
+import io.github.vibhor1102.macrion.core.ui.compose.OverlayDialogShape
+
 import android.view.ViewGroup
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -27,7 +29,6 @@ import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.google.android.material.bottomsheet.BottomSheetDialog
 import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayDialog
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
@@ -53,13 +54,13 @@ class DebugReportTimelineFiltersDialog(
             setContent { MacrionTheme { this@DebugReportTimelineFiltersDialog.Content() } }
         }
     }
-    override fun onDialogCreated(dialog: BottomSheetDialog) = Unit
-
-    @Composable private fun Content() {
+@Composable private fun Content() {
         val time = viewModel.timeUiState.collectAsStateWithLifecycle(initialValue = null).value
         val image = viewModel.imageEventsUiState.collectAsStateWithLifecycle(initialValue = null).value
         val trigger = viewModel.triggerEventsUiState.collectAsStateWithLifecycle(initialValue = null).value
-        Surface(Modifier.fillMaxSize().heightIn(min = 600.dp)) {
+        Surface(
+            shape = OverlayDialogShape,
+            modifier = Modifier.fillMaxSize().heightIn(min = 600.dp)) {
             Column {
                 ReportDialogTopBar(
                     context.getString(R.string.dialog_overlay_title_timeline_filters),

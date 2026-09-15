@@ -166,9 +166,9 @@
     <string name="button_export">Esporta</string>
 
     <string name="dialog_title_locale_plugin_background_launch">Avvio in background bloccato</string>
-    <string name="message_locale_plugin_background_launch">Klick\'r non ha potuto aprire automaticamente la finestra di cattura dello schermo.\n\nPer completare l\'avvio dello scenario, è stata mostrata una notifica.\n\nAlcuni telefoni Android impongono restrizioni maggiori alle app in background. Consulta questa guida per migliorare la stabilità delle autorizzazioni.</string>
+    <string name="message_locale_plugin_background_launch">Macrion non ha potuto aprire automaticamente la finestra di cattura dello schermo.\n\nPer completare l\'avvio dello scenario, è stata mostrata una notifica.\n\nAlcuni telefoni Android impongono restrizioni maggiori alle app in background. Consulta questa guida per migliorare la stabilità delle autorizzazioni.</string>
     <string name="field_tutorial_title">Tutorial</string>
-    <string name="field_tutorial_desc">Scopri come usare Klick\'r</string>
+    <string name="field_tutorial_desc">Scopri come usare Macrion</string>
     <string name="dialog_title_copy_scenario">Copia scenario</string>
     <string name="content_desc_back">Torna indietro</string>
     <string name="crash_reports_title">Rapporti sugli arresti anomali locali</string>
@@ -191,4 +191,41 @@
     <string name="crash_report_label">Rapporto %1$s</string>
     <string name="field_stop_confirmation_title">Conferma prima di interrompere</string>
     <string name="field_stop_confirmation_desc">Chiedi conferma prima di interrompere Macrion dalla barra degli strumenti in sovrimpressione.</string>
+    <string name="settings_section_scenario_list">Elenco degli scenari</string>
+    <string name="settings_section_overlay">Controlli in sovrimpressione</string>
+    <string name="settings_section_compatibility">Compatibilità</string>
+    <string name="settings_section_device_compatibility">Compatibilità del dispositivo</string>
+    <string name="settings_section_account">Account e privacy</string>
+    <string name="settings_section_help">Guida e diagnostica</string>
+    <string name="version_copied_to_clipboard">Versione copiata negli appunti</string>
+    <string name="settings_section_about">Informazioni</string>
+    <string name="settings_version_title">Versione</string>
+    <string name="settings_install_source_title">Origine dell\'installazione</string>
+    <string name="install_source_unknown">Sconosciuto</string>
+    <string name="settings_toolbar_size_title">Dimensioni della barra degli strumenti</string>
+    <string name="settings_toolbar_size_dialog_description">Regola le dimensioni della barra degli strumenti mobile e del pannello di debug.</string>
+
+    <string name="settings_section_advanced">Avanzate</string>
+    <string name="settings_enable_advanced_title">Abilita impostazioni avanzate</string>
+    <string name="settings_enable_advanced_desc">Mostra le impostazioni sperimentali e per utenti esperti.</string>
+    <string name="settings_advanced_dialog_title">Abilitare le impostazioni avanzate?</string>
+    <string name="settings_advanced_dialog_message">Queste impostazioni possono avere conseguenze impreviste. Assicurati di comprendere ciascuna impostazione prima di abilitarla.</string>
+    <string name="settings_advanced_dialog_confirm">Abilita</string>
+    <string name="settings_max_difference_title">Differenza massima consentita</string>
+    <string name="settings_max_difference_desc">Consenti alle condizioni di corrispondere con una differenza maggiore.</string>
+    <string name="settings_max_difference_dialog_title">Differenza massima consentita</string>
+    <string name="settings_max_difference_item_default">%1$d%% (Predefinito)</string>
+    <string name="settings_max_difference_item">%1$d%%</string>
+    <string name="settings_toolbar_auto_hide_title">Nascondi automaticamente la barra degli strumenti</string>
+    <string name="settings_toolbar_auto_hide_desc">Riduci la barra degli strumenti sul bordo dello schermo quando è inattiva.</string>
+    <string name="settings_toolbar_auto_hide_delay_title">Ritardo di scomparsa automatica</string>
+    <string name="settings_toolbar_auto_hide_delay_dialog_title">Ritardo di scomparsa automatica</string>
+    <string name="settings_toolbar_auto_hide_delay_seconds">%1$d secondi</string>
+    <string name="settings_toolbar_auto_hide_delay_seconds_default">%1$d secondi (Predefinito)</string>
+    <string name="settings_toolbar_auto_hide_delay_1_minute">1 minuto</string>
+    <string name="settings_toolbar_auto_hide_delay_minutes">%1$d minuti</string>
+    <string name="settings_toolbar_auto_hide_delay_minutes_default">%1$d minuti (Predefinito)</string>
+    <string name="content_desc_tuck_toolbar">Riduci la barra degli strumenti al bordo dello schermo</string>
+    <string name="content_desc_expand_toolbar">Espandi la barra degli strumenti</string>
+    <string name="toast_advanced_settings_restored_defaults">Le impostazioni avanzate sono state ripristinate ai valori predefiniti.</string>
 </resources>

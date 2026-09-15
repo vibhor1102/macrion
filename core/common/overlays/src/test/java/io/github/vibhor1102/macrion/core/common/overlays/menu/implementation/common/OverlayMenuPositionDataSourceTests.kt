@@ -20,11 +20,14 @@ import android.content.Context
 import android.content.res.Configuration
 import android.os.Build
 
+import android.graphics.Point
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -82,6 +85,47 @@ class OverlayMenuPositionDataSourceTests {
     @Test
     fun loadLandscapePosition_withMissingKeys_returnsNull() {
         assertNull(dataSource.loadMenuPosition(Configuration.ORIENTATION_LANDSCAPE))
+    }
+
+    @Test
+    fun lockPosition_locksPositionAndReturnsLockedCoordinates() {
+        val initialPoint = Point(100, 200)
+        var notifiedPoint: Point? = null
+        dataSource.addOnLockedPositionChangedListener { notifiedPoint = it }
+
+        dataSource.lockPosition(initialPoint)
+
+        assertTrue(dataSource.isPositionLocked())
+        assertEquals(initialPoint, dataSource.loadMenuPosition(Configuration.ORIENTATION_PORTRAIT))
+        assertEquals(initialPoint, notifiedPoint)
+    }
+
+    @Test
+    fun lockPosition_whenAlreadyLocked_updatesToNewCoordinatesAndNotifiesListeners() {
+        val initialPoint = Point(1089, 278)
+        val settledPoint = Point(44, 278)
+        val notifications = mutableListOf<Point?>()
+        dataSource.addOnLockedPositionChangedListener { notifications.add(it) }
+
+        dataSource.lockPosition(initialPoint)
+        dataSource.lockPosition(settledPoint)
+
+        assertTrue(dataSource.isPositionLocked())
+        assertEquals(settledPoint, dataSource.loadMenuPosition(Configuration.ORIENTATION_PORTRAIT))
+        assertEquals(listOf(initialPoint, settledPoint), notifications)
+    }
+
+    @Test
+    fun unlockPosition_clearsLockedPositionAndNotifiesNull() {
+        val initialPoint = Point(44, 278)
+        var lastNotification: Point? = Point(-1, -1)
+        dataSource.addOnLockedPositionChangedListener { lastNotification = it }
+
+        dataSource.lockPosition(initialPoint)
+        dataSource.unlockPosition()
+
+        assertFalse(dataSource.isPositionLocked())
+        assertNull(lastNotification)
     }
 
     private fun mockSavedLandscapePosition(x: Int, y: Int) {

@@ -22,7 +22,6 @@ import io.github.vibhor1102.macrion.crash.initializeLocalCrashReporting
 import io.github.vibhor1102.macrion.crash.captureHistoricalNativeCrash
 import io.github.vibhor1102.macrion.ComponentConfig
 import io.github.vibhor1102.macrion.core.base.data.AppComponentsManager
-import com.google.android.material.color.DynamicColors
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
 
@@ -47,7 +46,5 @@ class SmartAutoClickerApplication : Application() {
             registerSmartAutoClickerService(componentConfig.smartAutoClickerService)
             registerScenarioActivity(componentConfig.scenarioActivity)
         }
-
-        DynamicColors.applyToActivitiesIfAvailable(this)
     }
 }

@@ -1,6 +1,8 @@
 /* Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.counter.reference
 
+import io.github.vibhor1102.macrion.core.ui.compose.OverlayDialogShape
+
 import android.view.ViewGroup
 import androidx.compose.foundation.background
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -17,7 +19,6 @@ import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.google.android.material.bottomsheet.BottomSheetDialog
 import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayDialog
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredOverlayType
@@ -45,13 +46,13 @@ class CounterReferenceDialog(
         }
     }
 
-    override fun onDialogCreated(dialog: BottomSheetDialog) = Unit
-
-    @Composable
+@Composable
     private fun Content() {
         val items by viewModel.uiState.collectAsStateWithLifecycle()
         Surface(
-            Modifier.fillMaxWidth().heightIn(max = 620.dp),
+            shape = OverlayDialogShape,
+            
+            modifier = Modifier.fillMaxWidth().heightIn(max = 620.dp),
             color = MaterialTheme.colorScheme.surfaceContainerLowest,
         ) {
             Column(Modifier.fillMaxWidth()) {

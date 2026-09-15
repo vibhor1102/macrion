@@ -37,7 +37,7 @@
             <size android:width="48dp" android:height="48dp" />
             <stroke
                 android:width="4dp"
-                android:color="?attr/colorControlNormal" />
+                android:color="?android:attr/colorControlNormal" />
         </shape>
 
     </item>

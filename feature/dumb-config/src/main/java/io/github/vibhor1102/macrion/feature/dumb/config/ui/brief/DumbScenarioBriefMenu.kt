@@ -16,6 +16,8 @@
  */
 package io.github.vibhor1102.macrion.feature.dumb.config.ui.brief
 
+import io.github.vibhor1102.macrion.core.common.overlays.menu.findOverlayView
+
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
@@ -41,6 +43,19 @@ import io.github.vibhor1102.macrion.feature.dumb.config.ui.actions.startDumbActi
 import io.github.vibhor1102.macrion.feature.dumb.config.ui.actions.startDumbActionEditionUiFlow
 import io.github.vibhor1102.macrion.feature.dumb.config.ui.actions.copy.DumbActionDetails
 
+import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.reorder.ItemsReorderDialog
+import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.reorder.ReorderItemDescriptor
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
+
 import kotlinx.coroutines.launch
 
 class DumbScenarioBriefMenu(
@@ -57,11 +72,11 @@ class DumbScenarioBriefMenu(
     )
 
     private lateinit var menuView: ViewGroup
-    private val backButton get() = menuView.findViewById<View>(R.id.btn_back)
-    private val recordButton get() = menuView.findViewById<View>(R.id.btn_record)
-    private val addButton get() = menuView.findViewById<View>(R.id.btn_add)
-    private val hideButton get() = menuView.findViewById<View>(R.id.btn_hide_overlay)
-    private val moveButtonView get() = menuView.findViewById<View>(R.id.btn_move)
+    private val backButton get() = menuView.findOverlayView<View>(R.id.btn_back)
+    private val recordButton get() = menuView.findOverlayView<View>(R.id.btn_record)
+    private val addButton get() = menuView.findOverlayView<View>(R.id.btn_add)
+    private val hideButton get() = menuView.findOverlayView<View>(R.id.btn_hide_overlay)
+    private val moveButtonView get() = menuView.findOverlayView<View>(R.id.btn_move)
 
     private lateinit var dumbActionCreator: DumbActionCreator
     private lateinit var createCopyActionUiFlowListener: DumbActionUiFlowListener
@@ -107,8 +122,10 @@ class DumbScenarioBriefMenu(
         return menuView
     }
 
-    override fun onCreateBriefItemViewHolder(parent: ViewGroup, orientation: Int): DumbActionBriefViewHolder =
-        DumbActionBriefViewHolder(orientation, parent)
+    @androidx.compose.runtime.Composable
+    override fun ItemBriefContent(item: ItemBrief, orientation: Int, onClick: () -> Unit) {
+        DumbActionBriefItem(item.data as DumbActionDetails, orientation, onClick)
+    }
 
     override fun onScreenOverlayVisibilityChanged(isVisible: Boolean) {
         super.onScreenOverlayVisibilityChanged(isVisible)
@@ -120,8 +137,41 @@ class DumbScenarioBriefMenu(
         viewModel.setFocusedDumbActionIndex(index)
     }
 
-    override fun onMoveItemClicked(from: Int, to: Int) {
-        viewModel.swapDumbActions(from, to)
+    override fun onReorderClicked() {
+        overlayManager.navigateTo(
+            context = context,
+            newOverlay = ItemsReorderDialog(
+                theme = R.style.AppTheme,
+                titleRes = R.string.menu_item_title_dumb_actions,
+                itemsFlow = viewModel.dumbActionsBriefList,
+                itemDescriptor = { brief ->
+                    val action = brief.data as DumbActionDetails
+                    ReorderItemDescriptor(
+                        title = action.name,
+                        subtitle = action.detailsText,
+                        trailingContent = {
+                            Box(Modifier.size(32.dp), contentAlignment = Alignment.Center) {
+                                Icon(
+                                    painter = painterResource(action.icon),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(24.dp),
+                                )
+                                if (action.haveError) {
+                                    Box(
+                                        Modifier
+                                            .align(Alignment.TopEnd)
+                                            .size(8.dp)
+                                            .background(MaterialTheme.colorScheme.error, CircleShape),
+                                    )
+                                }
+                            }
+                        },
+                    )
+                },
+                onSaveOrder = { viewModel.updateDumbActionsOrder(it) },
+            ),
+            hideCurrent = true,
+        )
     }
 
     override fun onDeleteItemClicked(index: Int) {
@@ -137,7 +187,19 @@ class DumbScenarioBriefMenu(
 
     override fun onItemPositionCardClicked(index: Int, itemCount: Int) {
         if (itemCount < 2) return
-        showMoveToDialog(index, itemCount)
+        overlayManager.navigateTo(
+            context = context,
+            newOverlay = MoveToDialog(
+                theme = R.style.AppTheme,
+                defaultValue = index + 1,
+                itemCount = itemCount,
+                titleRes = io.github.vibhor1102.macrion.core.common.overlays.R.string.dialog_jump_to_title,
+                onValueSelected = { value ->
+                    val targetIndex = (value - 1).coerceIn(0, itemCount - 1)
+                    briefViewBinding.scrollToItem(targetIndex)
+                },
+            ),
+        )
     }
 
     override fun onItemBriefClicked(index: Int, item: ItemBrief) {
@@ -223,7 +285,7 @@ class DumbScenarioBriefMenu(
     }
 
     private fun updateReplayingState(isReplaying: Boolean) {
-        setOverlayViewVisibility(!isReplaying)
+        setOverlayViewVisibility(!isReplaying && isUserOverlayVisible)
         setMenuItemViewEnabled(backButton, true)
         setMenuItemViewEnabled(addButton, !isReplaying)
         setMenuItemViewEnabled(hideButton, !isReplaying)
@@ -245,18 +307,4 @@ class DumbScenarioBriefMenu(
             listener = updateActionUiFlowListener,
         )
 
-    private fun showMoveToDialog(index: Int, itemCount: Int) {
-        overlayManager.navigateTo(
-            context = context,
-            newOverlay = MoveToDialog(
-                theme = R.style.AppTheme,
-                defaultValue = index + 1,
-                itemCount = itemCount,
-                onValueSelected = { value ->
-                    if (value - 1 == index) return@MoveToDialog
-                    viewModel.moveDumbAction(index, value - 1)
-                }
-            ),
-        )
-    }
 }

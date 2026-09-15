@@ -13,6 +13,7 @@ import androidx.annotation.ColorRes
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.darkColorScheme
@@ -27,7 +28,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.unit.dp
 import io.github.vibhor1102.macrion.core.ui.R
+
+val OverlayDialogCornerRadius = 28.dp
+val OverlayDialogShape = RoundedCornerShape(topStart = OverlayDialogCornerRadius, topEnd = OverlayDialogCornerRadius)
 
 @Composable
 fun MacrionTheme(content: @Composable () -> Unit) {

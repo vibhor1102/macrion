@@ -29,6 +29,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -88,6 +89,88 @@ internal class SettingsRepositoryImpl @Inject constructor(
     private val _isInputBlockWorkaroundEnabledFlow: StateFlow<Boolean> = dataSource.isInputBlockWorkaroundEnabled()
         .stateIn(coroutineScope, SharingStarted.Eagerly, false)
     override val isInputBlockWorkaroundEnabledFlow: Flow<Boolean> = _isInputBlockWorkaroundEnabledFlow
+
+    private val _toolbarScalePercentFlow: StateFlow<Int> = dataSource.toolbarScalePercent()
+        .stateIn(coroutineScope, SharingStarted.Eagerly, 100)
+    override val toolbarScalePercentFlow: Flow<Int> = _toolbarScalePercentFlow
+
+    override fun getToolbarScalePercent(): Int = _toolbarScalePercentFlow.value
+
+    override fun setToolbarScalePercent(percent: Int) {
+        coroutineScope.launch {
+            dataSource.setToolbarScalePercent(percent)
+        }
+    }
+
+    private val _areAdvancedSettingsEnabledFlow: StateFlow<Boolean> = dataSource.areAdvancedSettingsEnabled()
+        .stateIn(coroutineScope, SharingStarted.Eagerly, false)
+    override val areAdvancedSettingsEnabledFlow: Flow<Boolean> = _areAdvancedSettingsEnabledFlow
+
+    override fun areAdvancedSettingsEnabled(): Boolean = _areAdvancedSettingsEnabledFlow.value
+
+    override fun setAdvancedSettingsEnabled(enabled: Boolean) {
+        coroutineScope.launch {
+            dataSource.setAdvancedSettingsEnabled(enabled)
+        }
+    }
+
+    private val _hasSeenAdvancedWarningFlow: StateFlow<Boolean> = dataSource.hasSeenAdvancedWarning()
+        .stateIn(coroutineScope, SharingStarted.Eagerly, false)
+    override val hasSeenAdvancedWarningFlow: Flow<Boolean> = _hasSeenAdvancedWarningFlow
+
+    override fun hasSeenAdvancedWarning(): Boolean = _hasSeenAdvancedWarningFlow.value
+
+    override fun setHasSeenAdvancedWarning(seen: Boolean) {
+        coroutineScope.launch {
+            dataSource.setHasSeenAdvancedWarning(seen)
+        }
+    }
+
+    private val _maxToleratedDifferenceFlow: StateFlow<Int> = combine(
+        dataSource.areAdvancedSettingsEnabled(),
+        dataSource.maxToleratedDifference(),
+    ) { areAdvancedEnabled, maxDiff ->
+        if (areAdvancedEnabled) maxDiff else 20
+    }.stateIn(coroutineScope, SharingStarted.Eagerly, 20)
+    override val maxToleratedDifferenceFlow: Flow<Int> = _maxToleratedDifferenceFlow
+
+    override fun getMaxToleratedDifference(): Int = _maxToleratedDifferenceFlow.value
+
+    override fun setMaxToleratedDifference(difference: Int) {
+        coroutineScope.launch {
+            dataSource.setMaxToleratedDifference(difference)
+        }
+    }
+
+    private val _isToolbarAutoHideEnabledFlow: StateFlow<Boolean> = dataSource.isToolbarAutoHideEnabled()
+        .stateIn(coroutineScope, SharingStarted.Eagerly, true)
+    override val isToolbarAutoHideEnabledFlow: Flow<Boolean> = _isToolbarAutoHideEnabledFlow
+
+    override fun isToolbarAutoHideEnabled(): Boolean = _isToolbarAutoHideEnabledFlow.value
+
+    override fun setToolbarAutoHideEnabled(enabled: Boolean) {
+        coroutineScope.launch {
+            dataSource.setToolbarAutoHideEnabled(enabled)
+        }
+    }
+
+    override fun toggleToolbarAutoHide() {
+        coroutineScope.launch {
+            dataSource.setToolbarAutoHideEnabled(!_isToolbarAutoHideEnabledFlow.value)
+        }
+    }
+
+    private val _toolbarAutoHideDelaySecondsFlow: StateFlow<Int> = dataSource.toolbarAutoHideDelaySeconds()
+        .stateIn(coroutineScope, SharingStarted.Eagerly, 120)
+    override val toolbarAutoHideDelaySecondsFlow: Flow<Int> = _toolbarAutoHideDelaySecondsFlow
+
+    override fun getToolbarAutoHideDelaySeconds(): Int = _toolbarAutoHideDelaySecondsFlow.value
+
+    override fun setToolbarAutoHideDelaySeconds(seconds: Int) {
+        coroutineScope.launch {
+            dataSource.setToolbarAutoHideDelaySeconds(seconds)
+        }
+    }
 
     override val scenarioSortSettings: Flow<ScenarioSortSettings> = scenarioSortSettingsDatasource.getSortConfig()
 

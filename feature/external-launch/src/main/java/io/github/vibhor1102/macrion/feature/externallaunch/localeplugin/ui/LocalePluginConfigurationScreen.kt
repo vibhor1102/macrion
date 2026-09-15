@@ -22,8 +22,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
@@ -155,8 +157,21 @@ private fun ScenarioDropdown(
             onValueChange = {},
             readOnly = true,
             label = { Text(stringResource(R.string.locale_plugin_scenario_hint)) },
+            leadingIcon = selected?.let { scenario ->
+                {
+                    Icon(
+                        painter = painterResource(
+                            if (scenario.isSmart) io.github.vibhor1102.macrion.core.ui.R.drawable.ic_screen_event
+                            else io.github.vibhor1102.macrion.core.ui.R.drawable.ic_click
+                        ),
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
-            modifier = Modifier.menuAnchor().fillMaxWidth(),
+            modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable).fillMaxWidth(),
         )
         ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             scenarios.forEach { scenario ->
@@ -172,13 +187,14 @@ private fun ScenarioDropdown(
 @Composable
 private fun ScenarioMenuItem(scenario: LocalePluginScenarioItem) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        Image(
+        Icon(
             painter = painterResource(
                 if (scenario.isSmart) io.github.vibhor1102.macrion.core.ui.R.drawable.ic_screen_event
                 else io.github.vibhor1102.macrion.core.ui.R.drawable.ic_click
             ),
             contentDescription = stringResource(R.string.locale_plugin_scenario_icon),
             modifier = Modifier.size(32.dp),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Column(Modifier.padding(start = 12.dp)) {
             Text(scenario.name, style = MaterialTheme.typography.bodyLarge)
@@ -205,7 +221,7 @@ private fun StringDropdown(names: List<String>, selected: String?, onSelected: (
             readOnly = true,
             label = { Text(stringResource(R.string.external_action_event_name_hint)) },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
-            modifier = Modifier.menuAnchor().fillMaxWidth(),
+            modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable).fillMaxWidth(),
         )
         ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             names.forEach { name ->

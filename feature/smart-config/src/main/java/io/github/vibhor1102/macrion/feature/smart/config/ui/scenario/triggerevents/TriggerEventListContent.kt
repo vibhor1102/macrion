@@ -19,6 +19,8 @@ package io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.triggereve
 import android.content.Context
 import android.view.ViewGroup
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -26,16 +28,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.recyclerview.widget.DividerItemDecoration
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.navbar.NavBarDialogContent
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.navbar.viewModels
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
@@ -44,7 +41,7 @@ import io.github.vibhor1102.macrion.feature.smart.config.R
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
 import io.github.vibhor1102.macrion.feature.smart.config.ui.event.EventDialog
 import io.github.vibhor1102.macrion.feature.smart.config.ui.copy.event.EventCopyDialog
-import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.event.UiTriggerEvent
+import io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.common.EventListRow
 
 import kotlinx.coroutines.launch
 
@@ -56,16 +53,9 @@ class TriggerEventListContent(appContext: Context) : NavBarDialogContent(appCont
         creator = { triggerEventListViewModel() },
     )
 
-    /** Adapter for the list of events. */
-    private lateinit var eventAdapter: TriggerEventListAdapter
-
     override fun floatingActionButtonsAreAvailable(): Boolean = true
 
     override fun onCreateView(container: ViewGroup): ViewGroup {
-        eventAdapter = TriggerEventListAdapter(
-            itemClickedListener = ::onTriggerEventItemClicked,
-        )
-
         return ComposeView(context).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent { MacrionTheme { this@TriggerEventListContent.Content() } }
@@ -110,14 +100,28 @@ class TriggerEventListContent(appContext: Context) : NavBarDialogContent(appCont
                     Text(context.getString(R.string.message_empty_trigger_event_list_desc), style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
-                else -> AndroidView(factory = { ctx -> RecyclerView(ctx).apply {
-                    layoutManager = LinearLayoutManager(ctx)
-                    adapter = eventAdapter
-                    addItemDecoration(DividerItemDecoration(ctx, DividerItemDecoration.VERTICAL))
-                } }, update = { eventAdapter.submitList(items) }, modifier = Modifier.fillMaxSize())
+                else -> LazyColumn(Modifier.fillMaxSize()) {
+                    items(items, key = { it.event.id.toLazyListKey() }) { item ->
+                        EventListRow(
+                            name = item.name,
+                            conditionsCount = item.conditionsCountText,
+                            actionsCount = item.actionsCountText,
+                            enabledTextRes = item.enabledOnStartTextRes,
+                            enabledIconRes = item.enabledOnStartIconRes,
+                            conditionIconRes = R.drawable.ic_trigger_condition,
+                            actionsInError = item.haveError,
+                            showReorderHandle = false,
+                            onClick = { onTriggerEventItemClicked(item.event) },
+                        )
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    }
+                }
             }
         }
     }
+
+    private fun io.github.vibhor1102.macrion.core.base.identifier.Identifier.toLazyListKey(): Long =
+        if (databaseId != 0L) databaseId else -requireNotNull(tempId)
 
     private fun updateCopyButtonVisibility(isVisible: Boolean) {
         dialogController.floatingActionButtons.setSecondaryVisible(isVisible)

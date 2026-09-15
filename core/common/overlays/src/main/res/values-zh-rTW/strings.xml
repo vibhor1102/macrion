@@ -3,4 +3,9 @@
     <string name="dialog_move_to_title">移動至</string>
     <string name="dialog_move_to_position_label">索引</string>
     <string name="overlay_instructions_gesture_record">正在記錄手勢…</string>
+    <string name="dialog_jump_to_title">跳轉至</string>
+    <string name="dialog_reorder_empty">無項目</string>
+    <string name="dialog_reorder_discard_title">放棄變更？</string>
+    <string name="dialog_reorder_discard_message">您有未儲存的變更。確定要放棄嗎？</string>
+    <string name="dialog_reorder_discard_confirm">放棄</string>
 </resources>

@@ -18,7 +18,6 @@ package io.github.vibhor1102.macrion.feature.smart.config.ui.event
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.view.View
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 
@@ -64,7 +63,7 @@ class EventDialogViewModel @Inject constructor(
     @ApplicationContext context: Context,
     private val bitmapRepository: BitmapRepository,
     private val editionRepository: EditionRepository,
-    private val monitoredViewsManager: MonitoredViewsManager,
+    internal val monitoredViewsManager: MonitoredViewsManager,
     private val settingsRepository: SettingsRepository,
     private val tutorialRepository: TutorialRepository,
 ) : ViewModel() {
@@ -172,27 +171,6 @@ class EventDialogViewModel @Inject constructor(
         }
     }
 
-    fun monitorConditionsView(view: View?) = monitorView(MonitoredViewType.EVENT_DIALOG_FIELD_CONDITIONS, view)
-    fun monitorOperatorAndView(view: View?) = monitorView(MonitoredViewType.EVENT_DIALOG_FIELD_OPERATOR_ITEM_AND, view)
-    fun monitorOperatorOrView(view: View?) = monitorView(MonitoredViewType.EVENT_DIALOG_FIELD_OPERATOR_ITEM_OR, view)
-    fun monitorActionsView(view: View?) = monitorView(MonitoredViewType.EVENT_DIALOG_FIELD_ACTIONS, view)
-    fun monitorInitialStateView(view: View?) = monitorView(MonitoredViewType.EVENT_DIALOG_FIELD_INITIAL_STATE, view)
-    fun monitorSaveView(view: View?) = monitorView(MonitoredViewType.EVENT_DIALOG_BUTTON_SAVE, view)
-
-    private fun monitorView(type: MonitoredViewType, view: View?) {
-        if (view == null) monitoredViewsManager.detach(type) else monitoredViewsManager.attach(type, view)
-    }
-
-    fun detachMonitoredViews() {
-        monitoredViewsManager.apply {
-            detach(MonitoredViewType.EVENT_DIALOG_BUTTON_SAVE)
-            detach(MonitoredViewType.EVENT_DIALOG_FIELD_INITIAL_STATE)
-            detach(MonitoredViewType.EVENT_DIALOG_FIELD_OPERATOR_ITEM_OR)
-            detach(MonitoredViewType.EVENT_DIALOG_FIELD_OPERATOR_ITEM_AND)
-            detach(MonitoredViewType.EVENT_DIALOG_FIELD_ACTIONS)
-            detach(MonitoredViewType.EVENT_DIALOG_FIELD_CONDITIONS)
-        }
-    }
 
     private fun updateEditedEvent(closure: (oldValue: Event) -> Event?) {
         editionRepository.editionState.getEditedEvent()?.let { oldValue ->

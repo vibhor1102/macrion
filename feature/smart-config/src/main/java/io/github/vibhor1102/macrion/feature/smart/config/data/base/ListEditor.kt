@@ -164,13 +164,24 @@ internal open class ListEditor<Item , Parent>(
     private fun List<Item>.indexOfItem(item: Item): Int =
         indexOfFirst { it.id == item.id }
 
-    private fun buildAllItemList(editedList: List<Item>?, editedItem: Item?) =
+    private fun buildAllItemList(editedList: List<Item>?, editedItem: Item?): List<Item> =
         buildList {
             val items = editedList ?: emptyList()
-            addAll(items)
-
-            editedItem?.let { item ->
-                if (items.find { item.id == it.id } == null) add(item)
+            if (editedItem == null) {
+                addAll(items)
+            } else {
+                var replaced = false
+                for (item in items) {
+                    if (item.id == editedItem.id) {
+                        add(editedItem)
+                        replaced = true
+                    } else {
+                        add(item)
+                    }
+                }
+                if (!replaced) {
+                    add(editedItem)
+                }
             }
         }
 

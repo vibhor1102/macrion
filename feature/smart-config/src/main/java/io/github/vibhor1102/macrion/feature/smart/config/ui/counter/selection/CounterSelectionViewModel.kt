@@ -17,11 +17,8 @@
 package io.github.vibhor1102.macrion.feature.smart.config.ui.counter.selection
 
 import android.content.Context
-import android.view.View
 import androidx.lifecycle.ViewModel
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.MonitoredViewsManager
-import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredViewType
-
 import io.github.vibhor1102.macrion.feature.smart.config.R
 import io.github.vibhor1102.macrion.feature.smart.config.domain.EditionRepository
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.formatters.toNaturalDisplayString
@@ -34,7 +31,7 @@ import javax.inject.Inject
 class CounterSelectionViewModel @Inject constructor(
     @ApplicationContext context: Context,
     editionRepository: EditionRepository,
-    private val monitoredViewsManager: MonitoredViewsManager,
+    internal val monitoredViewsManager: MonitoredViewsManager,
 ) : ViewModel() {
 
     val counterNames: Flow<List<CounterSelectionUiItem>> = editionRepository.editionState.allEditedCountersFlow
@@ -49,12 +46,4 @@ class CounterSelectionViewModel @Inject constructor(
                 )
             }.sortedBy { counter -> counter.counterName }
         }
-
-    fun monitorCreateCounterView(view: View) {
-        monitoredViewsManager.attach(MonitoredViewType.COUNTER_SELECTION_DIALOG_BUTTON_CREATE, view)
-    }
-
-    fun stopViewMonitoring() {
-        monitoredViewsManager.detach(MonitoredViewType.COUNTER_SELECTION_DIALOG_BUTTON_CREATE)
-    }
 }

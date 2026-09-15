@@ -110,4 +110,13 @@
     <string name="content_desc_event_occurrence_fast_scroller">Thanh cuộn nhanh chi tiết lần xuất hiện sự kiện</string>
     <string name="content_desc_filtered_events_fast_scroller">Thanh cuộn nhanh sự kiện đã lọc</string>
 
+    <string name="content_desc_condition_preview">Xem trước điều kiện</string>
+    <string name="content_desc_close_condition_preview">Đóng xem trước</string>
+    <string name="title_condition_preview_image_failed">Không có hình ảnh</string>
+    <string name="title_trigger_type_broadcast">Phát sóng</string>
+    <string name="title_trigger_type_counter">Bộ đếm</string>
+    <string name="title_trigger_type_timer">Hẹn giờ</string>
+    <string name="label_trigger_intent_action">Hành động intent</string>
+    <string name="label_trigger_timer_repeating">Lặp lại khi đạt đến</string>
+    <string name="label_trigger_timer_once">Chạy một lần</string>
 </resources>

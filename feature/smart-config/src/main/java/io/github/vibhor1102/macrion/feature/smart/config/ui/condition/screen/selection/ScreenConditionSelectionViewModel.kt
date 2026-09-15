@@ -17,12 +17,9 @@
 package io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.selection
 
 import android.graphics.Bitmap
-import android.view.View
 import androidx.lifecycle.ViewModel
 import io.github.vibhor1102.macrion.core.bitmaps.BitmapRepository
 import io.github.vibhor1102.macrion.core.domain.model.condition.ScreenCondition
-import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredViewType
-import io.github.vibhor1102.macrion.core.common.tutorial.domain.MonitoredViewsManager
 import io.github.vibhor1102.macrion.feature.smart.config.utils.getImageConditionBitmap
 import kotlinx.coroutines.Job
 import javax.inject.Inject
@@ -30,7 +27,6 @@ import javax.inject.Inject
 
 class ScreenConditionSelectionViewModel @Inject constructor(
     private val bitmapRepository: BitmapRepository,
-    private val monitoredViewsManager: MonitoredViewsManager
 ) : ViewModel() {
 
     /**
@@ -42,12 +38,4 @@ class ScreenConditionSelectionViewModel @Inject constructor(
      */
     fun getConditionBitmap(condition: ScreenCondition.Image, onBitmapLoaded: (Bitmap?) -> Unit): Job =
         getImageConditionBitmap(bitmapRepository, condition, onBitmapLoaded)
-
-    fun monitorFirstConditionItemView(itemView: View) {
-        monitoredViewsManager.attach(MonitoredViewType.CONDITION_SELECTOR_DIALOG_ITEM_FIRST, itemView)
-    }
-
-    fun stopViewMonitoring() {
-        monitoredViewsManager.detach(MonitoredViewType.CONDITION_SELECTOR_DIALOG_ITEM_FIRST)
-    }
 }

@@ -89,7 +89,7 @@
       -->
     <string name="message_delete_scenario">This will delete %1$s. Are you sure ?</string>
     <string name="dialog_title_locale_plugin_background_launch">Background launch blocked</string>
-    <string name="message_locale_plugin_background_launch">Klick\'r could not open the screen-capture prompt automatically.\n\n
+    <string name="message_locale_plugin_background_launch">Macrion could not open the screen-capture prompt automatically.\n\n
     To finish launching the scenario, it showed a notification instead.\n\n
     Some Android phones restrict background apps more than standard Android. Refer to this guide to improve the permission stability.</string>
 
@@ -121,6 +121,12 @@
 
     <string name="activity_settings_title">Settings</string>
     <string name="content_desc_back">Navigate back</string>
+    <string name="settings_section_scenario_list">Scenario list</string>
+    <string name="settings_section_overlay">Overlay controls</string>
+    <string name="settings_section_compatibility">Compatibility</string>
+    <string name="settings_section_device_compatibility">Device compatibility</string>
+    <string name="settings_section_account">Account and privacy</string>
+    <string name="settings_section_help">Help and diagnostics</string>
 
     <string name="field_show_scenario_filters_ui_title">Show Scenarios filters</string>
     <string name="field_show_scenario_filters_ui_desc">Display or hide the filters in the scenario list screen.</string>
@@ -172,7 +178,7 @@
     <string name="button_export">Export</string>
 
     <string name="field_tutorial_title">Tutorial</string>
-    <string name="field_tutorial_desc">Learn how to use Klick\'r</string>
+    <string name="field_tutorial_desc">Learn how to use Macrion</string>
 
     <!-- Crash reporting -->
     <string name="crash_reports_title">Local crash reports</string>
@@ -194,4 +200,35 @@
     <string name="crash_reports_sample">Create synthetic report (debug only)</string>
     <string name="crash_report_label">Report %1$s</string>
 
+    <string name="version_copied_to_clipboard">Version copied to clipboard</string>
+    <string name="settings_section_about">About</string>
+    <string name="settings_version_title">Version</string>
+    <string name="settings_install_source_title">Installation source</string>
+    <string name="install_source_unknown">Unknown</string>
+    <string name="settings_toolbar_size_title">Toolbar size</string>
+    <string name="settings_toolbar_size_dialog_description">Adjust the size of the overlay toolbar.</string>
+
+    <string name="settings_section_advanced">Advanced</string>
+    <string name="settings_enable_advanced_title">Enable advanced settings</string>
+    <string name="settings_enable_advanced_desc">Show experimental and power-user settings.</string>
+    <string name="settings_advanced_dialog_title">Enable advanced settings?</string>
+    <string name="settings_advanced_dialog_message">These settings may have unintended consequences. Make sure you understand each setting before enabling.</string>
+    <string name="settings_advanced_dialog_confirm">Enable</string>
+    <string name="settings_max_difference_title">Maximum tolerated difference</string>
+    <string name="settings_max_difference_desc">Allow conditions to match with a higher difference.</string>
+    <string name="settings_max_difference_dialog_title">Maximum tolerated difference</string>
+    <string name="settings_max_difference_item_default">%1$d%% (Default)</string>
+    <string name="settings_max_difference_item">%1$d%%</string>
+    <string name="settings_toolbar_auto_hide_title">Auto-hide toolbar</string>
+    <string name="settings_toolbar_auto_hide_desc">Tuck the toolbar against the screen edge when inactive.</string>
+    <string name="settings_toolbar_auto_hide_delay_title">Auto-hide delay</string>
+    <string name="settings_toolbar_auto_hide_delay_dialog_title">Auto-hide delay</string>
+    <string name="settings_toolbar_auto_hide_delay_seconds">%1$d seconds</string>
+    <string name="settings_toolbar_auto_hide_delay_seconds_default">%1$d seconds (Default)</string>
+    <string name="settings_toolbar_auto_hide_delay_1_minute">1 minute</string>
+    <string name="settings_toolbar_auto_hide_delay_minutes">%1$d minutes</string>
+    <string name="settings_toolbar_auto_hide_delay_minutes_default">%1$d minutes (Default)</string>
+    <string name="content_desc_tuck_toolbar">Tuck toolbar to screen edge</string>
+    <string name="content_desc_expand_toolbar">Expand toolbar</string>
+    <string name="toast_advanced_settings_restored_defaults">Advanced settings have been restored to default values.</string>
 </resources>

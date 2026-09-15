@@ -22,15 +22,16 @@ import android.content.Intent
 import android.os.Build
 import android.util.Log
 
-import androidx.activity.result.ActivityResultLauncher
 import androidx.core.content.edit
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.fragment.app.Fragment
 
 sealed class Permission(internal val isOptional: Boolean) {
 
     internal fun hasBeenRequestedBefore(context: Context): Boolean =
         context.getPermissionSharedPrefs().getBoolean(javaClass.simpleName, false)
+
+    internal fun markRequested(context: Context) {
+        context.getPermissionSharedPrefs().edit { putBoolean(javaClass.simpleName, true) }
+    }
 
     /** Tells if the [Permission] is granted. */
     fun checkIfGranted(context: Context): Boolean {
@@ -59,34 +60,12 @@ sealed class Permission(internal val isOptional: Boolean) {
     /** The permission requires the standard Android permission dialog display. */
     sealed class Dangerous(isOptional: Boolean) : Permission(isOptional) {
 
-        /** Launcher for requesting the permission. */
-        private var permissionLauncher: ActivityResultLauncher<String>? = null
         /** The Android permission string value. */
-        protected abstract val permissionString: String
+        abstract val permissionString: String
 
-        protected open val fallbackSettingsIntent: Intent? = null
-
-        internal fun initResultLauncher(fragment: Fragment, onResult: (isGranted: Boolean) -> Unit) {
-            permissionLauncher = fragment
-                .registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-                    onResult(granted)
-                }
-        }
+        open val fallbackSettingsIntent: Intent? = null
 
         override fun onStartRequestFlow(context: Context): Boolean {
-            if (!hasBeenRequestedBefore(context)) {
-                return permissionLauncher?.let { launcher ->
-                    try {
-                        launcher.launch(permissionString)
-                        true
-                    } catch (isEx: IllegalStateException) {
-                        Log.e("PermissionDangerous", "Can't start permission request", isEx)
-                        false
-                    }
-
-                } ?: false
-            }
-
             fallbackSettingsIntent?.let { intent ->
                 try {
                     context.startActivity(intent)

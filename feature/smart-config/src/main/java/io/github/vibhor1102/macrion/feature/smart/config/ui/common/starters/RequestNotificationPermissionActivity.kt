@@ -20,19 +20,20 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
-import android.widget.FrameLayout
-
-import androidx.appcompat.app.AppCompatActivity
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
 
 import io.github.vibhor1102.macrion.core.common.overlays.manager.OverlayManager
 import io.github.vibhor1102.macrion.core.common.permissions.PermissionsController
 import io.github.vibhor1102.macrion.core.common.permissions.model.PermissionPostNotification
+import io.github.vibhor1102.macrion.core.common.permissions.ui.PermissionsHost
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class RequestNotificationPermissionActivity : AppCompatActivity() {
+class RequestNotificationPermissionActivity : ComponentActivity() {
 
     companion object {
         fun getStartIntent(context: Context): Intent =
@@ -46,7 +47,11 @@ class RequestNotificationPermissionActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(FrameLayout(this).apply { setBackgroundColor(Color.TRANSPARENT) })
+        setContent {
+            MacrionTheme {
+                PermissionsHost(permissionController)
+            }
+        }
 
         overlayManager.hideAll()
         permissionController.startPermissionsUiFlow(

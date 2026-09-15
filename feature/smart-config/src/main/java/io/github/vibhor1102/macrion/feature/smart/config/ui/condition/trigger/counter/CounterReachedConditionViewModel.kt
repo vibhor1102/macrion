@@ -17,11 +17,8 @@
 package io.github.vibhor1102.macrion.feature.smart.config.ui.condition.trigger.counter
 
 import android.content.Context
-import android.view.View
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import io.github.vibhor1102.macrion.core.common.tutorial.domain.MonitoredViewsManager
-import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredViewType
 
 import io.github.vibhor1102.macrion.core.domain.model.condition.TriggerCondition
 import io.github.vibhor1102.macrion.core.domain.model.counter.CounterOperationValue
@@ -54,7 +51,6 @@ import javax.inject.Inject
 class CounterReachedConditionViewModel @Inject constructor(
     @ApplicationContext context: Context,
     private val editionRepository: EditionRepository,
-    private val monitoredViewsManager: MonitoredViewsManager,
 ) : ViewModel() {
 
     /** The condition being configured by the user. */
@@ -111,20 +107,6 @@ class CounterReachedConditionViewModel @Inject constructor(
         }
     }
 
-    fun monitorSelectCounterView(view: View?) {
-        if (view != null) monitoredViewsManager.attach(MonitoredViewType.COUNTER_REACHED_DIALOG_FIELD_COUNTER_SELECTION, view)
-        else monitoredViewsManager.detach(MonitoredViewType.COUNTER_REACHED_DIALOG_FIELD_COUNTER_SELECTION)
-    }
-
-    fun monitorSaveButtonView(view: View?) {
-        if (view != null) monitoredViewsManager.attach(MonitoredViewType.COUNTER_REACHED_DIALOG_BUTTON_SAVE, view)
-        else monitoredViewsManager.detach(MonitoredViewType.COUNTER_REACHED_DIALOG_BUTTON_SAVE)
-    }
-
-    fun detachMonitoredViews() {
-        monitoredViewsManager.detach(MonitoredViewType.COUNTER_REACHED_DIALOG_FIELD_COUNTER_SELECTION)
-        monitoredViewsManager.detach(MonitoredViewType.COUNTER_REACHED_DIALOG_BUTTON_SAVE)
-    }
 
     private fun updateEditedCondition(
         closure: (oldValue: TriggerCondition.OnCounterCountReached) -> TriggerCondition.OnCounterCountReached?,

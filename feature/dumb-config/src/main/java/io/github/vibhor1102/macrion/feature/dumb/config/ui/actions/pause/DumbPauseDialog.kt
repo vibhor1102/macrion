@@ -6,7 +6,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.google.android.material.bottomsheet.BottomSheetDialog
 import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayDialog
 import io.github.vibhor1102.macrion.core.dumb.domain.model.DumbAction
@@ -35,9 +34,7 @@ class DumbPauseDialog(
         }
     }
 
-    override fun onDialogCreated(dialog: BottomSheetDialog) = Unit
-
-    @Composable private fun Content() {
+@Composable private fun Content() {
         val initialName by viewModel.name.collectAsStateWithLifecycle(initialValue = null)
         val displayedDuration by viewModel.pauseDuration.collectAsStateWithLifecycle(initialValue = null)
         val unit by viewModel.selectedUnitItem.collectAsStateWithLifecycle(TimeUnitDropDownItem.Milliseconds)

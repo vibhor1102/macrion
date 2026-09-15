@@ -17,7 +17,9 @@
 -->
 <resources>
     <color name="notification_text_color">@color/md_theme_dark_onSurface</color>
+    <color name="notification_text_secondary_color">@color/md_theme_dark_onSurfaceVariant</color>
     <color name="notification_icon_color">@color/md_theme_dark_onSurface</color>
+    <color name="notification_icon_color_filled">@color/md_theme_dark_onPrimary</color>
     <color name="notification_icon_color_secondary">@color/md_theme_light_onSurface</color>
     <color name="notification_button_background_filled">@color/md_theme_dark_primary</color>
     <color name="notification_button_background_outlined">@color/md_theme_dark_secondary</color>

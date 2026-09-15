@@ -142,4 +142,13 @@
     <string name="overlay_title_threshold">Límite</string>
 
 
+    <string name="content_desc_condition_preview">Vista previa de la condición</string>
+    <string name="content_desc_close_condition_preview">Cerrar vista previa</string>
+    <string name="title_condition_preview_image_failed">Imagen no disponible</string>
+    <string name="title_trigger_type_broadcast">Transmisión</string>
+    <string name="title_trigger_type_counter">Contador</string>
+    <string name="title_trigger_type_timer">Temporizador</string>
+    <string name="label_trigger_intent_action">Acción de intent</string>
+    <string name="label_trigger_timer_repeating">Se repite al alcanzarse</string>
+    <string name="label_trigger_timer_once">Se ejecuta una vez</string>
 </resources>

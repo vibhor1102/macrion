@@ -36,7 +36,11 @@
     <string name="item_title_report_event_activity">نشاط الأحداث</string>
     <string name="item_desc_report_event_activity_empty">لم يتم الوصول إلى أي أحداث</string>
     <plurals name="item_desc_report_event_activity_reached">
+        <item quantity="zero">لم يتم الوصول إلى أي أحداث · إجمالي التكرارات %2$d</item>
         <item quantity="one">تم الوصول إلى %1$d حدث · إجمالي التكرارات %2$d</item>
+        <item quantity="two">تم الوصول إلى %1$d حدثين · إجمالي التكرارات %2$d</item>
+        <item quantity="few">تم الوصول إلى %1$d أحداث · إجمالي التكرارات %2$d</item>
+        <item quantity="many">تم الوصول إلى %1$d حدثًا · إجمالي التكرارات %2$d</item>
         <item quantity="other">تم الوصول إلى %1$d أحداث · إجمالي التكرارات %2$d</item>
     </plurals>
     <string name="item_desc_report_event_activity_most_frequent">الأكثر تكرارًا: %1$s · %2$d×</string>
@@ -60,11 +64,19 @@
     <string name="item_condition_performance_total_time">الوقت الإجمالي: %1$s ث</string>
     <string name="item_condition_performance_fulfilled">مستوفاة: %1$s %2$s من أصل %3$s %4$s</string>
     <plurals name="item_condition_performance_time">
+        <item quantity="zero">مرات</item>
         <item quantity="one">مرة</item>
+        <item quantity="two">مرتين</item>
+        <item quantity="few">مرات</item>
+        <item quantity="many">مرة</item>
         <item quantity="other">مرات</item>
     </plurals>
     <plurals name="item_condition_performance_check">
+        <item quantity="zero">فحوصات</item>
         <item quantity="one">فحص</item>
+        <item quantity="two">فحصين</item>
+        <item quantity="few">فحوصات</item>
+        <item quantity="many">فحصًا</item>
         <item quantity="other">فحوصات</item>
     </plurals>
     <string name="item_condition_performance_average">المتوسط: %1$s مللي ثانية لكل فحص</string>
@@ -142,4 +154,13 @@
     <string name="overlay_title_threshold">عتبة</string>
 
 
+    <string name="content_desc_condition_preview">معاينة الشرط</string>
+    <string name="content_desc_close_condition_preview">إغلاق المعاينة</string>
+    <string name="title_condition_preview_image_failed">الصورة غير متوفرة</string>
+    <string name="title_trigger_type_broadcast">بث</string>
+    <string name="title_trigger_type_counter">عداد</string>
+    <string name="title_trigger_type_timer">مؤقت</string>
+    <string name="label_trigger_intent_action">إجراء Intent</string>
+    <string name="label_trigger_timer_repeating">يتكرر عند الوصول</string>
+    <string name="label_trigger_timer_once">يعمل مرة واحدة</string>
 </resources>

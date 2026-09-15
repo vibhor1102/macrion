@@ -1,7 +1,8 @@
 /* Copyright (C) 2025 Kevin Buzeau; Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.live.eventtry
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 
-import android.util.Size
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
@@ -23,9 +24,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
@@ -76,10 +75,6 @@ class TryEventOverlayMenu(
         viewModel.startTry(context, scenario, triedElement)
     }
     override fun onStop() = viewModel.stopTry()
-    override fun getWindowMaximumSize(backgroundView: ViewGroup): Size =
-        super.getWindowMaximumSize(backgroundView).let { Size(
-            it.width + context.resources.getDimensionPixelSize(R.dimen.overlay_debug_text_width), it.height,
-        ) }
     override fun onMenuItemClicked(viewId: Int) {
         if (viewId == R.id.btn_back) { viewModel.stopTry(); back() }
     }

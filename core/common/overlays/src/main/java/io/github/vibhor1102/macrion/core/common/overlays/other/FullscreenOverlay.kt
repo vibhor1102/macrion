@@ -36,7 +36,7 @@ import io.github.vibhor1102.macrion.core.common.overlays.base.BaseOverlay
 import io.github.vibhor1102.macrion.core.common.overlays.manager.OverlayManager
 
 /** BaseOverlay class for an overlay displayed as full screen. */
-abstract class FullscreenOverlay(@StyleRes theme: Int? = null) : BaseOverlay(theme) {
+abstract class FullscreenOverlay(@StyleRes theme: Int? = null) : BaseOverlay(theme, recreateOnRotation = true) {
 
     /** The layout parameters of the window displaying the view. */
     private val viewLayoutParams: WindowManager.LayoutParams = WindowManager.LayoutParams(

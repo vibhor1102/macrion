@@ -60,8 +60,13 @@ internal class LocalePluginActionExecutor @Inject constructor(
         externalLaunchRepository.replaceDumbScenario(action.scenario)
     }
 
-    fun launchSmart(resultCode: Int, data: Intent, action: ResolvedLocalePluginAction.LaunchSmart) =
-        externalLaunchRepository.replaceSmartScenario(resultCode, data, action.scenario)
+    fun launchSmart(
+        resultCode: Int,
+        data: Intent,
+        action: ResolvedLocalePluginAction.LaunchSmart,
+        autoRun: Boolean = false,
+    ) =
+        externalLaunchRepository.replaceSmartScenario(resultCode, data, action.scenario, autoStart = autoRun)
 
     fun launchSmartWithCurrentProjection(action: ResolvedLocalePluginAction.LaunchSmart): Boolean {
         if (!externalLaunchRepository.isSmartScreenRecordActive()) return false

@@ -508,7 +508,8 @@
     <string name="item_external_action_details_error">El nombre de la acción externa no es válido</string>
     <string name="dialog_title_external_action">Acción externa</string>
     <string name="field_external_action_name_label">Nombre de la acción externa</string>
-    <string name="field_external_action_help">Usa este nombre en el disparador de acción externa de Klick\'r de tu aplicación de automatización.</string>
+    <string name="field_external_action_help">Envía una difusión recibida por aplicaciones de automatización como Tasker, Macrion o MacroDroid.</string>
+    <string name="button_documentation">Documentación</string>
     <string name="field_external_action_selection_title_empty">Ninguna acción externa seleccionada</string>
     <string name="field_external_action_selection_desc_empty">Pulsa aquí para reutilizar el nombre de una acción externa</string>
     <string name="field_external_action_selection_desc">Nombre reutilizable del disparador de automatización</string>
@@ -520,4 +521,6 @@
     <string name="dialog_stop_confirmation_title">¿Detener Macrion?</string>
     <string name="dialog_stop_confirmation_message">Se detendrá el escenario actual.</string>
     <string name="dialog_stop_confirmation_stop">Detener</string>
+    <string name="action_move_event_up">Mover evento arriba</string>
+    <string name="action_move_event_down">Mover evento abajo</string>
 </resources>

@@ -43,4 +43,6 @@
     <string name="content_desc_stop_clicker">Macrion を停止します</string>
     <string name="content_desc_confirm">確定</string>
     <string name="content_desc_go_back">前のダイアログに戻ります</string>
+    <string name="content_desc_tuck_toolbar">ツールバーを画面端に収納</string>
+    <string name="content_desc_expand_toolbar">ツールバーを展開</string>
 </resources>

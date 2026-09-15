@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (C) 2024 Kevin Buzeau
  *
  * This program is free software: you can redistribute it and/or modify
@@ -17,13 +17,15 @@
 package io.github.vibhor1102.macrion.feature.tutorial.ui.dialogs
 
 import android.content.Context
-import androidx.appcompat.app.AlertDialog
+import android.view.WindowManager
+import androidx.activity.ComponentDialog
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -31,10 +33,12 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -43,7 +47,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import androidx.compose.ui.window.Dialog
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.TutorialRepository
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.Tip
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionDialogSurface
@@ -52,35 +56,78 @@ import io.github.vibhor1102.macrion.core.ui.utils.getDynamicColorsContext
 import io.github.vibhor1102.macrion.feature.tutorial.R
 import io.github.vibhor1102.macrion.core.ui.R as UiR
 
+@Composable
+fun StopWithVolumeDownTipDialog(
+    tutorialRepository: TutorialRepository,
+    onDismiss: () -> Unit,
+) {
+    var dontShowAgain by remember { mutableStateOf(false) }
+    Dialog(
+        onDismissRequest = {
+            if (dontShowAgain) tutorialRepository.dontShowTipAgain(Tip.STOP_WITH_VOLUME_DOWN)
+            onDismiss()
+        },
+    ) {
+        Surface(
+            shape = MaterialTheme.shapes.extraLarge,
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            tonalElevation = 6.dp,
+        ) {
+            MacrionDialogSurface {
+                StopWithVolumeDownTipContent(
+                    dontShowAgain = dontShowAgain,
+                    onDontShowAgainChanged = { dontShowAgain = it },
+                    onDismiss = {
+                        if (dontShowAgain) tutorialRepository.dontShowTipAgain(Tip.STOP_WITH_VOLUME_DOWN)
+                        onDismiss()
+                    },
+                )
+            }
+        }
+    }
+}
+
 
 internal fun Context.createStopWithVolumeDownTutorialDialog(
     tutorialRepository: TutorialRepository,
     onDismissed: (() -> Unit)?,
-): AlertDialog {
+): android.app.Dialog {
     val dialogContext = getDynamicColorsContext(R.style.AppTheme)
     var dontShowAgain by mutableStateOf(false)
-    lateinit var dialog: AlertDialog
+    lateinit var dialog: ComponentDialog
     val content = ComposeView(dialogContext).apply {
         setContent {
             MacrionTheme {
-                MacrionDialogSurface {
-                    StopWithVolumeDownTipContent(
-                        dontShowAgain = dontShowAgain,
-                        onDontShowAgainChanged = { dontShowAgain = it },
-                        onDismiss = { dialog.dismiss() },
-                    )
+                Surface(
+                    shape = MaterialTheme.shapes.extraLarge,
+                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    tonalElevation = 6.dp,
+                    modifier = Modifier.widthIn(min = 280.dp, max = 560.dp),
+                ) {
+                    MacrionDialogSurface {
+                        StopWithVolumeDownTipContent(
+                            dontShowAgain = dontShowAgain,
+                            onDontShowAgainChanged = { dontShowAgain = it },
+                            onDismiss = { dialog.dismiss() },
+                        )
+                    }
                 }
             }
         }
     }
 
-    dialog = MaterialAlertDialogBuilder(dialogContext)
-        .setView(content)
-        .setOnDismissListener {
+    dialog = ComponentDialog(dialogContext).apply {
+        setContentView(content)
+        window?.apply {
+            setBackgroundDrawableResource(android.R.color.transparent)
+            setDimAmount(0.6f)
+            addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
+        }
+        setOnDismissListener {
             if (dontShowAgain) tutorialRepository.dontShowTipAgain(Tip.STOP_WITH_VOLUME_DOWN)
             onDismissed?.invoke()
         }
-        .create()
+    }
     return dialog
 }
 

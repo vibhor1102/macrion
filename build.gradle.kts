@@ -23,7 +23,6 @@ plugins {
     alias(libs.plugins.googleProtobufGradle) apply false
     alias(libs.plugins.jetbrainsKotlinSerialization) apply false
     alias(libs.plugins.jetbrainsKotlinCompose) apply false
-    alias(libs.plugins.androidxNavigationSafeArgs) apply false
     alias(libs.plugins.androidxRoom) apply false
 
 }

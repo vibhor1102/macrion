@@ -17,11 +17,8 @@
 package io.github.vibhor1102.macrion.feature.smart.config.ui.condition.trigger
 
 import android.content.Context
-import android.view.View
 import androidx.lifecycle.ViewModel
 
-import io.github.vibhor1102.macrion.core.common.tutorial.domain.MonitoredViewsManager
-import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredViewType
 import io.github.vibhor1102.macrion.core.domain.model.condition.Condition
 import io.github.vibhor1102.macrion.core.domain.model.condition.TriggerCondition
 import io.github.vibhor1102.macrion.feature.smart.config.domain.EditionRepository
@@ -32,7 +29,7 @@ import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.trigger.se
 import dagger.hilt.android.qualifiers.ApplicationContext
 
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 
@@ -40,12 +37,11 @@ class TriggerConditionListViewModel @Inject constructor(
     @ApplicationContext context: Context,
     isTriggerConditionCopyAvailableUseCase: IsTriggerConditionCopyAvailableUseCase,
     private val editionRepository: EditionRepository,
-    private val monitoredViewsManager: MonitoredViewsManager,
 ) : ViewModel() {
 
-    val configuredTriggerConditions: Flow<List<UiTriggerCondition>> =
+    val configuredTriggerConditions: Flow<List<UiTriggerCondition>?> =
         editionRepository.editionState.editedEventTriggerConditionsState
-            .mapNotNull { triggerConditionsState ->
+            .map { triggerConditionsState ->
                 triggerConditionsState.value?.map { triggerCondition ->
                     triggerCondition.toUiTriggerCondition(context, inError = !triggerCondition.isComplete())
                 }
@@ -82,24 +78,4 @@ class TriggerConditionListViewModel @Inject constructor(
 
     /** Drop all changes made to the currently edited event. */
     fun dismissEditedCondition() = editionRepository.stopConditionEdition()
-
-    fun monitorViews(createConditionButton: View, closeButton: View) {
-        monitoredViewsManager.attach(MonitoredViewType.TRIGGER_CONDITION_LIST_DIALOG_BUTTON_CREATE, createConditionButton)
-        monitoredViewsManager.attach(MonitoredViewType.TRIGGER_CONDITION_LIST_DIALOG_BUTTON_CLOSE, closeButton)
-    }
-
-    fun stopViewMonitoring() {
-        monitoredViewsManager.detach(MonitoredViewType.TRIGGER_CONDITION_LIST_DIALOG_BUTTON_CREATE)
-        monitoredViewsManager.detach(MonitoredViewType.TRIGGER_CONDITION_LIST_DIALOG_BUTTON_CLOSE)
-    }
-
-    fun monitorCreateButton(view: View?) {
-        if (view != null) monitoredViewsManager.attach(MonitoredViewType.TRIGGER_CONDITION_LIST_DIALOG_BUTTON_CREATE, view)
-        else monitoredViewsManager.detach(MonitoredViewType.TRIGGER_CONDITION_LIST_DIALOG_BUTTON_CREATE)
-    }
-
-    fun monitorCloseButton(view: View?) {
-        if (view != null) monitoredViewsManager.attach(MonitoredViewType.TRIGGER_CONDITION_LIST_DIALOG_BUTTON_CLOSE, view)
-        else monitoredViewsManager.detach(MonitoredViewType.TRIGGER_CONDITION_LIST_DIALOG_BUTTON_CLOSE)
-    }
 }

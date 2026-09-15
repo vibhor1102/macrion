@@ -19,7 +19,6 @@ package io.github.vibhor1102.macrion.feature.smart.config.ui.action.brief
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.view.View
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import androidx.core.graphics.toPoint
@@ -39,11 +38,8 @@ import io.github.vibhor1102.macrion.core.domain.model.event.Event
 import io.github.vibhor1102.macrion.core.processing.domain.SmartProcessingRepository
 import io.github.vibhor1102.macrion.core.processing.domain.model.DetectionState
 import io.github.vibhor1102.macrion.core.settings.domain.SettingsRepository
-import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredViewType
-import io.github.vibhor1102.macrion.core.common.tutorial.domain.MonitoredViewsManager
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.TutorialRepository
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.state.TutorialState
-import io.github.vibhor1102.macrion.core.common.tutorial.impl.monitoring.ViewPositioningType
 import io.github.vibhor1102.macrion.core.ui.utils.createColorIndicatorDrawable
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.ItemBriefDescription
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.ClickDescription
@@ -84,7 +80,6 @@ class SmartActionsBriefViewModel @Inject constructor(
     private val bitmapRepository: BitmapRepository,
     private val editionRepository: EditionRepository,
     private val smartProcessingRepository: SmartProcessingRepository,
-    private val monitoredViewsManager: MonitoredViewsManager,
     tutorialRepository: TutorialRepository,
     settingsRepository: SettingsRepository,
 ) : ViewModel(), ActionConfigurator {
@@ -254,33 +249,6 @@ class SmartActionsBriefViewModel @Inject constructor(
         editionRepository.apply {
             startActionEdition(actions[index])
             deleteEditedAction()
-        }
-    }
-
-    fun monitorBriefFirstItemView(briefItemView: View) {
-        monitoredViewsManager.attach(
-            MonitoredViewType.ACTIONS_BRIEF_FIRST_ITEM,
-            briefItemView,
-            ViewPositioningType.SCREEN,
-        )
-    }
-
-    fun monitorViews(createMenuButton: View, saveMenuButton: View) {
-        monitoredViewsManager.apply {
-            attach(MonitoredViewType.ACTIONS_BRIEF_MENU_BUTTON_CREATE_ACTION, createMenuButton, ViewPositioningType.SCREEN)
-            attach(MonitoredViewType.ACTIONS_BRIEF_MENU_BUTTON_SAVE, saveMenuButton, ViewPositioningType.SCREEN)
-        }
-    }
-
-    fun stopBriefFirstItemMonitoring() {
-        monitoredViewsManager.detach(MonitoredViewType.ACTIONS_BRIEF_FIRST_ITEM)
-    }
-
-    fun stopAllViewMonitoring() {
-        monitoredViewsManager.apply {
-            detach(MonitoredViewType.ACTIONS_BRIEF_FIRST_ITEM)
-            detach(MonitoredViewType.ACTIONS_BRIEF_MENU_BUTTON_CREATE_ACTION)
-            detach(MonitoredViewType.ACTIONS_BRIEF_MENU_BUTTON_SAVE)
         }
     }
 

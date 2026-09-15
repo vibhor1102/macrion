@@ -174,9 +174,9 @@
     <string name="button_export">تصدير</string>
 
     <string name="dialog_title_locale_plugin_background_launch">تم حظر التشغيل في الخلفية</string>
-    <string name="message_locale_plugin_background_launch">تعذر على Klick\'r فتح نافذة تسجيل الشاشة تلقائيًا.\n\nلإكمال تشغيل السيناريو، أظهر إشعارًا بدلًا من ذلك.\n\nتفرض بعض هواتف Android قيودًا أكبر على التطبيقات في الخلفية. راجع هذا الدليل لتحسين استقرار الأذونات.</string>
+    <string name="message_locale_plugin_background_launch">تعذر على Macrion فتح نافذة تسجيل الشاشة تلقائيًا.\n\nلإكمال تشغيل السيناريو، أظهر إشعارًا بدلًا من ذلك.\n\nتفرض بعض هواتف Android قيودًا أكبر على التطبيقات في الخلفية. راجع هذا الدليل لتحسين استقرار الأذونات.</string>
     <string name="field_tutorial_title">البرنامج التعليمي</string>
-    <string name="field_tutorial_desc">تعرّف على كيفية استخدام Klick\'r</string>
+    <string name="field_tutorial_desc">تعرّف على كيفية استخدام Macrion</string>
     <string name="dialog_title_copy_scenario">نسخ السيناريو</string>
     <string name="content_desc_back">رجوع</string>
     <string name="crash_reports_title">تقارير الأعطال المحلية</string>
@@ -199,4 +199,41 @@
     <string name="crash_report_label">التقرير %1$s</string>
     <string name="field_stop_confirmation_title">تأكيد قبل الإيقاف</string>
     <string name="field_stop_confirmation_desc">اطلب التأكيد قبل إيقاف Macrion من شريط أدوات التراكب.</string>
+    <string name="settings_section_scenario_list">قائمة السيناريوهات</string>
+    <string name="settings_section_overlay">عناصر التحكم في التراكب</string>
+    <string name="settings_section_compatibility">التوافق</string>
+    <string name="settings_section_device_compatibility">توافق الجهاز</string>
+    <string name="settings_section_account">الحساب والخصوصية</string>
+    <string name="settings_section_help">المساعدة والتشخيص</string>
+    <string name="version_copied_to_clipboard">تم نسخ الإصدار إلى الحافظة</string>
+    <string name="settings_section_about">حول</string>
+    <string name="settings_version_title">الإصدار</string>
+    <string name="settings_install_source_title">مصدر التثبيت</string>
+    <string name="install_source_unknown">غير معروف</string>
+    <string name="settings_toolbar_size_title">حجم شريط الأدوات</string>
+    <string name="settings_toolbar_size_dialog_description">ضبط حجم شريط الأدوات العائم ولوحة التصحيح.</string>
+
+    <string name="settings_section_advanced">خيارات متقدمة</string>
+    <string name="settings_enable_advanced_title">تفعيل الإعدادات المتقدمة</string>
+    <string name="settings_enable_advanced_desc">إظهار الإعدادات التجريبية والمتقدمة.</string>
+    <string name="settings_advanced_dialog_title">تفعيل الإعدادات المتقدمة؟</string>
+    <string name="settings_advanced_dialog_message">قد تؤدي هذه الإعدادات إلى نتائج غير متوقعة. يرجى التأكد من فهم كل إعداد قبل تفعيله.</string>
+    <string name="settings_advanced_dialog_confirm">تفعيل</string>
+    <string name="settings_max_difference_title">الحد الأقصى للفرق المسموح به</string>
+    <string name="settings_max_difference_desc">السماح للشروط بالتطابق مع فرق أعلى.</string>
+    <string name="settings_max_difference_dialog_title">الحد الأقصى للفرق المسموح به</string>
+    <string name="settings_max_difference_item_default">%1$d%% (افتراضي)</string>
+    <string name="settings_max_difference_item">%1$d%%</string>
+    <string name="settings_toolbar_auto_hide_title">إخفاء شريط الأدوات تلقائيًا</string>
+    <string name="settings_toolbar_auto_hide_desc">طي شريط الأدوات عند حافة الشاشة عند عدم النشاط.</string>
+    <string name="settings_toolbar_auto_hide_delay_title">مهلة الإخفاء التلقائي</string>
+    <string name="settings_toolbar_auto_hide_delay_dialog_title">مهلة الإخفاء التلقائي</string>
+    <string name="settings_toolbar_auto_hide_delay_seconds">%1$d ثوانٍ</string>
+    <string name="settings_toolbar_auto_hide_delay_seconds_default">%1$d ثوانٍ (افتراضي)</string>
+    <string name="settings_toolbar_auto_hide_delay_1_minute">دقيقة واحدة</string>
+    <string name="settings_toolbar_auto_hide_delay_minutes">%1$d دقائق</string>
+    <string name="settings_toolbar_auto_hide_delay_minutes_default">%1$d دقائق (افتراضي)</string>
+    <string name="content_desc_tuck_toolbar">طي شريط الأدوات إلى حافة الشاشة</string>
+    <string name="content_desc_expand_toolbar">توسيع شريط الأدوات</string>
+    <string name="toast_advanced_settings_restored_defaults">تمت استعادة الإعدادات المتقدمة إلى القيم الافتراضية.</string>
 </resources>

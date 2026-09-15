@@ -163,6 +163,8 @@ internal class SmartProcessingRepositoryImpl @Inject constructor(
         detectorEngine.state.value == DetectorState.RECORDING ||
             detectorEngine.state.value == DetectorState.DETECTING
 
+    override fun isFullyStopped(): Boolean = detectorEngine.state.value == DetectorState.CREATED
+
     override fun startScreenRecord(resultCode: Int, data: Intent) {
         detectorEngine.startScreenRecord(resultCode, data) {
             coroutineScopeMain.launch { projectionErrorHandler?.invoke() }

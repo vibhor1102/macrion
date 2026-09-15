@@ -484,7 +484,8 @@
     <string name="item_external_action_details_error">外部操作名称无效</string>
     <string name="dialog_title_external_action">外部操作</string>
     <string name="field_external_action_name_label">外部操作名称</string>
-    <string name="field_external_action_help">在自动化应用的 Klick\'r 外部操作触发器中使用此名称。</string>
+    <string name="field_external_action_help">向 Tasker、Macrion 或 MacroDroid 等自动化应用发送广播。</string>
+    <string name="button_documentation">文档</string>
     <string name="field_external_action_selection_title_empty">未选择外部操作</string>
     <string name="field_external_action_selection_desc_empty">点按此处以复用外部操作名称</string>
     <string name="field_external_action_selection_desc">可复用的自动化触发器名称</string>
@@ -496,4 +497,6 @@
     <string name="dialog_stop_confirmation_title">停止 Macrion？</string>
     <string name="dialog_stop_confirmation_message">当前方案将停止。</string>
     <string name="dialog_stop_confirmation_stop">停止</string>
+    <string name="action_move_event_up">上移事件</string>
+    <string name="action_move_event_down">下移事件</string>
 </resources>

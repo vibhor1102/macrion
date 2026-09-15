@@ -10,7 +10,6 @@ import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.core.graphics.toPoint
 import androidx.core.graphics.toPointF
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.google.android.material.bottomsheet.BottomSheetDialog
 import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayDialog
 import io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.PositionSelectorMenu
@@ -40,9 +39,7 @@ class DumbSwipeDialog(
         }
     }
 
-    override fun onDialogCreated(dialog: BottomSheetDialog) = Unit
-
-    @Composable private fun Content() {
+@Composable private fun Content() {
         val initialName by viewModel.name.collectAsStateWithLifecycle(initialValue = null)
         val initialDuration by viewModel.swipeDuration.collectAsStateWithLifecycle(initialValue = null)
         val initialCount by viewModel.repeatCount.collectAsStateWithLifecycle(initialValue = null)

@@ -23,9 +23,8 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.FrameLayout
 import android.widget.Toast
+import androidx.activity.ComponentActivity
 import androidx.activity.viewModels
-import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.app.AppCompatActivity
 
 import io.github.vibhor1102.macrion.core.common.overlays.manager.OverlayManager
 import io.github.vibhor1102.macrion.core.display.recorder.MediaProjectionRequest
@@ -36,7 +35,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class RestartMediaProjectionActivity : AppCompatActivity() {
+class RestartMediaProjectionActivity : ComponentActivity() {
 
     companion object {
 
@@ -51,8 +50,6 @@ class RestartMediaProjectionActivity : AppCompatActivity() {
 
     /** The result launcher for the projection permission dialog. */
     private val mediaProjectionRequest: MediaProjectionRequest = MediaProjectionRequest()
-
-    private var dialog: AlertDialog? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -69,9 +66,6 @@ class RestartMediaProjectionActivity : AppCompatActivity() {
     }
 
     private fun finishActivity() {
-        dialog?.dismiss()
-        dialog = null
-
         overlayManager.navigateUp(this)
         finish()
     }

@@ -21,7 +21,6 @@ import android.graphics.Bitmap
 import android.graphics.Point
 import android.graphics.PointF
 import android.graphics.Rect
-import android.view.View
 import androidx.annotation.ColorInt
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -38,11 +37,8 @@ import io.github.vibhor1102.macrion.core.domain.model.WHOLE_SCREEN
 import io.github.vibhor1102.macrion.core.domain.model.condition.Condition
 import io.github.vibhor1102.macrion.core.domain.model.condition.ScreenCondition
 import io.github.vibhor1102.macrion.core.domain.model.scenario.Scenario
-import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredViewType
-import io.github.vibhor1102.macrion.core.common.tutorial.domain.MonitoredViewsManager
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.TutorialRepository
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.state.TutorialState
-import io.github.vibhor1102.macrion.core.common.tutorial.impl.monitoring.ViewPositioningType
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.ItemBriefDescription
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.ColorConditionDescription
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.ImageConditionBriefRenderingType
@@ -52,6 +48,7 @@ import io.github.vibhor1102.macrion.feature.smart.config.domain.EditionRepositor
 import io.github.vibhor1102.macrion.feature.smart.config.domain.model.EditedListState
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.formatters.toEffectDescription
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.formatters.toNaturalDisplayString
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.condition.UiScreenCondition
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.condition.toUiScreenCondition
 
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -80,7 +77,6 @@ class ScreenConditionsBriefViewModel @Inject constructor(
     tutorialRepository: TutorialRepository,
     bitmapRepository: BitmapRepository,
     private val editionRepository: EditionRepository,
-    private val monitoredViewsManager: MonitoredViewsManager,
 ) : ViewModel() {
 
     private val editedConditions: Flow<EditedListState<ScreenCondition>> =
@@ -177,6 +173,9 @@ class ScreenConditionsBriefViewModel @Inject constructor(
         editionRepository.updateScreenConditionsOrder(imageConditions)
     }
 
+    fun updateConditionsOrder(conditionsBrief: List<ItemBrief>) =
+        editionRepository.updateScreenConditionsOrder(conditionsBrief.map { brief -> (brief.data as UiScreenCondition).condition })
+
     fun createColorCondition(context: Context, position: PointF, @ColorInt color: Int, completed: (ScreenCondition.Color) -> Unit) {
          viewModelScope.launch(Dispatchers.IO) {
              val condition = editionRepository.editedItemsBuilder.createNewColorCondition(
@@ -202,33 +201,6 @@ class ScreenConditionsBriefViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             val condition = editionRepository.editedItemsBuilder.createNewNumberCondition(context)
             withContext(Dispatchers.Main) { completed(condition) }
-        }
-    }
-
-    fun monitorBriefFirstItemView(briefItemView: View) {
-        monitoredViewsManager.attach(
-            MonitoredViewType.CONDITIONS_BRIEF_FIRST_ITEM,
-            briefItemView,
-            ViewPositioningType.SCREEN,
-        )
-    }
-
-    fun monitorViews(createMenuButton: View, saveMenuButton: View) {
-        monitoredViewsManager.apply {
-            attach(MonitoredViewType.CONDITIONS_BRIEF_MENU_BUTTON_CREATE, createMenuButton, ViewPositioningType.SCREEN)
-            attach(MonitoredViewType.CONDITIONS_BRIEF_MENU_BUTTON_SAVE, saveMenuButton, ViewPositioningType.SCREEN)
-        }
-    }
-
-    fun stopBriefFirstItemMonitoring() {
-        monitoredViewsManager.detach(MonitoredViewType.CONDITIONS_BRIEF_FIRST_ITEM)
-    }
-
-    fun stopAllViewMonitoring() {
-        monitoredViewsManager.apply {
-            detach(MonitoredViewType.CONDITIONS_BRIEF_FIRST_ITEM)
-            detach(MonitoredViewType.CONDITIONS_BRIEF_MENU_BUTTON_CREATE)
-            detach(MonitoredViewType.CONDITIONS_BRIEF_MENU_BUTTON_SAVE)
         }
     }
 }

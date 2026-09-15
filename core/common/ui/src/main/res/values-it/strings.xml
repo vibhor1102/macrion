@@ -115,4 +115,6 @@
     <string name="content_desc_confirm">Conferma</string>
     <string name="content_desc_go_back">Torna al dialogo</string>
 
+    <string name="content_desc_tuck_toolbar">Riduci la barra degli strumenti al bordo dello schermo</string>
+    <string name="content_desc_expand_toolbar">Espandi la barra degli strumenti</string>
 </resources>

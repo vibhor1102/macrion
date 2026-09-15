@@ -3,4 +3,9 @@
     <string name="dialog_move_to_title">移動先</string>
     <string name="dialog_move_to_position_label">インデックス</string>
     <string name="overlay_instructions_gesture_record">ジェスチャを記録しています…</string>
+    <string name="dialog_jump_to_title">移動</string>
+    <string name="dialog_reorder_empty">項目がありません</string>
+    <string name="dialog_reorder_discard_title">変更を破棄しますか？</string>
+    <string name="dialog_reorder_discard_message">保存されていない変更があります。破棄してもよろしいですか？</string>
+    <string name="dialog_reorder_discard_confirm">破棄</string>
 </resources>

@@ -17,14 +17,11 @@
 package io.github.vibhor1102.macrion.feature.smart.config.ui.action.toggleevent
 
 import android.content.Context
-import android.view.View
 import androidx.annotation.StringRes
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 
-import io.github.vibhor1102.macrion.core.common.tutorial.domain.MonitoredViewsManager
-import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredViewType
 import io.github.vibhor1102.macrion.core.domain.model.action.ToggleEvent
 import io.github.vibhor1102.macrion.core.domain.model.action.toggleevent.EventToggle
 import io.github.vibhor1102.macrion.core.domain.model.event.Event
@@ -50,7 +47,6 @@ import javax.inject.Inject
 class ToggleEventViewModel @Inject constructor(
     @ApplicationContext context: Context,
     private val editionRepository: EditionRepository,
-    private val monitoredViewsManager: MonitoredViewsManager,
 ) : ViewModel() {
 
     /** The action being configured by the user. */
@@ -159,10 +155,6 @@ class ToggleEventViewModel @Inject constructor(
         }
     }
 
-    fun monitorSelectTogglesView(view: View?) {
-        if (view == null) monitoredViewsManager.detach(MonitoredViewType.TOGGLE_EVENT_DIALOG_SELECT_TOGGLES)
-        else monitoredViewsManager.attach(MonitoredViewType.TOGGLE_EVENT_DIALOG_SELECT_TOGGLES, view)
-    }
 
     fun setNewEventToggles(toggles: List<EventToggle>) {
         editionRepository.editionState.getEditedAction<ToggleEvent>()?.let { toggleEvent ->

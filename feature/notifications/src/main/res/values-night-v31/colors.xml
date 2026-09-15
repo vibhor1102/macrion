@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="notification_text_color">@android:color/system_neutral1_100</color>
+    <color name="notification_text_secondary_color">@android:color/system_neutral2_200</color>
+    <color name="notification_icon_color">@android:color/system_neutral1_100</color>
+    <color name="notification_icon_color_filled">@android:color/system_accent1_800</color>
+    <color name="notification_icon_color_secondary">@android:color/system_neutral1_900</color>
+    <color name="notification_button_background_filled">@android:color/system_accent1_200</color>
+    <color name="notification_button_background_outlined">@android:color/system_neutral1_900</color>
+</resources>

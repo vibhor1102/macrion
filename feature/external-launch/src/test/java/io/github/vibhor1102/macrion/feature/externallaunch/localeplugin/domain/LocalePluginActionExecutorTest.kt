@@ -76,7 +76,18 @@ class LocalePluginActionExecutorTest {
         val projectionData = mockk<Intent>()
         executor.launchSmart(RESULT_OK, projectionData, action)
         verify(exactly = 1) {
-            externalLaunchRepository.replaceSmartScenario(RESULT_OK, projectionData, scenario)
+            externalLaunchRepository.replaceSmartScenario(RESULT_OK, projectionData, scenario, autoStart = false)
+        }
+    }
+
+    @Test
+    fun `smart launch forwards autoRun to repository`() = runTest {
+        val scenario = mockk<Scenario>()
+        val action = ResolvedLocalePluginAction.LaunchSmart(scenario)
+        val projectionData = mockk<Intent>()
+        executor.launchSmart(RESULT_OK, projectionData, action, autoRun = true)
+        verify(exactly = 1) {
+            externalLaunchRepository.replaceSmartScenario(RESULT_OK, projectionData, scenario, autoStart = true)
         }
     }
 

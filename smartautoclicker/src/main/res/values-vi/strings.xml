@@ -87,7 +87,7 @@
 
     <string name="dialog_title_copy_scenario">Sao chép kịch bản</string>
     <string name="dialog_title_locale_plugin_background_launch">Khởi chạy nền bị chặn</string>
-    <string name="message_locale_plugin_background_launch">Klick\'r không thể tự động mở lời nhắc chụp màn hình.\n\nĐể hoàn tất khởi chạy kịch bản, một thông báo đã được hiển thị thay thế.\n\nMột số điện thoại Android hạn chế ứng dụng nền nhiều hơn Android tiêu chuẩn. Hãy xem hướng dẫn này để cải thiện độ ổn định của quyền.</string>
+    <string name="message_locale_plugin_background_launch">Macrion không thể tự động mở lời nhắc chụp màn hình.\n\nĐể hoàn tất khởi chạy kịch bản, một thông báo đã được hiển thị thay thế.\n\nMột số điện thoại Android hạn chế ứng dụng nền nhiều hơn Android tiêu chuẩn. Hãy xem hướng dẫn này để cải thiện độ ổn định của quyền.</string>
     <string name="content_desc_back">Quay lại</string>
     <string name="field_scenario_switcher_title">Hiển thị bộ chuyển kịch bản</string>
     <string name="field_scenario_switcher_desc">Hiển thị bộ chuyển kịch bản trên thanh công cụ nổi để chuyển nhanh.</string>
@@ -96,7 +96,7 @@
     <string name="field_stop_confirmation_title">Xác nhận trước khi dừng</string>
     <string name="field_stop_confirmation_desc">Hỏi trước khi dừng Macrion từ thanh công cụ lớp phủ.</string>
     <string name="field_tutorial_title">Hướng dẫn</string>
-    <string name="field_tutorial_desc">Tìm hiểu cách dùng Klick\'r</string>
+    <string name="field_tutorial_desc">Tìm hiểu cách dùng Macrion</string>
     <string name="crash_reports_title">Báo cáo sự cố cục bộ</string>
     <string name="crash_report_prompt_title">Ôi không, Macrion đã gặp sự cố</string>
     <string name="crash_report_prompt_message">Macrion đã gặp vấn đề và phải đóng. Gửi báo cáo sự cố có thể giúp Vibhor tìm và khắc phục nguyên nhân, và anh ấy sẽ xem xét sớm nhất có thể.\n\nBáo cáo chứa thông tin kỹ thuật về sự cố và thiết bị, đồng thời được kiểm tra để giảm thông tin cá nhân. Không có gì được gửi trừ khi bạn chọn Gửi báo cáo.</string>
@@ -116,4 +116,41 @@
     <string name="crash_reports_sample">Tạo báo cáo mô phỏng (chỉ gỡ lỗi)</string>
     <string name="crash_report_label">Báo cáo %1$s</string>
 
+    <string name="settings_section_scenario_list">Danh sách kịch bản</string>
+    <string name="settings_section_overlay">Điều khiển lớp phủ</string>
+    <string name="settings_section_compatibility">Tương thích</string>
+    <string name="settings_section_device_compatibility">Tương thích thiết bị</string>
+    <string name="settings_section_account">Tài khoản và quyền riêng tư</string>
+    <string name="settings_section_help">Trợ giúp và chẩn đoán</string>
+    <string name="version_copied_to_clipboard">Đã sao chép phiên bản vào khay nhớ tạm</string>
+    <string name="settings_section_about">Giới thiệu</string>
+    <string name="settings_version_title">Phiên bản</string>
+    <string name="settings_install_source_title">Nguồn cài đặt</string>
+    <string name="install_source_unknown">Không xác định</string>
+    <string name="settings_toolbar_size_title">Kích thước thanh công cụ</string>
+    <string name="settings_toolbar_size_dialog_description">Điều chỉnh kích thước thanh công cụ nổi và bảng gỡ lỗi.</string>
+
+    <string name="settings_section_advanced">Nâng cao</string>
+    <string name="settings_enable_advanced_title">Bật cài đặt nâng cao</string>
+    <string name="settings_enable_advanced_desc">Hiển thị cài đặt thử nghiệm và nâng cao.</string>
+    <string name="settings_advanced_dialog_title">Bật cài đặt nâng cao?</string>
+    <string name="settings_advanced_dialog_message">Các cài đặt này có thể dẫn đến hậu quả không lường trước. Hãy đảm bảo bạn hiểu rõ từng cài đặt trước khi bật.</string>
+    <string name="settings_advanced_dialog_confirm">Bật</string>
+    <string name="settings_max_difference_title">Chênh lệch tối đa cho phép</string>
+    <string name="settings_max_difference_desc">Cho phép điều kiện khớp với độ chênh lệch cao hơn.</string>
+    <string name="settings_max_difference_dialog_title">Chênh lệch tối đa cho phép</string>
+    <string name="settings_max_difference_item_default">%1$d%% (Mặc định)</string>
+    <string name="settings_max_difference_item">%1$d%%</string>
+    <string name="settings_toolbar_auto_hide_title">Tự động ẩn thanh công cụ</string>
+    <string name="settings_toolbar_auto_hide_desc">Thu gọn thanh công cụ vào cạnh màn hình khi không hoạt động.</string>
+    <string name="settings_toolbar_auto_hide_delay_title">Thời gian chờ tự động ẩn</string>
+    <string name="settings_toolbar_auto_hide_delay_dialog_title">Thời gian chờ tự động ẩn</string>
+    <string name="settings_toolbar_auto_hide_delay_seconds">%1$d giây</string>
+    <string name="settings_toolbar_auto_hide_delay_seconds_default">%1$d giây (Mặc định)</string>
+    <string name="settings_toolbar_auto_hide_delay_1_minute">1 phút</string>
+    <string name="settings_toolbar_auto_hide_delay_minutes">%1$d phút</string>
+    <string name="settings_toolbar_auto_hide_delay_minutes_default">%1$d phút (Mặc định)</string>
+    <string name="content_desc_tuck_toolbar">Thu gọn thanh công cụ vào cạnh màn hình</string>
+    <string name="content_desc_expand_toolbar">Mở rộng thanh công cụ</string>
+    <string name="toast_advanced_settings_restored_defaults">Cài đặt nâng cao đã được khôi phục về giá trị mặc định.</string>
 </resources>

@@ -48,12 +48,18 @@ import kotlin.math.max
 
 @HiltViewModel
 class ScenarioCreationViewModel @Inject constructor(
-    @ApplicationContext context: Context,
+    @ApplicationContext private val context: Context,
     revenueRepository: IRevenueRepository,
     private val smartRepository: IRepository,
     private val dumbRepository: IDumbRepository,
     private val displayConfigManager: DisplayConfigManager,
 ) : ViewModel() {
+
+    fun reset() {
+        _name.value = context.getString(R.string.default_scenario_name)
+        _selectedType.value = ScenarioTypeSelection.SMART
+        _creationState.value = CreationState.CONFIGURING
+    }
 
     private val _name: MutableStateFlow<String?> =
         MutableStateFlow(context.getString(R.string.default_scenario_name))

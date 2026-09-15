@@ -112,9 +112,9 @@
     <string name="button_export">エクスポート</string>
 
     <string name="dialog_title_locale_plugin_background_launch">バックグラウンド起動がブロックされました</string>
-    <string name="message_locale_plugin_background_launch">Klick\'r は画面キャプチャの確認画面を自動で開けませんでした。\n\nシナリオの起動を完了するため、代わりに通知を表示しました。\n\n一部の Android 端末では、バックグラウンドアプリにより厳しい制限があります。このガイドを確認して権限の安定性を改善してください。</string>
+    <string name="message_locale_plugin_background_launch">Macrion は画面キャプチャの確認画面を自動で開けませんでした。\n\nシナリオの起動を完了するため、代わりに通知を表示しました。\n\n一部の Android 端末では、バックグラウンドアプリにより厳しい制限があります。このガイドを確認して権限の安定性を改善してください。</string>
     <string name="field_tutorial_title">チュートリアル</string>
-    <string name="field_tutorial_desc">Klick\'r の使い方を確認します</string>
+    <string name="field_tutorial_desc">Macrion の使い方を確認します</string>
     <string name="dialog_title_copy_scenario">シナリオをコピー</string>
     <string name="content_desc_back">戻る</string>
     <string name="crash_reports_title">ローカルのクラッシュレポート</string>
@@ -137,4 +137,41 @@
     <string name="crash_report_label">レポート %1$s</string>
     <string name="field_stop_confirmation_title">停止前に確認</string>
     <string name="field_stop_confirmation_desc">オーバーレイツールバーから Macrion を停止する前に確認します。</string>
+    <string name="settings_section_scenario_list">シナリオ一覧</string>
+    <string name="settings_section_overlay">オーバーレイ操作</string>
+    <string name="settings_section_compatibility">互換性</string>
+    <string name="settings_section_device_compatibility">端末の互換性</string>
+    <string name="settings_section_account">アカウントとプライバシー</string>
+    <string name="settings_section_help">ヘルプと診断</string>
+    <string name="version_copied_to_clipboard">バージョンをクリップボードにコピーしました</string>
+    <string name="settings_section_about">アプリについて</string>
+    <string name="settings_version_title">バージョン</string>
+    <string name="settings_install_source_title">インストール元</string>
+    <string name="install_source_unknown">不明</string>
+    <string name="settings_toolbar_size_title">ツールバーのサイズ</string>
+    <string name="settings_toolbar_size_dialog_description">フローティングツールバーとデバッグパネルのサイズを調整します。</string>
+
+    <string name="settings_section_advanced">高度な設定</string>
+    <string name="settings_enable_advanced_title">高度な設定を有効にする</string>
+    <string name="settings_enable_advanced_desc">実験的およびパワーユーザー向けの設定を表示します。</string>
+    <string name="settings_advanced_dialog_title">高度な設定を有効にしますか？</string>
+    <string name="settings_advanced_dialog_message">これらの設定は予期しない結果をもたらす可能性があります。有効にする前に各設定を理解していることを確認してください。</string>
+    <string name="settings_advanced_dialog_confirm">有効にする</string>
+    <string name="settings_max_difference_title">許容する最大差異</string>
+    <string name="settings_max_difference_desc">条件の一致判定でより大きな差異を許可します。</string>
+    <string name="settings_max_difference_dialog_title">許容する最大差異</string>
+    <string name="settings_max_difference_item_default">%1$d%%（デフォルト）</string>
+    <string name="settings_max_difference_item">%1$d%%</string>
+    <string name="settings_toolbar_auto_hide_title">ツールバーの自動非表示</string>
+    <string name="settings_toolbar_auto_hide_desc">操作がないときにツールバーを画面の端に収納します。</string>
+    <string name="settings_toolbar_auto_hide_delay_title">自動非表示までの時間</string>
+    <string name="settings_toolbar_auto_hide_delay_dialog_title">自動非表示までの時間</string>
+    <string name="settings_toolbar_auto_hide_delay_seconds">%1$d秒</string>
+    <string name="settings_toolbar_auto_hide_delay_seconds_default">%1$d秒（デフォルト）</string>
+    <string name="settings_toolbar_auto_hide_delay_1_minute">1分</string>
+    <string name="settings_toolbar_auto_hide_delay_minutes">%1$d分</string>
+    <string name="settings_toolbar_auto_hide_delay_minutes_default">%1$d分（デフォルト）</string>
+    <string name="content_desc_tuck_toolbar">ツールバーを画面端に収納</string>
+    <string name="content_desc_expand_toolbar">ツールバーを展開</string>
+    <string name="toast_advanced_settings_restored_defaults">詳細設定がデフォルト値に復元されました。</string>
 </resources>

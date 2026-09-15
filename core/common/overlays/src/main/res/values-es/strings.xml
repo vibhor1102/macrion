@@ -20,4 +20,9 @@
     <string name="dialog_move_to_position_label">Índice</string>
     <string name="overlay_instructions_gesture_record">Gesto de grabación…</string>
 
+    <string name="dialog_jump_to_title">Saltar a</string>
+    <string name="dialog_reorder_empty">Sin elementos</string>
+    <string name="dialog_reorder_discard_title">¿Descartar cambios?</string>
+    <string name="dialog_reorder_discard_message">Tiene cambios sin guardar. ¿Está seguro de que desea descartarlos?</string>
+    <string name="dialog_reorder_discard_confirm">Descartar</string>
 </resources>

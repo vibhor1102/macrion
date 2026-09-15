@@ -17,8 +17,8 @@
  */
 package io.github.vibhor1102.macrion.feature.externallaunch.qstile.ui
 
+import android.content.Context
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 
@@ -44,7 +44,7 @@ import javax.inject.Inject
 class QSTileLauncherViewModel @Inject constructor(
     @param:Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
     private val qsTileRepository: ExternalLaunchRepository,
-    private val permissionController: PermissionsController,
+    val permissionController: PermissionsController,
     private val smartRepository: IRepository,
     private val dumbRepository: DumbRepository,
     private val settingsRepository: SettingsRepository,
@@ -52,7 +52,7 @@ class QSTileLauncherViewModel @Inject constructor(
 ) : ViewModel() {
 
 
-    fun startPermissionFlowIfNeeded(activity: AppCompatActivity, onAllGranted: () -> Unit, onMandatoryDenied: () -> Unit) {
+    fun startPermissionFlowIfNeeded(activity: Context, onAllGranted: () -> Unit, onMandatoryDenied: () -> Unit) {
         permissionController.startPermissionsUiFlow(
             activity = activity,
             permissions = listOf(

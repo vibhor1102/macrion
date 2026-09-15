@@ -122,10 +122,15 @@ class OverlayMenuPositionDataSource @Inject constructor(
     }
 
     fun lockPosition(position: Point) {
-        if (isPositionLocked()) return
+        if (lockedMenuPosition == position) return
 
-        notifyOnLockedPositionChanged(position)
-        lockedMenuPosition = position
+        if (!isPositionLocked()) {
+            notifyOnLockedPositionChanged(position)
+            lockedMenuPosition = position
+        } else {
+            lockedMenuPosition = position
+            notifyOnLockedPositionChanged(position)
+        }
     }
 
     fun unlockPosition() {

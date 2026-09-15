@@ -28,6 +28,7 @@ import io.github.vibhor1102.macrion.core.ui.bindings.dialogs.DialogNavigationBut
 import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.navbar.NavBarDialog
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.navbar.NavBarDialogContent
+import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.navbar.DialogNavigationItem
 import io.github.vibhor1102.macrion.feature.smart.config.R
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.dialogs.showCloseWithoutSavingDialog
@@ -36,11 +37,14 @@ import io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.imageevents
 import io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.more.MoreContent
 import io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.triggerevents.TriggerEventListContent
 
-import com.google.android.material.bottomsheet.BottomSheetDialog
-import com.google.android.material.navigation.NavigationBarView
+import android.app.Dialog
 
 import kotlinx.coroutines.launch
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredOverlayType
+import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredViewType
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.compose.tutorialAnchor
 
 class ScenarioDialog(
     private val onConfigSaved: () -> Unit,
@@ -59,12 +63,39 @@ class ScenarioDialog(
         return super.onCreateView().also {
             topBarBinding.setButtonVisibility(DialogNavigationButton.SAVE, View.VISIBLE)
             topBarBinding.setTitle(R.string.dialog_title_scenario_config)
+            topBarBinding.setButtonModifier(DialogNavigationButton.SAVE) {
+                Modifier.tutorialAnchor(
+                    MonitoredViewType.SCENARIO_DIALOG_BUTTON_SAVE,
+                    onClick = { topBarBinding.performButtonClick(DialogNavigationButton.SAVE) },
+                )
+            }
+            floatingActionButtons.primaryModifier = {
+                Modifier.tutorialAnchor(
+                    MonitoredViewType.SCENARIO_DIALOG_BUTTON_CREATE_EVENT,
+                    onClick = { floatingActionButtons.performPrimaryClick() },
+                )
+            }
         }
     }
 
-    override fun inflateMenu(navBarView: NavigationBarView) {
-        navBarView.inflateMenu(R.menu.menu_scenario_config)
+    @Composable
+    override fun navigationItemModifier(item: DialogNavigationItem): Modifier {
+        return if (item.id == R.id.page_trigger_events) {
+            Modifier.tutorialAnchor(
+                MonitoredViewType.SCENARIO_DIALOG_TRIGGER_EVENT_TAB,
+                onClick = { selectNavigationItem(item.id) },
+            )
+        } else {
+            Modifier
+        }
     }
+
+    override fun navigationItems(): List<DialogNavigationItem> = listOf(
+        DialogNavigationItem(R.id.page_image_events, R.drawable.ic_screen_event, R.string.menu_item_title_image_events),
+        DialogNavigationItem(R.id.page_trigger_events, R.drawable.ic_trigger_event, R.string.menu_item_title_trigger_events),
+        DialogNavigationItem(R.id.page_config, R.drawable.ic_settings, R.string.generic_config),
+        DialogNavigationItem(R.id.page_more, R.drawable.ic_more, R.string.menu_item_title_more),
+    )
 
     override fun onCreateContent(navItemId: Int): NavBarDialogContent = when (navItemId) {
         R.id.page_image_events -> ImageEventListContent(context.applicationContext)
@@ -74,7 +105,7 @@ class ScenarioDialog(
         else -> throw IllegalArgumentException("Unknown menu id $navItemId")
     }
 
-    override fun onDialogCreated(dialog: BottomSheetDialog) {
+    override fun onDialogCreated(dialog: Dialog) {
         super.onDialogCreated(dialog)
 
         lifecycleScope.launch {
@@ -88,20 +119,6 @@ class ScenarioDialog(
                 launch { viewModel.scenarioCanBeSaved.collect(::updateSaveButtonState) }
             }
         }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        viewModel.monitorViews(
-            createEventButton = floatingActionButtons.primary,
-            saveButton = topBarBinding.buttonSave,
-            triggerEventTab = navBarView.findViewById(R.id.page_trigger_events),
-        )
-    }
-
-    override fun onPause() {
-        super.onPause()
-        viewModel.stopViewMonitoring()
     }
 
     override fun onDialogButtonPressed(buttonType: DialogNavigationButton) {

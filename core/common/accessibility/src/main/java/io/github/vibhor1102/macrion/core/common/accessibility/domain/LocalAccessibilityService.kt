@@ -27,13 +27,14 @@ interface LocalAccessibilityService {
     fun isSmartScreenRecordActive(): Boolean
     fun getSmartScenarioId(): Long?
     fun getDumbScenarioId(): Long?
-    fun launchDumbScenario(dumbScenario: DumbScenario)
-    fun launchSmartScenario(resultCode: Int, data: Intent, scenario: Scenario)
+    fun launchDumbScenario(dumbScenario: DumbScenario): Boolean
+    fun launchSmartScenario(resultCode: Int, data: Intent, scenario: Scenario, autoStart: Boolean = false): Boolean
     fun replaceDumbScenario(dumbScenario: DumbScenario)
-    fun replaceSmartScenario(resultCode: Int, data: Intent, scenario: Scenario)
+    fun replaceSmartScenario(resultCode: Int, data: Intent, scenario: Scenario, autoStart: Boolean = false)
     fun replaceSmartScenarioWithCurrentProjection(scenario: Scenario)
     fun runCurrentScenario()
     fun stopScenario()
+    fun shutdownForAccessibilityLoss()
     fun release()
 
 }

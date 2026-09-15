@@ -10,9 +10,9 @@ package io.github.vibhor1102.macrion.feature.externallaunch.localeplugin.ui
 
 import android.app.Activity
 import android.os.Bundle
+import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -27,10 +27,11 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class ExternalActionEventConfigurationActivity : AppCompatActivity() {
+class ExternalActionEventConfigurationActivity : ComponentActivity() {
 
     private val viewModel: ExternalActionEventConfigurationViewModel by viewModels()
     private var names by mutableStateOf(emptyList<String>())
+    private var knownNames by mutableStateOf(emptyList<String>())
     private var restoredName: String? = null
     private var selectedName by mutableStateOf<String?>(null)
     private var hasAppliedRestore = false
@@ -52,7 +53,7 @@ class ExternalActionEventConfigurationActivity : AppCompatActivity() {
                     names = names,
                     selectedName = selectedName,
                     restoredNameIsMissing = selectedName == restoredName &&
-                        restoredName != null && restoredName !in viewModel.knownExternalActionNames.value,
+                        restoredName != null && restoredName !in knownNames,
                     onNameSelected = { selectedName = it },
                     onCancel = {
                         setResult(Activity.RESULT_CANCELED)
@@ -71,6 +72,7 @@ class ExternalActionEventConfigurationActivity : AppCompatActivity() {
     }
 
     private fun updateNames(knownNames: List<String>) {
+        this.knownNames = knownNames
         if (!hasAppliedRestore) {
             hasAppliedRestore = true
             selectedName = restoredName ?: knownNames.firstOrNull()

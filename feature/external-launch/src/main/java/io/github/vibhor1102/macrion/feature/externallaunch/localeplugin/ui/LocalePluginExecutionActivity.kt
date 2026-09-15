@@ -12,11 +12,13 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
-import android.widget.FrameLayout
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import io.github.vibhor1102.macrion.core.common.permissions.ui.PermissionsHost
 import io.github.vibhor1102.macrion.core.display.recorder.MediaProjectionRequest
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.feature.externallaunch.R
 import io.github.vibhor1102.macrion.feature.externallaunch.localeplugin.domain.LocalePluginDirectLaunchTracker
 import io.github.vibhor1102.macrion.feature.externallaunch.localeplugin.domain.LocalePluginLaunchFailureStore
@@ -27,7 +29,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class LocalePluginExecutionActivity : AppCompatActivity() {
+class LocalePluginExecutionActivity : ComponentActivity() {
 
     companion object {
         private const val EXTRA_CONFIGURATION_JSON =
@@ -70,7 +72,11 @@ class LocalePluginExecutionActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(FrameLayout(this).apply { setBackgroundColor(Color.TRANSPARENT) })
+        setContent {
+            MacrionTheme {
+                PermissionsHost(viewModel.permissionController)
+            }
+        }
         mediaProjectionRequest.registerForActivityResult(this)
         handleLaunchIntent(intent)
     }
@@ -135,18 +141,26 @@ class LocalePluginExecutionActivity : AppCompatActivity() {
             is ResolvedLocalePluginAction.LaunchSmart -> {
                 smartAction = action
                 requestPermissions {
+                    val currentRequestId = requestId
+                    if (!launchedFromFallback && currentRequestId != null) {
+                        directLaunchTracker.markAwaitingProjection(currentRequestId)
+                    }
                     mediaProjectionRequest.showMediaProjectionWarning(
                         context = this,
                         forceEntireScreen = viewModel.isEntireScreenCaptureForced(),
                         onSuccess = success@{ resultCode, data ->
+                            val autoRun = currentRequestId?.let { directLaunchTracker.consumeAutoRun(it) } ?: false
+                            directLaunchTracker.clearAwaitingProjection(currentRequestId)
                             if (!isCurrentRequest()) {
                                 close()
                                 return@success
                             }
-                            viewModel.launchSmart(resultCode, data, action)
+                            viewModel.launchSmart(resultCode, data, action, autoRun = autoRun)
                             close()
                         },
                         onFailure = {
+                            directLaunchTracker.clearAwaitingProjection(currentRequestId)
+                            currentRequestId?.let { directLaunchTracker.consumeAutoRun(it) }
                             if (isCurrentRequest()) fail(R.string.locale_plugin_error_projection)
                             else close()
                         },
@@ -175,6 +189,8 @@ class LocalePluginExecutionActivity : AppCompatActivity() {
 
     private fun handleProjectionLaunchError() {
         val id = requestId
+        directLaunchTracker.clearAwaitingProjection(id)
+        id?.let { directLaunchTracker.consumeAutoRun(it) }
         val configuration = configurationJson
         val action = smartAction
         if (!isCurrentRequest()) {

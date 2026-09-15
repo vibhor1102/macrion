@@ -1,6 +1,8 @@
 /* Copyright (C) 2024 Kevin Buzeau; Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.action.toggleevent
 
+import io.github.vibhor1102.macrion.core.ui.compose.OverlayDialogShape
+
 import android.view.ViewGroup
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -17,7 +19,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.google.android.material.bottomsheet.BottomSheetDialog
 import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayDialog
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredOverlayType
@@ -47,31 +48,41 @@ class EventTogglesDialog(
             setContent { MacrionTheme { this@EventTogglesDialog.Content() } }
         }
     }
-    override fun onDialogCreated(dialog: BottomSheetDialog) = Unit
-    override fun onDestroy() { onDismissed?.invoke(); super.onDestroy() }
+override fun onDestroy() { onDismissed?.invoke(); super.onDestroy() }
 
     @Composable private fun Content() {
-        val listItems by viewModel.currentItems.collectAsStateWithLifecycle(initialValue = emptyList())
-        Surface(Modifier.fillMaxWidth().heightIn(max = 600.dp), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
+        val listItems by viewModel.currentItems.collectAsStateWithLifecycle(initialValue = null)
+        Surface(
+            shape = OverlayDialogShape,
+            modifier = Modifier.fillMaxWidth().heightIn(max = 600.dp), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
             Column {
                 TopBar()
-                if (listItems.isEmpty()) {
-                    Box(Modifier.fillMaxWidth().weight(1f).padding(24.dp), contentAlignment = Alignment.Center) {
-                        Text(context.getString(R.string.message_empty_screen_event_title), style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                val current = listItems
+                when {
+                    current == null -> {
+                        Box(Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {
+                            CircularProgressIndicator()
+                        }
                     }
-                } else {
-                    LazyColumn(Modifier.fillMaxWidth().weight(1f), contentPadding = PaddingValues(vertical = 8.dp)) {
-                        items(listItems, key = { item -> when (item) {
-                            is EventTogglesListItem.Header -> "header:${item.title}"
-                            is EventTogglesListItem.Item -> item.event.id.let { "event:${it.databaseId}:${it.tempId ?: ""}" }
-                        } }, contentType = { item -> when (item) {
-                            is EventTogglesListItem.Header -> "header"
-                            is EventTogglesListItem.Item -> "event"
-                        } }) { item -> when (item) {
-                            is EventTogglesListItem.Header -> Header(item.title)
-                            is EventTogglesListItem.Item -> EventRow(item)
-                        } }
+                    current.isEmpty() -> {
+                        Box(Modifier.fillMaxWidth().weight(1f).padding(24.dp), contentAlignment = Alignment.Center) {
+                            Text(context.getString(R.string.message_empty_screen_event_title), style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
+                    else -> {
+                        LazyColumn(Modifier.fillMaxWidth().weight(1f), contentPadding = PaddingValues(vertical = 8.dp)) {
+                            items(current, key = { item -> when (item) {
+                                is EventTogglesListItem.Header -> "header:${item.title}"
+                                is EventTogglesListItem.Item -> item.event.id.let { "event:${it.databaseId}:${it.tempId ?: ""}" }
+                            } }, contentType = { item -> when (item) {
+                                is EventTogglesListItem.Header -> "header"
+                                is EventTogglesListItem.Item -> "event"
+                            } }) { item -> when (item) {
+                                is EventTogglesListItem.Header -> Header(item.title)
+                                is EventTogglesListItem.Item -> EventRow(item)
+                            } }
+                        }
                     }
                 }
             }

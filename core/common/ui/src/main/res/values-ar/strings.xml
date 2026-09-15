@@ -115,4 +115,6 @@
     <string name="content_desc_confirm">يتأكد</string>
     <string name="content_desc_go_back">العودة إلى الحوار</string>
 
+    <string name="content_desc_tuck_toolbar">طي شريط الأدوات إلى حافة الشاشة</string>
+    <string name="content_desc_expand_toolbar">توسيع شريط الأدوات</string>
 </resources>

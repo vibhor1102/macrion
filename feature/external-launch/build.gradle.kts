@@ -28,7 +28,6 @@ android {
     namespace = "io.github.vibhor1102.macrion.feature.externallaunch"
     buildFeatures {
         compose = true
-        viewBinding = true
     }
 }
 
@@ -39,16 +38,13 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
 
     implementation(libs.androidx.datastore)
-    implementation(libs.androidx.appCompat)
     implementation(libs.androidx.activity.compose)
     implementation(composeBom)
     implementation(libs.androidx.compose.foundation)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.fragment.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
-    implementation(libs.google.material)
 
     implementation(project(":core:common:base"))
     implementation(project(":core:common:display"))

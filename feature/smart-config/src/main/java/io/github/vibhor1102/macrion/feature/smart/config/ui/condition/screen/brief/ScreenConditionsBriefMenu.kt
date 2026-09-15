@@ -16,10 +16,14 @@
  */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.brief
 
+import io.github.vibhor1102.macrion.core.common.overlays.menu.findOverlayView
+
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -28,9 +32,11 @@ import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.MoveToDialog
 import io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.brief.ItemBrief
 import io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.brief.ItemBriefMenu
+import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredViewType
 import io.github.vibhor1102.macrion.core.domain.model.condition.ScreenCondition
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.ItemBriefDescription
 import io.github.vibhor1102.macrion.feature.smart.config.R
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.compose.tutorialAnchor
 import io.github.vibhor1102.macrion.feature.smart.config.ui.createScreenConditionsOverlayToolbar
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.dialogs.showDeleteConditionsWithAssociatedActionsDialog
@@ -51,6 +57,15 @@ import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.live.condi
 import kotlinx.coroutines.launch
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredOverlayType
 
+import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.reorder.ItemsReorderDialog
+import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.reorder.ReorderItemDescriptor
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.unit.dp
 
 class ScreenConditionsBriefMenu(
     initialFocusedIndex: Int,
@@ -83,32 +98,33 @@ class ScreenConditionsBriefMenu(
     }
 
     override fun onCreateMenu(layoutInflater: LayoutInflater): ViewGroup {
-        menuView = createScreenConditionsOverlayToolbar(context)
+        menuView = createScreenConditionsOverlayToolbar(
+            context = context,
+            buttonModifier = { button, performClick ->
+                when (button.id) {
+                    R.id.btn_add -> Modifier.tutorialAnchor(
+                        MonitoredViewType.CONDITIONS_BRIEF_MENU_BUTTON_CREATE,
+                        onClick = performClick,
+                    )
+                    R.id.btn_save -> Modifier.tutorialAnchor(
+                        MonitoredViewType.CONDITIONS_BRIEF_MENU_BUTTON_SAVE,
+                        onClick = performClick,
+                    )
+                    else -> Modifier
+                }
+            },
+        )
         return menuView
     }
 
-    override fun onCreateBriefItemViewHolder(parent: ViewGroup, orientation: Int): ScreenConditionBriefViewHolder =
-        ScreenConditionBriefViewHolder(LayoutInflater.from(parent.context), orientation, parent)
-
-    override fun onBriefItemViewBound(index: Int, itemView: View?) {
-        if (index != 0) return
-
-        if (itemView != null) viewModel.monitorBriefFirstItemView(itemView)
-        else viewModel.stopBriefFirstItemMonitoring()
+    @androidx.compose.runtime.Composable
+    override fun ItemBriefContent(item: ItemBrief, orientation: Int, onClick: () -> Unit) {
+        ScreenConditionBriefItem(item.data as UiScreenCondition, orientation, onClick)
     }
 
-    override fun onStart() {
-        super.onStart()
-        viewModel.monitorViews(
-            createMenuButton = menuView.findViewById(R.id.btn_add),
-            saveMenuButton = menuView.findViewById(R.id.btn_save),
-        )
-    }
-
-    override fun onStop() {
-        super.onStop()
-        viewModel.stopAllViewMonitoring()
-    }
+    @Composable
+    override fun firstBriefItemModifier(): Modifier =
+        Modifier.tutorialAnchor(MonitoredViewType.CONDITIONS_BRIEF_FIRST_ITEM)
 
     override fun onMenuItemClicked(viewId: Int) {
         when (viewId) {
@@ -118,13 +134,54 @@ class ScreenConditionsBriefMenu(
         }
     }
 
-    override fun onMoveItemClicked(from: Int, to: Int) {
-        viewModel.swapConditions(from, to)
+    override fun onReorderClicked() {
+        overlayManager.navigateTo(
+            context = context,
+            newOverlay = ItemsReorderDialog(
+                theme = R.style.ScenarioConfigTheme,
+                titleRes = R.string.menu_item_title_conditions,
+                itemsFlow = viewModel.conditionBriefList,
+                itemDescriptor = { brief ->
+                    val cond = brief.data as UiScreenCondition
+                    ReorderItemDescriptor(
+                        title = cond.name,
+                        subtitle = cond.thresholdText,
+                        trailingContent = {
+                            Box(Modifier.size(32.dp), contentAlignment = Alignment.Center) {
+                                ConditionIcon(cond)
+                                if (cond.haveError) {
+                                    Box(
+                                        Modifier
+                                            .align(Alignment.TopEnd)
+                                            .size(8.dp)
+                                            .background(MaterialTheme.colorScheme.error, CircleShape),
+                                    )
+                                }
+                            }
+                        },
+                    )
+                },
+                onSaveOrder = { viewModel.updateConditionsOrder(it) },
+            ),
+            hideCurrent = true,
+        )
     }
 
     override fun onItemPositionCardClicked(index: Int, itemCount: Int) {
         if (itemCount < 2) return
-        showMoveToDialog(index, itemCount)
+        overlayManager.navigateTo(
+            context = context,
+            newOverlay = MoveToDialog(
+                theme = R.style.ScenarioConfigTheme,
+                defaultValue = index + 1,
+                itemCount = itemCount,
+                titleRes = io.github.vibhor1102.macrion.core.common.overlays.R.string.dialog_jump_to_title,
+                onValueSelected = { value ->
+                    val targetIndex = (value - 1).coerceIn(0, itemCount - 1)
+                    briefViewBinding.scrollToItem(targetIndex)
+                },
+            ),
+        )
     }
 
     override fun onItemBriefClicked(index: Int, item: ItemBrief) {
@@ -259,18 +316,4 @@ class ScreenConditionsBriefMenu(
         )
     }
 
-    private fun showMoveToDialog(index: Int, itemCount: Int) {
-        overlayManager.navigateTo(
-            context = context,
-            newOverlay = MoveToDialog(
-                theme = R.style.ScenarioConfigTheme,
-                defaultValue = index + 1,
-                itemCount = itemCount,
-                onValueSelected = { value ->
-                    if (value - 1 == index) return@MoveToDialog
-                    viewModel.moveConditions(index, value - 1)
-                }
-            ),
-        )
-    }
 }

@@ -1,6 +1,8 @@
 /* Copyright (C) 2024 Kevin Buzeau; Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.condition.trigger.broadcast
 
+import io.github.vibhor1102.macrion.core.ui.compose.OverlayDialogShape
+
 import android.view.ViewGroup
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -17,7 +19,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import com.google.android.material.bottomsheet.BottomSheetDialog
+import android.app.Dialog
 import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayDialog
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredOverlayType
@@ -44,7 +46,7 @@ class BroadcastReceivedConditionDialog(private val listener: OnConditionConfigCo
         setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
         setContent { MacrionTheme { this@BroadcastReceivedConditionDialog.Content() } }
     }
-    override fun onDialogCreated(dialog: BottomSheetDialog) {
+    override fun onDialogCreated(dialog: Dialog) {
         lifecycleScope.launch { repeatOnLifecycle(Lifecycle.State.CREATED) {
             viewModel.isEditingCondition.collect { if (!it) finish() }
         } }
@@ -56,7 +58,9 @@ class BroadcastReceivedConditionDialog(private val listener: OnConditionConfigCo
         val nameError = viewModel.nameError.collectAsStateWithLifecycle(false).value
         val actionError = viewModel.intentActionError.collectAsStateWithLifecycle(false).value
         val saveEnabled = viewModel.conditionCanBeSaved.collectAsStateWithLifecycle(false).value
-        Surface(Modifier.fillMaxWidth().heightIn(max = 560.dp), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
+        Surface(
+            shape = OverlayDialogShape,
+            modifier = Modifier.fillMaxWidth().heightIn(max = 560.dp), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
             Column {
                 TopBar(saveEnabled)
                 Column(Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState())

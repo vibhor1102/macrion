@@ -8,6 +8,7 @@
  */
 package io.github.vibhor1102.macrion.core.common.permissions.ui
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -20,24 +21,20 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.vibhor1102.macrion.core.common.permissions.R
 
 @Composable
 internal fun PermissionDialogContent(
-    viewModel: PermissionDialogViewModel,
+    @StringRes titleRes: Int,
+    @StringRes descriptionRes: Int,
     onRequestPermission: () -> Unit,
     onDismiss: () -> Unit,
 ) {
-    val state by viewModel.dialogUiState.collectAsStateWithLifecycle()
-    val currentState = state ?: return
-
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -45,7 +42,7 @@ internal fun PermissionDialogContent(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
-            text = stringResource(currentState.titleRes),
+            text = stringResource(titleRes),
             modifier = Modifier.padding(horizontal = 24.dp, vertical = 24.dp),
             style = MaterialTheme.typography.titleLarge,
             textAlign = TextAlign.Center,
@@ -57,7 +54,7 @@ internal fun PermissionDialogContent(
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Text(
-                text = stringResource(currentState.descriptionRes),
+                text = stringResource(descriptionRes),
                 modifier = Modifier.padding(bottom = 12.dp),
                 style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center,

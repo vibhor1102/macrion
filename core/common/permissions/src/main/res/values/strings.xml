@@ -41,8 +41,8 @@
         service permission, click on the button bellow.</string>
     <string name="message_permission_desc_notification">Optional: Shows the notification while the application is running in order
         to easily return to the scenario selection screen.</string>
-    <string name="message_permission_desc_launch_fallback_notification">Optional: lets Klick\'r offer a tap-to-launch notification when Android blocks an automatic launch.</string>
-    <string name="message_permission_mandatory_denied">This permission is mandatory for Klick\'r.
+    <string name="message_permission_desc_launch_fallback_notification">Optional: lets Macrion offer a tap-to-launch notification when Android blocks an automatic launch.</string>
+    <string name="message_permission_mandatory_denied">This permission is mandatory for Macrion.
         It won\'t be able to work correctly without it.</string>
 
     <!--

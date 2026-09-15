@@ -68,6 +68,8 @@ class DumbEngine @Inject constructor(
             else dumbRepository.getDumbScenarioFlow(dbId)
         }
 
+    fun isInitialized(): Boolean = dumbScenarioDbId.value != null
+
     private val _isRunning: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val isRunning: StateFlow<Boolean> = _isRunning
 
