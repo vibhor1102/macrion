@@ -61,4 +61,6 @@
     <string name="content_desc_confirm">Xác nhận</string>
     <string name="content_desc_go_back">Quay lại hộp thoại</string>
 
+    <string name="content_desc_tuck_toolbar">Thu gọn thanh công cụ vào cạnh màn hình</string>
+    <string name="content_desc_expand_toolbar">Mở rộng thanh công cụ</string>
 </resources>

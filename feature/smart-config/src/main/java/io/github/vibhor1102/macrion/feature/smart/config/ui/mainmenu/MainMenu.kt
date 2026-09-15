@@ -50,7 +50,9 @@ import io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.ScenarioDia
 import io.github.vibhor1102.macrion.core.ui.compose.AnimatedPlayPauseIcon
 
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 
 /**
@@ -96,6 +98,9 @@ class MainMenu(
     private lateinit var viewBinding: MainMenuViews
     private var liveDebugUiState by mutableStateOf<LiveDebuggingUiState?>(null)
     private var isDetecting by mutableStateOf(false)
+    private var isToolbarAutoHideEnabled by mutableStateOf(false)
+    private var toolbarAutoHideDelaySeconds by mutableIntStateOf(5)
+    private var autoHideJob: Job? = null
     /** The coroutine job for the observable used in debug mode. Null when not in debug mode. */
     private var debugObservableJob: Job? = null
 
@@ -107,6 +112,11 @@ class MainMenu(
     private val toolsTouchableRegion = Region()
     private val updateTouchableRegion = Runnable {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return@Runnable
+
+        if (isMenuTucked) {
+            viewBinding.root.rootSurfaceControl?.setTouchableRegion(null)
+            return@Runnable
+        }
 
         viewBinding.menuItems.getLocationInWindow(menuItemsLocationInWindow)
         val left = menuItemsLocationInWindow[0]
@@ -169,6 +179,18 @@ class MainMenu(
                 launch { viewModel.nativeLibError.collect(::showNativeLibErrorDialogIfNeeded) }
                 launch { viewModel.screenCaptureError.collect(::showScreenCaptureErrorDialogIfNeeded) }
                 launch { debuggingViewModel.isDebugging.collect(::updateDebugOverlayViewVisibility) }
+                launch {
+                    viewModel.isToolbarAutoHideEnabled.collect {
+                        isToolbarAutoHideEnabled = it
+                        resetAutoHideTimer()
+                    }
+                }
+                launch {
+                    viewModel.toolbarAutoHideDelaySeconds.collect {
+                        toolbarAutoHideDelaySeconds = it
+                        resetAutoHideTimer()
+                    }
+                }
             }
         }
     }
@@ -178,17 +200,43 @@ class MainMenu(
 
         // Start loading advertisement if needed
         viewModel.loadAdIfNeeded(context)
+        resetAutoHideTimer()
     }
 
     override fun onStop() {
         super.onStop()
+        autoHideJob?.cancel()
         viewBinding.btnPlay.tag = null
     }
 
     override fun onDestroy() {
+        autoHideJob?.cancel()
         viewBinding.root.removeCallbacks(updateTouchableRegion)
         viewBinding.root.removeOnLayoutChangeListener(updateTouchableRegionOnLayout)
         super.onDestroy()
+    }
+
+    override fun onUserInteraction() {
+        super.onUserInteraction()
+        resetAutoHideTimer()
+    }
+
+    override fun onMenuTuckedChanged(isTucked: Boolean) {
+        viewBinding.root.post(updateTouchableRegion)
+        if (!isTucked) {
+            resetAutoHideTimer()
+        }
+    }
+
+    private fun resetAutoHideTimer() {
+        autoHideJob?.cancel()
+        if (isDetecting || isMenuTucked || !isToolbarAutoHideEnabled) return
+        autoHideJob = lifecycleScope.launch {
+            delay(toolbarAutoHideDelaySeconds * 1000L)
+            if (!isDetecting && !isMenuTucked && lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
+                tuckMenu()
+            }
+        }
     }
 
     override fun onKeyEvent(keyEvent: KeyEvent): Boolean {
@@ -214,6 +262,7 @@ class MainMenu(
     }
 
     override fun onMenuItemClicked(viewId: Int) {
+        resetAutoHideTimer()
         when (viewId) {
             R.id.btn_play -> onPlayPauseClicked()
             R.id.btn_click_list -> onConfigureClicked()
@@ -322,28 +371,37 @@ class MainMenu(
                     viewBinding.btnClickList.isVisible = true
                     viewBinding.btnSwitchScenario.isVisible = !isTutorial && isSwitchButtonInitiallyVisible
                     viewBinding.btnOpenHome.isVisible = !isTutorial && isHomeButtonInitiallyVisible
+                    viewBinding.btnTuck.isVisible = true
                 } else {
                     animateLayoutChanges {
                         setMenuItemVisibility(viewBinding.btnStop, true)
                         setMenuItemVisibility(viewBinding.btnClickList, true)
                         setMenuItemVisibility(viewBinding.btnSwitchScenario, !isTutorial && viewModel.isSwitchButtonVisible.value)
                         setMenuItemVisibility(viewBinding.btnOpenHome, !isTutorial && isHomeButtonInitiallyVisible)
+                        setMenuItemVisibility(viewBinding.btnTuck, true)
                     }
                 }
+                resetAutoHideTimer()
             }
 
             UiState.Detecting -> {
+                if (isMenuTucked) {
+                    untuckMenu()
+                }
+                autoHideJob?.cancel()
                 if (currentState == null) {
                     viewBinding.btnStop.isVisible = false
                     viewBinding.btnClickList.isVisible = false
                     viewBinding.btnSwitchScenario.isVisible = false
                     viewBinding.btnOpenHome.isVisible = false
+                    viewBinding.btnTuck.isVisible = false
                 } else {
                     animateLayoutChanges {
                         setMenuItemVisibility(viewBinding.btnStop, false)
                         setMenuItemVisibility(viewBinding.btnClickList, false)
                         setMenuItemVisibility(viewBinding.btnSwitchScenario, false)
                         setMenuItemVisibility(viewBinding.btnOpenHome, false)
+                        setMenuItemVisibility(viewBinding.btnTuck, false)
                     }
                 }
             }

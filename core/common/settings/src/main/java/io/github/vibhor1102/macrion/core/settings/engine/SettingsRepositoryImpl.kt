@@ -142,6 +142,36 @@ internal class SettingsRepositoryImpl @Inject constructor(
         }
     }
 
+    private val _isToolbarAutoHideEnabledFlow: StateFlow<Boolean> = dataSource.isToolbarAutoHideEnabled()
+        .stateIn(coroutineScope, SharingStarted.Eagerly, false)
+    override val isToolbarAutoHideEnabledFlow: Flow<Boolean> = _isToolbarAutoHideEnabledFlow
+
+    override fun isToolbarAutoHideEnabled(): Boolean = _isToolbarAutoHideEnabledFlow.value
+
+    override fun setToolbarAutoHideEnabled(enabled: Boolean) {
+        coroutineScope.launch {
+            dataSource.setToolbarAutoHideEnabled(enabled)
+        }
+    }
+
+    override fun toggleToolbarAutoHide() {
+        coroutineScope.launch {
+            dataSource.setToolbarAutoHideEnabled(!_isToolbarAutoHideEnabledFlow.value)
+        }
+    }
+
+    private val _toolbarAutoHideDelaySecondsFlow: StateFlow<Int> = dataSource.toolbarAutoHideDelaySeconds()
+        .stateIn(coroutineScope, SharingStarted.Eagerly, 5)
+    override val toolbarAutoHideDelaySecondsFlow: Flow<Int> = _toolbarAutoHideDelaySecondsFlow
+
+    override fun getToolbarAutoHideDelaySeconds(): Int = _toolbarAutoHideDelaySecondsFlow.value
+
+    override fun setToolbarAutoHideDelaySeconds(seconds: Int) {
+        coroutineScope.launch {
+            dataSource.setToolbarAutoHideDelaySeconds(seconds)
+        }
+    }
+
     override val scenarioSortSettings: Flow<ScenarioSortSettings> = scenarioSortSettingsDatasource.getSortConfig()
 
 

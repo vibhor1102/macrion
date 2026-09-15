@@ -117,4 +117,6 @@
     <string name="content_desc_confirm">Подтвердить</string>
     <string name="content_desc_go_back">Вернуться</string>
 
+    <string name="content_desc_tuck_toolbar">Свернуть панель инструментов к краю экрана</string>
+    <string name="content_desc_expand_toolbar">Развернуть панель инструментов</string>
 </resources>

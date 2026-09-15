@@ -128,4 +128,6 @@
     <string name="content_desc_confirm">Confirm</string>
     <string name="content_desc_go_back">Back to dialog</string>
 
+    <string name="content_desc_tuck_toolbar">Tuck toolbar to screen edge</string>
+    <string name="content_desc_expand_toolbar">Expand toolbar</string>
 </resources>

@@ -47,6 +47,9 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.foundation.clickable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -120,6 +123,9 @@ class OverlayMenuContentAnchor(
 class ComposeOverlayMenuHost(context: Context) : FrameLayout(context) {
     val anchors = mutableMapOf<Int, View>()
     val buttons = mutableListOf<OverlayMenuButtonView>()
+    var isTucked by mutableStateOf(false)
+    var isDockedOnLeft by mutableStateOf(true)
+    var onUntuckRequested: (() -> Unit)? = null
 }
 
 @Suppress("UNCHECKED_CAST")
@@ -199,25 +205,63 @@ fun createOverlayMenuLayout(
 
             CompositionLocalProvider(LocalDensity provides scaledDensity) {
                 val density = LocalDensity.current
-                val panelVisible = contentAnchor != null && contentAnchor.composeVisibility != View.GONE
+                val isTucked = root.isTucked
+                val isDockedOnLeft = root.isDockedOnLeft
+                val panelVisible = !isTucked && contentAnchor != null && contentAnchor.composeVisibility != View.GONE
                 val panelWidthPx = if (panelVisible) with(density) { contentWidthDp.dp.roundToPx() } else 0
                 val panelHeightPx = if (panelVisible) with(density) { contentHeightDp.dp.roundToPx() } else 0
                 val buttonHeightPx = with(density) { (8 + 48 * root.buttons.count { it.composeVisibility != View.GONE }).dp.roundToPx() }
                 val buttonWidthPx = with(density) { 56.dp.roundToPx() }
-                val targetSize = IntSize(buttonWidthPx + panelWidthPx, maxOf(buttonHeightPx, panelHeightPx))
+                val tuckedWidthPx = with(density) { 24.dp.roundToPx() }
+                val tuckedHeightPx = with(density) { 56.dp.roundToPx() }
+                val targetSize = if (isTucked) {
+                    IntSize(tuckedWidthPx, tuckedHeightPx)
+                } else {
+                    IntSize(buttonWidthPx + panelWidthPx, maxOf(buttonHeightPx, panelHeightPx))
+                }
                 val animatedSize by animateIntSizeAsState(
                     targetSize,
                     tween(300, easing = OverlayMenuResizeEasing),
                     label = "overlayMenuSize",
                 )
 
+                val cornerRadiusShape = if (isTucked) {
+                    if (isDockedOnLeft) RoundedCornerShape(topEnd = 16.dp, bottomEnd = 16.dp, topStart = 0.dp, bottomStart = 0.dp)
+                    else RoundedCornerShape(topStart = 16.dp, bottomStart = 16.dp, topEnd = 0.dp, bottomEnd = 0.dp)
+                } else {
+                    RoundedCornerShape(10.dp)
+                }
+                val bgColor = if (isTucked) {
+                    colorResource(R.color.overlayMenuBackground).copy(alpha = 0.6f)
+                } else {
+                    colorResource(R.color.overlayMenuBackground)
+                }
+
                 Box(
                     Modifier.requiredSize(
                         with(density) { animatedSize.width.toDp() },
                         with(density) { animatedSize.height.toDp() },
-                    ).clip(RoundedCornerShape(10.dp))
-                        .background(colorResource(R.color.overlayMenuBackground)),
+                    ).clip(cornerRadiusShape)
+                        .background(bgColor),
                 ) {
+                    if (isTucked) {
+                        Box(
+                            Modifier
+                                .fillMaxSize()
+                                .clickable { root.onUntuckRequested?.invoke() },
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Icon(
+                                painter = painterResource(
+                                    if (isDockedOnLeft) io.github.vibhor1102.macrion.core.ui.R.drawable.ic_chevron_right
+                                    else io.github.vibhor1102.macrion.core.ui.R.drawable.ic_chevron_left
+                                ),
+                                contentDescription = stringResource(R.string.content_desc_expand_toolbar),
+                                tint = colorResource(R.color.overlayMenuButtons),
+                                modifier = Modifier.size(20.dp),
+                            )
+                        }
+                    } else {
                     Row(
                         Modifier.fillMaxSize(),
                         verticalAlignment = Alignment.CenterVertically,
@@ -288,6 +332,7 @@ fun createOverlayMenuLayout(
                 }
             }
         }
+    }
     }
     root.anchors[R.id.menu_background] = background
     root.addView(background, FrameLayout.LayoutParams(

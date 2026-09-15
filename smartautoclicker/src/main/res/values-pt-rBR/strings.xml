@@ -216,4 +216,12 @@
     <string name="settings_max_difference_dialog_title">Diferença tolerada máxima</string>
     <string name="settings_max_difference_item_default">%1$d%% (Padrão)</string>
     <string name="settings_max_difference_item">%1$d%%</string>
+    <string name="settings_toolbar_auto_hide_title">Ocultar automaticamente a barra de ferramentas</string>
+    <string name="settings_toolbar_auto_hide_desc">Recolher a barra de ferramentas na borda da tela quando inativa.</string>
+    <string name="settings_toolbar_auto_hide_delay_title">Atraso de ocultação automática</string>
+    <string name="settings_toolbar_auto_hide_delay_dialog_title">Atraso de ocultação automática</string>
+    <string name="settings_toolbar_auto_hide_delay_seconds">%1$d segundos</string>
+    <string name="settings_toolbar_auto_hide_delay_seconds_default">%1$d segundos (Padrão)</string>
+    <string name="content_desc_tuck_toolbar">Recolher barra de ferramentas para a borda da tela</string>
+    <string name="content_desc_expand_toolbar">Expandir barra de ferramentas</string>
 </resources>

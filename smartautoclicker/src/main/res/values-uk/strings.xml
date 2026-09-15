@@ -217,4 +217,12 @@
     <string name="settings_max_difference_dialog_title">Максимально допустима різниця</string>
     <string name="settings_max_difference_item_default">%1$d%% (За замовчуванням)</string>
     <string name="settings_max_difference_item">%1$d%%</string>
+    <string name="settings_toolbar_auto_hide_title">Автоматично приховувати панель інструментів</string>
+    <string name="settings_toolbar_auto_hide_desc">Згортати панель інструментів до краю екрана при бездіяльності.</string>
+    <string name="settings_toolbar_auto_hide_delay_title">Затримка автоприховування</string>
+    <string name="settings_toolbar_auto_hide_delay_dialog_title">Затримка автоприховування</string>
+    <string name="settings_toolbar_auto_hide_delay_seconds">%1$d сек.</string>
+    <string name="settings_toolbar_auto_hide_delay_seconds_default">%1$d сек. (За замовчуванням)</string>
+    <string name="content_desc_tuck_toolbar">Згорнути панель інструментів до краю екрана</string>
+    <string name="content_desc_expand_toolbar">Розгорнути панель інструментів</string>
 </resources>

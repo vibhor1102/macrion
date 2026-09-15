@@ -216,4 +216,12 @@
     <string name="settings_max_difference_dialog_title">Differenza massima consentita</string>
     <string name="settings_max_difference_item_default">%1$d%% (Predefinito)</string>
     <string name="settings_max_difference_item">%1$d%%</string>
+    <string name="settings_toolbar_auto_hide_title">Nascondi automaticamente la barra degli strumenti</string>
+    <string name="settings_toolbar_auto_hide_desc">Riduci la barra degli strumenti sul bordo dello schermo quando è inattiva.</string>
+    <string name="settings_toolbar_auto_hide_delay_title">Ritardo di scomparsa automatica</string>
+    <string name="settings_toolbar_auto_hide_delay_dialog_title">Ritardo di scomparsa automatica</string>
+    <string name="settings_toolbar_auto_hide_delay_seconds">%1$d secondi</string>
+    <string name="settings_toolbar_auto_hide_delay_seconds_default">%1$d secondi (Predefinito)</string>
+    <string name="content_desc_tuck_toolbar">Riduci la barra degli strumenti al bordo dello schermo</string>
+    <string name="content_desc_expand_toolbar">Espandi la barra degli strumenti</string>
 </resources>

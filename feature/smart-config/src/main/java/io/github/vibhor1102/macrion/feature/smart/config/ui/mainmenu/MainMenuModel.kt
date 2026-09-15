@@ -108,6 +108,9 @@ class MainMenuModel @Inject constructor(
         !isTutorial && state == UiState.Idle && isProjectionStarted && isEnabled
     }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
+    val isToolbarAutoHideEnabled: Flow<Boolean> = settingsRepository.isToolbarAutoHideEnabledFlow
+    val toolbarAutoHideDelaySeconds: Flow<Int> = settingsRepository.toolbarAutoHideDelaySecondsFlow
+
     /** The condition being configured by the user. */
     @OptIn(ExperimentalCoroutinesApi::class)
     val allModelsInstalled: StateFlow<Boolean> = scenarioDbId

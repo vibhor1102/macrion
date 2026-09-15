@@ -162,4 +162,12 @@
     <string name="settings_max_difference_dialog_title">許容する最大差異</string>
     <string name="settings_max_difference_item_default">%1$d%%（デフォルト）</string>
     <string name="settings_max_difference_item">%1$d%%</string>
+    <string name="settings_toolbar_auto_hide_title">ツールバーの自動非表示</string>
+    <string name="settings_toolbar_auto_hide_desc">操作がないときにツールバーを画面の端に収納します。</string>
+    <string name="settings_toolbar_auto_hide_delay_title">自動非表示までの時間</string>
+    <string name="settings_toolbar_auto_hide_delay_dialog_title">自動非表示までの時間</string>
+    <string name="settings_toolbar_auto_hide_delay_seconds">%1$d秒</string>
+    <string name="settings_toolbar_auto_hide_delay_seconds_default">%1$d秒（デフォルト）</string>
+    <string name="content_desc_tuck_toolbar">ツールバーを画面端に収納</string>
+    <string name="content_desc_expand_toolbar">ツールバーを展開</string>
 </resources>

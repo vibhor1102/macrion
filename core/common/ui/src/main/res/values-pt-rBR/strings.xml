@@ -114,4 +114,6 @@
     <string name="content_desc_stop_clicker">Parar Macrion</string>
     <string name="content_desc_confirm">Confirmar</string>
     <string name="content_desc_go_back">Voltar para o diálogo</string>
+    <string name="content_desc_tuck_toolbar">Recolher barra de ferramentas para a borda da tela</string>
+    <string name="content_desc_expand_toolbar">Expandir barra de ferramentas</string>
 </resources>

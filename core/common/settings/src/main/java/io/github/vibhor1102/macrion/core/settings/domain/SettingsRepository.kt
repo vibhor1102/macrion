@@ -70,6 +70,15 @@ interface SettingsRepository {
     fun getMaxToleratedDifference(): Int
     fun setMaxToleratedDifference(difference: Int)
 
+    val isToolbarAutoHideEnabledFlow: Flow<Boolean>
+    fun isToolbarAutoHideEnabled(): Boolean
+    fun setToolbarAutoHideEnabled(enabled: Boolean)
+    fun toggleToolbarAutoHide()
+
+    val toolbarAutoHideDelaySecondsFlow: Flow<Int>
+    fun getToolbarAutoHideDelaySeconds(): Int
+    fun setToolbarAutoHideDelaySeconds(seconds: Int)
+
 
     val scenarioSortSettings: Flow<ScenarioSortSettings>
     fun setScenarioSortType(type: ScenarioSortType)

@@ -69,6 +69,10 @@ internal class SettingsDataSource @Inject constructor(
             booleanPreferencesKey("hasSeenAdvancedWarning")
         val KEY_MAX_TOLERATED_DIFFERENCE: Preferences.Key<Int> =
             intPreferencesKey("maxToleratedDifference")
+        val KEY_IS_TOOLBAR_AUTO_HIDE_ENABLED: Preferences.Key<Boolean> =
+            booleanPreferencesKey("isToolbarAutoHideEnabled")
+        val KEY_TOOLBAR_AUTO_HIDE_DELAY_SECONDS: Preferences.Key<Int> =
+            intPreferencesKey("toolbarAutoHideDelaySeconds")
     }
 
     private val dataStore: PreferencesDataStore =
@@ -175,5 +179,21 @@ internal class SettingsDataSource @Inject constructor(
     internal suspend fun setMaxToleratedDifference(difference: Int) =
         dataStore.edit { preferences ->
             preferences[KEY_MAX_TOLERATED_DIFFERENCE] = difference.coerceIn(20, 50)
+        }
+
+    internal fun isToolbarAutoHideEnabled(): Flow<Boolean> =
+        dataStore.data.map { preferences -> preferences[KEY_IS_TOOLBAR_AUTO_HIDE_ENABLED] ?: false }
+
+    internal suspend fun setToolbarAutoHideEnabled(enabled: Boolean) =
+        dataStore.edit { preferences ->
+            preferences[KEY_IS_TOOLBAR_AUTO_HIDE_ENABLED] = enabled
+        }
+
+    internal fun toolbarAutoHideDelaySeconds(): Flow<Int> =
+        dataStore.data.map { preferences -> preferences[KEY_TOOLBAR_AUTO_HIDE_DELAY_SECONDS] ?: 5 }
+
+    internal suspend fun setToolbarAutoHideDelaySeconds(seconds: Int) =
+        dataStore.edit { preferences ->
+            preferences[KEY_TOOLBAR_AUTO_HIDE_DELAY_SECONDS] = seconds
         }
 }

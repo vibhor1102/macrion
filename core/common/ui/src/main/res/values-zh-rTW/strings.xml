@@ -43,4 +43,6 @@
     <string name="content_desc_stop_clicker">停止 Macrion</string>
     <string name="content_desc_confirm">確認</string>
     <string name="content_desc_go_back">返回上一對話方塊</string>
+    <string name="content_desc_tuck_toolbar">將工具列收起至螢幕邊緣</string>
+    <string name="content_desc_expand_toolbar">展開工具列</string>
 </resources>

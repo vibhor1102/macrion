@@ -224,4 +224,12 @@
     <string name="settings_max_difference_dialog_title">الحد الأقصى للفرق المسموح به</string>
     <string name="settings_max_difference_item_default">%1$d%% (افتراضي)</string>
     <string name="settings_max_difference_item">%1$d%%</string>
+    <string name="settings_toolbar_auto_hide_title">إخفاء شريط الأدوات تلقائيًا</string>
+    <string name="settings_toolbar_auto_hide_desc">طي شريط الأدوات عند حافة الشاشة عند عدم النشاط.</string>
+    <string name="settings_toolbar_auto_hide_delay_title">مهلة الإخفاء التلقائي</string>
+    <string name="settings_toolbar_auto_hide_delay_dialog_title">مهلة الإخفاء التلقائي</string>
+    <string name="settings_toolbar_auto_hide_delay_seconds">%1$d ثوانٍ</string>
+    <string name="settings_toolbar_auto_hide_delay_seconds_default">%1$d ثوانٍ (افتراضي)</string>
+    <string name="content_desc_tuck_toolbar">طي شريط الأدوات إلى حافة الشاشة</string>
+    <string name="content_desc_expand_toolbar">توسيع شريط الأدوات</string>
 </resources>

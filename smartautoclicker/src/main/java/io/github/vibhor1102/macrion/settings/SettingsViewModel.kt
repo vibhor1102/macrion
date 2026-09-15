@@ -144,4 +144,22 @@ class SettingsViewModel @Inject constructor(
     fun setMaxToleratedDifference(difference: Int) {
         settingsRepository.setMaxToleratedDifference(difference)
     }
+
+    val isToolbarAutoHideEnabled: Flow<Boolean> =
+        settingsRepository.isToolbarAutoHideEnabledFlow
+
+    val toolbarAutoHideDelaySeconds: Flow<Int> =
+        settingsRepository.toolbarAutoHideDelaySecondsFlow
+
+    fun setToolbarAutoHideEnabled(enabled: Boolean) {
+        settingsRepository.setToolbarAutoHideEnabled(enabled)
+    }
+
+    fun toggleToolbarAutoHide() {
+        settingsRepository.toggleToolbarAutoHide()
+    }
+
+    fun setToolbarAutoHideDelaySeconds(seconds: Int) {
+        settingsRepository.setToolbarAutoHideDelaySeconds(seconds)
+    }
 }
