@@ -108,9 +108,8 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
 
     @Composable private fun Content() {
         CompositionLocalProvider(LocalMonitoredViewsManager provides viewModel.monitoredViewsManager) {
-            val sourceItems = viewModel.eventsItems.collectAsStateWithLifecycle(null).value
-            var displayedItems by remember { mutableStateOf(emptyList<UiImageEvent>()) }
-            var isReordering by remember { mutableStateOf(false) }
+            val sourceItems by viewModel.eventsItems.collectAsStateWithLifecycle(null)
+            var reorderedItems by remember { mutableStateOf<List<UiImageEvent>?>(null) }
             val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
             val accessibilityManager = remember(context) {
                 context.getSystemService(AccessibilityManager::class.java)
@@ -127,77 +126,60 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
                 onDispose { accessibilityManager?.removeTouchExplorationStateChangeListener(listener) }
             }
 
-            if (!isReordering && sourceItems != null && displayedItems != sourceItems) {
-                displayedItems = sourceItems
-            }
-
-            LaunchedEffect(sourceItems) {
-                if (!isReordering) displayedItems = sourceItems ?: emptyList()
-            }
-
+            val itemsToDisplay = reorderedItems ?: sourceItems ?: emptyList()
             val lazyListState = rememberLazyListState()
             val reorderableState = rememberReorderableLazyListState(lazyListState) { from, to ->
-                displayedItems = displayedItems.toMutableList().apply {
-                    add(to.index, removeAt(from.index))
+                val current = (reorderedItems ?: sourceItems ?: emptyList()).toMutableList()
+                if (from.index in current.indices && to.index in current.indices) {
+                    val updated = current.apply { add(to.index, removeAt(from.index)) }
+                    reorderedItems = updated
+                    viewModel.updateEventsPriority(updated)
+                }
+            }
+
+            val onDragStarted: (androidx.compose.ui.geometry.Offset) -> Unit = remember(haptic) {
+                {
+                    haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                }
+            }
+            val onDragStopped: () -> Unit = remember(viewModel) {
+                {
+                    reorderedItems?.let { viewModel.updateEventsPriority(it) }
+                    reorderedItems = null
+                }
+            }
+            val onMoveEvent: (Int, Int) -> Unit = remember(viewModel, sourceItems) {
+                { from, to ->
+                    val current = (sourceItems ?: emptyList()).toMutableList()
+                    if (from in current.indices && to in current.indices) {
+                        val updated = current.apply { add(to, removeAt(from)) }
+                        viewModel.updateEventsPriority(updated)
+                    }
                 }
             }
 
             Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
                 when {
                     sourceItems == null -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
-                    sourceItems.isEmpty() -> EmptyState(R.string.message_empty_screen_event_title, R.string.message_empty_screen_event_desc)
+                    sourceItems?.isEmpty() == true -> EmptyState(R.string.message_empty_screen_event_title, R.string.message_empty_screen_event_desc)
                     else -> LazyColumn(Modifier.fillMaxSize(), state = lazyListState) {
-                        itemsIndexed(displayedItems.ifEmpty { sourceItems }, key = { _, item -> item.event.id.toLazyListKey() }) { index, item ->
-                            val anchorType = when (index) {
-                                0 -> MonitoredViewType.SCENARIO_DIALOG_ITEM_FIRST_EVENT
-                                1 -> MonitoredViewType.SCENARIO_DIALOG_ITEM_SECOND_EVENT
-                                2 -> MonitoredViewType.SCENARIO_DIALOG_ITEM_THIRD_EVENT
-                                3 -> MonitoredViewType.SCENARIO_DIALOG_ITEM_FOURTH_EVENT
-                                else -> null
-                            }
-                            val anchorModifier = if (anchorType != null) {
-                                Modifier.tutorialAnchor(
-                                    type = anchorType,
-                                    onClick = { onEventItemClicked(item.event) },
-                                )
-                            } else Modifier
-
-                            ReorderableItem(reorderableState, item.event.id.toLazyListKey()) { isBeingDragged ->
-                                Column(modifier = anchorModifier) {
-                                    EventListRow(
-                                        name = item.name,
-                                        conditionsCount = item.conditionsCountText,
-                                        actionsCount = item.actionsCountText,
-                                        enabledTextRes = item.enabledOnStartTextRes,
-                                        enabledIconRes = item.enabledOnStartIconRes,
-                                        conditionIconRes = R.drawable.ic_condition,
-                                        actionsInError = item.haveError,
-                                        showReorderHandle = true,
-                                        onClick = { onEventItemClicked(item.event) },
-                                        isBeingDragged = isBeingDragged,
-                                        reorderHandleModifier = Modifier
-                                            .draggableHandle(
-                                                onDragStarted = {
-                                                    haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
-                                                    isReordering = true
-                                                },
-                                                onDragStopped = {
-                                                    viewModel.updateEventsPriority(displayedItems)
-                                                    isReordering = false
-                                                },
-                                                dragGestureDetector = io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.common.DualDragGestureDetector,
-                                            )
-                                            .clearAndSetSemantics { },
-                                        accessibilityActions = if (touchExplorationEnabled) {
-                                            eventAccessibilityActions(index, displayedItems) { from, to ->
-                                                displayedItems = displayedItems.move(from, to)
-                                                viewModel.updateEventsPriority(displayedItems)
-                                            }
-                                        } else emptyList(),
-                                    )
-                                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                                }
-                            }
+                        itemsIndexed(
+                            items = itemsToDisplay,
+                            key = { _, item -> item.event.id.toLazyListKey() },
+                            contentType = { _, _ -> "image_event_item" },
+                        ) { index, item ->
+                            ImageEventListItem(
+                                item = item,
+                                index = index,
+                                isLastIndex = index == itemsToDisplay.lastIndex,
+                                touchExplorationEnabled = touchExplorationEnabled,
+                                reorderableState = reorderableState,
+                                onEventClick = remember(item.event.id) { { onEventItemClicked(item.event) } },
+                                onDragStarted = onDragStarted,
+                                onDragStopped = onDragStopped,
+                                onMoveEvent = onMoveEvent,
+                                context = context,
+                            )
                         }
                     }
                 }
@@ -205,19 +187,74 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
         }
     }
 
-    private fun eventAccessibilityActions(
+    @Composable
+    private fun androidx.compose.foundation.lazy.LazyItemScope.ImageEventListItem(
+        item: UiImageEvent,
         index: Int,
-        items: List<UiImageEvent>,
-        moveEvent: (Int, Int) -> Unit,
-    ): List<CustomAccessibilityAction> = buildList {
-        if (index > 0) add(CustomAccessibilityAction(context.getString(R.string.action_move_event_up)) {
-            moveEvent(index, index - 1)
-            true
-        })
-        if (index < items.lastIndex) add(CustomAccessibilityAction(context.getString(R.string.action_move_event_down)) {
-            moveEvent(index, index + 1)
-            true
-        })
+        isLastIndex: Boolean,
+        touchExplorationEnabled: Boolean,
+        reorderableState: sh.calvin.reorderable.ReorderableLazyListState,
+        onEventClick: () -> Unit,
+        onDragStarted: (androidx.compose.ui.geometry.Offset) -> Unit,
+        onDragStopped: () -> Unit,
+        onMoveEvent: (Int, Int) -> Unit,
+        context: Context,
+    ) {
+        val anchorType = when (index) {
+            0 -> MonitoredViewType.SCENARIO_DIALOG_ITEM_FIRST_EVENT
+            1 -> MonitoredViewType.SCENARIO_DIALOG_ITEM_SECOND_EVENT
+            2 -> MonitoredViewType.SCENARIO_DIALOG_ITEM_THIRD_EVENT
+            3 -> MonitoredViewType.SCENARIO_DIALOG_ITEM_FOURTH_EVENT
+            else -> null
+        }
+        val anchorModifier = if (anchorType != null) {
+            Modifier.tutorialAnchor(
+                type = anchorType,
+                onClick = onEventClick,
+            )
+        } else Modifier
+
+        val accessibilityActions = if (touchExplorationEnabled) {
+            remember(index, isLastIndex, onMoveEvent) {
+                buildList {
+                    if (index > 0) add(CustomAccessibilityAction(context.getString(R.string.action_move_event_up)) {
+                        onMoveEvent(index, index - 1)
+                        true
+                    })
+                    if (!isLastIndex) add(CustomAccessibilityAction(context.getString(R.string.action_move_event_down)) {
+                        onMoveEvent(index, index + 1)
+                        true
+                    })
+                }
+            }
+        } else emptyList()
+
+        ReorderableItem(reorderableState, item.event.id.toLazyListKey()) { isBeingDragged ->
+            val reorderHandleModifier = Modifier
+                .draggableHandle(
+                    onDragStarted = onDragStarted,
+                    onDragStopped = onDragStopped,
+                )
+                .clearAndSetSemantics { }
+
+            Column(modifier = anchorModifier) {
+                EventListRow(
+                    name = item.name,
+                    conditionsCount = item.conditionsCountText,
+                    actionsCount = item.actionsCountText,
+                    enabledTextRes = item.enabledOnStartTextRes,
+                    enabledIconRes = item.enabledOnStartIconRes,
+                    conditionIconRes = R.drawable.ic_condition,
+                    actionsInError = item.haveError,
+                    showReorderHandle = true,
+                    onClick = onEventClick,
+                    isBeingDragged = isBeingDragged,
+                    reorderHandleModifier = reorderHandleModifier,
+                    accessibilityActions = accessibilityActions,
+                )
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            }
+        }
     }
 
     private fun List<UiImageEvent>.move(from: Int, to: Int): List<UiImageEvent> =

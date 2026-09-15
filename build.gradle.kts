@@ -24,5 +24,15 @@ plugins {
     alias(libs.plugins.jetbrainsKotlinSerialization) apply false
     alias(libs.plugins.jetbrainsKotlinCompose) apply false
     alias(libs.plugins.androidxRoom) apply false
+}
 
+subprojects {
+    plugins.withId("org.jetbrains.kotlin.plugin.compose") {
+        extensions.findByType(org.jetbrains.kotlin.compose.compiler.gradle.ComposeCompilerGradlePluginExtension::class.java)?.apply {
+            val includeSourceInfo = providers.gradleProperty("macrionIncludeComposeSourceInfo")
+                .map { it.toBoolean() }
+                .orElse(false)
+            includeSourceInformation.set(includeSourceInfo)
+        }
+    }
 }
