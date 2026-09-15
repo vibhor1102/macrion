@@ -274,6 +274,7 @@ abstract class OverlayMenu(
     }
 
     private val onMenuLayoutChangeListener = View.OnLayoutChangeListener { _, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom ->
+        if (isMenuTucked) return@OnLayoutChangeListener
         if (right - left != oldRight - oldLeft || bottom - top != oldBottom - oldTop) {
             updateMenuPosition(Point(menuLayoutParams.x, menuLayoutParams.y))
         }
@@ -785,12 +786,17 @@ abstract class OverlayMenu(
         val displaySize = displayConfigManager.displayConfig.sizePx
         if (displaySize.x < menuLayout.width || displaySize.y < menuLayout.height) return
 
-        menuLayoutParams.x = position.x.coerceIn(0, displaySize.x - menuLayout.width)
-        menuLayoutParams.y = position.y.coerceIn(0, displaySize.y - menuLayout.height)
+        val newX = position.x.coerceIn(0, displaySize.x - menuLayout.width)
+        val newY = position.y.coerceIn(0, displaySize.y - menuLayout.height)
 
-        if (lifecycle.currentState.isAtLeast(Lifecycle.State.CREATED)) {
-            Log.d(TAG, "Updating menu window position: ${menuLayoutParams.x}/${menuLayoutParams.y}")
-            windowManager.safeUpdateViewLayout(menuLayout, menuLayoutParams)
+        if (newX != menuLayoutParams.x || newY != menuLayoutParams.y) {
+            menuLayoutParams.x = newX
+            menuLayoutParams.y = newY
+
+            if (lifecycle.currentState.isAtLeast(Lifecycle.State.CREATED)) {
+                Log.d(TAG, "Updating menu window position: ${menuLayoutParams.x}/${menuLayoutParams.y}")
+                windowManager.safeUpdateViewLayout(menuLayout, menuLayoutParams)
+            }
         }
     }
 
