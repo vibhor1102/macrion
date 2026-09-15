@@ -170,4 +170,5 @@
     <string name="settings_toolbar_auto_hide_delay_seconds_default">%1$d 秒（預設）</string>
     <string name="content_desc_tuck_toolbar">將工具列收起至螢幕邊緣</string>
     <string name="content_desc_expand_toolbar">展開工具列</string>
+    <string name="toast_advanced_settings_restored_defaults">高級設定已恢復為預設值。</string>
 </resources>

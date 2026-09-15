@@ -149,4 +149,5 @@
     <string name="settings_toolbar_auto_hide_delay_seconds_default">%1$d giây (Mặc định)</string>
     <string name="content_desc_tuck_toolbar">Thu gọn thanh công cụ vào cạnh màn hình</string>
     <string name="content_desc_expand_toolbar">Mở rộng thanh công cụ</string>
+    <string name="toast_advanced_settings_restored_defaults">Cài đặt nâng cao đã được khôi phục về giá trị mặc định.</string>
 </resources>

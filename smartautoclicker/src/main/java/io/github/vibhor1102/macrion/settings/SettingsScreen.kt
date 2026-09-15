@@ -58,7 +58,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -115,6 +117,13 @@ internal fun SettingsRoute(
     val areAdvancedSettingsEnabled by viewModel.areAdvancedSettingsEnabled.collectAsStateWithLifecycle(false)
     val hasSeenAdvancedWarning by viewModel.hasSeenAdvancedWarning.collectAsStateWithLifecycle(false)
     val maxToleratedDifference by viewModel.maxToleratedDifference.collectAsStateWithLifecycle(20)
+
+    var displayedMaxDifference by remember { mutableIntStateOf(maxToleratedDifference) }
+    LaunchedEffect(maxToleratedDifference, areAdvancedSettingsEnabled) {
+        if (areAdvancedSettingsEnabled) {
+            displayedMaxDifference = maxToleratedDifference
+        }
+    }
 
     var showTroubleshooting by rememberSaveable { mutableStateOf(false) }
     var showToolbarSizeDialog by rememberSaveable { mutableStateOf(false) }
@@ -214,10 +223,10 @@ internal fun SettingsRoute(
                         ),
                     ),
                 )
-                val maxDiffLabel = if (maxToleratedDifference == 20) {
+                val maxDiffLabel = if (displayedMaxDifference == 20) {
                     stringResource(R.string.settings_max_difference_item_default, 20)
                 } else {
-                    stringResource(R.string.settings_max_difference_item, maxToleratedDifference)
+                    stringResource(R.string.settings_max_difference_item, displayedMaxDifference)
                 }
                 add(
                     SettingsSection(
@@ -242,6 +251,8 @@ internal fun SettingsRoute(
                                         }
                                     } else {
                                         viewModel.setAdvancedSettingsEnabled(false)
+                                        viewModel.setMaxToleratedDifference(20)
+                                        Toast.makeText(context, R.string.toast_advanced_settings_restored_defaults, Toast.LENGTH_SHORT).show()
                                     }
                                 },
                             ),
@@ -425,10 +436,9 @@ private fun SettingsSection(section: SettingsSection) {
                     SettingsRow(item)
                 }
 
-                if (hasChild) {
-                    val child = (item as? SettingsItem.Switch)?.childItem
-                    if (child != null) {
-                        AnimatedVisibility(
+                if (item is SettingsItem.Switch && item.childItem != null) {
+                    val child = item.childItem
+                    AnimatedVisibility(
                         visible = isChildVisible,
                         enter = expandVertically(
                             animationSpec = spring(
@@ -437,14 +447,11 @@ private fun SettingsSection(section: SettingsSection) {
                             ),
                             expandFrom = Alignment.Top,
                         ) + fadeIn(
-                            animationSpec = spring(
-                                dampingRatio = 0.85f,
-                                stiffness = Spring.StiffnessMedium,
-                            ),
+                            animationSpec = tween(200),
                         ),
                         exit = shrinkVertically(
                             animationSpec = spring(
-                                dampingRatio = 1f,
+                                dampingRatio = 0.85f,
                                 stiffness = Spring.StiffnessMedium,
                             ),
                             shrinkTowards = Alignment.Top,
@@ -467,7 +474,6 @@ private fun SettingsSection(section: SettingsSection) {
                                 SettingsRow(child)
                             }
                         }
-                    }
                     }
                 }
 

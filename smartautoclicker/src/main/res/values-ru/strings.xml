@@ -222,4 +222,5 @@
     <string name="settings_toolbar_auto_hide_delay_seconds_default">%1$d сек. (По умолчанию)</string>
     <string name="content_desc_tuck_toolbar">Свернуть панель инструментов к краю экрана</string>
     <string name="content_desc_expand_toolbar">Развернуть панель инструментов</string>
+    <string name="toast_advanced_settings_restored_defaults">Расширенные настройки были сброшены к значениям по умолчанию.</string>
 </resources>

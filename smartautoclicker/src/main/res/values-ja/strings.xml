@@ -170,4 +170,5 @@
     <string name="settings_toolbar_auto_hide_delay_seconds_default">%1$d秒（デフォルト）</string>
     <string name="content_desc_tuck_toolbar">ツールバーを画面端に収納</string>
     <string name="content_desc_expand_toolbar">ツールバーを展開</string>
+    <string name="toast_advanced_settings_restored_defaults">詳細設定がデフォルト値に復元されました。</string>
 </resources>

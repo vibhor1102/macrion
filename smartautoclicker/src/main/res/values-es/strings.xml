@@ -225,4 +225,5 @@
     <string name="settings_toolbar_auto_hide_delay_seconds_default">%1$d segundos (Predeterminado)</string>
     <string name="content_desc_tuck_toolbar">Plegar la barra de herramientas al borde de la pantalla</string>
     <string name="content_desc_expand_toolbar">Expandir la barra de herramientas</string>
+    <string name="toast_advanced_settings_restored_defaults">Los ajustes avanzados se han restaurado a los valores predeterminados.</string>
 </resources>

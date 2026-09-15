@@ -232,4 +232,5 @@
     <string name="settings_toolbar_auto_hide_delay_seconds_default">%1$d ثوانٍ (افتراضي)</string>
     <string name="content_desc_tuck_toolbar">طي شريط الأدوات إلى حافة الشاشة</string>
     <string name="content_desc_expand_toolbar">توسيع شريط الأدوات</string>
+    <string name="toast_advanced_settings_restored_defaults">تمت استعادة الإعدادات المتقدمة إلى القيم الافتراضية.</string>
 </resources>

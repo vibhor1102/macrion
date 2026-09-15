@@ -227,4 +227,5 @@
     <string name="settings_toolbar_auto_hide_delay_seconds_default">%1$d seconds (Default)</string>
     <string name="content_desc_tuck_toolbar">Tuck toolbar to screen edge</string>
     <string name="content_desc_expand_toolbar">Expand toolbar</string>
+    <string name="toast_advanced_settings_restored_defaults">Advanced settings have been restored to default values.</string>
 </resources>
