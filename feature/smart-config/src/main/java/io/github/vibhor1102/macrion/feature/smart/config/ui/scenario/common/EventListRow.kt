@@ -65,20 +65,22 @@ internal fun EventListRow(
     isBeingDragged: Boolean = false,
     accessibilityActions: List<CustomAccessibilityAction> = emptyList(),
 ) {
-    val rowBackground by animateColorAsState(
-        if (isBeingDragged) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f) else Color.Transparent,
-        label = "event_row_drag_bg",
-    )
+    val rowBackground = if (isBeingDragged) {
+        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f)
+    } else {
+        Color.Transparent
+    }
 
     Row(
-        modifier
+        modifier = modifier
             .fillMaxWidth()
             .height(62.dp)
             .background(rowBackground)
-            .then(
-                if (accessibilityActions.isEmpty()) Modifier
-                else Modifier.semantics { customActions = accessibilityActions },
-            )
+            .semantics(mergeDescendants = true) {
+                if (accessibilityActions.isNotEmpty()) {
+                    customActions = accessibilityActions
+                }
+            }
             .clickable(onClick = onClick),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -89,7 +91,12 @@ internal fun EventListRow(
             Spacer(Modifier.width(16.dp))
         }
 
-        Column(Modifier.weight(1f).fillMaxHeight().padding(top = 4.dp)) {
+        Column(
+            Modifier
+                .weight(1f)
+                .fillMaxHeight()
+                .padding(top = 4.dp),
+        ) {
             Text(
                 text = name,
                 modifier = Modifier.fillMaxWidth(),
@@ -99,14 +106,24 @@ internal fun EventListRow(
                 overflow = TextOverflow.Clip,
             )
             Row(Modifier.fillMaxWidth().weight(1f), verticalAlignment = Alignment.CenterVertically) {
-                EventDetail(enabledIconRes, androidx.compose.ui.res.stringResource(enabledTextRes), null, Modifier.weight(1f))
                 EventDetail(
-                    R.drawable.ic_click,
-                    actionsCount,
-                    if (actionsInError) MaterialTheme.colorScheme.error else null,
-                    Modifier.weight(1f),
+                    iconRes = enabledIconRes,
+                    text = androidx.compose.ui.res.stringResource(enabledTextRes),
+                    tint = null,
+                    modifier = Modifier.weight(1f),
                 )
-                EventDetail(conditionIconRes, conditionsCount, null, Modifier.weight(1f))
+                EventDetail(
+                    iconRes = R.drawable.ic_click,
+                    text = actionsCount,
+                    tint = if (actionsInError) MaterialTheme.colorScheme.error else null,
+                    modifier = Modifier.weight(1f),
+                )
+                EventDetail(
+                    iconRes = conditionIconRes,
+                    text = conditionsCount,
+                    tint = null,
+                    modifier = Modifier.weight(1f),
+                )
             }
         }
         Spacer(Modifier.width(16.dp))
@@ -119,34 +136,21 @@ private fun DragHandle(
     reorderHandleModifier: Modifier,
     isBeingDragged: Boolean,
 ) {
-    val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
-    val isActive = isPressed || isBeingDragged
-
-    val handleTint by animateColorAsState(
-        if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-        animationSpec = tween(durationMillis = 100),
-        label = "handle_tint",
-    )
-    val containerColor by animateColorAsState(
-        if (isActive) MaterialTheme.colorScheme.primary.copy(alpha = 0.16f) else Color.Transparent,
-        animationSpec = tween(durationMillis = 100),
-        label = "handle_container",
-    )
+    val handleTint = if (isBeingDragged) {
+        MaterialTheme.colorScheme.primary
+    } else {
+        MaterialTheme.colorScheme.onSurfaceVariant
+    }
+    val containerColor = if (isBeingDragged) {
+        MaterialTheme.colorScheme.primary.copy(alpha = 0.16f)
+    } else {
+        Color.Transparent
+    }
 
     Box(
         modifier = Modifier
             .size(48.dp)
             .background(containerColor, CircleShape)
-            .clickable(
-                interactionSource = interactionSource,
-                indication = ripple(
-                    color = MaterialTheme.colorScheme.primary,
-                    bounded = true,
-                    radius = 24.dp,
-                ),
-                onClick = {},
-            )
             .then(reorderHandleModifier),
         contentAlignment = Alignment.Center,
     ) {
@@ -164,7 +168,7 @@ private fun EventDetail(
     @DrawableRes iconRes: Int,
     text: String,
     tint: Color?,
-    modifier: Modifier,
+    modifier: Modifier = Modifier,
 ) {
     val resolvedTint = tint ?: MaterialTheme.colorScheme.onSurfaceVariant
     Row(modifier, verticalAlignment = Alignment.CenterVertically) {
