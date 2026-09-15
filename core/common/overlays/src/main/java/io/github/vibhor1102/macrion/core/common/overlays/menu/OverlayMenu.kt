@@ -470,11 +470,6 @@ abstract class OverlayMenu(
         isTuckedHoveringDismiss = false
         isTuckedDragging = false
         val wasTucked = isMenuTucked
-        if (wasTucked) {
-            isMenuTucked = false
-            (menuLayout as? ComposeOverlayMenuHost)?.isTucked = false
-            onMenuTuckedChanged(false)
-        }
         val currentOrientation = displayConfigManager.displayConfig.orientation
         val previousOrientation =
             if (currentOrientation == Configuration.ORIENTATION_LANDSCAPE) Configuration.ORIENTATION_PORTRAIT
@@ -482,8 +477,10 @@ abstract class OverlayMenu(
 
         if (!wasTucked) {
             saveMenuPosition(previousOrientation)
+            loadMenuPosition(currentOrientation)
+        } else {
+            updateTuckedPositionForNewOrientation(currentOrientation)
         }
-        loadMenuPosition(currentOrientation)
 
         if (lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
             applyOrientationChangeToViews()
@@ -707,6 +704,45 @@ abstract class OverlayMenu(
 
         menuLayoutParams.enableMoveAnimations()
         windowManager.safeUpdateViewLayout(menuLayout, menuLayoutParams)
+        menuLayoutParams.disableMoveAnimations()
+
+        onMenuTuckedChanged(true)
+    }
+
+    private fun updateTuckedPositionForNewOrientation(orientation: Int) {
+        val host = menuLayout as? ComposeOverlayMenuHost ?: return
+        val displaySize = displayConfigManager.displayConfig.sizePx
+        val density = scaledDensity
+
+        val visibleButtons = host.buttons.count { it.composeVisibility != View.GONE }.coerceAtLeast(1)
+        val fullWidthPx = menuLayout.width.takeIf { it > (56 * density).toInt() } ?: (56 * density).roundToInt()
+        val fullHeightPx = ((8 + 48 * visibleButtons) * density).roundToInt()
+
+        val tabWidthPx = (24 * density).roundToInt()
+        val tabHeightPx = (56 * density).roundToInt()
+
+        val savedPosition = positionDataSource.loadMenuPosition(orientation)
+        val isLeft: Boolean
+        val fullY: Int
+
+        if (savedPosition != null) {
+            val fullX = savedPosition.x.coerceIn(0, (displaySize.x - fullWidthPx).coerceAtLeast(0))
+            fullY = savedPosition.y.coerceIn(0, (displaySize.y - fullHeightPx).coerceAtLeast(0))
+            isLeft = (fullX + fullWidthPx / 2) < (displaySize.x / 2)
+        } else {
+            fullY = ((displaySize.y / 2) - fullHeightPx).coerceIn(0, (displaySize.y - fullHeightPx).coerceAtLeast(0))
+            isLeft = host.isDockedOnLeft
+        }
+
+        val tuckedX = if (isLeft) 0 else (displaySize.x - tabWidthPx).coerceAtLeast(0)
+        val tuckedY = fullY.coerceIn(0, (displaySize.y - tabHeightPx).coerceAtLeast(0))
+
+        host.isDockedOnLeft = isLeft
+        host.isTucked = true
+        isMenuTucked = true
+
+        menuLayoutParams.x = tuckedX
+        menuLayoutParams.y = tuckedY
         menuLayoutParams.disableMoveAnimations()
 
         onMenuTuckedChanged(true)
