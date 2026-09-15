@@ -1,46 +1,28 @@
-name: Release
+# Recovery-only workflow on recover-0.5.0-r8-mapping; do not merge over the release workflow.
+name: Recover 0.5.0 R8 mapping
 
 on:
   workflow_dispatch:
-    inputs:
-      tag_name:
-        description: Release tag to create (for example, vX.Y.Z)
-        required: true
-        type: string
 
 permissions:
   contents: read
 
-concurrency:
-  group: release-${{ inputs.tag_name }}
-  cancel-in-progress: false
-
 jobs:
-  build:
-    name: Build and publish application
-    environment: github-release
-    runs-on: ubuntu-latest
-    timeout-minutes: 35
-    permissions:
-      contents: write
-      discussions: write
-
+  reproduce:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
     steps:
-    - name: Require main branch
-      if: github.ref_name != 'main'
-      shell: bash
-      run: |
-        echo "Releases must be dispatched from main; got '${{ github.ref_name }}'." >&2
-        exit 1
-
-    - name: Checkout repository
+    - name: Check out the exact 0.5.0 source
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        ref: cccd3365e738cc10df1cf8c9adf70bfd5f3aae96
+        persist-credentials: false
 
-    - name: Set up JDK 21
+    - name: Set up the original JDK
       uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c # v6.0.0
       with:
         distribution: temurin
-        java-version: '21'
+        java-version: '21.0.12+1'
 
     - name: Set up pinned Android NDK 28.2.13676358
       shell: bash
@@ -54,175 +36,61 @@ jobs:
         echo "ANDROID_NDK_HOME=$ndk_path" >> "$GITHUB_ENV"
         echo "ANDROID_NDK_ROOT=$ndk_path" >> "$GITHUB_ENV"
 
-    - name: Validate release metadata
-      id: release
-      shell: bash
-      run: |
-        tag='${{ inputs.tag_name }}'
-        version="${tag#v}"
-        test "$tag" != "$version"
-        [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+([-.][0-9A-Za-z.-]+)?$ ]]
-        source_version="$(sed -n 's/^[[:space:]]*versionName = "\([^"]*\)"$/\1/p' smartautoclicker/build.gradle.kts)"
-        test "$version" = "$source_version"
-        raw_notes_path="docs/changelog/releases/v${version}.md"
-        test -f "$raw_notes_path"
-        processed_notes="${RUNNER_TEMP:-/tmp}/release-notes-v${version}.md"
-        node scripts/prepare-release-notes.mjs "$raw_notes_path" "$processed_notes"
-        test -f "$processed_notes"
-        echo "version=$version" >> "$GITHUB_OUTPUT"
-        echo "notes_path=$processed_notes" >> "$GITHUB_OUTPUT"
-
-    - name: Restore and validate release keystore
-      shell: bash
-      run: |
-        printf '%s' "${{ secrets.RELEASE_KEYSTORE }}" > smartautoclicker.jks.asc
-        gpg --batch --yes --pinentry-mode loopback \
-          --passphrase "${{ secrets.RELEASE_KEYSTORE_PASSPHRASE }}" \
-          --decrypt --output smartautoclicker/smartautoclicker.jks smartautoclicker.jks.asc
-        keytool -list \
-          -keystore smartautoclicker/smartautoclicker.jks \
-          -storepass "${{ secrets.SIGNING_STORE_PASSWORD }}" \
-          -alias "${{ secrets.SIGNING_KEY_ALIAS }}" \
-          >/dev/null
-
-    - name: Build with Gradle
-      run: |
-        ./gradlew --no-daemon --no-build-cache --max-workers=2 \
-          -PsigningStorePassword="${{ secrets.SIGNING_STORE_PASSWORD }}" \
-          -PsigningKeyAlias="${{ secrets.SIGNING_KEY_ALIAS }}" \
-          -PsigningKeyPassword="${{ secrets.SIGNING_KEY_PASSWORD }}" \
-          :smartautoclicker:assembleFDroidRelease
+    - name: Build the original release without signing
+      run: ./gradlew --no-daemon --no-build-cache --max-workers=2 :smartautoclicker:assembleFDroidRelease
       env:
         JAVA_TOOL_OPTIONS: "-Djava.net.preferIPv4Stack=true -Dfile.encoding=UTF-8 -Duser.timezone=UTC"
 
-    - name: Prepare Macrion APKs
-      shell: bash
-      run: |
-        mkdir release-artifacts
-
-        for apk in smartautoclicker/build/outputs/apk/fDroid/release/*.apk; do
-          filename="${apk##*/}"
-
-          case "$filename" in
-            *-arm64-v8a-release.apk) artifact="macrion-${{ steps.release.outputs.version }}-arm64-v8a.apk" ;;
-            *-armeabi-v7a-release.apk) artifact="macrion-${{ steps.release.outputs.version }}-armeabi-v7a.apk" ;;
-            *-x86_64-release.apk) artifact="macrion-${{ steps.release.outputs.version }}-x86_64.apk" ;;
-            *-x86-release.apk) artifact="macrion-${{ steps.release.outputs.version }}-x86.apk" ;;
-            *-release.apk) artifact="macrion-${{ steps.release.outputs.version }}-universal.apk" ;;
-            *) echo "Unexpected APK filename: $filename" >&2; exit 1 ;;
-          esac
-
-          cp "$apk" "release-artifacts/$artifact"
-        done
-
-    - name: Verify release APKs
-      shell: bash
-      run: |
-        AAPT2="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -n 1)/aapt2"
-        APKSIGNER="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -n 1)/apksigner"
-        for apk in release-artifacts/*.apk; do
-          "$AAPT2" dump badging "$apk" | grep -q "name='io.github.vibhor1102.macrion'"
-          "$APKSIGNER" verify --verbose --print-certs "$apk"
-        done
-
-    - name: Publish release with APKs
-      uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2.6.2
+    - name: Preserve R8 mapping and release outputs
+      if: ${{ !cancelled() }}
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
       with:
-        tag_name: ${{ inputs.tag_name }}
-        name: Macrion ${{ inputs.tag_name }}
-        target_commitish: ${{ github.sha }}
-        body_path: ${{ steps.release.outputs.notes_path }}
-        draft: false
-        discussion_category_name: Announcements
-        files: release-artifacts/*.apk
-        fail_on_unmatched_files: true
+        name: macrion-0.5.0-recovered-r8
+        retention-days: 90
+        if-no-files-found: error
+        path: |
+          smartautoclicker/build/outputs/mapping/fDroidRelease/
+          smartautoclicker/build/outputs/apk/fDroid/release/*.apk
 
-    - name: Link to the new discussion and close the previous one
-      shell: bash
+    - name: Download the published universal APK for comparison
       env:
         GH_TOKEN: ${{ github.token }}
-        CURRENT_TAG: ${{ inputs.tag_name }}
+      run: gh release download v0.5.0 --repo vibhor1102/Macrion --pattern macrion-0.5.0-universal.apk --dir published
+
+    - name: Verify mapping hash and compiled DEX against the original
+      shell: bash
       run: |
-        current_release="$(gh api "repos/${{ github.repository }}/releases/tags/$CURRENT_TAG")"
-        current_discussion_url="$(jq -r '.discussion_url // empty' <<<"$current_release")"
-        current_published_at="$(jq -r '.published_at' <<<"$current_release")"
-        if [[ -z "$current_discussion_url" ]]; then
-          echo "Published release '$CURRENT_TAG' has no linked discussion." >&2
-          exit 1
-        fi
+        python3 - <<'PYCODE'
+        import hashlib
+        import os
+        from pathlib import Path
+        import re
+        import zipfile
 
-        previous_release="$(
-          gh api --paginate --slurp "repos/${{ github.repository }}/releases?per_page=100" \
-            | jq --arg current "$CURRENT_TAG" --arg published "$current_published_at" '
-                [add[]
-                  | select(.draft == false)
-                  | select(.tag_name != $current)
-                  | select(.published_at < $published)
-                  | select(.tag_name | test("^v[0-9]+\\.[0-9]+\\.[0-9]+([-.][0-9A-Za-z.-]+)?$"))]
-                | sort_by(.published_at)
-                | last // empty
-              '
-        )"
-        if [[ -z "$previous_release" ]]; then
-          echo "No previous published Macrion release exists; nothing to close."
-          exit 0
-        fi
+        expected = '16b6e7db1531edc1fe03914467d08034cc6ef17f7d28fd0ce0f8bf9bf76ed19a'
+        mapping = Path('smartautoclicker/build/outputs/mapping/fDroidRelease/mapping.txt')
+        header = mapping.read_text().splitlines()[:20]
+        print('Mapping header:')
+        print('\n'.join(header))
+        hash_matches = any(expected in line for line in header)
+        original = Path('published/macrion-0.5.0-universal.apk')
+        rebuilt = [p for p in Path('smartautoclicker/build/outputs/apk/fDroid/release').glob('*.apk')
+                   if not any(abi in p.name for abi in ('arm64-v8a', 'armeabi-v7a', 'x86'))]
+        assert len(rebuilt) == 1, rebuilt
 
-        previous_tag="$(jq -r '.tag_name' <<<"$previous_release")"
-        previous_discussion_url="$(jq -r '.discussion_url // empty' <<<"$previous_release")"
-        if [[ -z "$previous_discussion_url" ]]; then
-          echo "Previous release '$previous_tag' has no linked discussion; nothing to close."
-          exit 0
-        fi
+        def dex_hashes(apk):
+            with zipfile.ZipFile(apk) as archive:
+                return {name: hashlib.sha256(archive.read(name)).hexdigest()
+                        for name in archive.namelist() if re.fullmatch(r'classes[0-9]*\.dex', name)}
 
-        previous_discussion_number="${previous_discussion_url##*/}"
-        discussion="$(
-          gh api graphql \
-            -f owner='${{ github.repository_owner }}' \
-            -f name="${GITHUB_REPOSITORY#*/}" \
-            -F number="$previous_discussion_number" \
-            -f query='query($owner: String!, $name: String!, $number: Int!) {
-              repository(owner: $owner, name: $name) {
-                discussion(number: $number) {
-                  id
-                  closed
-                  comments(last: 100) { nodes { body } }
-                }
-              }
-            }' \
-            --jq '.data.repository.discussion'
-        )"
-
-        discussion_id="$(jq -r '.id' <<<"$discussion")"
-        if [[ "$(jq -r '.closed' <<<"$discussion")" == "true" ]]; then
-          echo "The discussion for '$previous_tag' is already closed."
-          exit 0
-        fi
-
-        marker="<!-- macrion-superseded-by:$CURRENT_TAG -->"
-        if ! jq -e --arg marker "$marker" \
-          '.comments.nodes | any(.body | contains($marker))' <<<"$discussion" >/dev/null; then
-          message="A newer version, [Macrion $CURRENT_TAG]($current_discussion_url), has been released. Further release discussion should continue there."
-          body="$message"$'\n\n'"$marker"
-          gh api graphql \
-            -f discussionId="$discussion_id" \
-            -f body="$body" \
-            -f query='mutation($discussionId: ID!, $body: String!) {
-              addDiscussionComment(input: {discussionId: $discussionId, body: $body}) {
-                comment { id }
-              }
-            }' \
-            --silent
-        else
-          echo "The supersession notice is already present on '$previous_tag'."
-        fi
-
-        gh api graphql \
-          -f discussionId="$discussion_id" \
-          -f query='mutation($discussionId: ID!) {
-            closeDiscussion(input: {discussionId: $discussionId}) {
-              discussion { id }
-            }
-          }' \
-          --silent
-        echo "Closed the discussion for '$previous_tag' in favor of '$CURRENT_TAG'."
+        original_dex = dex_hashes(original)
+        rebuilt_dex = dex_hashes(rebuilt[0])
+        dex_matches = bool(original_dex) and original_dex == rebuilt_dex
+        for name in sorted(original_dex.keys() | rebuilt_dex.keys()):
+            print(f'{name}: original={original_dex.get(name)} rebuilt={rebuilt_dex.get(name)}')
+        summary = f'Mapping hash matches crash: {hash_matches}\nDEX byte hashes match published APK: {dex_matches}\n'
+        print(summary)
+        with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as output:
+            output.write(summary)
+        assert hash_matches and dex_matches, 'Reproduction needs further investigation'
+        PYCODE
