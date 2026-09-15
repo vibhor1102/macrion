@@ -1,6 +1,7 @@
 /* Copyright (C) 2026 Vibhor Goel; SPDX-License-Identifier: GPL-3.0-or-later */
 package io.github.vibhor1102.macrion.core.common.overlays.diagnostics
 
+import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.navbar.disposeTabCompositionsOnDetach
 import android.content.ContextWrapper
 import android.os.IBinder
 import android.os.Looper
@@ -30,8 +31,10 @@ import java.time.Duration
 @Config(sdk = [34], application = android.app.Application::class)
 @LooperMode(LooperMode.Mode.PAUSED)
 class DetachedPopupDiagnosticTest {
-    @Test fun retainedTabCanRequestPopupWithoutWindowToken() = checkDetachedPopup(true)
-    @Test fun disposingDetachedTabPreventsPopupRequest() = checkDetachedPopup(false)
+    @Test fun disposingDetachedTabPreventsPopupRequestAndAllowsReopening() {
+        checkDetachedPopup(true)
+        checkDetachedPopup(false)
+    }
 
     private fun checkDetachedPopup(retainComposition: Boolean) {
         org.robolectric.shadows.ShadowChoreographer.setPaused(true)
@@ -54,12 +57,11 @@ class DetachedPopupDiagnosticTest {
                 if (name == WINDOW_SERVICE) recordingManager else super.getSystemService(name)
         }
         val child = ComposeView(context).apply {
-            if (retainComposition) {
-                setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-            }
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent { if (expanded.value) Popup { Box {} } }
         }
         val container = FrameLayout(activity).apply { addView(child) }
+        if (!retainComposition) container.disposeTabCompositionsOnDetach()
         val host = ComposeView(activity).apply {
             setContent { AndroidView(factory = { container }) }
         }
@@ -82,11 +84,33 @@ class DetachedPopupDiagnosticTest {
             assertFalse(child.hasComposition)
             assertTrue(popupTokens.isEmpty())
         }
+        if (!retainComposition) {
+            expanded.value = false
+            container.addView(child)
+            child.measure(View.MeasureSpec.makeMeasureSpec(200, View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(200, View.MeasureSpec.EXACTLY))
+            child.layout(0, 0, 200, 200)
+            child.viewTreeObserver.dispatchOnPreDraw()
+            pumpFrames()
+            assertTrue("Tab composition is recreated on return", child.hasComposition)
+            expanded.value = true
+            pumpFrames()
+            // Snapshot notifications also run on a background coroutine dispatcher.
+            // Allow that dispatcher to deliver invalidations while advancing the UI frames.
+            val deadline = System.nanoTime() + 2_000_000_000L
+            while (popupTokens.isEmpty() && System.nanoTime() < deadline) {
+                Thread.sleep(10)
+                pumpFrames()
+            }
+            assertEquals(1, popupTokens.size)
+            assertNotNull("Reopened popup uses the attached window", popupTokens.single())
+        }
         child.disposeComposition()
         controller.pause().stop().destroy()
     }
 
     private fun pumpFrames() {
+        androidx.compose.runtime.snapshots.Snapshot.sendApplyNotifications()
         repeat(10) { shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(32)) }
     }
 }

@@ -18,7 +18,10 @@ package io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.
 
 import android.app.Application
 import android.content.Context
+import android.view.View
 import android.view.ViewGroup
+import androidx.compose.ui.platform.AbstractComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.annotation.DrawableRes
 
 import androidx.lifecycle.HasDefaultViewModelProviderFactory
@@ -90,7 +93,7 @@ abstract class NavBarDialogContent(
         navBarId = identifier
         dialogController = controller
         rootContainer = container
-        root = onCreateView(container)
+        root = onCreateView(container).apply { disposeTabCompositionsOnDetach() }
 
         lifecycleRegistry.currentState = Lifecycle.State.CREATED
         onViewCreated()
@@ -207,3 +210,12 @@ inline fun <reified VM : ViewModel, EP : Any> NavBarDialogContent.dialogViewMode
         { dialogController.hiltComponent.createHiltViewModelFactory(entryPoint, creator) },
         { defaultViewModelCreationExtras },
     )
+
+/** Tab compositions must not outlive attachment to their dialog window. */
+internal fun View.disposeTabCompositionsOnDetach() {
+    if (this is AbstractComposeView) {
+        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
+    } else if (this is ViewGroup) {
+        for (index in 0 until childCount) getChildAt(index).disposeTabCompositionsOnDetach()
+    }
+}
