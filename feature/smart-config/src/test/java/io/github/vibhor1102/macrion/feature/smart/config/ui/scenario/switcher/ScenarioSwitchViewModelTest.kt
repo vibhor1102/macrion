@@ -135,36 +135,10 @@ class ScenarioSwitchViewModelTest {
     )
 }
 
-private class TestSettingsRepository(settings: ScenarioSortSettings) : SettingsRepository {
-    override val isLegacyActionUiEnabledFlow: Flow<Boolean> = flowOf(false)
-    override val isLegacyNotificationUiEnabledFlow: Flow<Boolean> = flowOf(false)
-    override val isEntireScreenCaptureForcedFlow: Flow<Boolean> = flowOf(false)
-    override val isFilterScenarioUiEnabledFlow: Flow<Boolean> = flowOf(false)
-    override val isScenarioSwitcherEnabledFlow: Flow<Boolean> = flowOf(false)
-    override suspend fun isScenarioSwitcherEnabled(): Boolean = false
-    override val isHomeButtonEnabledFlow: Flow<Boolean> = flowOf(false)
-    override suspend fun isHomeButtonEnabled(): Boolean = false
-    override val isStopConfirmationEnabledFlow: Flow<Boolean> = flowOf(false)
-    override suspend fun isStopConfirmationEnabled(): Boolean = false
-    override val isInputBlockWorkaroundEnabledFlow: Flow<Boolean> = flowOf(false)
+private class TestSettingsRepository(
+    settings: ScenarioSortSettings,
+) : SettingsRepository by mockk(relaxed = true) {
     override val scenarioSortSettings: Flow<ScenarioSortSettings> = MutableStateFlow(settings)
-
-    override fun isLegacyActionUiEnabled() = false
-    override fun toggleLegacyActionUi() = Unit
-    override fun isLegacyNotificationUiEnabled() = false
-    override fun toggleLegacyNotificationUi() = Unit
-    override fun isEntireScreenCaptureForced() = false
-    override fun toggleForceEntireScreenCapture() = Unit
-    override fun toggleFilterScenarioUi() = Unit
-    override fun toggleScenarioSwitcher() = Unit
-    override fun toggleHomeButton() = Unit
-    override fun toggleStopConfirmation() = Unit
-    override fun isInputBlockWorkaroundEnabled() = false
-    override fun toggleInputBlockWorkaround() = Unit
-    override fun setScenarioSortType(type: ScenarioSortType) = Unit
-    override fun setScenarioSortOrder(invertSortOrder: Boolean) = Unit
-    override fun setScenarioSortShowDumb(show: Boolean) = Unit
-    override fun setScenarioSortShowSmart(show: Boolean) = Unit
 }
 
 private class TestProcessingRepository(

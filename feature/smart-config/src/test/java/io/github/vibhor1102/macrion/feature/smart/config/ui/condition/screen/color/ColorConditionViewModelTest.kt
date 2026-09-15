@@ -12,6 +12,7 @@ import io.github.vibhor1102.macrion.feature.smart.config.domain.model.EditedElem
 import io.github.vibhor1102.macrion.feature.smart.config.domain.model.IEditionState
 import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.color.extensions.hsvToColorInt
 import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.color.extensions.toHsv
+import io.github.vibhor1102.macrion.core.settings.domain.SettingsRepository
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
@@ -19,6 +20,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -109,7 +111,11 @@ class ColorConditionViewModelTest {
             editedConditionStateFlow.value = EditedElementState(value = updated as ScreenCondition, hasChanged = true, canBeSaved = true)
         }
 
-        val viewModel = ColorConditionViewModel(mockRepository)
+        val mockSettingsRepository = mockk<SettingsRepository> {
+            every { maxToleratedDifferenceFlow } returns flowOf(20)
+        }
+
+        val viewModel = ColorConditionViewModel(mockRepository, mockSettingsRepository)
         testDispatcher.scheduler.advanceUntilIdle()
 
         val initialUiState = viewModel.uiState.filterNotNull().first()
