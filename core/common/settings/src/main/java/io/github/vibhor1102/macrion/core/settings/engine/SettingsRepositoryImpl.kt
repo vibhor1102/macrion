@@ -143,7 +143,7 @@ internal class SettingsRepositoryImpl @Inject constructor(
     }
 
     private val _isToolbarAutoHideEnabledFlow: StateFlow<Boolean> = dataSource.isToolbarAutoHideEnabled()
-        .stateIn(coroutineScope, SharingStarted.Eagerly, false)
+        .stateIn(coroutineScope, SharingStarted.Eagerly, true)
     override val isToolbarAutoHideEnabledFlow: Flow<Boolean> = _isToolbarAutoHideEnabledFlow
 
     override fun isToolbarAutoHideEnabled(): Boolean = _isToolbarAutoHideEnabledFlow.value
@@ -161,7 +161,7 @@ internal class SettingsRepositoryImpl @Inject constructor(
     }
 
     private val _toolbarAutoHideDelaySecondsFlow: StateFlow<Int> = dataSource.toolbarAutoHideDelaySeconds()
-        .stateIn(coroutineScope, SharingStarted.Eagerly, 10)
+        .stateIn(coroutineScope, SharingStarted.Eagerly, 120)
     override val toolbarAutoHideDelaySecondsFlow: Flow<Int> = _toolbarAutoHideDelaySecondsFlow
 
     override fun getToolbarAutoHideDelaySeconds(): Int = _toolbarAutoHideDelaySecondsFlow.value

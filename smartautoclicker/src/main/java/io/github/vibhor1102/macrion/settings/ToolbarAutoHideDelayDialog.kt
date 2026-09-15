@@ -12,8 +12,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
@@ -32,7 +34,15 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import io.github.vibhor1102.macrion.R
 
-private val AUTO_HIDE_DELAY_STOPS = listOf(5, 10, 15, 30, 60)
+private val AUTO_HIDE_DELAY_STOPS = listOf(3, 5, 10, 15, 30, 60, 120, 180, 300, 600)
+
+@Composable
+internal fun formatAutoHideDelay(seconds: Int): String = when {
+    seconds == 120 -> stringResource(R.string.settings_toolbar_auto_hide_delay_minutes_default, 2)
+    seconds == 60 -> stringResource(R.string.settings_toolbar_auto_hide_delay_1_minute)
+    seconds >= 60 && seconds % 60 == 0 -> stringResource(R.string.settings_toolbar_auto_hide_delay_minutes, seconds / 60)
+    else -> stringResource(R.string.settings_toolbar_auto_hide_delay_seconds, seconds)
+}
 
 @Composable
 internal fun ToolbarAutoHideDelayDialog(
@@ -54,15 +64,12 @@ internal fun ToolbarAutoHideDelayDialog(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
                     .selectableGroup(),
             ) {
                 AUTO_HIDE_DELAY_STOPS.forEach { stop ->
                     val isSelected = stop == selectedDelay
-                    val label = if (stop == 10) {
-                        stringResource(R.string.settings_toolbar_auto_hide_delay_seconds_default, stop)
-                    } else {
-                        stringResource(R.string.settings_toolbar_auto_hide_delay_seconds, stop)
-                    }
+                    val label = formatAutoHideDelay(stop)
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()

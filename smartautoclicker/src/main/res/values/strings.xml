@@ -225,6 +225,9 @@
     <string name="settings_toolbar_auto_hide_delay_dialog_title">Auto-hide delay</string>
     <string name="settings_toolbar_auto_hide_delay_seconds">%1$d seconds</string>
     <string name="settings_toolbar_auto_hide_delay_seconds_default">%1$d seconds (Default)</string>
+    <string name="settings_toolbar_auto_hide_delay_1_minute">1 minute</string>
+    <string name="settings_toolbar_auto_hide_delay_minutes">%1$d minutes</string>
+    <string name="settings_toolbar_auto_hide_delay_minutes_default">%1$d minutes (Default)</string>
     <string name="content_desc_tuck_toolbar">Tuck toolbar to screen edge</string>
     <string name="content_desc_expand_toolbar">Expand toolbar</string>
     <string name="toast_advanced_settings_restored_defaults">Advanced settings have been restored to default values.</string>

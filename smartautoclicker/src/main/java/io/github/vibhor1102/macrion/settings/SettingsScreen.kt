@@ -112,8 +112,8 @@ internal fun SettingsRoute(
     val shouldShowPrivacySettings by viewModel.shouldShowPrivacySettings.collectAsStateWithLifecycle(false)
     val shouldShowPurchase by viewModel.shouldShowPurchase.collectAsStateWithLifecycle(false)
     val toolbarScalePercent by viewModel.toolbarScalePercent.collectAsStateWithLifecycle(100)
-    val isToolbarAutoHideEnabled by viewModel.isToolbarAutoHideEnabled.collectAsStateWithLifecycle(false)
-    val toolbarAutoHideDelaySeconds by viewModel.toolbarAutoHideDelaySeconds.collectAsStateWithLifecycle(10)
+    val isToolbarAutoHideEnabled by viewModel.isToolbarAutoHideEnabled.collectAsStateWithLifecycle(true)
+    val toolbarAutoHideDelaySeconds by viewModel.toolbarAutoHideDelaySeconds.collectAsStateWithLifecycle(120)
     val areAdvancedSettingsEnabled by viewModel.areAdvancedSettingsEnabled.collectAsStateWithLifecycle(false)
     val hasSeenAdvancedWarning by viewModel.hasSeenAdvancedWarning.collectAsStateWithLifecycle(false)
     val maxToleratedDifference by viewModel.maxToleratedDifference.collectAsStateWithLifecycle(20)
@@ -165,11 +165,7 @@ internal fun SettingsRoute(
                         listOf(SettingsItem.Switch(R.string.field_show_scenario_filters_ui_title, R.string.field_show_scenario_filters_ui_desc, isScenarioFiltersEnabled, viewModel::toggleScenarioFiltersUi)),
                     ),
                 )
-                val autoHideDelayLabel = if (toolbarAutoHideDelaySeconds == 10) {
-                    stringResource(R.string.settings_toolbar_auto_hide_delay_seconds_default, 10)
-                } else {
-                    stringResource(R.string.settings_toolbar_auto_hide_delay_seconds, toolbarAutoHideDelaySeconds)
-                }
+                val autoHideDelayLabel = formatAutoHideDelay(toolbarAutoHideDelaySeconds)
                 add(
                     SettingsSection(
                         R.string.settings_section_overlay,

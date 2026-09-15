@@ -223,6 +223,9 @@
     <string name="settings_toolbar_auto_hide_delay_dialog_title">Затримка автоприховування</string>
     <string name="settings_toolbar_auto_hide_delay_seconds">%1$d сек.</string>
     <string name="settings_toolbar_auto_hide_delay_seconds_default">%1$d сек. (За замовчуванням)</string>
+    <string name="settings_toolbar_auto_hide_delay_1_minute">1 хвилина</string>
+    <string name="settings_toolbar_auto_hide_delay_minutes">%1$d хв.</string>
+    <string name="settings_toolbar_auto_hide_delay_minutes_default">%1$d хв. (За замовчуванням)</string>
     <string name="content_desc_tuck_toolbar">Згорнути панель інструментів до краю екрана</string>
     <string name="content_desc_expand_toolbar">Розгорнути панель інструментів</string>
     <string name="toast_advanced_settings_restored_defaults">Розширені налаштування скинуто до значень за замовчуванням.</string>
