@@ -1,0 +1,1 @@
+Modernized interface with rounded menus and icons. Refreshed Settings with Advanced and About sections. Faster action/condition carousels and a dedicated reorder menu. Resize the toolbar from 50% to 150% and automatically hide it when idle. Condition previews in reports, HSV color controls, improved reordering, and more reliable external run requests and scenario shutdown.
