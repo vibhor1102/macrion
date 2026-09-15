@@ -55,16 +55,34 @@ fun WindowManager.LayoutParams.disableMoveAnimations() {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
         setCanPlayMoveAnimation(false)
     } else {
-        val wp = WindowManager.LayoutParams()
         val className = "android.view.WindowManager\$LayoutParams"
         try {
             val layoutParamsClass = Class.forName(className)
             val noAnimFlagField: Field = layoutParamsClass.getField("PRIVATE_FLAG_NO_MOVE_ANIMATION")
-            layoutParamsClass.getField("privateFlags").apply {
-                setInt(wp, getInt(wp) or noAnimFlagField.getInt(wp))
-            }
+            val privateFlagsField = layoutParamsClass.getField("privateFlags")
+            val currentFlags = privateFlagsField.getInt(this)
+            val noAnimFlag = noAnimFlagField.getInt(this)
+            privateFlagsField.setInt(this, currentFlags or noAnimFlag)
         } catch (e: Exception) {
             Log.e(TAG, "Can't disable move animations !")
+        }
+    }
+}
+
+fun WindowManager.LayoutParams.enableMoveAnimations() {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+        setCanPlayMoveAnimation(true)
+    } else {
+        val className = "android.view.WindowManager\$LayoutParams"
+        try {
+            val layoutParamsClass = Class.forName(className)
+            val noAnimFlagField: Field = layoutParamsClass.getField("PRIVATE_FLAG_NO_MOVE_ANIMATION")
+            val privateFlagsField = layoutParamsClass.getField("privateFlags")
+            val currentFlags = privateFlagsField.getInt(this)
+            val noAnimFlag = noAnimFlagField.getInt(this)
+            privateFlagsField.setInt(this, currentFlags and noAnimFlag.inv())
+        } catch (e: Exception) {
+            Log.e(TAG, "Can't enable move animations !")
         }
     }
 }

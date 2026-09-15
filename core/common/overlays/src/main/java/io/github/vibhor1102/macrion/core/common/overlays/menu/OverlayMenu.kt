@@ -16,8 +16,6 @@
  */
 package io.github.vibhor1102.macrion.core.common.overlays.menu
 
-import android.animation.TimeInterpolator
-import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.content.res.Configuration
 import android.graphics.PixelFormat
@@ -32,6 +30,7 @@ import android.view.ViewConfiguration
 import android.view.ViewGroup
 import android.view.WindowManager
 import kotlin.math.hypot
+import kotlin.math.roundToInt
 
 import androidx.annotation.CallSuper
 import androidx.annotation.IdRes
@@ -45,6 +44,7 @@ import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import io.github.vibhor1102.macrion.core.base.addDumpTabulationLvl
 import io.github.vibhor1102.macrion.core.base.extensions.disableMoveAnimations
 import io.github.vibhor1102.macrion.core.base.extensions.doWhenMeasured
+import io.github.vibhor1102.macrion.core.base.extensions.enableMoveAnimations
 import io.github.vibhor1102.macrion.core.base.extensions.safeAddView
 import io.github.vibhor1102.macrion.core.base.extensions.safeRemoveView
 import io.github.vibhor1102.macrion.core.base.extensions.safeUpdateViewLayout
@@ -55,6 +55,7 @@ import io.github.vibhor1102.macrion.core.common.overlays.manager.OverlayManager
 import io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.common.OverlayMenuAnimations
 import io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.common.OverlayMenuMoveTouchEventHandler
 import io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.common.OverlayMenuPositionDataSource
+import io.github.vibhor1102.macrion.core.common.overlays.scale.OverlayScaleProvider
 
 import dagger.hilt.EntryPoints
 import java.io.PrintWriter
@@ -106,7 +107,20 @@ abstract class OverlayMenu(
         WindowManager.LayoutParams().apply { copyFrom(baseLayoutParams) }
 
     private val animations: OverlayMenuAnimations = OverlayMenuAnimations()
-    private var tuckMoveAnimator: ValueAnimator? = null
+    private val overlayScaleProvider: OverlayScaleProvider by lazy {
+        EntryPoints.get(context.applicationContext, OverlaysEntryPoint::class.java)
+            .overlayScaleProvider()
+    }
+
+    private val scaledDensity: Float
+        get() {
+            val scale = try {
+                overlayScaleProvider.getScale()
+            } catch (_: Exception) {
+                1f
+            }
+            return context.resources.displayMetrics.density * scale
+        }
 
     /** Tracks whether an orientation change occurred while this overlay menu was not started/visible. */
     private var pendingOrientationChange: Boolean = false
@@ -369,7 +383,6 @@ abstract class OverlayMenu(
     final override fun stop() {
         if (!lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) return
         if (animations.hideAnimationIsRunning) return
-        tuckMoveAnimator?.cancel()
         val wasTucked = isMenuTucked
         if (lifecycle.currentState == Lifecycle.State.RESUMED) pause()
 
@@ -404,7 +417,6 @@ abstract class OverlayMenu(
 
     final override fun destroy() {
         if (!lifecycle.currentState.isAtLeast(Lifecycle.State.CREATED)) return
-        tuckMoveAnimator?.cancel()
         if (lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) stop()
 
         if (animations.hideAnimationIsRunning) {
@@ -434,7 +446,6 @@ abstract class OverlayMenu(
      * orientation.
      */
     override fun onOrientationChanged() {
-        tuckMoveAnimator?.cancel()
         val wasTucked = isMenuTucked
         if (wasTucked) {
             isMenuTucked = false
@@ -646,7 +657,6 @@ abstract class OverlayMenu(
      * @return true if the event is handled, false if not.
      */
     private fun onMoveTouched(event: MotionEvent) : Boolean {
-        tuckMoveAnimator?.cancel()
         onUserInteraction()
         return moveTouchEventHandler.onTouchEvent(menuLayout, event)
     }
@@ -664,27 +674,17 @@ abstract class OverlayMenu(
         host.isDockedOnLeft = isLeft
         host.isTucked = true
 
-        val density = context.resources.displayMetrics.density
-        val tabWidthPx = (24 * density).toInt()
-        val tabHeightPx = (56 * density).toInt()
+        val density = scaledDensity
+        val tabWidthPx = (24 * density).roundToInt()
+        val tabHeightPx = (56 * density).roundToInt()
 
-        val startX = menuLayoutParams.x
-        val startY = menuLayoutParams.y
-        val targetX = if (isLeft) 0 else (displaySize.x - tabWidthPx).coerceAtLeast(0)
-        val targetY = startY.coerceIn(0, (displaySize.y - tabHeightPx).coerceAtLeast(0))
+        menuLayoutParams.x = if (isLeft) 0 else (displaySize.x - tabWidthPx).coerceAtLeast(0)
+        menuLayoutParams.y = menuLayoutParams.y.coerceIn(0, (displaySize.y - tabHeightPx).coerceAtLeast(0))
 
-        tuckMoveAnimator?.cancel()
-        tuckMoveAnimator = ValueAnimator.ofFloat(0f, 1f).apply {
-            duration = 300
-            interpolator = OverlayMenuMoveInterpolator
-            addUpdateListener { anim ->
-                val fraction = anim.animatedFraction
-                menuLayoutParams.x = (startX + (targetX - startX) * fraction).toInt()
-                menuLayoutParams.y = (startY + (targetY - startY) * fraction).toInt()
-                windowManager.safeUpdateViewLayout(menuLayout, menuLayoutParams)
-            }
-            start()
-        }
+        menuLayoutParams.enableMoveAnimations()
+        windowManager.safeUpdateViewLayout(menuLayout, menuLayoutParams)
+        menuLayoutParams.disableMoveAnimations()
+
         onMenuTuckedChanged(true)
     }
 
@@ -696,14 +696,13 @@ abstract class OverlayMenu(
     private fun handleTuckedTouchEvent(event: MotionEvent): Boolean {
         val host = menuLayout as? ComposeOverlayMenuHost ?: return false
         val displaySize = displayConfigManager.displayConfig.sizePx
-        val density = context.resources.displayMetrics.density
-        val tabWidthPx = (24 * density).toInt()
-        val tabHeightPx = (56 * density).toInt()
+        val density = scaledDensity
+        val tabWidthPx = (24 * density).roundToInt()
+        val tabHeightPx = (56 * density).roundToInt()
         val touchSlop = ViewConfiguration.get(context).scaledTouchSlop
 
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
-                tuckMoveAnimator?.cancel()
                 tuckedInitialTouchX = event.rawX
                 tuckedInitialTouchY = event.rawY
                 tuckedInitialWindowY = menuLayoutParams.y
@@ -763,32 +762,21 @@ abstract class OverlayMenu(
         isMenuTucked = false
         host.isTucked = false
 
-        val density = context.resources.displayMetrics.density
+        val density = scaledDensity
         val visibleButtons = host.buttons.count { it.composeVisibility != View.GONE }.coerceAtLeast(1)
-        val fullWidthPx = menuLayout.width.takeIf { it > (56 * density).toInt() } ?: (56 * density).toInt()
-        val fullHeightPx = ((8 + 48 * visibleButtons) * density).toInt()
+        val fullWidthPx = menuLayout.width.takeIf { it > (56 * density).toInt() } ?: (56 * density).roundToInt()
+        val fullHeightPx = ((8 + 48 * visibleButtons) * density).roundToInt()
 
         val savedPosition = positionDataSource.loadMenuPosition(currentOrientation)
-        val targetX = (savedPosition?.x ?: ((displaySize.x - fullWidthPx) / 2))
+        menuLayoutParams.x = (savedPosition?.x ?: ((displaySize.x - fullWidthPx) / 2))
             .coerceIn(0, (displaySize.x - fullWidthPx).coerceAtLeast(0))
-        val targetY = (savedPosition?.y ?: ((displaySize.y / 2) - fullHeightPx))
+        menuLayoutParams.y = (savedPosition?.y ?: ((displaySize.y / 2) - fullHeightPx))
             .coerceIn(0, (displaySize.y - fullHeightPx).coerceAtLeast(0))
 
-        val startX = menuLayoutParams.x
-        val startY = menuLayoutParams.y
+        menuLayoutParams.enableMoveAnimations()
+        windowManager.safeUpdateViewLayout(menuLayout, menuLayoutParams)
+        menuLayoutParams.disableMoveAnimations()
 
-        tuckMoveAnimator?.cancel()
-        tuckMoveAnimator = ValueAnimator.ofFloat(0f, 1f).apply {
-            duration = 300
-            interpolator = OverlayMenuMoveInterpolator
-            addUpdateListener { anim ->
-                val fraction = anim.animatedFraction
-                menuLayoutParams.x = (startX + (targetX - startX) * fraction).toInt()
-                menuLayoutParams.y = (startY + (targetY - startY) * fraction).toInt()
-                windowManager.safeUpdateViewLayout(menuLayout, menuLayoutParams)
-            }
-            start()
-        }
         onMenuTuckedChanged(false)
     }
 
@@ -860,7 +848,3 @@ abstract class OverlayMenu(
 
 /** Tag for logs */
 private const val TAG = "OverlayMenu"
-
-private val OverlayMenuMoveInterpolator = TimeInterpolator { fraction ->
-    1f - (1f - fraction) * (1f - fraction)
-}
