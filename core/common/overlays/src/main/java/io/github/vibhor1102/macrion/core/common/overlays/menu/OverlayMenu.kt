@@ -22,11 +22,14 @@ import android.graphics.PixelFormat
 import android.graphics.Point
 import android.util.Log
 import android.view.Gravity
+import android.view.HapticFeedbackConstants
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
+import android.view.ViewConfiguration
 import android.view.ViewGroup
 import android.view.WindowManager
+import kotlin.math.hypot
 
 import androidx.annotation.CallSuper
 import androidx.annotation.IdRes
@@ -134,8 +137,6 @@ abstract class OverlayMenu(
     private var hideOverlayButton: OverlayMenuButtonView? = null
     /** The move button, if provided. */
     private var moveButton: View? = null
-    /** The tuck button, if provided. */
-    private var tuckButton: OverlayMenuButtonView? = null
 
     var isMenuTucked: Boolean = false
         private set
@@ -273,6 +274,7 @@ abstract class OverlayMenu(
             onUserInteraction()
             untuckMenu()
         }
+        host.onTuckedTouch = ::handleTuckedTouchEvent
         host.buttons.forEach { view ->
             @SuppressLint("ClickableViewAccessibility") // View is only drag and drop, no click
             when (view.id) {
@@ -286,14 +288,6 @@ abstract class OverlayMenu(
                     view.setOnClickListener {
                         onUserInteraction()
                         onToggleOverlayVisibilityClicked()
-                    }
-                }
-                R.id.btn_tuck -> {
-                    tuckButton = view
-                    updateTuckButtonIcon()
-                    view.setOnClickListener {
-                        onUserInteraction()
-                        tuckMenu()
                     }
                 }
                 else -> view.setDebouncedOnClickListener { v ->
@@ -639,16 +633,6 @@ abstract class OverlayMenu(
         return moveTouchEventHandler.onTouchEvent(menuLayout, event)
     }
 
-    private fun updateTuckButtonIcon() {
-        val button = tuckButton ?: return
-        val displaySize = displayConfigManager.displayConfig.sizePx
-        val isLeft = (menuLayoutParams.x + menuLayout.width / 2) < (displaySize.x / 2)
-        button.setImageResource(
-            if (isLeft) io.github.vibhor1102.macrion.core.ui.R.drawable.ic_chevron_left
-            else io.github.vibhor1102.macrion.core.ui.R.drawable.ic_chevron_right
-        )
-    }
-
     fun tuckMenu() {
         if (isMenuTucked || !lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) return
         val host = menuLayout as? ComposeOverlayMenuHost ?: return
@@ -666,6 +650,72 @@ abstract class OverlayMenu(
         onMenuTuckedChanged(true)
     }
 
+    private var tuckedInitialTouchX = 0f
+    private var tuckedInitialTouchY = 0f
+    private var tuckedInitialWindowY = 0
+    private var isTuckedDragging = false
+
+    private fun handleTuckedTouchEvent(event: MotionEvent): Boolean {
+        val host = menuLayout as? ComposeOverlayMenuHost ?: return false
+        val displaySize = displayConfigManager.displayConfig.sizePx
+        val density = context.resources.displayMetrics.density
+        val tabWidthPx = (24 * density).toInt()
+        val tabHeightPx = (56 * density).toInt()
+        val touchSlop = ViewConfiguration.get(context).scaledTouchSlop
+
+        when (event.actionMasked) {
+            MotionEvent.ACTION_DOWN -> {
+                tuckedInitialTouchX = event.rawX
+                tuckedInitialTouchY = event.rawY
+                tuckedInitialWindowY = menuLayoutParams.y
+                isTuckedDragging = false
+                onUserInteraction()
+                return true
+            }
+
+            MotionEvent.ACTION_MOVE -> {
+                val dx = event.rawX - tuckedInitialTouchX
+                val dy = event.rawY - tuckedInitialTouchY
+                if (!isTuckedDragging && hypot(dx.toDouble(), dy.toDouble()) > touchSlop) {
+                    isTuckedDragging = true
+                    menuLayout.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
+                }
+
+                if (isTuckedDragging) {
+                    val newY = (tuckedInitialWindowY + dy).toInt().coerceIn(0, (displaySize.y - tabHeightPx).coerceAtLeast(0))
+                    val isLeft = event.rawX < displaySize.x / 2
+                    host.isDockedOnLeft = isLeft
+                    menuLayoutParams.x = if (isLeft) 0 else (displaySize.x - tabWidthPx).coerceAtLeast(0)
+                    menuLayoutParams.y = newY
+                    windowManager.safeUpdateViewLayout(menuLayout, menuLayoutParams)
+                    onUserInteraction()
+                }
+                return true
+            }
+
+            MotionEvent.ACTION_UP -> {
+                if (!isTuckedDragging) {
+                    onUserInteraction()
+                    untuckMenu()
+                } else {
+                    isTuckedDragging = false
+                    val isLeft = host.isDockedOnLeft
+                    menuLayoutParams.x = if (isLeft) 0 else (displaySize.x - tabWidthPx).coerceAtLeast(0)
+                    windowManager.safeUpdateViewLayout(menuLayout, menuLayoutParams)
+                    saveMenuPosition(displayConfigManager.displayConfig.orientation)
+                    onUserInteraction()
+                }
+                return true
+            }
+
+            MotionEvent.ACTION_CANCEL -> {
+                isTuckedDragging = false
+                return true
+            }
+        }
+        return false
+    }
+
     fun untuckMenu() {
         if (!isMenuTucked || !lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) return
         val host = menuLayout as? ComposeOverlayMenuHost ?: return
@@ -681,8 +731,9 @@ abstract class OverlayMenu(
         } else {
             menuLayoutParams.x = 0
         }
+        val fullHeightPx = menuLayout.height.takeIf { it > 0 } ?: (48 * 6 * density).toInt()
+        menuLayoutParams.y = menuLayoutParams.y.coerceIn(0, (displaySize.y - fullHeightPx).coerceAtLeast(0))
         windowManager.safeUpdateViewLayout(menuLayout, menuLayoutParams)
-        updateTuckButtonIcon()
         onMenuTuckedChanged(false)
     }
 
@@ -698,7 +749,6 @@ abstract class OverlayMenu(
             Log.d(TAG, "Updating menu window position: ${menuLayoutParams.x}/${menuLayoutParams.y}")
             windowManager.safeUpdateViewLayout(menuLayout, menuLayoutParams)
         }
-        updateTuckButtonIcon()
     }
 
     private fun loadMenuPosition(orientation: Int) {

@@ -126,6 +126,19 @@ class ComposeOverlayMenuHost(context: Context) : FrameLayout(context) {
     var isTucked by mutableStateOf(false)
     var isDockedOnLeft by mutableStateOf(true)
     var onUntuckRequested: (() -> Unit)? = null
+    var onTuckedTouch: ((MotionEvent) -> Boolean)? = null
+
+    override fun onInterceptTouchEvent(ev: MotionEvent): Boolean {
+        if (isTucked) return true
+        return super.onInterceptTouchEvent(ev)
+    }
+
+    override fun onTouchEvent(event: MotionEvent): Boolean {
+        if (isTucked) {
+            return onTuckedTouch?.invoke(event) ?: false
+        }
+        return super.onTouchEvent(event)
+    }
 }
 
 @Suppress("UNCHECKED_CAST")
@@ -246,9 +259,7 @@ fun createOverlayMenuLayout(
                 ) {
                     if (isTucked) {
                         Box(
-                            Modifier
-                                .fillMaxSize()
-                                .clickable { root.onUntuckRequested?.invoke() },
+                            Modifier.fillMaxSize(),
                             contentAlignment = Alignment.Center,
                         ) {
                             Icon(

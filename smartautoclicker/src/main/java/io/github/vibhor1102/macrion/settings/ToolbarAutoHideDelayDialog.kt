@@ -32,7 +32,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import io.github.vibhor1102.macrion.R
 
-private val AUTO_HIDE_DELAY_STOPS = listOf(3, 5, 10, 15)
+private val AUTO_HIDE_DELAY_STOPS = listOf(5, 10, 15, 30, 60)
 
 @Composable
 internal fun ToolbarAutoHideDelayDialog(
@@ -58,7 +58,7 @@ internal fun ToolbarAutoHideDelayDialog(
             ) {
                 AUTO_HIDE_DELAY_STOPS.forEach { stop ->
                     val isSelected = stop == selectedDelay
-                    val label = if (stop == 5) {
+                    val label = if (stop == 10) {
                         stringResource(R.string.settings_toolbar_auto_hide_delay_seconds_default, stop)
                     } else {
                         stringResource(R.string.settings_toolbar_auto_hide_delay_seconds, stop)

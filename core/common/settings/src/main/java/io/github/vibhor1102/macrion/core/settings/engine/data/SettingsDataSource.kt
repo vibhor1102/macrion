@@ -190,7 +190,7 @@ internal class SettingsDataSource @Inject constructor(
         }
 
     internal fun toolbarAutoHideDelaySeconds(): Flow<Int> =
-        dataStore.data.map { preferences -> preferences[KEY_TOOLBAR_AUTO_HIDE_DELAY_SECONDS] ?: 5 }
+        dataStore.data.map { preferences -> preferences[KEY_TOOLBAR_AUTO_HIDE_DELAY_SECONDS] ?: 10 }
 
     internal suspend fun setToolbarAutoHideDelaySeconds(seconds: Int) =
         dataStore.edit { preferences ->

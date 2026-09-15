@@ -56,7 +56,6 @@ internal class MainMenuViews(val root: ViewGroup) {
     val btnSwitchScenario: View = root.findOverlayView(R.id.btn_switch_scenario)
     val btnOpenHome: View = root.findOverlayView(R.id.btn_open_home)
     val btnMove: View = root.findOverlayView(R.id.btn_move)
-    val btnTuck: View = root.findOverlayView(R.id.btn_tuck)
     val layoutDebug: View = root.findOverlayView(R.id.layout_debug)
     val errorBadge: View = root.findOverlayView(R.id.error_badge)
 }
@@ -79,7 +78,6 @@ internal fun createMainOverlayMenu(
             OverlayMenuButton(R.id.btn_switch_scenario, R.drawable.ic_swap_horiz, R.string.content_desc_switch_scenario),
             OverlayMenuButton(R.id.btn_open_home, R.drawable.ic_home, R.string.content_desc_open_home),
             OverlayMenuButton(R.id.btn_move, R.drawable.ic_move, R.string.content_desc_move_menu),
-            OverlayMenuButton(R.id.btn_tuck, io.github.vibhor1102.macrion.core.ui.R.drawable.ic_chevron_left, R.string.content_desc_tuck_toolbar),
         ),
         content = { MacrionTheme { debugContent() } },
         contentWidthDp = 200,

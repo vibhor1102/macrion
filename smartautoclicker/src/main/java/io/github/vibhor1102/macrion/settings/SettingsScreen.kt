@@ -33,6 +33,16 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.runtime.key
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.AlertDialog
@@ -101,7 +111,7 @@ internal fun SettingsRoute(
     val shouldShowPurchase by viewModel.shouldShowPurchase.collectAsStateWithLifecycle(false)
     val toolbarScalePercent by viewModel.toolbarScalePercent.collectAsStateWithLifecycle(100)
     val isToolbarAutoHideEnabled by viewModel.isToolbarAutoHideEnabled.collectAsStateWithLifecycle(false)
-    val toolbarAutoHideDelaySeconds by viewModel.toolbarAutoHideDelaySeconds.collectAsStateWithLifecycle(5)
+    val toolbarAutoHideDelaySeconds by viewModel.toolbarAutoHideDelaySeconds.collectAsStateWithLifecycle(10)
     val areAdvancedSettingsEnabled by viewModel.areAdvancedSettingsEnabled.collectAsStateWithLifecycle(false)
     val hasSeenAdvancedWarning by viewModel.hasSeenAdvancedWarning.collectAsStateWithLifecycle(false)
     val maxToleratedDifference by viewModel.maxToleratedDifference.collectAsStateWithLifecycle(20)
@@ -146,38 +156,36 @@ internal fun SettingsRoute(
                         listOf(SettingsItem.Switch(R.string.field_show_scenario_filters_ui_title, R.string.field_show_scenario_filters_ui_desc, isScenarioFiltersEnabled, viewModel::toggleScenarioFiltersUi)),
                     ),
                 )
+                val autoHideDelayLabel = if (toolbarAutoHideDelaySeconds == 10) {
+                    stringResource(R.string.settings_toolbar_auto_hide_delay_seconds_default, 10)
+                } else {
+                    stringResource(R.string.settings_toolbar_auto_hide_delay_seconds, toolbarAutoHideDelaySeconds)
+                }
                 add(
                     SettingsSection(
                         R.string.settings_section_overlay,
-                        buildList {
-                            add(
-                                SettingsItem.Action(
-                                    title = R.string.settings_toolbar_size_title,
-                                    value = "$toolbarScalePercent%",
-                                    onClick = { showToolbarSizeDialog = true },
+                        listOf(
+                            SettingsItem.Action(
+                                title = R.string.settings_toolbar_size_title,
+                                value = "$toolbarScalePercent%",
+                                onClick = { showToolbarSizeDialog = true },
+                            ),
+                            SettingsItem.Switch(
+                                title = R.string.settings_toolbar_auto_hide_title,
+                                description = R.string.settings_toolbar_auto_hide_desc,
+                                checked = isToolbarAutoHideEnabled,
+                                childItem = SettingsItem.Action(
+                                    title = R.string.settings_toolbar_auto_hide_delay_title,
+                                    value = autoHideDelayLabel,
+                                    onClick = { showToolbarAutoHideDelayDialog = true },
                                 ),
-                            )
-                            add(
-                                SettingsItem.Switch(
-                                    R.string.settings_toolbar_auto_hide_title,
-                                    R.string.settings_toolbar_auto_hide_desc,
-                                    isToolbarAutoHideEnabled,
-                                    viewModel::toggleToolbarAutoHide,
-                                ),
-                            )
-                            if (isToolbarAutoHideEnabled) {
-                                add(
-                                    SettingsItem.Action(
-                                        title = R.string.settings_toolbar_auto_hide_delay_title,
-                                        value = stringResource(R.string.settings_toolbar_auto_hide_delay_seconds, toolbarAutoHideDelaySeconds),
-                                        onClick = { showToolbarAutoHideDelayDialog = true },
-                                    ),
-                                )
-                            }
-                            add(SettingsItem.Switch(R.string.field_scenario_switcher_title, R.string.field_scenario_switcher_desc, isScenarioSwitcherEnabled, viewModel::toggleScenarioSwitcher))
-                            add(SettingsItem.Switch(R.string.field_home_button_title, R.string.field_home_button_desc, isHomeButtonEnabled, viewModel::toggleHomeButton))
-                            add(SettingsItem.Switch(R.string.field_stop_confirmation_title, R.string.field_stop_confirmation_desc, isStopConfirmationEnabled, viewModel::toggleStopConfirmation))
-                        },
+                                isChildVisible = isToolbarAutoHideEnabled,
+                                onClick = viewModel::toggleToolbarAutoHide,
+                            ),
+                            SettingsItem.Switch(R.string.field_scenario_switcher_title, R.string.field_scenario_switcher_desc, isScenarioSwitcherEnabled, viewModel::toggleScenarioSwitcher),
+                            SettingsItem.Switch(R.string.field_home_button_title, R.string.field_home_button_desc, isHomeButtonEnabled, viewModel::toggleHomeButton),
+                            SettingsItem.Switch(R.string.field_stop_confirmation_title, R.string.field_stop_confirmation_desc, isStopConfirmationEnabled, viewModel::toggleStopConfirmation),
+                        ),
                     ),
                 )
                 add(
@@ -206,43 +214,38 @@ internal fun SettingsRoute(
                         ),
                     ),
                 )
+                val maxDiffLabel = if (maxToleratedDifference == 20) {
+                    stringResource(R.string.settings_max_difference_item_default, 20)
+                } else {
+                    stringResource(R.string.settings_max_difference_item, maxToleratedDifference)
+                }
                 add(
                     SettingsSection(
                         R.string.settings_section_advanced,
-                        buildList {
-                            add(
-                                SettingsItem.Switch(
-                                    title = R.string.settings_enable_advanced_title,
-                                    description = R.string.settings_enable_advanced_desc,
-                                    checked = areAdvancedSettingsEnabled,
-                                    onClick = {
-                                        if (!areAdvancedSettingsEnabled) {
-                                            if (!hasSeenAdvancedWarning) {
-                                                showAdvancedNoticeDialog = true
-                                            } else {
-                                                viewModel.setAdvancedSettingsEnabled(true)
-                                            }
-                                        } else {
-                                            viewModel.setAdvancedSettingsEnabled(false)
-                                        }
-                                    },
+                        listOf(
+                            SettingsItem.Switch(
+                                title = R.string.settings_enable_advanced_title,
+                                description = R.string.settings_enable_advanced_desc,
+                                checked = areAdvancedSettingsEnabled,
+                                childItem = SettingsItem.Action(
+                                    title = R.string.settings_max_difference_title,
+                                    value = maxDiffLabel,
+                                    onClick = { showMaxDifferenceDialog = true },
                                 ),
-                            )
-                            if (areAdvancedSettingsEnabled) {
-                                val maxDiffLabel = if (maxToleratedDifference == 20) {
-                                    stringResource(R.string.settings_max_difference_item_default, 20)
-                                } else {
-                                    stringResource(R.string.settings_max_difference_item, maxToleratedDifference)
-                                }
-                                add(
-                                    SettingsItem.Action(
-                                        title = R.string.settings_max_difference_title,
-                                        value = maxDiffLabel,
-                                        onClick = { showMaxDifferenceDialog = true },
-                                    ),
-                                )
-                            }
-                        },
+                                isChildVisible = areAdvancedSettingsEnabled,
+                                onClick = {
+                                    if (!areAdvancedSettingsEnabled) {
+                                        if (!hasSeenAdvancedWarning) {
+                                            showAdvancedNoticeDialog = true
+                                        } else {
+                                            viewModel.setAdvancedSettingsEnabled(true)
+                                        }
+                                    } else {
+                                        viewModel.setAdvancedSettingsEnabled(false)
+                                    }
+                                },
+                            ),
+                        ),
                     ),
                 )
             },
@@ -383,15 +386,94 @@ private fun SettingsSection(section: SettingsSection) {
     )
     Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
         section.items.forEachIndexed { index, item ->
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = groupedListItemShape(index, section.items.size),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
-            ) {
-                SettingsRow(item)
-            }
-            if (index != section.items.lastIndex) {
-                Spacer(Modifier.height(4.dp))
+            key(item.title) {
+                val isOnlyOrLastItem = index == section.items.lastIndex
+                val hasChild = item is SettingsItem.Switch && item.childItem != null
+                val isChildVisible = item is SettingsItem.Switch && item.isChildVisible
+
+                val bottomCorners by animateDpAsState(
+                    targetValue = if (isChildVisible && isOnlyOrLastItem) 4.dp else if (isOnlyOrLastItem) 16.dp else 4.dp,
+                    animationSpec = spring(
+                        dampingRatio = 0.85f,
+                        stiffness = Spring.StiffnessMedium,
+                    ),
+                    label = "cardBottomCorners_${item.title}",
+                )
+
+                val itemShape = when {
+                    section.items.size == 1 -> RoundedCornerShape(
+                        topStart = 16.dp,
+                        topEnd = 16.dp,
+                        bottomStart = bottomCorners,
+                        bottomEnd = bottomCorners,
+                    )
+                    index == 0 -> RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp, bottomStart = 4.dp, bottomEnd = 4.dp)
+                    isOnlyOrLastItem -> RoundedCornerShape(
+                        topStart = 4.dp,
+                        topEnd = 4.dp,
+                        bottomStart = bottomCorners,
+                        bottomEnd = bottomCorners,
+                    )
+                    else -> RoundedCornerShape(4.dp)
+                }
+
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = itemShape,
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
+                ) {
+                    SettingsRow(item)
+                }
+
+                if (hasChild) {
+                    val child = (item as? SettingsItem.Switch)?.childItem
+                    if (child != null) {
+                        AnimatedVisibility(
+                        visible = isChildVisible,
+                        enter = expandVertically(
+                            animationSpec = spring(
+                                dampingRatio = 0.85f,
+                                stiffness = Spring.StiffnessMedium,
+                            ),
+                            expandFrom = Alignment.Top,
+                        ) + fadeIn(
+                            animationSpec = spring(
+                                dampingRatio = 0.85f,
+                                stiffness = Spring.StiffnessMedium,
+                            ),
+                        ),
+                        exit = shrinkVertically(
+                            animationSpec = spring(
+                                dampingRatio = 1f,
+                                stiffness = Spring.StiffnessMedium,
+                            ),
+                            shrinkTowards = Alignment.Top,
+                        ) + fadeOut(
+                            animationSpec = tween(150),
+                        ),
+                    ) {
+                        Column {
+                            Spacer(Modifier.height(4.dp))
+                            val childShape = if (isOnlyOrLastItem) {
+                                RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = 16.dp, bottomEnd = 16.dp)
+                            } else {
+                                RoundedCornerShape(4.dp)
+                            }
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = childShape,
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
+                            ) {
+                                SettingsRow(child)
+                            }
+                        }
+                    }
+                    }
+                }
+
+                if (index != section.items.lastIndex) {
+                    Spacer(Modifier.height(4.dp))
+                }
             }
         }
     }
@@ -512,17 +594,20 @@ private fun SettingsRow(item: SettingsItem) {
 }
 
 private sealed interface SettingsItem {
+    val title: Int
     val onClick: () -> Unit
 
     data class Switch(
-        @param:StringRes val title: Int,
+        @param:StringRes override val title: Int,
         @param:StringRes val description: Int,
         val checked: Boolean,
         override val onClick: () -> Unit,
+        val childItem: SettingsItem? = null,
+        val isChildVisible: Boolean = false,
     ) : SettingsItem
 
     data class Action(
-        @param:StringRes val title: Int,
+        @param:StringRes override val title: Int,
         val value: String? = null,
         override val onClick: () -> Unit,
     ) : SettingsItem {
@@ -533,7 +618,7 @@ private sealed interface SettingsItem {
     }
 
     data class Info(
-        @param:StringRes val title: Int,
+        @param:StringRes override val title: Int,
         val value: String,
         val showCopyIcon: Boolean = false,
         override val onClick: () -> Unit = {},

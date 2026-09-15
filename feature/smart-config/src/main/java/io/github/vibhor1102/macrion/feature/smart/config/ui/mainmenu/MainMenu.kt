@@ -99,7 +99,7 @@ class MainMenu(
     private var liveDebugUiState by mutableStateOf<LiveDebuggingUiState?>(null)
     private var isDetecting by mutableStateOf(false)
     private var isToolbarAutoHideEnabled by mutableStateOf(false)
-    private var toolbarAutoHideDelaySeconds by mutableIntStateOf(5)
+    private var toolbarAutoHideDelaySeconds by mutableIntStateOf(10)
     private var autoHideJob: Job? = null
     /** The coroutine job for the observable used in debug mode. Null when not in debug mode. */
     private var debugObservableJob: Job? = null
@@ -371,14 +371,12 @@ class MainMenu(
                     viewBinding.btnClickList.isVisible = true
                     viewBinding.btnSwitchScenario.isVisible = !isTutorial && isSwitchButtonInitiallyVisible
                     viewBinding.btnOpenHome.isVisible = !isTutorial && isHomeButtonInitiallyVisible
-                    viewBinding.btnTuck.isVisible = true
                 } else {
                     animateLayoutChanges {
                         setMenuItemVisibility(viewBinding.btnStop, true)
                         setMenuItemVisibility(viewBinding.btnClickList, true)
                         setMenuItemVisibility(viewBinding.btnSwitchScenario, !isTutorial && viewModel.isSwitchButtonVisible.value)
                         setMenuItemVisibility(viewBinding.btnOpenHome, !isTutorial && isHomeButtonInitiallyVisible)
-                        setMenuItemVisibility(viewBinding.btnTuck, true)
                     }
                 }
                 resetAutoHideTimer()
@@ -394,14 +392,12 @@ class MainMenu(
                     viewBinding.btnClickList.isVisible = false
                     viewBinding.btnSwitchScenario.isVisible = false
                     viewBinding.btnOpenHome.isVisible = false
-                    viewBinding.btnTuck.isVisible = false
                 } else {
                     animateLayoutChanges {
                         setMenuItemVisibility(viewBinding.btnStop, false)
                         setMenuItemVisibility(viewBinding.btnClickList, false)
                         setMenuItemVisibility(viewBinding.btnSwitchScenario, false)
                         setMenuItemVisibility(viewBinding.btnOpenHome, false)
-                        setMenuItemVisibility(viewBinding.btnTuck, false)
                     }
                 }
             }
