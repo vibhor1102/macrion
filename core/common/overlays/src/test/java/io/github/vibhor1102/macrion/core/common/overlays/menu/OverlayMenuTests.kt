@@ -124,6 +124,17 @@ class OverlayMenuTests {
 
     @Mock private lateinit var overlayMenuControllerImpl: OverlayMenuControllerImpl
 
+    @dagger.Module
+    @dagger.hilt.InstallIn(dagger.hilt.components.SingletonComponent::class)
+    object TestOverlayScaleModule {
+        @dagger.Provides
+        fun provideOverlayScaleProvider(): io.github.vibhor1102.macrion.core.common.overlays.scale.OverlayScaleProvider =
+            object : io.github.vibhor1102.macrion.core.common.overlays.scale.OverlayScaleProvider {
+                override val scaleFlow = kotlinx.coroutines.flow.flowOf(1f)
+                override fun getScale(): Float = 1f
+            }
+    }
+
     @get:Rule
     var hiltAndroidRule: HiltAndroidRule = HiltAndroidRule(this)
 

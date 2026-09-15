@@ -74,6 +74,12 @@ class MainMenu(
     private val shouldConfirmStop: suspend () -> Boolean,
 ) : OverlayMenu() {
 
+    override val isDragToDismissEnabled: Boolean = true
+
+    override fun onTuckedDismiss() {
+        onStopClicked()
+    }
+
     override fun tutorialMonitoringTag(): String = MonitoredOverlayType.MAIN_MENU.name
 
     /** The view model for this menu. */

@@ -65,6 +65,12 @@ class DumbMainMenu(
     private val onStopClicked: () -> Unit,
 ) : OverlayMenu(theme = R.style.AppTheme) {
 
+    override val isDragToDismissEnabled: Boolean = true
+
+    override fun onTuckedDismiss() {
+        onStopClicked()
+    }
+
     /** The view model for this menu. */
     private val viewModel: DumbMainMenuModel by viewModels(
         entryPoint = DumbConfigViewModelsEntryPoint::class.java,

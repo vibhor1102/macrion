@@ -20,6 +20,7 @@ import android.annotation.SuppressLint
 import android.content.res.Configuration
 import android.graphics.PixelFormat
 import android.graphics.Point
+import android.os.Build
 import android.util.Log
 import android.view.Gravity
 import android.view.HapticFeedbackConstants
@@ -52,6 +53,7 @@ import io.github.vibhor1102.macrion.core.common.overlays.R
 import io.github.vibhor1102.macrion.core.common.overlays.base.BaseOverlay
 import io.github.vibhor1102.macrion.core.common.overlays.di.OverlaysEntryPoint
 import io.github.vibhor1102.macrion.core.common.overlays.manager.OverlayManager
+import io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.common.OverlayDismissTargetController
 import io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.common.OverlayMenuAnimations
 import io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.common.OverlayMenuMoveTouchEventHandler
 import io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.common.OverlayMenuPositionDataSource
@@ -160,6 +162,12 @@ abstract class OverlayMenu(
 
     protected open fun onMenuTuckedChanged(isTucked: Boolean) {}
     protected open fun onUserInteraction() {}
+
+    /** Whether dragging the tucked overlay allows dismissing the scenario. */
+    protected open val isDragToDismissEnabled: Boolean = false
+
+    /** Called when the tucked overlay is dragged into the dismiss target and released. */
+    protected open fun onTuckedDismiss() {}
 
     /**
      * Whether the overlay view is intended to be visible by the user (toggled via the hide-overlay button).
@@ -383,6 +391,10 @@ abstract class OverlayMenu(
 
     final override fun stop() {
         if (!lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) return
+        dismissTargetController?.destroy()
+        dismissTargetController = null
+        isTuckedHoveringDismiss = false
+        isTuckedDragging = false
         if (animations.hideAnimationIsRunning) return
         val wasTucked = isMenuTucked
         if (lifecycle.currentState == Lifecycle.State.RESUMED) pause()
@@ -418,6 +430,10 @@ abstract class OverlayMenu(
 
     final override fun destroy() {
         if (!lifecycle.currentState.isAtLeast(Lifecycle.State.CREATED)) return
+        dismissTargetController?.destroy()
+        dismissTargetController = null
+        isTuckedHoveringDismiss = false
+        isTuckedDragging = false
         if (lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) stop()
 
         if (animations.hideAnimationIsRunning) {
@@ -447,6 +463,10 @@ abstract class OverlayMenu(
      * orientation.
      */
     override fun onOrientationChanged() {
+        dismissTargetController?.destroy()
+        dismissTargetController = null
+        isTuckedHoveringDismiss = false
+        isTuckedDragging = false
         val wasTucked = isMenuTucked
         if (wasTucked) {
             isMenuTucked = false
@@ -693,6 +713,18 @@ abstract class OverlayMenu(
     private var tuckedInitialTouchY = 0f
     private var tuckedInitialWindowY = 0
     private var isTuckedDragging = false
+    private var isTuckedHoveringDismiss = false
+    private var dismissTargetController: OverlayDismissTargetController? = null
+
+    private fun getOrCreateDismissTargetController(): OverlayDismissTargetController {
+        return dismissTargetController ?: OverlayDismissTargetController(
+            context = context,
+            windowManager = windowManager,
+            lifecycleOwner = this,
+            savedStateRegistryOwner = this,
+            viewModelStoreOwner = this,
+        ).also { dismissTargetController = it }
+    }
 
     private fun handleTuckedTouchEvent(event: MotionEvent): Boolean {
         val host = menuLayout as? ComposeOverlayMenuHost ?: return false
@@ -708,6 +740,7 @@ abstract class OverlayMenu(
                 tuckedInitialTouchY = event.rawY
                 tuckedInitialWindowY = menuLayoutParams.y
                 isTuckedDragging = false
+                isTuckedHoveringDismiss = false
                 onUserInteraction()
                 return true
             }
@@ -718,14 +751,53 @@ abstract class OverlayMenu(
                 if (!isTuckedDragging && hypot(dx.toDouble(), dy.toDouble()) > touchSlop) {
                     isTuckedDragging = true
                     menuLayout.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
+                    if (isDragToDismissEnabled) {
+                        getOrCreateDismissTargetController().show()
+                    }
                 }
 
                 if (isTuckedDragging) {
-                    val newY = (tuckedInitialWindowY + dy).toInt().coerceIn(0, (displaySize.y - tabHeightPx).coerceAtLeast(0))
+                    val maxTabY = (displaySize.y - tabHeightPx).coerceAtLeast(0)
+                    val dockedY = (tuckedInitialWindowY + dy).coerceIn(0f, maxTabY.toFloat())
                     val isLeft = event.rawX < displaySize.x / 2
                     host.isDockedOnLeft = isLeft
-                    menuLayoutParams.x = if (isLeft) 0 else (displaySize.x - tabWidthPx).coerceAtLeast(0)
-                    menuLayoutParams.y = newY
+                    val edgeX = if (isLeft) 0f else (displaySize.x - tabWidthPx).coerceAtLeast(0).toFloat()
+
+                    if (isDragToDismissEnabled) {
+                        val targetCenter = OverlayDismissTargetController.getTargetCenter(displaySize, density)
+                        val dist = hypot(event.rawX - targetCenter.x, event.rawY - targetCenter.y)
+                        val attractRadiusPx = OverlayDismissTargetController.ATTRACTION_RADIUS_DP * density
+                        val dismissRadiusPx = OverlayDismissTargetController.DISMISS_RADIUS_DP * density
+
+                        if (dist < attractRadiusPx) {
+                            val pullRatio = ((attractRadiusPx - dist) / (attractRadiusPx - dismissRadiusPx)).coerceIn(0f, 1f)
+                            val pull = pullRatio * pullRatio * (3f - 2f * pullRatio)
+                            val isHovered = dist <= dismissRadiusPx
+
+                            if (isHovered && !isTuckedHoveringDismiss) {
+                                menuLayout.performHapticFeedback(HapticFeedbackConstants.CONTEXT_CLICK)
+                            }
+                            isTuckedHoveringDismiss = isHovered
+                            getOrCreateDismissTargetController().updateHoverState(isHovered)
+
+                            val centerTabX = targetCenter.x - (tabWidthPx / 2f)
+                            val centerTabY = targetCenter.y - (tabHeightPx / 2f)
+
+                            menuLayoutParams.x = (edgeX + (centerTabX - edgeX) * pull).roundToInt()
+                            menuLayoutParams.y = (dockedY + (centerTabY - dockedY) * pull).roundToInt().coerceIn(0, maxTabY)
+                        } else {
+                            if (isTuckedHoveringDismiss) {
+                                isTuckedHoveringDismiss = false
+                            }
+                            getOrCreateDismissTargetController().updateHoverState(false)
+                            menuLayoutParams.x = edgeX.roundToInt()
+                            menuLayoutParams.y = dockedY.roundToInt()
+                        }
+                    } else {
+                        menuLayoutParams.x = edgeX.roundToInt()
+                        menuLayoutParams.y = dockedY.roundToInt()
+                    }
+
                     windowManager.safeUpdateViewLayout(menuLayout, menuLayoutParams)
                     onUserInteraction()
                 }
@@ -737,17 +809,32 @@ abstract class OverlayMenu(
                     onUserInteraction()
                     untuckMenu()
                 } else {
+                    val wasDismissHovered = isDragToDismissEnabled && isTuckedHoveringDismiss
                     isTuckedDragging = false
-                    val isLeft = host.isDockedOnLeft
-                    menuLayoutParams.x = if (isLeft) 0 else (displaySize.x - tabWidthPx).coerceAtLeast(0)
-                    windowManager.safeUpdateViewLayout(menuLayout, menuLayoutParams)
-                    onUserInteraction()
+                    isTuckedHoveringDismiss = false
+                    dismissTargetController?.hide()
+
+                    if (wasDismissHovered) {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                            menuLayout.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
+                        } else {
+                            menuLayout.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+                        }
+                        onTuckedDismiss()
+                    } else {
+                        val isLeft = host.isDockedOnLeft
+                        menuLayoutParams.x = if (isLeft) 0 else (displaySize.x - tabWidthPx).coerceAtLeast(0)
+                        windowManager.safeUpdateViewLayout(menuLayout, menuLayoutParams)
+                        onUserInteraction()
+                    }
                 }
                 return true
             }
 
             MotionEvent.ACTION_CANCEL -> {
                 isTuckedDragging = false
+                isTuckedHoveringDismiss = false
+                dismissTargetController?.hide()
                 return true
             }
         }
