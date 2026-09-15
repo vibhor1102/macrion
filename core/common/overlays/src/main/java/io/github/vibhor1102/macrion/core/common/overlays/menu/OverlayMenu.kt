@@ -159,6 +159,7 @@ abstract class OverlayMenu(
 
     var isMenuTucked: Boolean = false
         private set
+    private var wasTuckedBeforeStop: Boolean = false
 
     protected open fun onMenuTuckedChanged(isTucked: Boolean) {}
     protected open fun onUserInteraction() {}
@@ -397,6 +398,7 @@ abstract class OverlayMenu(
         isTuckedDragging = false
         if (animations.hideAnimationIsRunning) return
         val wasTucked = isMenuTucked
+        wasTuckedBeforeStop = wasTucked
         if (lifecycle.currentState == Lifecycle.State.RESUMED) pause()
 
         if (!wasTucked) {
@@ -445,7 +447,7 @@ abstract class OverlayMenu(
         // Save last user position
         positionDataSource.removeOnLockedPositionChangedListener(onLockedPositionChangedListener)
         menuLayout.removeOnLayoutChangeListener(onMenuLayoutChangeListener)
-        if (!isMenuTucked) {
+        if (!isMenuTucked && !wasTuckedBeforeStop) {
             saveMenuPosition(displayConfigManager.displayConfig.orientation)
         }
 
@@ -691,6 +693,7 @@ abstract class OverlayMenu(
         // Save current full toolbar position before tucking
         saveMenuPosition(displayConfigManager.displayConfig.orientation)
 
+        wasTuckedBeforeStop = false
         isMenuTucked = true
         host.isDockedOnLeft = isLeft
         host.isTucked = true
@@ -848,6 +851,7 @@ abstract class OverlayMenu(
         val currentOrientation = displayConfigManager.displayConfig.orientation
 
         isMenuTucked = false
+        wasTuckedBeforeStop = false
         host.isTucked = false
 
         val density = scaledDensity
