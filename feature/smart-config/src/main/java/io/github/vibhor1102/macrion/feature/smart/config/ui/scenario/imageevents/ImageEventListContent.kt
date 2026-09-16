@@ -56,6 +56,7 @@ import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewMo
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.compose.LocalMonitoredViewsManager
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.compose.tutorialAnchor
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.event.UiImageEvent
+import io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.common.DualDragGestureDetector
 import io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.common.EventListRow
 
 import sh.calvin.reorderable.ReorderableItem
@@ -131,9 +132,13 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
             val reorderableState = rememberReorderableLazyListState(lazyListState) { from, to ->
                 val current = (reorderedItems ?: sourceItems ?: emptyList()).toMutableList()
                 if (from.index in current.indices && to.index in current.indices) {
-                    val updated = current.apply { add(to.index, removeAt(from.index)) }
-                    reorderedItems = updated
-                    viewModel.updateEventsPriority(updated)
+                    reorderedItems = current.apply { add(to.index, removeAt(from.index)) }
+                }
+            }
+
+            LaunchedEffect(sourceItems) {
+                if (!reorderableState.isAnyItemDragging) {
+                    reorderedItems = null
                 }
             }
 
@@ -142,10 +147,14 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
                     haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
                 }
             }
-            val onDragStopped: () -> Unit = remember(viewModel) {
+            val onDragStopped: () -> Unit = remember(viewModel, sourceItems) {
                 {
-                    reorderedItems?.let { viewModel.updateEventsPriority(it) }
-                    reorderedItems = null
+                    val currentReordered = reorderedItems
+                    if (currentReordered != null && currentReordered != sourceItems) {
+                        viewModel.updateEventsPriority(currentReordered)
+                    } else {
+                        reorderedItems = null
+                    }
                 }
             }
             val onMoveEvent: (Int, Int) -> Unit = remember(viewModel, sourceItems) {
@@ -238,6 +247,7 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
                 .draggableHandle(
                     onDragStarted = onDragStarted,
                     onDragStopped = onDragStopped,
+                    dragGestureDetector = DualDragGestureDetector,
                 )
                 .clearAndSetSemantics { }
 
