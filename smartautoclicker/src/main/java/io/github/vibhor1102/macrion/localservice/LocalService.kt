@@ -17,6 +17,8 @@
  */
 package io.github.vibhor1102.macrion.localservice
 
+import io.github.vibhor1102.macrion.core.base.crash.CrashDiagnostics
+
 import android.app.Notification
 import android.content.Context
 import android.content.Intent
@@ -267,6 +269,7 @@ class LocalService(
         )
 
     override fun stopScenario() {
+        CrashDiagnostics.record(CrashDiagnostics.Event.SCENARIO_STOP_REQUESTED)
         serviceScope.launch { scenarioChangeMutex.withLock { stopAndWait() } }
     }
 
@@ -439,6 +442,7 @@ class LocalService(
     }
 
     private fun startSmartScenario(onlyIfRootVisible: Boolean = false) {
+        CrashDiagnostics.record(CrashDiagnostics.Event.SCENARIO_START_REQUESTED)
         serviceScope.launch {
             // Ignore Play while a switch owns this transition. Starting afterward could silently start detection on a
             // scenario different from the one the user saw when they pressed Play.
@@ -465,12 +469,14 @@ class LocalService(
         try {
             notificationController.updateScenarioName(context, scenario.name)
         } catch (error: Exception) {
+            if (error !is kotlinx.coroutines.CancellationException) CrashDiagnostics.recordFailure(error)
             Log.w(TAG, "Unable to update the notification after switching scenario", error)
         }
         try {
             onScenarioChanged(scenario.id.databaseId, true)
             onScenarioStateChanged()
         } catch (error: Exception) {
+            if (error !is kotlinx.coroutines.CancellationException) CrashDiagnostics.recordFailure(error)
             Log.w(TAG, "Unable to update the quick-settings tile after switching scenario", error)
         }
     }

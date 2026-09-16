@@ -134,6 +134,13 @@ private fun TimeUnitDropdown(
     modifier: Modifier,
 ) {
     var expanded by remember { mutableStateOf(false) }
+    androidx.compose.runtime.LaunchedEffect(expanded) {
+        io.github.vibhor1102.macrion.core.base.crash.CrashDiagnostics.record(
+            if (expanded) io.github.vibhor1102.macrion.core.base.crash.CrashDiagnostics.Event.DROPDOWN_OPENED
+            else io.github.vibhor1102.macrion.core.base.crash.CrashDiagnostics.Event.DROPDOWN_CLOSED,
+            "io.github.vibhor1102.macrion.core.ui.compose.PauseEditor",
+        )
+    }
     ExposedDropdownMenuBox(
         expanded = expanded,
         onExpandedChange = { expanded = it },

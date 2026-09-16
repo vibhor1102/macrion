@@ -16,9 +16,13 @@
  */
 package io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.navbar
 
+import io.github.vibhor1102.macrion.core.base.crash.CrashDiagnostics
 import android.app.Application
 import android.content.Context
+import android.view.View
 import android.view.ViewGroup
+import androidx.compose.ui.platform.AbstractComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.annotation.DrawableRes
 
 import androidx.lifecycle.HasDefaultViewModelProviderFactory
@@ -90,7 +94,7 @@ abstract class NavBarDialogContent(
         navBarId = identifier
         dialogController = controller
         rootContainer = container
-        root = onCreateView(container)
+        root = onCreateView(container).apply { disposeTabCompositionsOnDetach() }
 
         lifecycleRegistry.currentState = Lifecycle.State.CREATED
         onViewCreated()
@@ -104,6 +108,8 @@ abstract class NavBarDialogContent(
         if (lifecycleRegistry.currentState != Lifecycle.State.CREATED) return
 
         rootContainer.addView(root)
+        CrashDiagnostics.record(CrashDiagnostics.Event.TAB_SHOWN, javaClass.name,
+            lifecycleRegistry.currentState.ordinal, root.isAttachedToWindow)
 
         if (floatingActionButtonsAreAvailable()) {
             dialogController.floatingActionButtons.configure(
@@ -139,6 +145,8 @@ abstract class NavBarDialogContent(
 
         onStop()
         rootContainer.removeView(root)
+        CrashDiagnostics.record(CrashDiagnostics.Event.TAB_HIDDEN, javaClass.name,
+            lifecycleRegistry.currentState.ordinal, root.isAttachedToWindow)
 
         lifecycleRegistry.currentState = Lifecycle.State.CREATED
     }
@@ -207,3 +215,12 @@ inline fun <reified VM : ViewModel, EP : Any> NavBarDialogContent.dialogViewMode
         { dialogController.hiltComponent.createHiltViewModelFactory(entryPoint, creator) },
         { defaultViewModelCreationExtras },
     )
+
+/** Tab compositions must not outlive attachment to their dialog window. */
+internal fun View.disposeTabCompositionsOnDetach() {
+    if (this is AbstractComposeView) {
+        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
+    } else if (this is ViewGroup) {
+        for (index in 0 until childCount) getChildAt(index).disposeTabCompositionsOnDetach()
+    }
+}

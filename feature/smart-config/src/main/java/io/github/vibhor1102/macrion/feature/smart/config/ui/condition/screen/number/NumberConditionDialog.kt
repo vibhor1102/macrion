@@ -126,6 +126,13 @@ class NumberConditionDialog(private val listener: OnConditionConfigCompleteListe
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable private fun OperandCard(ui: NumberConditionUiState) {
         var expanded by remember { mutableStateOf(false) }
+        androidx.compose.runtime.LaunchedEffect(expanded) {
+            io.github.vibhor1102.macrion.core.base.crash.CrashDiagnostics.record(
+                if (expanded) io.github.vibhor1102.macrion.core.base.crash.CrashDiagnostics.Event.DROPDOWN_OPENED
+                else io.github.vibhor1102.macrion.core.base.crash.CrashDiagnostics.Event.DROPDOWN_CLOSED,
+                "io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.number.NumberConditionDialog",
+            )
+        }
         ElevatedCard(Modifier.fillMaxWidth()) { Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -237,6 +244,13 @@ class NumberConditionDialog(private val listener: OnConditionConfigCompleteListe
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable private fun DetectionCard(ui: NumberConditionUiState) {
         var formatExpanded by remember { mutableStateOf(false) }
+        androidx.compose.runtime.LaunchedEffect(formatExpanded) {
+            io.github.vibhor1102.macrion.core.base.crash.CrashDiagnostics.record(
+                if (formatExpanded) io.github.vibhor1102.macrion.core.base.crash.CrashDiagnostics.Event.DROPDOWN_OPENED
+                else io.github.vibhor1102.macrion.core.base.crash.CrashDiagnostics.Event.DROPDOWN_CLOSED,
+                "io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.number.NumberConditionDialog",
+            )
+        }
         ElevatedCard(Modifier.fillMaxWidth()) { Column(Modifier.padding(vertical = 8.dp)) {
             ExposedDropdownMenuBox(formatExpanded, { formatExpanded = it }, Modifier.padding(horizontal = 16.dp)) {
                 OutlinedTextField(stringResource(ui.numberFormatDropdownItem.title), {}, readOnly = true,

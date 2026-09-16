@@ -95,6 +95,28 @@ jobs:
       env:
         JAVA_TOOL_OPTIONS: "-Djava.net.preferIPv4Stack=true -Dfile.encoding=UTF-8 -Duser.timezone=UTC"
 
+    - name: Package compiler diagnostics
+      env:
+        RELEASE_VERSION: ${{ steps.release.outputs.version }}
+      run: |
+        python3 scripts/diagnostics/archive.py package \
+          --mapping-dir smartautoclicker/build/outputs/mapping/fDroidRelease \
+          --native-root core/smart/detection/build/intermediates/cxx/Release \
+          --output compiler-diagnostics --version "$RELEASE_VERSION" --commit "$GITHUB_SHA"
+
+    - name: Back up compiler diagnostics
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      with:
+        name: compiler-diagnostics-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+        path: compiler-diagnostics/*.zip
+        retention-days: 90
+        if-no-files-found: error
+
+    - name: Archive and verify compiler diagnostics before publishing
+      env:
+        GH_TOKEN: ${{ secrets.ASSETS_REPO_TOKEN }}
+      run: python3 scripts/diagnostics/archive.py publish compiler-diagnostics/diagnostics.zip
+
     - name: Prepare Macrion APKs
       shell: bash
       run: |

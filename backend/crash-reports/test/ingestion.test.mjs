@@ -56,7 +56,7 @@ test('rejects unknown fields, malformed graphs, unsupported versions and dangero
   const h = await harness({ sourceLimit: 1000, ingestLimit: 1000 }); t.after(h.close);
   const mutations = [
     r => { r.scenarioName = 'private'; }, r => { r.device.installationId = 'private'; },
-    r => { r.crash.detection = { text: 'private' }; }, r => { r.schemaVersion = 2; },
+    r => { r.crash.detection = { text: 'private' }; }, r => { r.schemaVersion = 3; },
     r => { r.redactionVersion = 2; }, r => { r.reportId = '../../x'; },
     r => { r.recentOperations[0].event = 'SCENARIO_NAME'; }, r => { r.crash.frames[0].line = 1.2; },
     r => { r.crash.frames = Array(257).fill(r.crash.frames[0]); },
@@ -210,4 +210,39 @@ test('missing or invalid Discord configuration never prevents durable ingestion'
   const invalid = await harness({ discordWebhookUrl: 'https://example.test/api/webhooks/1/x' });
   t.after(invalid.close);
   assert.equal((await send(invalid.mf)).status, 201);
+});
+
+test('v2 preserves bounded UI and execution diagnostics while accepting v1', async t => {
+  const h = await harness(); t.after(h.close);
+  const r = fixture(); r.schemaVersion = 2;
+  r.build.mappingId = 'a'.repeat(64);
+  r.crash.message = 'Composition stack: ' + 'at $$compose.m$123(SourceFile:1)\n'.repeat(100);
+  r.recentOperations = Array.from({length: 128}, () => ({event: 'DROPDOWN_OPENED',
+    component: 'io.github.vibhor1102.macrion.Editor', count: 3, state: 3, attached: false, millisecondsBeforeCrash: 2}));
+  r.recentErrors = [{type: 'java.lang.IllegalArgumentException', message: 'token=private-value index 5',
+    frames: r.crash.frames, millisecondsBeforeCrash: 12}];
+  assert.equal((await send(h.mf, r)).status, 201);
+  const stored = JSON.parse((await h.db.prepare('SELECT payload FROM crash_reports').first()).payload);
+  assert.equal(stored.recentOperations.length, 128);
+  assert(stored.crash.message.includes('$$compose.m$123'));
+  assert(!stored.recentErrors[0].message.includes('private-value'));
+  assert.equal((await send(h.mf, fixture())).status, 201);
+  const bad = fixture(); bad.schemaVersion = 2;
+  bad.recentOperations[0].scenarioName = 'private';
+  assert.equal((await send(h.mf, bad)).status, 400);
+  delete bad.recentOperations[0].scenarioName;
+  bad.recentOperations[0].component = 'user chosen label';
+  assert.equal((await send(h.mf, bad)).status, 400);
+});
+
+test('v2 native traces contain symbolication fields only', async t => {
+  const h = await harness(); t.after(h.close);
+  const r = fixture(); r.schemaVersion = 2; r.mainThread = false;
+  r.crash = {type: 'android.native_crash', frames: [], suppressed: [],
+    nativeExit: {occurredAtMs: 1, status: 11, importance: 100, pssKb: 123, rssKb: 456},
+    nativeTrace: {signal: 11, code: 1, frames: [{library: 'libmacrion.so', function: 'detect',
+      relativePc: 'abc', functionOffset: '12', buildId: 'aabbcc'}]}};
+  assert.equal((await send(h.mf, r)).status, 201);
+  r.crash.nativeTrace.frames[0].memory = 'private';
+  assert.equal((await send(h.mf, r)).status, 400);
 });

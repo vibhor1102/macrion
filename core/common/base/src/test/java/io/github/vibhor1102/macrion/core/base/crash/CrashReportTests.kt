@@ -88,6 +88,29 @@ class CrashReportTests {
         assertTrue(dir.listFiles()!!.isEmpty())
     }
 
+    @Test fun `storage preserves pending v1 and v2 reports together`() {
+        val store = CrashReportStore(temporary.newFolder())
+        val old = JSONObject(CrashReportFactory().create(RuntimeException("old"), environment, true))
+        old.put("schemaVersion", 1).remove("recentErrors")
+        old.put("recentOperations", org.json.JSONArray())
+        store.save(old.toString())
+        store.save(CrashReportFactory().create(RuntimeException("new"), environment, true))
+        assertEquals(setOf(1, 2), store.pending().map { JSONObject(it.body).getInt("schemaVersion") }.toSet())
+    }
+
+    @Test fun `caught diagnostics preserve redaction and truncation accounting`() {
+        val error = IllegalArgumentException("token=private " + "x".repeat(3000))
+        error.stackTrace = Array(20) { StackTraceElement("TechnicalClass", "execute", "Source.kt", it) }
+        CrashDiagnostics.recordFailure(error)
+        val json = JSONObject(CrashReportFactory().create(RuntimeException("failure"), environment, true))
+        val errors = json.getJSONArray("recentErrors")
+        val caught = errors.getJSONObject(errors.length() - 1)
+        assertEquals(16, caught.getJSONArray("frames").length())
+        assertFalse(caught.getString("message").contains("private"))
+        assertTrue(json.getInt("redactionCount") > 0)
+        assertTrue(json.getBoolean("truncated"))
+    }
+
     @Test fun `rejects path traversal ids`() {
         val store = CrashReportStore(temporary.newFolder())
         assertThrows(IllegalArgumentException::class.java) { store.delete("../outside") }

@@ -16,6 +16,7 @@
  */
 package io.github.vibhor1102.macrion.core.common.overlays.dialog
 
+import io.github.vibhor1102.macrion.core.base.crash.CrashDiagnostics
 import android.app.Dialog
 import android.view.Gravity
 import android.view.KeyEvent
@@ -82,6 +83,15 @@ abstract class OverlayDialog(@StyleRes theme: Int? = null) : BaseOverlay(theme, 
 
         val dialogTheme = theme ?: io.github.vibhor1102.macrion.core.ui.R.style.AppTheme
         val view = onCreateView()
+        val component = javaClass.name
+        view.addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
+            override fun onViewAttachedToWindow(v: View) {
+                CrashDiagnostics.record(CrashDiagnostics.Event.VIEW_ATTACHED, component, attached = true)
+            }
+            override fun onViewDetachedFromWindow(v: View) {
+                CrashDiagnostics.record(CrashDiagnostics.Event.VIEW_DETACHED, component, attached = false)
+            }
+        })
 
         val cornerRadius = 28 * context.resources.displayMetrics.density
         view.outlineProvider = object : android.view.ViewOutlineProvider() {

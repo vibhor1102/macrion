@@ -151,6 +151,13 @@ class TimerReachedConditionDialog(private val listener: OnConditionConfigComplet
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable private fun TimeUnitDropdown(selected: TimeUnitDropDownItem, modifier: Modifier) {
         var expanded by remember { mutableStateOf(false) }
+        androidx.compose.runtime.LaunchedEffect(expanded) {
+            io.github.vibhor1102.macrion.core.base.crash.CrashDiagnostics.record(
+                if (expanded) io.github.vibhor1102.macrion.core.base.crash.CrashDiagnostics.Event.DROPDOWN_OPENED
+                else io.github.vibhor1102.macrion.core.base.crash.CrashDiagnostics.Event.DROPDOWN_CLOSED,
+                "io.github.vibhor1102.macrion.feature.smart.config.ui.condition.trigger.timer.TimerReachedConditionDialog",
+            )
+        }
         ExposedDropdownMenuBox(expanded, { expanded = it }, modifier) {
             OutlinedTextField(stringResource(selected.title), {},
                 Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable).fillMaxWidth(), readOnly = true,

@@ -46,6 +46,13 @@ internal fun <T> DebugReportSortMenu(
     onSelected: (T) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    androidx.compose.runtime.LaunchedEffect(expanded) {
+        io.github.vibhor1102.macrion.core.base.crash.CrashDiagnostics.record(
+            if (expanded) io.github.vibhor1102.macrion.core.base.crash.CrashDiagnostics.Event.DROPDOWN_OPENED
+            else io.github.vibhor1102.macrion.core.base.crash.CrashDiagnostics.Event.DROPDOWN_CLOSED,
+            "DebugReportSortMenu",
+        )
+    }
     DropdownMenu(
         expanded = expanded,
         onDismissRequest = onDismissRequest,

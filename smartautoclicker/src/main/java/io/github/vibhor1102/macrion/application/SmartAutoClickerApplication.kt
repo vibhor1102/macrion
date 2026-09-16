@@ -18,6 +18,7 @@ package io.github.vibhor1102.macrion.application
 
 import android.app.Application
 import android.content.Context
+import io.github.vibhor1102.macrion.crash.registerUiCrashDiagnostics
 import io.github.vibhor1102.macrion.crash.initializeLocalCrashReporting
 import io.github.vibhor1102.macrion.crash.captureHistoricalNativeCrash
 import io.github.vibhor1102.macrion.ComponentConfig
@@ -38,6 +39,11 @@ class SmartAutoClickerApplication : Application() {
     override fun onCreate() {
         super.onCreate()
 
+        // Group keys add no continuous composition tracing and survive release minification.
+        androidx.compose.runtime.Composer.setDiagnosticStackTraceMode(
+            androidx.compose.runtime.tooling.ComposeStackTraceMode.GroupKeys,
+        )
+        registerUiCrashDiagnostics()
         captureHistoricalNativeCrash()
 
         val componentConfig = ComponentConfig

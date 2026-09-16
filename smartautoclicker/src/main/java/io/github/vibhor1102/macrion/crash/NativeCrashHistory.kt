@@ -11,6 +11,7 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import io.github.vibhor1102.macrion.core.base.crash.CrashReportFactory
 import io.github.vibhor1102.macrion.core.base.crash.NativeExitData
+import io.github.vibhor1102.macrion.core.base.crash.NativeTraceParser
 import org.json.JSONObject
 import java.io.File
 
@@ -36,7 +37,7 @@ object NativeCrashHistory {
     }
 }
 
-/** Detects Android-recorded native exits on API 30+. Never reads descriptions or trace streams. */
+/** Detects Android-recorded native exits on API 30+. Reads only allowlisted native trace fields on API 31+. */
 fun Context.captureHistoricalNativeCrash() {
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return
     runCatching { captureHistoricalNativeCrashApi30() }
@@ -47,7 +48,8 @@ private fun Context.captureHistoricalNativeCrashApi30() {
     val checkpointFile = File(noBackupFilesDir, "native-exit-checkpoint")
     val previous = checkpointFile.takeIf { it.isFile }?.readText()?.toLongOrNull()
     val manager = getSystemService(ActivityManager::class.java) ?: return
-    val exits = manager.getHistoricalProcessExitReasons(null, 0, MAX_EXITS).map {
+    val rawExits = manager.getHistoricalProcessExitReasons(null, 0, MAX_EXITS)
+    val exits = rawExits.map {
         HistoricalExit(it.timestamp, it.reason, it.status, it.importance, it.pss, it.rss)
     }
     val selection = NativeCrashHistory.select(previous, exits, System.currentTimeMillis())
@@ -60,8 +62,11 @@ private fun Context.captureHistoricalNativeCrashApi30() {
             }.getOrDefault(false)
         }
         if (!alreadyCaptured) {
+            val trace = if (Build.VERSION.SDK_INT >= 31) runCatching {
+                rawExits.firstOrNull { it.timestamp == native.timestamp }?.traceInputStream?.use(NativeTraceParser::parse)
+            }.getOrNull() else null
             crashReportStore().save(CrashReportFactory().createNativeExit(
-                NativeExitData(native.timestamp, native.status, native.importance, native.pssKb, native.rssKb),
+                NativeExitData(native.timestamp, native.status, native.importance, native.pssKb, native.rssKb, trace),
                 crashEnvironment(),
             ))
         }
