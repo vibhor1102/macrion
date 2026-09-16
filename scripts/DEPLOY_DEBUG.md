@@ -78,7 +78,14 @@ scripts/deploy-debug.py \
   --test :core:smart:processing:testFDroidDebugUnitTest '*ExecutionLimiterTimingTests'
 ```
 
-Tests and assembly share one Gradle invocation. Deployment requires the whole
+To run unit tests without compiling the APK or connecting to the phone, use `--test-only` (or `--mode test-only`):
+
+```sh
+scripts/deploy-debug.py --test-only \
+  --test :core:common:settings:testFDroidDebugUnitTest '*ScenarioSortItemTest'
+```
+
+Tests and assembly share one Gradle invocation unless `--test-only` is passed. Deployment requires the whole
 invocation to succeed. A test task uses one worker JVM; empty test discovery or
 unmatched filters fail. Different selected modules can still run in parallel
 within the Gradle worker limit. Do not substitute broad suites for selecting

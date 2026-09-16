@@ -180,6 +180,22 @@ class RunnerTests(unittest.TestCase):
             with self.assertRaises(deploy.Failure):
                 deploy.apk_from_metadata(root)
 
+    def test_test_only_requires_filter(self):
+        with patch.object(sys, "argv", ["deploy-debug.py", "--test-only"]):
+            with self.assertRaises(SystemExit):
+                with contextlib.redirect_stderr(io.StringIO()):
+                    deploy.options()
+
+    def test_test_only_options_parsing(self):
+        with patch.object(sys, "argv", ["deploy-debug.py", "--test-only",
+                                        "--test", ":core:common:settings:testFDroidDebugUnitTest", "*Test"]):
+            opts = deploy.options()
+            self.assertTrue(opts.test_only)
+            self.assertEqual(len(opts.test), 1)
+        with patch.object(sys, "argv", ["deploy-debug.py", "--mode", "test-only",
+                                        "--test", ":core:common:settings:testFDroidDebugUnitTest", "*Test"]):
+            opts = deploy.options()
+            self.assertEqual(opts.mode, "test-only")
 
 if __name__ == "__main__":
     unittest.main()

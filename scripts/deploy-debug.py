@@ -203,19 +203,24 @@ def options():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--device", default=DEVICE, help="Wireless ADB host:port")
     parser.add_argument("--workers", type=int, default=6)
-    parser.add_argument("--mode", choices=("debug", "performance"),
+    parser.add_argument("--mode", choices=("debug", "performance", "test-only"),
                         default=os.environ.get("MACRION_DEBUG_MODE", DEFAULT_MODE),
-                        help="debug: full debugger access; performance: profileable with verified ART speed compilation")
+                        help="debug: full debugger access; performance: profileable with verified ART speed compilation; test-only: run tests without device deployment")
+    parser.add_argument("--test-only", action="store_true",
+                        help="Run focused unit tests only; skip compilation, phone checks, and installation")
     parser.add_argument("--test", nargs=2, action="append", default=[],
                         metavar=("TASK", "FILTER"), help="Focused unit-test task and class/method filter; repeatable")
     parser.add_argument("--source-info", action="store_true", help="Include Compose source metadata for diagnostics")
     parser.add_argument("--skip-precompile", action="store_true", help="Skip device ART compilation for diagnostics")
     parser.add_argument("--verbose", action="store_true", help="Stream Gradle output (ADB recovery always stays quiet)")
     args = parser.parse_args()
-    if args.mode not in ("debug", "performance"):
-        parser.error("MACRION_DEBUG_MODE must be debug or performance")
+    if args.mode not in ("debug", "performance", "test-only"):
+        parser.error("MACRION_DEBUG_MODE must be debug, performance, or test-only")
     if args.workers < 1 or not re.fullmatch(r"[A-Za-z0-9_.-]+:[0-9]+", args.device):
         parser.error("Use a positive worker count and a wireless host:port")
+    is_test_only = args.test_only or args.mode == "test-only"
+    if is_test_only and not args.test:
+        parser.error("Test-only mode requires at least one --test TASK FILTER")
     for task, pattern in args.test:
         if not re.fullmatch(r":[A-Za-z0-9_:-]+:test[A-Za-z0-9]*DebugUnitTest", task):
             parser.error("--test requires a fully qualified debug unit-test task")
@@ -225,7 +230,9 @@ def options():
 
 
 def deploy(args):
-    for tool in ("java", "adb"):
+    is_test_only = args.test_only or args.mode == "test-only"
+    required_tools = ("java",) if is_test_only else ("java", "adb")
+    for tool in required_tools:
         if not shutil.which(tool):
             raise Failure(f"Required executable unavailable: {tool}")
     java = Path(os.environ.get("JAVA_HOME", Path(shutil.which("java")).resolve().parent.parent))
@@ -235,9 +242,11 @@ def deploy(args):
     os.environ["JAVA_HOME"] = str(java.resolve())
     if shutil.which("ccache"):
         os.environ["USE_CCACHE"] = "true"
-    player = next((tool for tool in ("paplay", "pw-play") if shutil.which(tool)), None)
-    if not player:
-        raise Failure("Install paplay or pw-play for the phone reconnect alert")
+    player = None
+    if not is_test_only:
+        player = next((tool for tool in ("paplay", "pw-play") if shutil.which(tool)), None)
+        if not player:
+            raise Failure("Install paplay or pw-play for the phone reconnect alert")
     gradle_home = Path(os.environ.get("GRADLE_USER_HOME", Path.home() / ".gradle")).resolve()
     gradle_home.mkdir(parents=True, exist_ok=True)
     # A shared lock also serializes deployments from other Macrion worktrees.
@@ -250,6 +259,38 @@ def deploy(args):
         log_root.mkdir(parents=True, exist_ok=True)
         logs = Path(tempfile.mkdtemp(prefix=time.strftime("%Y%m%d-%H%M%S-"), dir=log_root))
         runner = Runner(ROOT, logs, args.verbose)
+        started = time.monotonic()
+
+        effective_mode = "debug" if is_test_only else args.mode
+        base = [str(ROOT / "gradlew"), "--daemon", "--console=plain",
+                f"-Dorg.gradle.java.home={java.resolve()}",
+                f"--max-workers={args.workers}", "--parallel", "--build-cache",
+                "--configuration-cache", "-PmacrionDebugAbi=arm64-v8a",
+                f"-PmacrionDebugMode={effective_mode}"]
+        if args.source_info:
+            base += ["-PmacrionIncludeComposeSourceInfo=true"]
+        # Do not silently create an extra daemon if an unmanaged build is busy.
+        _, status = runner.run("daemon-status", [*base, "--status"], timeout=30)
+        if re.search(r"^\s*\d+\s+BUSY\b", status.read_text(), re.MULTILINE):
+            raise Failure("A Gradle daemon for this wrapper is busy; wait for that build to finish")
+
+        tasks = {}
+        for task, pattern in args.test:
+            tasks.setdefault(task, []).append(pattern)
+        command = list(base)
+        if tasks:
+            command.extend(["--init-script", str(ROOT / "scripts/debug-tests.init.gradle")])
+        for task, patterns in tasks.items():
+            command.append(task)
+            for pattern in patterns:
+                command.extend(["--tests", pattern])
+
+        if is_test_only:
+            print("Running focused tests…", flush=True)
+            runner.run("test", command)
+            print(f"Done in {time.monotonic() - started:.0f}s. Focused tests passed.\nLogs: {logs}", flush=True)
+            return
+
         alert_file = logs / "alert.wav"
         make_alert(alert_file)
 
@@ -257,34 +298,11 @@ def deploy(args):
             # Never leak audio/ADB recovery output into the agent's terminal.
             capture([player, str(alert_file)], timeout=2)
 
-        base = [str(ROOT / "gradlew"), "--daemon", "--console=plain",
-                f"-Dorg.gradle.java.home={java.resolve()}",
-                f"--max-workers={args.workers}", "--parallel", "--build-cache",
-                "--configuration-cache", "-PmacrionDebugAbi=arm64-v8a",
-                f"-PmacrionDebugMode={args.mode}"]
-        if args.source_info:
-            base += ["-PmacrionIncludeComposeSourceInfo=true"]
-        # Do not silently create an extra daemon if an unmanaged build is busy.
-        _, status = runner.run("daemon-status", [*base, "--status"], timeout=30)
-        if re.search(r"^\s*\d+\s+BUSY\b", status.read_text(), re.MULTILINE):
-            raise Failure("A Gradle daemon for this wrapper is busy; wait for that build to finish")
         stop = threading.Event()
         phone = Phone(args.device, alert, stop)
-        started = time.monotonic()
         with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
             monitor = pool.submit(phone.wait)
             try:
-                # One invocation, grouping filters by task, keeps compiler daemons warm.
-                tasks = {}
-                for task, pattern in args.test:
-                    tasks.setdefault(task, []).append(pattern)
-                command = list(base)
-                if tasks:
-                    command.extend(["--init-script", str(ROOT / "scripts/debug-tests.init.gradle")])
-                for task, patterns in tasks.items():
-                    command.append(task)
-                    for pattern in patterns:
-                        command.extend(["--tests", pattern])
                 command.append(ASSEMBLE)
                 print(f"Building ARM64 debug APK ({args.mode} mode)" +
                       (" and running focused tests…" if tasks else "…"), flush=True)
