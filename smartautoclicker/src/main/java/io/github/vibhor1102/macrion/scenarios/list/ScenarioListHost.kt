@@ -18,6 +18,7 @@
 package io.github.vibhor1102.macrion.scenarios.list
 
 import android.content.Intent
+import androidx.activity.ComponentActivity
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -58,7 +59,6 @@ import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.crash.CrashReportDialog
 import io.github.vibhor1102.macrion.feature.backup.ui.BackupDialog
 import io.github.vibhor1102.macrion.feature.backup.ui.BackupViewModel
-import io.github.vibhor1102.macrion.scenarios.ScenarioActivity
 import io.github.vibhor1102.macrion.scenarios.creation.ScenarioCreationSheet
 import io.github.vibhor1102.macrion.scenarios.creation.ScenarioCreationViewModel
 import io.github.vibhor1102.macrion.scenarios.list.copy.ScenarioCopyDialog
@@ -88,9 +88,10 @@ sealed interface ActiveScenarioDialog {
 
 /**
  * Activity-owned host for the Compose scenario list and its dialog/navigation callbacks.
+ * Accepts the shared activity base because obfuscated builds generate a separate entry point class.
  */
 class ScenarioListHost(
-    private val activity: ScenarioActivity,
+    private val activity: ComponentActivity,
     private val scenarioListViewModel: ScenarioListViewModel,
     private val scenarioCreationViewModel: ScenarioCreationViewModel,
     private val scenarioCopyViewModel: ScenarioCopyViewModel,
