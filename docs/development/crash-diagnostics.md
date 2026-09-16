@@ -6,7 +6,7 @@ The release job creates `compiler-diagnostics/diagnostics.zip`, uploads a 90-day
 
 Native libraries from the release CMake output are archived in separate content-addressed ZIPs. A native-only code change can share a Java mapping ID without overwriting another native build. These libraries retain whatever symbols the release compiler emitted; the existing release configuration does not generate full source-level native debug information.
 
-`ASSETS_REPO_TOKEN` is a fine-grained token stored in the main repository's `github-release` environment, scoped to Contents write on `macrion-assets`. No token is included in artifacts. The separate repository is public and must contain only compiler/build diagnostics, never crash reports. Credential expiration requires rotation, not work on each release. The `Check diagnostic archive` workflow exercises create/upload/download using a temporary draft and removes it afterward.
+`ASSETS_REPO_TOKEN` is a fine-grained token stored in the main repository's `github-release` environment, scoped to Contents write on `macrion-assets`. No token is included in artifacts. The separate repository is public and must contain only compiler/build diagnostics, never crash reports. Credential expiration requires rotation, not work on each release.
 
 The recovered 0.5.0 mapping has already been archived. Old published APKs are unchanged.
 
@@ -33,8 +33,8 @@ Excluded: user-chosen scenario/action/condition names, captured images, recogniz
 
 Tests cover v1/v2 storage and server compatibility, ring bounds/coalescing, native field filtering, malformed data and compiler archive integrity. Debug testing does not substitute for exercising diagnostic composition traces in a minified build. Device performance has not been benchmarked; the normal-use design is bounded and event-driven rather than sampled.
 
-## Validation workflows
+## Validation
 
-`Check minified diagnostics` builds an unsigned ARM64 F-Droid release on GitHub Actions, checks that Retrace recovers 20 Macrion composable locations from the generated group-key mappings, and validates archive packaging against the real compiler output. It retains compiler artifacts for 14 days and does not publish APKs or release tags. The synthetic frames verify mapping/decoding compatibility; they do not prove that a runtime Compose failure attaches its diagnostic exception.
+Initial verification passed for archive credentials and cleanup, unsigned ARM64 release packaging, and Retrace decoding of 20 synthetic Compose group-key frames. The installed debug build passed the user's device smoke test on September 16, 2026. Synthetic decoding does not prove runtime Compose exception capture.
 
-Both diagnostic checks are manual-only (`workflow_dispatch`), for targeted validation of credentials or diagnostic tooling. Routine release archival and upload verification run inside `release.yml` before APK publication; no separate post-release workflow is required. The installed ARM64 debug build passed the user's device smoke test on September 16, 2026.
+The one-time validation workflows and their dedicated helpers were removed after verification. Routine archive upload and verification remain inside `release.yml` before APK publication; no separate post-release workflow is required. Use `python3 scripts/diagnostics/test_archive.py` for focused archive regression tests when changing the archive tooling.
