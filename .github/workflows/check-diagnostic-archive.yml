@@ -1,10 +1,6 @@
 name: Check diagnostic archive
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - 'scripts/diagnostics/**'
-      - '.github/workflows/check-diagnostic-archive.yml'
 permissions:
   contents: read
 jobs:

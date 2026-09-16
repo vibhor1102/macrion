@@ -1,10 +1,6 @@
 name: Check minified diagnostics
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - '.github/workflows/check-minified-diagnostics.yml'
-      - 'scripts/diagnostics/check_compose_mapping.py'
 permissions:
   contents: read
 jobs:
