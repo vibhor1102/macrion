@@ -47,11 +47,12 @@ internal class ActionsEditor<Parent>(
     )
 
     override fun startItemEdition(item: Action) {
-        super.startItemEdition(item)
+        val currentItem = editedList.value?.find { it.id == item.id } ?: item
+        super.startItemEdition(currentItem)
 
-        when (item) {
-            is Intent -> intentExtraEditor.startEdition(item.extras ?: emptyList())
-            is ToggleEvent -> eventToggleEditor.startEdition(item.eventToggles)
+        when (currentItem) {
+            is Intent -> intentExtraEditor.startEdition(currentItem.extras ?: emptyList())
+            is ToggleEvent -> eventToggleEditor.startEdition(currentItem.eventToggles)
             else -> Unit
         }
     }

@@ -43,4 +43,26 @@ class ListEditorTest {
         assertEquals("updated_1", allItems.first { it.id == id1 }.value)
         assertEquals("initial_2", allItems.first { it.id == id2 }.value)
     }
+
+    @Test
+    fun `startItemEdition resolves to latest item from editedList when existing id is passed with stale data`() = runTest {
+        val parentFlow = MutableStateFlow<String?>("parent")
+        val editor = ListEditor<TestItem, String>(parentItem = parentFlow)
+
+        val id1 = Identifier(databaseId = 1L)
+        val initialItem = TestItem(id1, "initial")
+        editor.startEdition(listOf(initialItem))
+
+        // Edit and upsert updated item
+        editor.startItemEdition(initialItem)
+        val updatedItem = initialItem.copy(value = "updated")
+        editor.updateEditedItem(updatedItem)
+        editor.upsertEditedItem()
+
+        // Re-start edition passing the stale initialItem
+        editor.startItemEdition(initialItem)
+
+        // The edited item must be the updated item from editedList, not the stale initialItem
+        assertEquals("updated", editor.editedItem.value?.value)
+    }
 }

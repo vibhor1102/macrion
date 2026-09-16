@@ -174,7 +174,7 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
                                 isLastIndex = index == itemsToDisplay.lastIndex,
                                 touchExplorationEnabled = touchExplorationEnabled,
                                 reorderableState = reorderableState,
-                                onEventClick = remember(item.event.id) { { onEventItemClicked(item.event) } },
+                                onEventClick = remember(item.event) { { onEventItemClicked(item.event) } },
                                 onDragStarted = onDragStarted,
                                 onDragStopped = onDragStopped,
                                 onMoveEvent = onMoveEvent,
