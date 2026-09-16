@@ -271,9 +271,6 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
         }
     }
 
-    private fun List<UiImageEvent>.move(from: Int, to: Int): List<UiImageEvent> =
-        toMutableList().apply { add(to, removeAt(from)) }
-
     /**
      * Lazy layouts persist item state in a Bundle, so keys must be Bundle-saveable.
      * Database ids are positive and temporary ids are positive but have a database id of zero;

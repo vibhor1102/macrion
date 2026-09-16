@@ -109,7 +109,6 @@ class TriggerEventListContent(appContext: Context) : NavBarDialogContent(appCont
                         key = { it.event.id.toLazyListKey() },
                         contentType = { "trigger_event_item" },
                     ) { item ->
-                        val onRowClick = remember(item.event) { { onTriggerEventItemClicked(item.event) } }
                         EventListRow(
                             name = item.name,
                             conditionsCount = item.conditionsCountText,
@@ -119,7 +118,7 @@ class TriggerEventListContent(appContext: Context) : NavBarDialogContent(appCont
                             conditionIconRes = R.drawable.ic_trigger_condition,
                             actionsInError = item.haveError,
                             showReorderHandle = false,
-                            onClick = onRowClick,
+                            onClick = { onTriggerEventItemClicked(item.event) },
                         )
                         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                     }

@@ -65,22 +65,20 @@ internal fun EventListRow(
     isBeingDragged: Boolean = false,
     accessibilityActions: List<CustomAccessibilityAction> = emptyList(),
 ) {
-    val rowBackground = if (isBeingDragged) {
-        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f)
-    } else {
-        Color.Transparent
-    }
+    val rowBackground by animateColorAsState(
+        if (isBeingDragged) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f) else Color.Transparent,
+        label = "event_row_drag_bg",
+    )
 
     Row(
         modifier = modifier
             .fillMaxWidth()
             .height(62.dp)
             .background(rowBackground)
-            .semantics(mergeDescendants = true) {
-                if (accessibilityActions.isNotEmpty()) {
-                    customActions = accessibilityActions
-                }
-            }
+            .then(
+                if (accessibilityActions.isEmpty()) Modifier
+                else Modifier.semantics { customActions = accessibilityActions },
+            )
             .clickable(onClick = onClick),
         verticalAlignment = Alignment.CenterVertically,
     ) {
