@@ -92,12 +92,6 @@ within the Gradle worker limit. Do not substitute broad suites for selecting
 relevant tests. Cosmetic changes normally need the build and a focused phone
 check. Backend tests remain separate because that backend uses Node.js.
 
-The orchestration tests use fake device/audio responses and tiny subprocesses:
-
-```sh
-python3 -m unittest discover -s scripts -p test_deploy_debug.py
-```
-
 ## Daemons and performance
 
 The wrapper version, canonical JDK 25 path, existing Gradle user home, and stable
