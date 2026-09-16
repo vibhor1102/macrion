@@ -25,5 +25,7 @@ try:
         print('Archive credential can create releases, upload assets and retrieve matching bytes.')
 finally:
     if created:
-        gh('release', 'delete', tag, '--repo', REPOSITORY, '--yes', '--cleanup-tag')
+        # An unpublished draft does not create a Git tag. Deleting a nonexistent
+        # tag would report failure after successfully deleting the draft itself.
+        gh('release', 'delete', tag, '--repo', REPOSITORY, '--yes')
         print('Temporary draft release removed.')
