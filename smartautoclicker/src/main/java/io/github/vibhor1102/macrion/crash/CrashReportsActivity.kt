@@ -76,7 +76,7 @@ class CrashReportsActivity : ComponentActivity() {
                     LazyColumn(Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         item { Text(stringResource(R.string.crash_report_local_notice)) }
-                        if (BuildConfig.DEBUG) item {
+                        if (BuildConfig.LOCAL_DIAGNOSTICS) item {
                             Button(enabled = !loading, onClick = { reload { createSample() } }) {
                                 Text(stringResource(R.string.crash_reports_sample))
                             }
@@ -171,7 +171,7 @@ class CrashReportsActivity : ComponentActivity() {
     }
 
     private fun createSample() {
-        if (!BuildConfig.DEBUG) return
+        if (!BuildConfig.LOCAL_DIAGNOSTICS) return
         val error = IllegalStateException("Synthetic failure for tester@example.com; token=sample-secret; /storage/emulated/0/private.txt",
             IllegalArgumentException("Synthetic parser error at index 3"))
         LocalCrashAdministrator().shouldStartCollecting(this, CoreConfiguration(),

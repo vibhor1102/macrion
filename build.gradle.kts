@@ -26,3 +26,16 @@ plugins {
     alias(libs.plugins.androidxRoom) apply false
 
 }
+
+// Applies to command-line builds too, independently of the deployment helper.
+subprojects {
+    pluginManager.withPlugin("org.jetbrains.kotlin.plugin.compose") {
+        extensions.configure<org.jetbrains.kotlin.compose.compiler.gradle.ComposeCompilerGradlePluginExtension> {
+            includeSourceInformation.set(
+                providers.gradleProperty("macrionIncludeComposeSourceInfo")
+                    .map { it.toBooleanStrict() }
+                    .orElse(false),
+            )
+        }
+    }
+}
