@@ -197,7 +197,11 @@ class ItemsReorderDialog(
                                     key = { _, item -> item.id.toString() },
                                 ) { _, item ->
                                     val descriptor = itemDescriptor(item)
-                                    ReorderableItem(reorderState, key = item.id.toString()) { isBeingDragged ->
+                                    ReorderableItem(
+                                        state = reorderState,
+                                        key = item.id.toString(),
+                                        animateItemModifier = if (reorderState.isAnyItemDragging) Modifier.animateItem() else Modifier,
+                                    ) { isBeingDragged ->
                                         Column {
                                             ReorderItemRow(
                                                 title = descriptor.title,

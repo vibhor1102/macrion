@@ -229,7 +229,11 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
             }
         } else emptyList()
 
-        ReorderableItem(reorderableState, item.event.id.toLazyListKey()) { isBeingDragged ->
+        ReorderableItem(
+            state = reorderableState,
+            key = item.event.id.toLazyListKey(),
+            animateItemModifier = if (reorderableState.isAnyItemDragging) Modifier.animateItem() else Modifier,
+        ) { isBeingDragged ->
             val reorderHandleModifier = Modifier
                 .draggableHandle(
                     onDragStarted = onDragStarted,

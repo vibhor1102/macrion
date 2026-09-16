@@ -161,7 +161,11 @@ class DumbActionListContent(appContext: Context) : NavBarDialogContent(appContex
                 else -> LazyColumn(Modifier.fillMaxSize(), state = listState) {
                     items(displayedItems.ifEmpty { sourceItems }, key = { it.action.id.databaseId.takeIf { id -> id != 0L } ?: -requireNotNull(it.action.id.tempId) }) { item ->
                         val key = item.action.id.databaseId.takeIf { it != 0L } ?: -requireNotNull(item.action.id.tempId)
-                        ReorderableItem(reorderState, key) { dragging ->
+                        ReorderableItem(
+                            state = reorderState,
+                            key = key,
+                            animateItemModifier = if (reorderState.isAnyItemDragging) Modifier.animateItem() else Modifier,
+                        ) { dragging ->
                             DumbActionListItem(
                                 details = item,
                                 showHandle = true,
