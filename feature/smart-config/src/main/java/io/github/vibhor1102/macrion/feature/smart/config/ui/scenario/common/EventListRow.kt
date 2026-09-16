@@ -136,21 +136,34 @@ private fun DragHandle(
     reorderHandleModifier: Modifier,
     isBeingDragged: Boolean,
 ) {
-    val handleTint = if (isBeingDragged) {
-        MaterialTheme.colorScheme.primary
-    } else {
-        MaterialTheme.colorScheme.onSurfaceVariant
-    }
-    val containerColor = if (isBeingDragged) {
-        MaterialTheme.colorScheme.primary.copy(alpha = 0.16f)
-    } else {
-        Color.Transparent
-    }
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val isActive = isPressed || isBeingDragged
+
+    val handleTint by animateColorAsState(
+        if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+        animationSpec = tween(durationMillis = 100),
+        label = "handle_tint",
+    )
+    val containerColor by animateColorAsState(
+        if (isActive) MaterialTheme.colorScheme.primary.copy(alpha = 0.16f) else Color.Transparent,
+        animationSpec = tween(durationMillis = 100),
+        label = "handle_container",
+    )
 
     Box(
         modifier = Modifier
             .size(48.dp)
             .background(containerColor, CircleShape)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = ripple(
+                    color = MaterialTheme.colorScheme.primary,
+                    bounded = true,
+                    radius = 24.dp,
+                ),
+                onClick = {},
+            )
             .then(reorderHandleModifier),
         contentAlignment = Alignment.Center,
     ) {
