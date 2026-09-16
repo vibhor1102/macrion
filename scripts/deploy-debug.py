@@ -22,7 +22,7 @@ import wave
 ROOT = Path(__file__).resolve().parents[1]
 DEVICE = "192.168.1.170:5555"
 ASSEMBLE = ":smartautoclicker:assembleFDroidDebug"
-DEFAULT_MODE = "debug"
+DEFAULT_MODE = "performance"
 
 
 class Failure(Exception):
@@ -205,7 +205,7 @@ def options():
     parser.add_argument("--workers", type=int, default=6)
     parser.add_argument("--mode", choices=("debug", "performance", "test-only"),
                         default=os.environ.get("MACRION_DEBUG_MODE", DEFAULT_MODE),
-                        help="debug: full debugger access; performance: profileable with verified ART speed compilation; test-only: run tests without device deployment")
+                        help="performance (default): profileable with verified ART speed compilation; debug: full debugger access; test-only: run tests without device deployment")
     parser.add_argument("--test-only", action="store_true",
                         help="Run focused unit tests only; skip compilation, phone checks, and installation")
     parser.add_argument("--test", nargs=2, action="append", default=[],

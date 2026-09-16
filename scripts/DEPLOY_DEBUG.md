@@ -16,28 +16,27 @@ required. `ccache` is enabled when installed.
 ## Modes
 
 ```sh
-scripts/deploy-debug.py                     # Mode 1: debug, the default
-scripts/deploy-debug.py --mode performance  # Mode 2: profileable, non-debuggable, ART speed
-scripts/deploy-debug.py --mode debug        # Explicitly return to full debugging
+scripts/deploy-debug.py                     # Mode 1: performance, the default (profileable, non-debuggable, ART speed)
+scripts/deploy-debug.py --mode debug        # Mode 2: debug (preserves debugger attachment and adb run-as)
 ```
 
 Both use the same debug package, signing key and application data. Switching
 modes replaces the installed APK without clearing data. Both are unminified,
 retain readable names/line numbers and native debug build settings, and include
 the app's local diagnostic controls. The helper verifies the installed debugging
-flag. Set `MACRION_DEBUG_MODE=debug` or `performance` in your shell to change the
+flag. Set `MACRION_DEBUG_MODE=performance` or `debug` in your shell to change the
 local default; an explicit `--mode` wins. Direct Gradle builds default to debug;
 `-PmacrionDebugMode=performance` selects the other mode.
 
-| Capability over wireless ADB | Debug (default) | Performance |
+| Capability over wireless ADB | Performance (default) | Debug |
 | --- | --- | --- |
 | Logcat, dumpsys, gfxinfo, meminfo | Yes | Yes |
 | Perfetto system/UI/Compose tracing | Yes | Yes |
-| Shell CPU profiling and native heap sampling | Yes | Yes, with device/tool support |
+| Shell CPU profiling and native heap sampling | Yes, with device/tool support | Yes |
 | In-app diagnostic reports and crash-testing controls | Yes | Yes |
-| Debugger/JVMTI attachment, breakpoints, `run-as` | Yes | No |
-| Debugger-based Java/Kotlin allocation recording and heap dumps | Yes | No |
-| Verified ART `speed` compilation on Android 14 | No | Yes |
+| Debugger/JVMTI attachment, breakpoints, `run-as` | No | Yes |
+| Debugger-based Java/Kotlin allocation recording and heap dumps | No | Yes |
+| Verified ART `speed` compilation on Android 14 | Yes | No |
 
 The debug-only manifest declares `<profileable android:shell="true"/>`, and a
 debug-only Compose runtime-tracing dependency enables composable slices. No
