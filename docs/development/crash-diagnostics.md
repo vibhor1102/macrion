@@ -32,3 +32,9 @@ The server continues accepting v1. Deploy the compatible validator before distri
 Excluded: user-chosen scenario/action/condition names, captured images, recognized or typed text, action payloads, intent extras, notification content, logcat, memory/register dumps, credentials, thread names, stable user identifiers and arbitrary databases/preferences. Technical exception messages remain best-effort redacted, not guaranteed anonymous.
 
 Tests cover v1/v2 storage and server compatibility, ring bounds/coalescing, native field filtering, malformed data and compiler archive integrity. Debug testing does not substitute for exercising diagnostic composition traces in a minified build. Device performance has not been benchmarked; the normal-use design is bounded and event-driven rather than sampled.
+
+## Validation workflows
+
+`Check minified diagnostics` builds an unsigned ARM64 F-Droid release on GitHub Actions, checks that Retrace recovers 20 Macrion composable locations from the generated group-key mappings, and validates archive packaging against the real compiler output. It retains compiler artifacts for 14 days and does not publish APKs or release tags. The synthetic frames verify mapping/decoding compatibility; they do not prove that a runtime Compose failure attaches its diagnostic exception.
+
+Both diagnostic checks can be dispatched manually. Changes to their workflow or validation scripts also trigger the relevant checks on push. The installed ARM64 debug build passed the user's device smoke test on September 16, 2026.
