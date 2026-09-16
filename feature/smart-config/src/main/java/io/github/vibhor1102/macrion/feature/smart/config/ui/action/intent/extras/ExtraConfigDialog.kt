@@ -178,6 +178,13 @@ class ExtraConfigDialog(
         onSelected: (DropdownItem) -> Unit,
     ) {
         var expanded by remember { mutableStateOf(false) }
+        androidx.compose.runtime.LaunchedEffect(expanded) {
+            io.github.vibhor1102.macrion.core.base.crash.CrashDiagnostics.record(
+                if (expanded) io.github.vibhor1102.macrion.core.base.crash.CrashDiagnostics.Event.DROPDOWN_OPENED
+                else io.github.vibhor1102.macrion.core.base.crash.CrashDiagnostics.Event.DROPDOWN_CLOSED,
+                "io.github.vibhor1102.macrion.feature.smart.config.ui.action.intent.extras.ExtraConfigDialog",
+            )
+        }
         ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
             OutlinedTextField(
                 value = stringResource(selected.title),

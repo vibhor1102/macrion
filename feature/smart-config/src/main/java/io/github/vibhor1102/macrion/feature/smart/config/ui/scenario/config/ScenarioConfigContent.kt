@@ -129,6 +129,13 @@ class ScenarioConfigContent(appContext: Context) : NavBarDialogContent(appContex
         var value by rememberSaveable { mutableStateOf(state.value.toNaturalDisplayString()) }
         var focused by remember { mutableStateOf(false) }
         var menuExpanded by remember { mutableStateOf(false) }
+        androidx.compose.runtime.LaunchedEffect(menuExpanded) {
+            io.github.vibhor1102.macrion.core.base.crash.CrashDiagnostics.record(
+                if (menuExpanded) io.github.vibhor1102.macrion.core.base.crash.CrashDiagnostics.Event.DROPDOWN_OPENED
+                else io.github.vibhor1102.macrion.core.base.crash.CrashDiagnostics.Event.DROPDOWN_CLOSED,
+                "io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.config.ScenarioConfigContent",
+            )
+        }
         LaunchedEffect(state.value, state.unit, state.isEnabled, focused) {
             if (!focused) value = if (state.isEnabled) state.value.toNaturalDisplayString()
             else context.getString(R.string.field_scenario_fps_limit_disable_rate)

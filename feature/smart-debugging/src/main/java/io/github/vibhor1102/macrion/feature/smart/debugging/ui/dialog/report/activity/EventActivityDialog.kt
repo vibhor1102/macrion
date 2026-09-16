@@ -92,6 +92,13 @@ private fun EventActivityList(
 ) {
     val listState = rememberLazyListState()
     var sortMenuExpanded by remember { mutableStateOf(false) }
+    androidx.compose.runtime.LaunchedEffect(sortMenuExpanded) {
+        io.github.vibhor1102.macrion.core.base.crash.CrashDiagnostics.record(
+            if (sortMenuExpanded) io.github.vibhor1102.macrion.core.base.crash.CrashDiagnostics.Event.DROPDOWN_OPENED
+            else io.github.vibhor1102.macrion.core.base.crash.CrashDiagnostics.Event.DROPDOWN_CLOSED,
+            "io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.activity.EventActivityDialog",
+        )
+    }
     Box(Modifier.fillMaxSize()) {
         LazyColumn(
             state = listState,

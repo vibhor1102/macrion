@@ -17,6 +17,8 @@
  */
 package io.github.vibhor1102.macrion.core.processing.data.processor
 
+import io.github.vibhor1102.macrion.core.base.crash.CrashDiagnostics
+
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.GestureDescription
 import android.content.Intent as AndroidIntent
@@ -93,17 +95,34 @@ internal class ActionExecutor(
 
     suspend fun executeActions(event: Event, results: ConditionsResults? = null) {
         event.actions.forEach { action ->
-            when (action) {
-                is Click -> executeClick(event, action, results)
-                is Swipe -> executeSwipe(action)
-                is Pause -> executePause(action)
-                is Intent -> executeIntent(action)
-                is ToggleEvent -> executeToggleEvent(action)
-                is ChangeCounter -> executeChangeCounter(action)
-                is ExternalAction -> executeExternalAction(action)
-                is Notification -> executeNotification(event, action)
-                is SystemAction -> executeSystemAction(action)
-                is SetText -> executeSetText(action)
+            CrashDiagnostics.record(when (action) {
+                is Click -> CrashDiagnostics.Event.CLICK
+                is Swipe -> CrashDiagnostics.Event.SWIPE
+                is Pause -> CrashDiagnostics.Event.PAUSE
+                is Intent -> CrashDiagnostics.Event.INTENT
+                is ToggleEvent -> CrashDiagnostics.Event.TOGGLE_EVENT
+                is ChangeCounter -> CrashDiagnostics.Event.CHANGE_COUNTER
+                is ExternalAction -> CrashDiagnostics.Event.EXTERNAL_ACTION
+                is Notification -> CrashDiagnostics.Event.NOTIFICATION
+                is SystemAction -> CrashDiagnostics.Event.SYSTEM_ACTION
+                is SetText -> CrashDiagnostics.Event.SET_TEXT
+            })
+            try {
+                when (action) {
+                    is Click -> executeClick(event, action, results)
+                    is Swipe -> executeSwipe(action)
+                    is Pause -> executePause(action)
+                    is Intent -> executeIntent(action)
+                    is ToggleEvent -> executeToggleEvent(action)
+                    is ChangeCounter -> executeChangeCounter(action)
+                    is ExternalAction -> executeExternalAction(action)
+                    is Notification -> executeNotification(event, action)
+                    is SystemAction -> executeSystemAction(action)
+                    is SetText -> executeSetText(action)
+                }
+            } catch (error: Exception) {
+                if (error !is kotlinx.coroutines.CancellationException) CrashDiagnostics.recordFailure(error)
+                throw error
             }
         }
     }

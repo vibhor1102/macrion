@@ -16,6 +16,8 @@
  */
 package io.github.vibhor1102.macrion.core.common.overlays.base
 
+import io.github.vibhor1102.macrion.core.base.crash.CrashDiagnostics
+
 import android.app.Application
 import android.content.Context
 import android.util.Log
@@ -156,6 +158,7 @@ abstract class BaseOverlay internal constructor(
         dismissListener?.let { listener -> onDestroyListener = { listener(appContext, this@BaseOverlay) } }
         savedStateController.performAttach()
         savedStateController.performRestore(null)
+        CrashDiagnostics.record(CrashDiagnostics.Event.OVERLAY_CREATED, javaClass.name, lifecycleRegistry.currentState.ordinal)
         onCreate()
         lifecycleRegistry.currentState = State.CREATED
     }
@@ -175,6 +178,7 @@ abstract class BaseOverlay internal constructor(
 
         Log.d(TAG, "show overlay ${hashCode()}")
 
+        CrashDiagnostics.record(CrashDiagnostics.Event.OVERLAY_SHOWN, javaClass.name, lifecycleRegistry.currentState.ordinal)
         onStart()
         lifecycleRegistry.currentState = State.STARTED
     }
@@ -206,6 +210,7 @@ abstract class BaseOverlay internal constructor(
 
         Log.d(TAG, "hide overlay ${hashCode()}")
         lifecycleRegistry.currentState = State.CREATED
+        CrashDiagnostics.record(CrashDiagnostics.Event.OVERLAY_HIDDEN, javaClass.name, lifecycleRegistry.currentState.ordinal)
         onStop()
     }
 
@@ -221,6 +226,7 @@ abstract class BaseOverlay internal constructor(
         Log.d(TAG, "destroy overlay ${hashCode()}")
 
         lifecycleRegistry.currentState = State.DESTROYED
+        CrashDiagnostics.record(CrashDiagnostics.Event.OVERLAY_DESTROYED, javaClass.name, lifecycleRegistry.currentState.ordinal)
         onDestroy()
 
         if (!shouldBeRecreated) {
@@ -289,6 +295,7 @@ abstract class BaseOverlay internal constructor(
             context = newOverlayContext(parentAppContext, theme) { displayConfigManager.displayConfig.orientation }
         }
 
+        CrashDiagnostics.record(CrashDiagnostics.Event.ROTATION_CHANGED, javaClass.name, lifecycleRegistry.currentState.ordinal)
         onOrientationChanged()
 
         if (!recreateOnRotation) return

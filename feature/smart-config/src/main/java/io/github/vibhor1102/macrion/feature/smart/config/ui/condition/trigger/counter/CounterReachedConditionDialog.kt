@@ -152,6 +152,13 @@ class CounterReachedConditionDialog(private val listener: OnConditionConfigCompl
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable private fun OperandField(ui: CounterReachedConditionUiState) {
         var expanded by remember { mutableStateOf(false) }
+        androidx.compose.runtime.LaunchedEffect(expanded) {
+            io.github.vibhor1102.macrion.core.base.crash.CrashDiagnostics.record(
+                if (expanded) io.github.vibhor1102.macrion.core.base.crash.CrashDiagnostics.Event.DROPDOWN_OPENED
+                else io.github.vibhor1102.macrion.core.base.crash.CrashDiagnostics.Event.DROPDOWN_CLOSED,
+                "io.github.vibhor1102.macrion.feature.smart.config.ui.condition.trigger.counter.CounterReachedConditionDialog",
+            )
+        }
         ElevatedCard(Modifier.fillMaxWidth()) {
             Column(
                 Modifier.padding(horizontal = 16.dp, vertical = 8.dp),

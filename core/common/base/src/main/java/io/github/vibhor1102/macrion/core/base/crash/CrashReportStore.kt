@@ -42,7 +42,7 @@ class CrashReportStore(private val directory: File, private val now: () -> Long 
                 require(file.length() <= MAX_BYTES && now() - file.lastModified() <= MAX_AGE_MS)
                 val body = file.readText()
                 val json = JSONObject(body)
-                require(json.getString("reportId") == id && json.getInt("schemaVersion") == 1)
+                require(json.getString("reportId") == id && json.getInt("schemaVersion") in 1..2)
                 Report(id, file.lastModified(), body, File(directory, "$id.seen").exists())
             }.getOrNull()
             if (report == null) delete(id)

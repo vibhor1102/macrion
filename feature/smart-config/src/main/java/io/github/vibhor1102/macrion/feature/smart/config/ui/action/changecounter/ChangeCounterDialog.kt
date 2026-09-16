@@ -152,6 +152,13 @@ class ChangeCounterDialog(private val listener: OnActionConfigCompleteListener) 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable private fun OperandField(ui: ChangeCounterUiState) {
         var expanded by remember { mutableStateOf(false) }
+        androidx.compose.runtime.LaunchedEffect(expanded) {
+            io.github.vibhor1102.macrion.core.base.crash.CrashDiagnostics.record(
+                if (expanded) io.github.vibhor1102.macrion.core.base.crash.CrashDiagnostics.Event.DROPDOWN_OPENED
+                else io.github.vibhor1102.macrion.core.base.crash.CrashDiagnostics.Event.DROPDOWN_CLOSED,
+                "io.github.vibhor1102.macrion.feature.smart.config.ui.action.changecounter.ChangeCounterDialog",
+            )
+        }
         ElevatedCard(Modifier.fillMaxWidth()) {
             Column(
                 Modifier.padding(horizontal = 16.dp, vertical = 8.dp),

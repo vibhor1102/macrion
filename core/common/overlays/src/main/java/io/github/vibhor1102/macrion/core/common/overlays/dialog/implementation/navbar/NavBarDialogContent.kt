@@ -16,6 +16,7 @@
  */
 package io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.navbar
 
+import io.github.vibhor1102.macrion.core.base.crash.CrashDiagnostics
 import android.app.Application
 import android.content.Context
 import android.view.View
@@ -107,6 +108,8 @@ abstract class NavBarDialogContent(
         if (lifecycleRegistry.currentState != Lifecycle.State.CREATED) return
 
         rootContainer.addView(root)
+        CrashDiagnostics.record(CrashDiagnostics.Event.TAB_SHOWN, javaClass.name,
+            lifecycleRegistry.currentState.ordinal, root.isAttachedToWindow)
 
         if (floatingActionButtonsAreAvailable()) {
             dialogController.floatingActionButtons.configure(
@@ -142,6 +145,8 @@ abstract class NavBarDialogContent(
 
         onStop()
         rootContainer.removeView(root)
+        CrashDiagnostics.record(CrashDiagnostics.Event.TAB_HIDDEN, javaClass.name,
+            lifecycleRegistry.currentState.ordinal, root.isAttachedToWindow)
 
         lifecycleRegistry.currentState = Lifecycle.State.CREATED
     }
