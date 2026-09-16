@@ -14,20 +14,20 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.text
+package io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.image
 
+import android.graphics.Bitmap
 import io.github.vibhor1102.macrion.core.base.identifier.Identifier
+import io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.config.ComputeRateLimitUiState
 
-data class TextConditionUiState(
+data class ImageConditionUiState(
     val id: Identifier,
-    val canBeSaved: Boolean,
     val name: String,
     val nameError: Boolean,
-    val textToSearch: String,
-    val shouldBeDetectedChecked: Boolean,
-    val detectionAreaDescription: String,
-    val detectionAreaError: Boolean,
-    val detectionThreshold: Int,
-    val alphabetDesc: String,
-    val computeRateState: io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.config.ComputeRateLimitUiState,
+    val bitmap: Bitmap?,
+    val shouldBeDetected: Boolean,
+    val detectionType: DetectionTypeState,
+    val threshold: Int,
+    val computeRateState: ComputeRateLimitUiState,
+    val canBeSaved: Boolean,
 )

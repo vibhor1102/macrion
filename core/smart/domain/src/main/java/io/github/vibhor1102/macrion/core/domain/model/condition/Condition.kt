@@ -26,6 +26,7 @@ sealed class Condition : Identifiable, Completable {
 
     abstract val eventId: Identifier
     abstract val name: String
+    open val computeRate: Double get() = 0.0
 
     @CallSuper
     override fun isComplete(): Boolean =

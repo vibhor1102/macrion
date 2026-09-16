@@ -68,8 +68,8 @@ class TextConditionDialog(private val listener: OnConditionConfigCompleteListene
     @Composable private fun Content() {
         val state by viewModel.uiState.collectAsStateWithLifecycle()
         val ui = state ?: return
-        var name by rememberSaveable { mutableStateOf(ui.name) }
-        var textToDetect by rememberSaveable { mutableStateOf(ui.textToSearch) }
+        var name by rememberSaveable(ui.id) { mutableStateOf(ui.name) }
+        var textToDetect by rememberSaveable(ui.id) { mutableStateOf(ui.textToSearch) }
         Surface(
             shape = OverlayDialogShape,
             modifier = Modifier.fillMaxWidth().heightIn(max = 600.dp), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
@@ -98,6 +98,12 @@ class TextConditionDialog(private val listener: OnConditionConfigCompleteListene
                         )
                     }
                     ThresholdCard(ui.detectionThreshold)
+                    io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.component.ConditionExecutionLimiterCard(
+                        state = ui.computeRateState,
+                        onToggle = viewModel::toggleLimiter,
+                        onRateChanged = viewModel::setComputeRate,
+                        onUnitChanged = viewModel::setComputeRateUnit,
+                    )
                 }
             }
         }

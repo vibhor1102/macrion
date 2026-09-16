@@ -38,6 +38,13 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
 import io.github.vibhor1102.macrion.core.settings.domain.SettingsRepository
+import io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.config.ComputeRateUnitDropdownItem
+import io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.config.FRAME_LIMIT_DEFAULT_VALUE
+import io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.config.FRAME_LIMIT_MAX_VALUE
+import io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.config.FRAME_LIMIT_MIN_VALUE
+import io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.config.getInitialComputeRateUnitItem
+import io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.config.toComputeRateLimitUiState
+import kotlinx.coroutines.flow.MutableStateFlow
 import javax.inject.Inject
 
 class TextConditionViewModel @Inject constructor(
@@ -60,9 +67,22 @@ class TextConditionViewModel @Inject constructor(
             .map { it.hasChanged }
             .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
+    private val userComputeRateUnit: MutableStateFlow<ComputeRateUnitDropdownItem?> =
+        MutableStateFlow(editionRepository.editionState.getEditedCondition<ScreenCondition.Text>()?.computeRate?.let { getInitialComputeRateUnitItem(it) })
+
+    private var cachedComputeRate: Double = editionRepository.editionState.getEditedCondition<ScreenCondition.Text>()?.computeRate?.takeIf { it > 0.0 } ?: FRAME_LIMIT_DEFAULT_VALUE
+
     val uiState: StateFlow<TextConditionUiState?> = configuredCondition
-        .map { colorCondition -> colorCondition.toUiState(context) }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+        .let { conditionFlow ->
+            kotlinx.coroutines.flow.combine(conditionFlow, userComputeRateUnit) { textCondition, unit ->
+                textCondition.toUiState(context, unit)
+            }
+        }
+        .stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5000),
+            editionRepository.editionState.getEditedCondition<ScreenCondition.Text>()?.toUiState(context, userComputeRateUnit.value),
+        )
 
     /** Tells if the user is currently editing a condition. If that's not the case, dialog should be closed. */
     @OptIn(FlowPreview::class)
@@ -112,8 +132,32 @@ class TextConditionViewModel @Inject constructor(
         }
     }
 
-    private fun ScreenCondition.Text.toUiState(context: Context): TextConditionUiState =
+    fun toggleLimiter() {
+        editionRepository.editionState.getEditedCondition<ScreenCondition.Text>()?.let { condition ->
+            val newRate = if (condition.computeRate != 0.0) 0.0 else cachedComputeRate
+            updateEditedCondition { it.copy(computeRate = newRate) }
+        }
+    }
+
+    fun setComputeRateUnit(unit: io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.config.ComputeRateUnitDropdownItem) {
+        userComputeRateUnit.value = unit
+    }
+
+    fun setComputeRate(value: Double) {
+        if (value <= io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.config.FRAME_LIMIT_MIN_VALUE) return
+        val unit = userComputeRateUnit.value ?: io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.config.ComputeRateUnitDropdownItem.Second
+        val newValue = if (unit is io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.config.ComputeRateUnitDropdownItem.Minute) value / 60 else value
+        if (newValue > io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.config.FRAME_LIMIT_MAX_VALUE) return
+        cachedComputeRate = newValue
+        updateEditedCondition { it.copy(computeRate = newValue) }
+    }
+
+    private fun ScreenCondition.Text.toUiState(
+        context: Context,
+        userUnit: io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.config.ComputeRateUnitDropdownItem?,
+    ): TextConditionUiState =
         TextConditionUiState(
+            id = id,
             canBeSaved = isComplete(),
             name = name,
             nameError = name.isEmpty(),
@@ -123,5 +167,6 @@ class TextConditionViewModel @Inject constructor(
             detectionAreaError = detectionArea.isEmpty,
             detectionThreshold = threshold,
             alphabetDesc = context.getString(alphabet.getDisplayNameResId()),
+            computeRateState = io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.config.toComputeRateLimitUiState(computeRate, userUnit, cachedComputeRate),
         )
 }

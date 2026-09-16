@@ -35,8 +35,9 @@ internal class ProcessingState(
     private val countersState: CountersState = CountersState(counters, progressListener),
     private val timersState: TimersState = TimersState(triggerEvents),
     private val cooldownState: CooldownsState = CooldownsState(),
+    private val conditionLimitersState: ConditionLimitersState = ConditionLimitersState(),
 ) : IBroadcastsState by broadcastsState, ICountersState by countersState, ITimersState by timersState,
-    IEventsState by eventsState, ICooldownsState by cooldownState {
+    IEventsState by eventsState, ICooldownsState by cooldownState, IConditionLimitersState by conditionLimitersState {
 
     init {
         eventsState.setEventStateListener(object : EventStateListener {
@@ -48,11 +49,13 @@ internal class ProcessingState(
     fun onProcessingStarted(context: Context) {
         broadcastsState.onProcessingStarted(context)
         timersState.onProcessingStarted()
+        conditionLimitersState.clearConditionLimitersState()
     }
 
     fun onProcessingStopped() {
         broadcastsState.onProcessingStopped()
         timersState.onProcessingStopped()
+        conditionLimitersState.clearConditionLimitersState()
     }
 
     fun clearIterationState() {
@@ -73,6 +76,7 @@ internal class ProcessingState(
         }
 
         if (event is ScreenEvent) cooldownState.removeCooldown(event)
+        conditionLimitersState.invalidateConditionResults(event.conditions.map { it.getValidId() })
         progressListener?.onEventStateChanged(event = event, newValue = false)
     }
 }

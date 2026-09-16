@@ -166,6 +166,7 @@
     <string name="field_scenario_fps_rate_unit_label">Per</string>
     <string name="field_scenario_fps_dropdown_item_second">Second</string>
     <string name="field_scenario_fps_dropdown_item_minute">Minute</string>
+    <string name="field_condition_fps_limit_desc">Limit how often this condition is checked to save battery and CPU. Detection will be slower.</string>
 
     <string name="field_scenario_fps_limit_disable_rate" translatable="false">∞</string>
     <string name="field_scenario_quality_title">Detection resolution</string>

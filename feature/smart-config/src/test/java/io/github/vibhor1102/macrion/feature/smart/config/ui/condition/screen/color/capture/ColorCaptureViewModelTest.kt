@@ -175,13 +175,16 @@ class ColorCaptureViewModelTest {
     }
 
     @Test
-    fun captureScreen_withNullScreenshot_staysInCapturingStep() = runTest(testDispatcher) {
+    fun captureScreen_withNullScreenshot_resetsToScreenshotSelectionStep() = runTest(testDispatcher) {
         coEvery { mockDisplayRecorder.takeScreenshot() } returns null
+        var captureFailedCalled = false
 
-        viewModel.captureScreen()
+        viewModel.captureScreen(onCaptureFailed = { captureFailedCalled = true })
         advanceTimeBy(201)
 
-        assertEquals(ColorCaptureMenuStep.CAPTURING, viewModel.uiState.value.captureStep)
+        assertEquals(ColorCaptureMenuStep.SCREENSHOT_SELECTION, viewModel.uiState.value.captureStep)
+        assertEquals(true, viewModel.uiState.value.menuVisibility)
+        assertEquals(true, captureFailedCalled)
     }
 
     @Test

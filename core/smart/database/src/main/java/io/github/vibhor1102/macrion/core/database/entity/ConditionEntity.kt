@@ -68,6 +68,7 @@ data class ConditionEntity(
     @ColumnInfo(name = "type") val type: ConditionType,
     @ColumnInfo(name = "priority", defaultValue = "0") val priority: Int,
     @ColumnInfo(name = "shouldBeDetected") val shouldBeDetected: Boolean? = null,
+    @ColumnInfo(name = "computeRate", defaultValue = "0.0") val computeRate: Double = 0.0,
 
     // ConditionType.ON_IMAGE_DETECTED
     @ColumnInfo(name = "path") var path: String? = null,

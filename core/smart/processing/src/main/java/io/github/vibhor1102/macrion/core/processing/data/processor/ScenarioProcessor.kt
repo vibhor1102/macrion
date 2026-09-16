@@ -153,6 +153,7 @@ internal class ScenarioProcessor(
             progressListener?.onEventProcessingCompleted(triggerEvent, results.fulfilled == true, results.getAllTriggerConditionsResults())
             if (results.fulfilled  == true) {
                 actionExecutor.executeActions(triggerEvent, results)
+                processingState.invalidateConditionResults(triggerEvent.conditions.map { it.getValidId() })
                 progressListener?.onEventActionsExecuted(
                     event = triggerEvent,
                     results = results.getAllTriggerConditionsResults(),
@@ -189,6 +190,7 @@ internal class ScenarioProcessor(
                 if (results.fulfilled == true) {
                     actionExecutor.executeActions(screenEvent, results)
                     processingState.startCooldownIfNeeded(screenEvent)
+                    processingState.invalidateConditionResults(screenEvent.conditions.map { it.getValidId() })
                     progressListener?.onEventActionsExecuted(
                         event = screenEvent,
                         results = results.getAllScreenConditionsResults(),

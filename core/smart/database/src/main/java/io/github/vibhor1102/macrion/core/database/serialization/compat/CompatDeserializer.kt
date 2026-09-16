@@ -311,6 +311,7 @@ internal open class CompatDeserializer : Deserializer {
             detectionAreaTop = jsonCondition.getInt("detectionAreaTop"),
             detectionAreaRight = jsonCondition.getInt("detectionAreaRight"),
             detectionAreaBottom = jsonCondition.getInt("detectionAreaBottom"),
+            computeRate = jsonCondition.getDouble("computeRate") ?: 0.0,
         )
     }
 
@@ -346,6 +347,7 @@ internal open class CompatDeserializer : Deserializer {
             threshold = jsonCondition.getInt("threshold")
                 ?.coerceIn(CONDITION_THRESHOLD_LOWER_BOUND, CONDITION_THRESHOLD_UPPER_BOUND)
                 ?: CONDITION_THRESHOLD_DEFAULT_VALUE,
+            computeRate = jsonCondition.getDouble("computeRate") ?: 0.0,
         )
     }
 
@@ -388,6 +390,7 @@ internal open class CompatDeserializer : Deserializer {
             detectionAreaTop = area.top,
             detectionAreaRight = area.right,
             detectionAreaBottom = area.bottom,
+            computeRate = jsonCondition.getDouble("computeRate") ?: 0.0,
         )
     }
 
@@ -441,6 +444,7 @@ internal open class CompatDeserializer : Deserializer {
             detectionAreaRight = area.right,
             detectionAreaBottom = area.bottom,
             textAlphabet = jsonCondition.getString("textAlphabet") ?: "LATIN",
+            computeRate = jsonCondition.getDouble("computeRate") ?: 0.0,
         )
     }
 
