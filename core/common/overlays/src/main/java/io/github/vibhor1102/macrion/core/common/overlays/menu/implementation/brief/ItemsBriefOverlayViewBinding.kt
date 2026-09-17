@@ -20,7 +20,11 @@ import android.content.res.Configuration
 import android.view.LayoutInflater
 import kotlinx.coroutines.delay
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FastOutLinearInEasing
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import io.github.vibhor1102.macrion.core.base.identifier.Identifier
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
@@ -385,16 +389,8 @@ class ItemsBriefOverlayViewBinding private constructor(
             Column(Modifier.fillMaxSize()) {
             Spacer(Modifier.height(112.dp))
             Box(Modifier.weight(1f).fillMaxWidth().padding(bottom = 24.dp)) {
-                if (briefItems.value.isEmpty()) {
-                    EmptyBriefCard(
-                        Modifier
-                            .align(Alignment.BottomCenter)
-                            .fillMaxWidth()
-                            .height(80.dp)
-                            .padding(horizontal = 32.dp),
-                    )
-                }
-                else briefItemContent?.let { itemContent ->
+                val itemContent = briefItemContent
+                if (itemContent != null) {
                     BriefItemsCarousel(
                         modifier = Modifier
                             .align(Alignment.BottomCenter)
@@ -403,11 +399,22 @@ class ItemsBriefOverlayViewBinding private constructor(
                         items = briefItems.value,
                         orientation = orientation,
                         requestedIndex = requestedBriefItemIndex.intValue,
+                        emptyTextRes = emptyText.intValue,
                         itemContent = itemContent,
                         onItemClicked = onItemClicked,
                         onFocusedItemChanged = onFocusedItemChanged,
                         firstItemModifier = firstItemModifier(),
                         onInteraction = ::showOrResetPanelTimer,
+                        onDeleteAnimationChanged = { isDeleteAnimating.value = it },
+                    )
+                } else if (briefItems.value.isEmpty()) {
+                    EmptyBriefCard(
+                        emptyTextRes = emptyText.intValue,
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .fillMaxWidth()
+                            .height(80.dp)
+                            .padding(horizontal = 32.dp),
                     )
                 }
             }
@@ -437,16 +444,8 @@ class ItemsBriefOverlayViewBinding private constructor(
             Row(Modifier.fillMaxSize()) {
             Controls()
             Box(Modifier.weight(1f).fillMaxHeight().padding(start = 16.dp, end = 156.dp)) {
-                if (briefItems.value.isEmpty()) {
-                    EmptyBriefCard(
-                        Modifier
-                            .align(Alignment.CenterStart)
-                            .fillMaxHeight()
-                            .width(124.dp)
-                            .padding(vertical = 64.dp),
-                    )
-                }
-                else briefItemContent?.let { itemContent ->
+                val itemContent = briefItemContent
+                if (itemContent != null) {
                     BriefItemsCarousel(
                         modifier = Modifier
                             .align(Alignment.CenterStart)
@@ -455,11 +454,22 @@ class ItemsBriefOverlayViewBinding private constructor(
                         items = briefItems.value,
                         orientation = orientation,
                         requestedIndex = requestedBriefItemIndex.intValue,
+                        emptyTextRes = emptyText.intValue,
                         itemContent = itemContent,
                         onItemClicked = onItemClicked,
                         onFocusedItemChanged = onFocusedItemChanged,
                         firstItemModifier = firstItemModifier(),
                         onInteraction = ::showOrResetPanelTimer,
+                        onDeleteAnimationChanged = { isDeleteAnimating.value = it },
+                    )
+                } else if (briefItems.value.isEmpty()) {
+                    EmptyBriefCard(
+                        emptyTextRes = emptyText.intValue,
+                        modifier = Modifier
+                            .align(Alignment.CenterStart)
+                            .fillMaxHeight()
+                            .width(124.dp)
+                            .padding(vertical = 64.dp),
                     )
                 }
             }
@@ -467,9 +477,12 @@ class ItemsBriefOverlayViewBinding private constructor(
         }
     }
 
+    private val isDeleteAnimating = mutableStateOf(false)
+
     @Composable
     private fun Controls() = ItemBriefControls(
         state = controlState.value,
+        isDeleteAnimating = isDeleteAnimating.value,
         isPortrait = orientation == Configuration.ORIENTATION_PORTRAIT,
         onDelete = onDelete,
         onReorder = onReorder,
@@ -495,18 +508,19 @@ class ItemsBriefOverlayViewBinding private constructor(
         )
     }
 
-    @Composable
-    private fun EmptyBriefCard(modifier: Modifier) {
-        ElevatedCard(modifier) {
-            Box(Modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 8.dp), contentAlignment = Alignment.Center) {
-                if (emptyText.intValue != 0) Text(
-                    text = stringResource(emptyText.intValue),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontStyle = FontStyle.Italic,
-                    textAlign = TextAlign.Center,
-                )
-            }
+}
+
+@Composable
+private fun EmptyBriefCard(emptyTextRes: Int, modifier: Modifier) {
+    ElevatedCard(modifier) {
+        Box(Modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 8.dp), contentAlignment = Alignment.Center) {
+            if (emptyTextRes != 0) Text(
+                text = stringResource(emptyTextRes),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.bodyMedium,
+                fontStyle = FontStyle.Italic,
+                textAlign = TextAlign.Center,
+            )
         }
     }
 }
@@ -523,24 +537,29 @@ data class ItemBriefControlsState(
 @androidx.compose.runtime.Composable
 private fun ItemBriefControls(
     state: ItemBriefControlsState,
+    isDeleteAnimating: Boolean,
     isPortrait: Boolean,
     onDelete: () -> Unit,
     onReorder: () -> Unit,
     onPosition: () -> Unit,
     onPlay: () -> Unit,
 ) {
+    val canDelete = state.canDelete && !isDeleteAnimating
+    val canReorder = state.canReorder && !isDeleteAnimating
+    val canSelectPosition = state.canSelectPosition && !isDeleteAnimating
+    val canPlay = state.canPlay && !isDeleteAnimating
     if (isPortrait) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(start = 32.dp, end = 32.dp, top = 8.dp, bottom = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            BriefIconButton(UiR.drawable.ic_delete, state.canDelete, onDelete)
+            BriefIconButton(UiR.drawable.ic_delete, canDelete, onDelete)
             Spacer(Modifier.width(16.dp))
-            BriefIconButton(UiR.drawable.ic_swap_vert, state.canReorder, onReorder)
+            BriefIconButton(UiR.drawable.ic_swap_vert, canReorder, onReorder)
             Spacer(Modifier.width(20.dp))
-            PositionCard(state, onPosition, Modifier.weight(1f).height(48.dp))
+            PositionCard(state, enabled = canSelectPosition, onClick = onPosition, modifier = Modifier.weight(1f).height(48.dp))
             Spacer(Modifier.width(20.dp))
-            BriefIconButton(UiR.drawable.ic_play_arrow, state.canPlay, onPlay)
+            BriefIconButton(UiR.drawable.ic_play_arrow, canPlay, onPlay)
         }
     } else {
         Column(
@@ -548,13 +567,13 @@ private fun ItemBriefControls(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
-            BriefIconButton(UiR.drawable.ic_delete, state.canDelete, onDelete)
+            BriefIconButton(UiR.drawable.ic_delete, canDelete, onDelete)
             Spacer(Modifier.height(16.dp))
-            BriefIconButton(UiR.drawable.ic_swap_vert, state.canReorder, onReorder)
+            BriefIconButton(UiR.drawable.ic_swap_vert, canReorder, onReorder)
             Spacer(Modifier.height(20.dp))
-            PositionCard(state, onPosition, Modifier.width(48.dp))
+            PositionCard(state, enabled = canSelectPosition, onClick = onPosition, modifier = Modifier.width(48.dp))
             Spacer(Modifier.height(20.dp))
-            BriefIconButton(UiR.drawable.ic_play_arrow, state.canPlay, onPlay)
+            BriefIconButton(UiR.drawable.ic_play_arrow, canPlay, onPlay)
         }
     }
 }
@@ -567,8 +586,13 @@ private fun BriefIconButton(icon: Int, enabled: Boolean, onClick: () -> Unit) {
 }
 
 @androidx.compose.runtime.Composable
-private fun PositionCard(state: ItemBriefControlsState, onClick: () -> Unit, modifier: Modifier) {
-    ElevatedCard(onClick = onClick, enabled = state.canSelectPosition, modifier = modifier) {
+private fun PositionCard(
+    state: ItemBriefControlsState,
+    enabled: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier,
+) {
+    ElevatedCard(onClick = onClick, enabled = enabled, modifier = modifier) {
         val isMultiline = state.indexText.contains('\n')
         Box(
             modifier = if (isMultiline) {
@@ -581,7 +605,7 @@ private fun PositionCard(state: ItemBriefControlsState, onClick: () -> Unit, mod
             Text(
                 text = state.indexText,
                 color = MaterialTheme.colorScheme.onSurface.copy(
-                    alpha = if (state.canSelectPosition) 1f else 0.38f,
+                    alpha = if (enabled) 1f else 0.38f,
                 ),
                 fontSize = 17.sp,
                 fontWeight = FontWeight.Bold,
@@ -598,26 +622,103 @@ private fun BriefItemsCarousel(
     items: List<ItemBrief>,
     orientation: Int,
     requestedIndex: Int,
+    emptyTextRes: Int,
     itemContent: @Composable (ItemBrief, Int, () -> Unit) -> Unit,
     onItemClicked: (Int, ItemBrief) -> Unit,
     onFocusedItemChanged: (Int) -> Unit,
     firstItemModifier: Modifier,
     onInteraction: () -> Unit,
+    onDeleteAnimationChanged: (Boolean) -> Unit,
 ) {
-    val initialPage = remember(items.isNotEmpty()) {
-        if (items.isEmpty()) 0 else requestedIndex.coerceIn(0, items.lastIndex)
-    }
-    val pagerState = rememberPagerState(initialPage = initialPage) { items.size }
+    var displayedItems by remember { mutableStateOf(items) }
+    var deletingItemId by remember { mutableStateOf<Identifier?>(null) }
 
-    LaunchedEffect(requestedIndex) {
-        if (items.isNotEmpty() && pagerState.currentPage != requestedIndex) {
-            val target = requestedIndex.coerceIn(0, items.lastIndex)
+    val initialPage = remember(displayedItems.isNotEmpty()) {
+        if (displayedItems.isEmpty()) 0 else requestedIndex.coerceIn(0, displayedItems.lastIndex)
+    }
+    val pagerState = rememberPagerState(initialPage = initialPage) { displayedItems.size }
+
+    LaunchedEffect(items) {
+        if (items == displayedItems) return@LaunchedEffect
+
+        val deletedItem = if (items.size < displayedItems.size) {
+            displayedItems.firstOrNull { old -> items.none { it.id == old.id } }
+        } else null
+
+        val deletedIndex = if (deletedItem != null) {
+            displayedItems.indexOfFirst { it.id == deletedItem.id }
+        } else -1
+
+        val shouldAnimate = deletedItem != null && (deletedIndex == pagerState.currentPage || displayedItems.size == 1)
+
+        if (shouldAnimate && deletedItem != null) {
+            deletingItemId = deletedItem.id
+            onDeleteAnimationChanged(true)
+            try {
+                if (displayedItems.size > 1) {
+                    val targetPage = if (deletedIndex < displayedItems.lastIndex) deletedIndex + 1 else deletedIndex - 1
+                    pagerState.animateScrollToPage(
+                        page = targetPage,
+                        animationSpec = tween(durationMillis = 280, easing = FastOutSlowInEasing),
+                    )
+                    val newIndex = if (deletedIndex < items.size) deletedIndex else (items.size - 1).coerceAtLeast(0)
+                    displayedItems = items
+                    deletingItemId = null
+                    pagerState.scrollToPage(newIndex)
+                } else {
+                    delay(250)
+                    displayedItems = items
+                    deletingItemId = null
+                }
+            } finally {
+                displayedItems = items
+                deletingItemId = null
+                onDeleteAnimationChanged(false)
+            }
+        } else {
+            displayedItems = items
+            deletingItemId = null
+            onDeleteAnimationChanged(false)
+        }
+    }
+
+    LaunchedEffect(requestedIndex, deletingItemId) {
+        if (deletingItemId == null && displayedItems.isNotEmpty() && pagerState.currentPage != requestedIndex) {
+            val target = requestedIndex.coerceIn(0, displayedItems.lastIndex)
             pagerState.animateScrollToPage(target)
         }
     }
+
     LaunchedEffect(pagerState) {
         snapshotFlow { pagerState.currentPage }
             .collect { page -> onFocusedItemChanged(page) }
+    }
+
+    if (displayedItems.isEmpty()) {
+        AnimatedVisibility(
+            visible = true,
+            enter = fadeIn(animationSpec = tween(200)),
+            modifier = modifier,
+        ) {
+            if (orientation == Configuration.ORIENTATION_PORTRAIT) {
+                EmptyBriefCard(
+                    emptyTextRes = emptyTextRes,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(80.dp)
+                        .padding(horizontal = 32.dp),
+                )
+            } else {
+                EmptyBriefCard(
+                    emptyTextRes = emptyTextRes,
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .width(124.dp)
+                        .padding(vertical = 64.dp),
+                )
+            }
+        }
+        return
     }
 
     BoxWithConstraints(modifier = modifier) {
@@ -629,15 +730,20 @@ private fun BriefItemsCarousel(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(horizontal = horizontalPadding),
                 pageSpacing = 8.dp,
+                userScrollEnabled = deletingItemId == null,
+                key = { page -> displayedItems.getOrNull(page)?.id ?: page },
             ) { page ->
-                val brief = items[page]
+                val brief = displayedItems[page]
+                val isDeleting = brief.id == deletingItemId
                 BriefItemContainer(
                     modifier = Modifier.fillMaxSize(),
                     firstItemModifier = firstItemModifier,
                     isFirstItem = page == 0,
+                    isDeleting = isDeleting,
+                    orientation = orientation,
                     onInteraction = onInteraction,
                 ) {
-                    itemContent(brief, orientation) { onItemClicked(page, brief) }
+                    itemContent(brief, orientation) { if (!isDeleting) onItemClicked(page, brief) }
                 }
             }
         } else {
@@ -648,15 +754,20 @@ private fun BriefItemsCarousel(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(vertical = verticalPadding),
                 pageSpacing = 8.dp,
+                userScrollEnabled = deletingItemId == null,
+                key = { page -> displayedItems.getOrNull(page)?.id ?: page },
             ) { page ->
-                val brief = items[page]
+                val brief = displayedItems[page]
+                val isDeleting = brief.id == deletingItemId
                 BriefItemContainer(
                     modifier = Modifier.fillMaxSize(),
                     firstItemModifier = firstItemModifier,
                     isFirstItem = page == 0,
+                    isDeleting = isDeleting,
+                    orientation = orientation,
                     onInteraction = onInteraction,
                 ) {
-                    itemContent(brief, orientation) { onItemClicked(page, brief) }
+                    itemContent(brief, orientation) { if (!isDeleting) onItemClicked(page, brief) }
                 }
             }
         }
@@ -668,13 +779,33 @@ private fun BriefItemContainer(
     modifier: Modifier,
     firstItemModifier: Modifier,
     isFirstItem: Boolean,
+    isDeleting: Boolean,
+    orientation: Int,
     onInteraction: () -> Unit,
     content: @Composable () -> Unit,
 ) {
+    val deleteProgress by animateFloatAsState(
+        targetValue = if (isDeleting) 1f else 0f,
+        animationSpec = tween(durationMillis = 250, easing = FastOutLinearInEasing),
+        label = "deleteProgress",
+    )
+
     Box(
         modifier
             .then(if (isFirstItem) firstItemModifier else Modifier)
-            .pointerInput(onInteraction) {
+            .graphicsLayer {
+                val progress = deleteProgress
+                alpha = 1f - progress
+                scaleX = 1f - 0.25f * progress
+                scaleY = 1f - 0.25f * progress
+                if (orientation == Configuration.ORIENTATION_PORTRAIT) {
+                    translationY = 24.dp.toPx() * progress
+                } else {
+                    translationX = -24.dp.toPx() * progress
+                }
+            }
+            .pointerInput(onInteraction, isDeleting) {
+                if (isDeleting) return@pointerInput
                 awaitEachGesture {
                     awaitFirstDown(requireUnconsumed = false)
                     onInteraction()
