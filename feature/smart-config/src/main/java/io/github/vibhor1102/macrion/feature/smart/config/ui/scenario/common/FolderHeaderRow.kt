@@ -46,6 +46,7 @@ internal fun FolderHeaderRow(
     reorderHandleModifier: Modifier = Modifier,
     handleInteractionSource: MutableInteractionSource? = null,
     isBeingDragged: Boolean = false,
+    showReorderHandle: Boolean = !isExpanded,
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
     val chevronRotation by animateFloatAsState(
@@ -66,7 +67,7 @@ internal fun FolderHeaderRow(
             .clickable(onClick = onToggleExpand),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        if (!isExpanded) {
+        if (showReorderHandle) {
             FolderDragHandle(
                 modifier = reorderHandleModifier,
                 isBeingDragged = isBeingDragged,

@@ -208,6 +208,9 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
             val allFolderNames = remember(sourceItems, folders) {
                 ((sourceItems ?: emptyList()).mapNotNull { it.folder } + folders.map { it.name }).distinct()
             }
+            val allFoldersCollapsed = remember(allFolderNames, collapsedFolders) {
+                allFolderNames.isNotEmpty() && allFolderNames.none { it !in collapsedFolders }
+            }
 
             DisposableEffect(allFolderNames, collapsedFolders) {
                 if (allFolderNames.isNotEmpty()) {
@@ -273,12 +276,14 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
                             ) { index, listItem ->
                                 when (listItem) {
                                     is ScenarioListItem.FolderHeader -> {
+                                        val canDragFolder = !listItem.isExpanded && allFoldersCollapsed
                                         ReorderableItem(
                                             state = reorderableState,
                                             key = listItem.key,
+                                            enabled = canDragFolder,
                                         ) { isBeingDragged ->
                                             val folderInteractionSource = remember { MutableInteractionSource() }
-                                            val reorderHandleModifier = if (!listItem.isExpanded) {
+                                            val reorderHandleModifier = if (canDragFolder) {
                                                 Modifier
                                                     .draggableHandle(
                                                         onDragStarted = onDragStarted,
@@ -294,6 +299,7 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
                                                     eventCount = listItem.totalCount,
                                                     enabledCount = listItem.enabledCount,
                                                     isExpanded = listItem.isExpanded,
+                                                    showReorderHandle = canDragFolder,
                                                     onToggleExpand = {
                                                         collapsedFolders = if (listItem.isExpanded) {
                                                             collapsedFolders + listItem.name

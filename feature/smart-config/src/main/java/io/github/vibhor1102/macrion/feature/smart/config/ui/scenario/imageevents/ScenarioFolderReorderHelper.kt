@@ -152,24 +152,12 @@ object ScenarioFolderReorderHelper {
         val list = items.toMutableList()
         val draggedItem = list[fromIndex]
 
-        // Headers can only be picked up while collapsed; end markers are targets, not handles.
+        // End markers cannot be dragged. Headers can only be moved when all folders are collapsed.
         if (draggedItem is ScenarioListItem.FolderEndBoundary ||
-            draggedItem is ScenarioListItem.FolderHeader && draggedItem.isExpanded) return items
-
-        if (draggedItem is ScenarioListItem.FolderHeader) {
-            // Folders cannot be nested inside other folders. If the insertion slot falls
-            // inside an expanded folder, reject the move (leave list unchanged) so the dragged
-            // folder hovers smoothly without oscillation or list displacement.
-            list.removeAt(fromIndex)
-            val destinationFolder = getEffectiveFolderAt(list, toIndex)
-            if (destinationFolder != null) {
-                return items
-            }
-            list.add(toIndex, draggedItem)
-            return list
+            (draggedItem is ScenarioListItem.FolderHeader && items.any { it is ScenarioListItem.FolderHeader && it.isExpanded })) {
+            return items
         }
 
-        // Standard move for individual events or valid folder swaps
         val item = list.removeAt(fromIndex)
         list.add(toIndex, item)
         return list
