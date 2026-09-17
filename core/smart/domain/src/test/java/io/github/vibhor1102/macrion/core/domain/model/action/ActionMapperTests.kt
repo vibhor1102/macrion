@@ -192,4 +192,20 @@ class ActionMapperTests {
             ActionTestsData.getNewExternalActionEntity(eventId = ActionTestsData.ACTION_EVENT_ID).toDomain(),
         )
     }
+
+    @Test
+    fun playSound_toEntity() {
+        assertEquals(
+            ActionTestsData.getNewPlaySoundEntity(eventId = ActionTestsData.ACTION_EVENT_ID).action,
+            ActionTestsData.getNewPlaySound(eventId = ActionTestsData.ACTION_EVENT_ID).toEntity(),
+        )
+    }
+
+    @Test
+    fun playSound_toDomain() {
+        assertEquals(
+            ActionTestsData.getNewPlaySound(eventId = ActionTestsData.ACTION_EVENT_ID),
+            ActionTestsData.getNewPlaySoundEntity(eventId = ActionTestsData.ACTION_EVENT_ID).toDomain(),
+        )
+    }
 }

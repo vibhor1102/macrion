@@ -56,6 +56,8 @@ enum class ActionType {
     TEXT,
     /** Fire a named external automation plugin event. */
     EXTERNAL_ACTION,
+    /** Play an audio notification sound. */
+    PLAY_SOUND,
 }
 
 

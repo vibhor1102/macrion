@@ -23,6 +23,7 @@ import io.github.vibhor1102.macrion.core.domain.model.action.Click
 import io.github.vibhor1102.macrion.core.domain.model.action.Intent
 import io.github.vibhor1102.macrion.core.domain.model.action.Notification
 import io.github.vibhor1102.macrion.core.domain.model.action.Pause
+import io.github.vibhor1102.macrion.core.domain.model.action.PlaySound
 import io.github.vibhor1102.macrion.core.domain.model.action.SetText
 import io.github.vibhor1102.macrion.core.domain.model.action.Swipe
 import io.github.vibhor1102.macrion.core.domain.model.action.SystemAction
@@ -86,6 +87,7 @@ class GetDebugLiveDetectionResultUseCase @Inject constructor(
                 is ExternalAction,
                 is Intent,
                 is Notification,
+                is PlaySound,
                 is SetText,
                 is SystemAction,
                 is ToggleEvent -> 0

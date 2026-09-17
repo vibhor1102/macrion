@@ -434,6 +434,38 @@ internal object ActionTestsData {
         eventId: Long,
     ) = ExternalAction(id.asIdentifier(), eventId.asIdentifier(), name, priority, externalActionName)
 
+    /* ------- Play Sound Data ------- */
+
+    private const val PLAY_SOUND_ID = 61L
+    private const val PLAY_SOUND_NAME = "Play sound name"
+    private const val PLAY_SOUND_URI = "content://settings/system/notification_sound"
+    private const val PLAY_SOUND_TITLE = "Chime"
+
+    fun getNewPlaySoundEntity(
+        id: Long = PLAY_SOUND_ID,
+        name: String = PLAY_SOUND_NAME,
+        priority: Int = 0,
+        soundUri: String? = PLAY_SOUND_URI,
+        soundTitle: String? = PLAY_SOUND_TITLE,
+        eventId: Long,
+    ) = CompleteActionEntity(
+        action = ActionEntity(
+            id, eventId, priority, name, ActionType.PLAY_SOUND,
+            soundUri = soundUri,
+            soundTitle = soundTitle,
+        ),
+        intentExtras = emptyList(),
+        eventsToggle = emptyList(),
+    )
+
+    fun getNewPlaySound(
+        id: Long = PLAY_SOUND_ID,
+        name: String? = PLAY_SOUND_NAME,
+        priority: Int = 0,
+        soundUri: String? = PLAY_SOUND_URI,
+        soundTitle: String? = PLAY_SOUND_TITLE,
+        eventId: Long,
+    ) = PlaySound(id.asIdentifier(), eventId.asIdentifier(), name, priority, soundUri, soundTitle)
 
     fun getNewEventToggleExtra(
         id: Long = EVENT_TOGGLE_ID,

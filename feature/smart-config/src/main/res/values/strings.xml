@@ -125,6 +125,14 @@
     <string name="item_set_text_details_text">%1$s</string>
     <string name="item_set_text_details_text_empty">Clear text</string>
 
+    <string name="item_play_sound_title">Play sound</string>
+    <string name="item_play_sound_desc">Play an audio notification sound</string>
+    <string name="item_play_sound_details_text">Sound: %1$s</string>
+    <string name="item_play_sound_details_none">No sound selected</string>
+    <string name="dialog_title_play_sound">Play sound</string>
+    <string name="default_notification_sound">Default notification sound</string>
+    <string name="play_sound_tip_custom_files">Tip: To use custom sounds, place your audio files in your phone\'s Notifications folder using a file manager. They will appear here automatically.</string>
+
     <!-- Dialog Copy =============================================================================================== -->
 
     <string name="search_view_hint_event_copy">Search by event name</string>

@@ -32,6 +32,7 @@ import io.github.vibhor1102.macrion.feature.smart.config.ui.action.intent.flags.
 import io.github.vibhor1102.macrion.feature.smart.config.ui.action.notification.NotificationViewModel
 import io.github.vibhor1102.macrion.feature.smart.config.ui.action.pause.PauseViewModel
 import io.github.vibhor1102.macrion.feature.smart.config.ui.action.settext.SetTextViewModel
+import io.github.vibhor1102.macrion.feature.smart.config.ui.action.sound.PlaySoundViewModel
 import io.github.vibhor1102.macrion.feature.smart.config.ui.action.swipe.SwipeViewModel
 import io.github.vibhor1102.macrion.feature.smart.config.ui.action.system.SystemActionViewModel
 import io.github.vibhor1102.macrion.feature.smart.config.ui.action.toggleevent.EventTogglesViewModel
@@ -111,6 +112,7 @@ interface ScenarioConfigViewModelsEntryPoint {
     fun numberConditionViewModel(): NumberConditionViewModel
     fun notificationViewModel(): NotificationViewModel
     fun pauseViewModel(): PauseViewModel
+    fun playSoundViewModel(): PlaySoundViewModel
     fun scenarioConfigViewModel(): ScenarioConfigViewModel
     fun scenarioDialogViewModel(): ScenarioDialogViewModel
     fun scenarioSwitchViewModel(): ScenarioSwitchViewModel

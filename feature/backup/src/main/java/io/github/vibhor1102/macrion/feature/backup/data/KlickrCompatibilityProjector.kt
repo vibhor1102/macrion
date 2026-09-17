@@ -86,7 +86,8 @@ internal object KlickrCompatibilityProjector {
         val losses = mutableListOf<KlickrCompatibilityLoss>()
         val compatibleEvents = detached.events.mapNotNull { event ->
             val compatibleActions = event.actions.filterNot { action ->
-                action.action.type == ActionType.EXTERNAL_ACTION
+                action.action.type == ActionType.EXTERNAL_ACTION ||
+                    action.action.type == ActionType.PLAY_SOUND
             }
             val removedActionCount = event.actions.size - compatibleActions.size
             if (removedActionCount > 0) {

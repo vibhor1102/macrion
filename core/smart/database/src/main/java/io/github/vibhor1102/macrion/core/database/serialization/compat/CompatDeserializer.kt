@@ -491,6 +491,7 @@ internal open class CompatDeserializer : Deserializer {
             ActionType.NOTIFICATION -> deserializeActionNotification(jsonAction)
             ActionType.SYSTEM -> deserializeActionSystem(jsonAction)
             ActionType.TEXT -> deserializeActionSetText(jsonAction)
+            ActionType.PLAY_SOUND -> deserializeActionPlaySound(jsonAction)
             null -> null
         }
 
@@ -719,6 +720,21 @@ internal open class CompatDeserializer : Deserializer {
             type = ActionType.TEXT,
             textValue = jsonSetText.getString("textValue") ?: "",
             textValidateInput = jsonSetText.getBoolean("textValidateInput") ?: false,
+        )
+    }
+
+    open fun deserializeActionPlaySound(jsonPlaySound: JsonObject): ActionEntity? {
+        val id = jsonPlaySound.getLong("id", true) ?: return null
+        val eventId = jsonPlaySound.getLong("eventId", true) ?: return null
+
+        return ActionEntity(
+            id = id,
+            eventId = eventId,
+            name = jsonPlaySound.getString("name") ?: "",
+            priority = jsonPlaySound.getInt("priority")?.coerceAtLeast(0) ?: 0,
+            type = ActionType.PLAY_SOUND,
+            soundUri = jsonPlaySound.getString("soundUri"),
+            soundTitle = jsonPlaySound.getString("soundTitle"),
         )
     }
 

@@ -31,7 +31,7 @@ import io.github.vibhor1102.macrion.core.domain.model.action.SystemAction
 import io.github.vibhor1102.macrion.core.domain.model.action.ToggleEvent
 import io.github.vibhor1102.macrion.core.domain.model.event.Event
 import io.github.vibhor1102.macrion.core.domain.model.action.ExternalAction
-
+import io.github.vibhor1102.macrion.core.domain.model.action.PlaySound
 
 data class UiAction(
     @param:DrawableRes val icon: Int,
@@ -62,6 +62,7 @@ internal fun Action.getIconRes(): Int = when (this) {
     is Notification -> getNotificationIconRes()
     is SystemAction -> getSystemActionIconRes()
     is SetText -> getSetTextIconRes()
+    is PlaySound -> getPlaySoundIconRes()
 }
 
 internal fun Action.getActionDescription(context: Context, parent: Event?, inError: Boolean): String = when (this) {
@@ -75,4 +76,5 @@ internal fun Action.getActionDescription(context: Context, parent: Event?, inErr
     is Notification -> getDescription(context, inError)
     is SystemAction -> getDescription(context, inError)
     is SetText -> getDescription(context, inError)
+    is PlaySound -> getDescription(context, inError)
 }

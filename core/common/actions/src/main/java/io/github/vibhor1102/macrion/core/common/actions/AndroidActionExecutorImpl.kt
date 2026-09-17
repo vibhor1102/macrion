@@ -37,11 +37,14 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 
+import io.github.vibhor1102.macrion.core.common.actions.sound.SoundExecutor
+
 @Singleton
 internal class AndroidActionExecutorImpl @Inject constructor(
     private val gestureExecutor: GestureExecutor,
     private val notificationRequestExecutor: NotificationRequestExecutor,
     private val textExecutor: TextExecutor,
+    private val soundExecutor: SoundExecutor,
 ) : AndroidActionExecutor {
 
     /** Keep the service in a week reference to avoid potential leak. */
@@ -66,10 +69,12 @@ internal class AndroidActionExecutorImpl @Inject constructor(
     override fun resetState() {
         gestureExecutor.clear()
         notificationRequestExecutor.clear()
+        soundExecutor.stopSound()
     }
 
     override fun clear() {
         resetState()
+        soundExecutor.clear()
         accessibilityServiceRef = null
     }
 
@@ -139,6 +144,10 @@ internal class AndroidActionExecutorImpl @Inject constructor(
         } catch (iaex: IllegalArgumentException) {
             Log.w(TAG, "Can't fire external action, Intent is invalid.", iaex)
         }
+    }
+
+    override fun playSound(soundUri: String) {
+        soundExecutor.playSound(soundUri)
     }
 
     override fun dump(writer: PrintWriter, prefix: CharSequence) {

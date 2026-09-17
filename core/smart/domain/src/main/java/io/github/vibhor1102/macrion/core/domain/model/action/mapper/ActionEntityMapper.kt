@@ -32,6 +32,7 @@ import io.github.vibhor1102.macrion.core.domain.model.action.Swipe
 import io.github.vibhor1102.macrion.core.domain.model.action.SystemAction
 import io.github.vibhor1102.macrion.core.domain.model.action.ToggleEvent
 import io.github.vibhor1102.macrion.core.domain.model.action.ExternalAction
+import io.github.vibhor1102.macrion.core.domain.model.action.PlaySound
 
 
 internal fun Action.toEntity(): ActionEntity {
@@ -48,6 +49,7 @@ internal fun Action.toEntity(): ActionEntity {
         is Notification -> toNotificationEntity()
         is SystemAction -> toSystemActionEntity()
         is SetText -> toSetTextEntity()
+        is PlaySound -> toPlaySoundEntity()
     }
 }
 
@@ -173,4 +175,15 @@ private fun SetText.toSetTextEntity(): ActionEntity =
         type = ActionType.TEXT,
         textValue = text,
         textValidateInput = validateInput,
+    )
+
+private fun PlaySound.toPlaySoundEntity(): ActionEntity =
+    ActionEntity(
+        id = id.databaseId,
+        eventId = eventId.databaseId,
+        priority = priority,
+        name = name!!.trim(),
+        type = ActionType.PLAY_SOUND,
+        soundUri = soundUri,
+        soundTitle = soundTitle,
     )

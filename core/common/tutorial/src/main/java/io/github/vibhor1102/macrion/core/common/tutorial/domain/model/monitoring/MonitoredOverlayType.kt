@@ -44,6 +44,7 @@ enum class MonitoredOverlayType {
     NOTIFICATION,
     SYSTEM_ACTION,
     SET_TEXT,
+    PLAY_SOUND,
     ACTION_TYPE_SELECTION,
     SMART_ACTIONS_LEGACY,
 
