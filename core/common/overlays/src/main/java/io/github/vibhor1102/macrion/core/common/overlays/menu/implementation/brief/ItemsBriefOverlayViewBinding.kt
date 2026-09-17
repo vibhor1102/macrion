@@ -688,18 +688,21 @@ private fun BriefItemsCarousel(
             deletingItemId = deletedItem.id
             onDeleteAnimationChanged(true)
             try {
+                // Phase 1: current card vanishes in place in the center
+                delay(180)
+
+                // Phase 2: neighboring card glides into center to occupy the position
                 if (displayedItems.size > 1) {
                     val targetPage = if (deletedIndex < displayedItems.lastIndex) deletedIndex + 1 else deletedIndex - 1
                     pagerState.animateScrollToPage(
                         page = targetPage,
-                        animationSpec = tween(durationMillis = 280, easing = FastOutSlowInEasing),
+                        animationSpec = tween(durationMillis = 220, easing = FastOutSlowInEasing),
                     )
                     val newIndex = if (deletedIndex < items.size) deletedIndex else (items.size - 1).coerceAtLeast(0)
                     displayedItems = items
                     deletingItemId = null
                     pagerState.scrollToPage(newIndex)
                 } else {
-                    delay(250)
                     displayedItems = items
                     deletingItemId = null
                 }
@@ -821,7 +824,7 @@ private fun BriefItemContainer(
 ) {
     val deleteProgress by animateFloatAsState(
         targetValue = if (isDeleting) 1f else 0f,
-        animationSpec = tween(durationMillis = 250, easing = FastOutLinearInEasing),
+        animationSpec = tween(durationMillis = 180, easing = FastOutLinearInEasing),
         label = "deleteProgress",
     )
 
@@ -834,9 +837,9 @@ private fun BriefItemContainer(
                 scaleX = 1f - 0.25f * progress
                 scaleY = 1f - 0.25f * progress
                 if (orientation == Configuration.ORIENTATION_PORTRAIT) {
-                    translationY = 24.dp.toPx() * progress
+                    translationY = 28.dp.toPx() * progress
                 } else {
-                    translationX = -24.dp.toPx() * progress
+                    translationX = -28.dp.toPx() * progress
                 }
             }
             .pointerInput(onInteraction, isDeleting) {
