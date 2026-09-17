@@ -115,12 +115,11 @@ internal fun FolderHeaderRow(
         Box {
             IconButton(
                 onClick = { menuExpanded = true },
-                modifier = Modifier.size(40.dp),
             ) {
                 Icon(
                     painter = painterResource(UiR.drawable.ic_more),
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp),
+                    contentDescription = stringResource(R.string.folder_menu_options),
+                    modifier = Modifier.size(24.dp),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
@@ -128,6 +127,8 @@ internal fun FolderHeaderRow(
             DropdownMenu(
                 expanded = menuExpanded,
                 onDismissRequest = { menuExpanded = false },
+                shape = MaterialTheme.shapes.large,
+                containerColor = MaterialTheme.colorScheme.surfaceContainer,
             ) {
                 DropdownMenuItem(
                     text = { Text(stringResource(R.string.folder_action_rename)) },
@@ -139,12 +140,12 @@ internal fun FolderHeaderRow(
                         Icon(
                             painter = painterResource(UiR.drawable.ic_write),
                             contentDescription = null,
-                            modifier = Modifier.size(18.dp),
+                            modifier = Modifier.size(24.dp),
                         )
                     },
                 )
                 DropdownMenuItem(
-                    text = { Text(stringResource(R.string.folder_action_add_event)) },
+                    text = { Text(stringResource(R.string.folder_action_create_event)) },
                     onClick = {
                         menuExpanded = false
                         onAddEventClick()
@@ -153,10 +154,11 @@ internal fun FolderHeaderRow(
                         Icon(
                             painter = painterResource(UiR.drawable.ic_add),
                             contentDescription = null,
-                            modifier = Modifier.size(18.dp),
+                            modifier = Modifier.size(24.dp),
                         )
                     },
                 )
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                 DropdownMenuItem(
                     text = { Text(stringResource(R.string.folder_action_delete)) },
                     onClick = {
@@ -167,14 +169,17 @@ internal fun FolderHeaderRow(
                         Icon(
                             painter = painterResource(UiR.drawable.ic_delete),
                             contentDescription = null,
-                            modifier = Modifier.size(18.dp),
-                            tint = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.size(24.dp),
                         )
                     },
+                    colors = MenuDefaults.itemColors(
+                        textColor = MaterialTheme.colorScheme.error,
+                        leadingIconColor = MaterialTheme.colorScheme.error,
+                    ),
                 )
             }
         }
-        Spacer(Modifier.width(8.dp))
+        Spacer(Modifier.width(4.dp))
     }
 }
 
