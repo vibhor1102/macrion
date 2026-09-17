@@ -316,8 +316,6 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
                                             Column {
                                                 FolderHeaderRow(
                                                     name = listItem.name,
-                                                    eventCount = listItem.totalCount,
-                                                    enabledCount = listItem.enabledCount,
                                                     isExpanded = listItem.isExpanded,
                                                     showReorderHandle = canDragFolder,
                                                     onDisabledHandleClick = if (!canDragFolder) onDisabledFolderDragClick else null,

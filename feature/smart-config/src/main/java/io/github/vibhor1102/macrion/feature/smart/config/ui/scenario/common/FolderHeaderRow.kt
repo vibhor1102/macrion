@@ -41,8 +41,6 @@ import io.github.vibhor1102.macrion.feature.smart.config.R
 @Composable
 internal fun FolderHeaderRow(
     name: String,
-    eventCount: Int,
-    enabledCount: Int,
     isExpanded: Boolean,
     onToggleExpand: () -> Unit,
     onRenameClick: () -> Unit,
@@ -113,20 +111,6 @@ internal fun FolderHeaderRow(
         )
 
         Spacer(Modifier.width(8.dp))
-
-        // Badge showing event counts
-        Surface(
-            shape = RoundedCornerShape(12.dp),
-            color = MaterialTheme.colorScheme.surfaceContainerHighest,
-            modifier = Modifier.padding(vertical = 4.dp),
-        ) {
-            Text(
-                text = if (enabledCount == eventCount) "$eventCount" else "$enabledCount/$eventCount",
-                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
 
         Box {
             IconButton(
