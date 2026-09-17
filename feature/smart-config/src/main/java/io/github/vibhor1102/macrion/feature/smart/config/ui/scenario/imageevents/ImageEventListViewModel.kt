@@ -20,6 +20,8 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 
 import io.github.vibhor1102.macrion.core.domain.model.event.ScreenEvent
+import io.github.vibhor1102.macrion.core.domain.model.scenario.ScenarioFolder
+import io.github.vibhor1102.macrion.feature.smart.config.data.completeFolders
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredViewType
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.MonitoredViewsManager
 import io.github.vibhor1102.macrion.feature.smart.config.domain.EditionRepository
@@ -28,7 +30,7 @@ import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.event.U
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.event.toUiImageEvent
 
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.combine
 
 import javax.inject.Inject
 
@@ -38,13 +40,16 @@ class ImageEventListViewModel @Inject constructor(
     internal val monitoredViewsManager: MonitoredViewsManager,
 ) : ViewModel() {
 
-    /** Currently configured events. */
-    val eventsItems = editionRepository.editionState.editedScreenEventsState
-        .mapNotNull { imageEventsState ->
-            imageEventsState.value?.let { events ->
-                events.map { it.toUiImageEvent(inError = !it.isComplete()) }
-            }
-        }
+    /** Read both parts of the draft together after each synchronous editor operation. */
+    internal val listState = combine(
+        editionRepository.editionState.editedScreenEventsState,
+        editionRepository.editionState.scenarioState,
+    ) { _, _ ->
+        ImageEventListState(
+            editionRepository.getScreenEvents().map { it.toUiImageEvent(inError = !it.isComplete()) },
+            editionRepository.editionState.getScenario()?.folders.orEmpty(),
+        )
+    }
 
     val copyButtonIsVisible: Flow<Boolean> = isScreenEventCopyAvailableUseCase()
 
@@ -69,35 +74,62 @@ class ImageEventListViewModel @Inject constructor(
             uiEvents.map { it.event }
         )
 
-    /** Update raw ScreenEvents list directly. */
-    fun updateRawEvents(events: List<ScreenEvent>) =
+    /** Store events and header positions in the scenario draft; Save persists both together. */
+    fun updateLayout(items: List<ScenarioListItem>, source: List<UiImageEvent>) {
+        val events = ScenarioFolderReorderHelper.reconstructEvents(items, source)
+        val folders = ScenarioFolderReorderHelper.reconstructFolders(items, source)
         editionRepository.updateImageEventsOrder(events)
-
-    /** Rename an existing folder across all events in that folder. */
-    fun renameFolder(oldName: String, newName: String) {
-        val trimmed = newName.trim()
-        if (trimmed.isEmpty() || trimmed == oldName) return
-        val current = editionRepository.getScreenEvents()
-        val updated = current.map {
-            if (it.folder == oldName) it.copy(folder = trimmed) else it
-        }
-        editionRepository.updateImageEventsOrder(updated)
+        updateFolders(folders)
     }
 
-    /** Delete a folder, optionally deleting all events inside or keeping them as ungrouped. */
+    fun createFolder(name: String) {
+        val trimmed = name.trim()
+        val events = editionRepository.getScreenEvents()
+        val folders = currentFolders()
+        if (trimmed.isEmpty() || folders.any { it.name == trimmed }) return
+        updateFolders(folders + ScenarioFolder(trimmed, events.size))
+    }
+
+    fun renameFolder(oldName: String, newName: String) {
+        val trimmed = newName.trim()
+        val folders = currentFolders()
+        if (trimmed.isEmpty() || trimmed == oldName || folders.any { it.name == trimmed }) return
+        editionRepository.updateImageEventsOrder(editionRepository.getScreenEvents().map {
+            if (it.folder == oldName) it.copy(folder = trimmed) else it
+        })
+        updateFolders(folders.map { if (it.name == oldName) it.copy(name = trimmed) else it })
+    }
+
     fun deleteFolder(folderName: String, deleteEvents: Boolean) {
         val current = editionRepository.getScreenEvents()
-        val updated = if (deleteEvents) {
-            current.filter { it.folder != folderName }
+        val folders = currentFolders()
+        if (deleteEvents) {
+            // Use normal deletion to clean up Toggle Event references, including trigger events.
+            editionRepository.deleteScreenEvents(current.filter { it.folder == folderName })
+            updateFolders(currentFolders().filterNot { it.name == folderName })
         } else {
-            current.map {
+            editionRepository.updateImageEventsOrder(current.map {
                 if (it.folder == folderName) it.copy(folder = null) else it
-            }
+            })
+            updateFolders(folders.filterNot { it.name == folderName })
         }
-        editionRepository.updateImageEventsOrder(updated)
+    }
+
+    private fun currentFolders(): List<ScenarioFolder> = completeFolders(
+        editionRepository.getScreenEvents(), editionRepository.editionState.getScenario()?.folders.orEmpty(),
+    )
+
+    private fun updateFolders(folders: List<ScenarioFolder>) {
+        val scenario = editionRepository.editionState.getScenario() ?: return
+        editionRepository.updateEditedScenario(scenario.copy(folders = folders))
     }
 
     /** Create a new event assigned to a specific folder. */
     fun createNewEventInFolder(context: Context, folderName: String): ScreenEvent =
         editionRepository.editedItemsBuilder.createNewImageEvent(context).copy(folder = folderName)
 }
+
+internal data class ImageEventListState(
+    val events: List<UiImageEvent>,
+    val folders: List<ScenarioFolder>,
+)

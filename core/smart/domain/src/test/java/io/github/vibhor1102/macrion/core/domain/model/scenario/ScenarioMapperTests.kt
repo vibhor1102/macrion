@@ -77,4 +77,13 @@ class ScenarioMapperTests {
 
         assertEquals(expectedScenario, scenario)
     }
+    @Test
+    fun folderPositionsSurviveDatabaseAndCopyMapping() {
+        val folders = listOf(ScenarioFolder("Before", 0), ScenarioFolder("Empty", 1), ScenarioFolder("After", 1))
+        val original = ScenarioTestsData.getNewScenario().copy(folders = folders)
+        val entity = original.toEntity()
+        assertEquals(folders, ScenarioWithEvents(entity, emptyList(), null).toDomain().folders)
+        assertEquals(folders, CompleteScenario(entity, emptyList(), emptyList()).toDomain(cleanIds = true).first.folders)
+    }
+
 }

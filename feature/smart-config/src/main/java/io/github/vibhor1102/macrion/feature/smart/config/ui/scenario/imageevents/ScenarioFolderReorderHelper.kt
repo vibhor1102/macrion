@@ -9,6 +9,7 @@
 package io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.imageevents
 
 import io.github.vibhor1102.macrion.core.domain.model.event.ScreenEvent
+import io.github.vibhor1102.macrion.core.domain.model.scenario.ScenarioFolder
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.event.UiImageEvent
 
 /**
@@ -71,58 +72,63 @@ object ScenarioFolderReorderHelper {
      */
     fun buildVisibleItems(
         events: List<UiImageEvent>,
-        customFolders: List<String>,
+        folders: List<ScenarioFolder>,
         collapsedFolders: Set<String>,
     ): List<ScenarioListItem> {
+        val byFolder = events.groupBy { it.folder?.trim()?.ifEmpty { null } }
+        val firstIndices = mutableMapOf<String, Int>()
+        events.forEachIndexed { index, event ->
+            event.folder?.trim()?.takeIf { it.isNotEmpty() }?.let { firstIndices.putIfAbsent(it, index) }
+        }
+        // Old backups contain membership only. Infer missing headers without losing their order.
+        val known = folders.map { it.name }.toSet()
+        val orderedFolders = (folders + firstIndices.filterKeys { it !in known }
+            .map { (name, index) -> ScenarioFolder(name, index) })
+            .distinctBy { it.name }
+            .sortedBy { it.eventIndex }
         val result = mutableListOf<ScenarioListItem>()
-        val processedFolders = mutableSetOf<String>()
-
-        for (event in events) {
-            val folder = event.folder?.trim()?.ifEmpty { null }
-            if (folder == null) {
-                result.add(ScenarioListItem.EventItem(event, null))
-            } else {
-                if (processedFolders.add(folder)) {
-                    val folderEvents = events.filter { it.folder?.trim() == folder }
-                    val isExpanded = folder !in collapsedFolders
-                    result.add(
-                        ScenarioListItem.FolderHeader(
-                            name = folder,
-                            totalCount = folderEvents.size,
-                            enabledCount = folderEvents.count { it.event.enabledOnStart },
-                            isExpanded = isExpanded,
-                        )
-                    )
-                    if (isExpanded) {
-                        for (fe in folderEvents) {
-                            result.add(ScenarioListItem.EventItem(fe, folder))
-                        }
-                        result.add(ScenarioListItem.FolderEndBoundary(folder))
-                    }
+        var nextFolder = 0
+        fun appendFoldersThrough(index: Int) {
+            while (nextFolder < orderedFolders.size && orderedFolders[nextFolder].eventIndex <= index) {
+                val folder = orderedFolders[nextFolder++]
+                val members = byFolder[folder.name].orEmpty()
+                val expanded = folder.name !in collapsedFolders
+                result.add(ScenarioListItem.FolderHeader(
+                    folder.name, members.size, members.count { it.event.enabledOnStart }, expanded,
+                ))
+                if (expanded) {
+                    members.forEach { result.add(ScenarioListItem.EventItem(it, folder.name)) }
+                    result.add(ScenarioListItem.FolderEndBoundary(folder.name))
                 }
             }
         }
-
-        // Add any empty custom folders
-        for (cf in customFolders) {
-            if (processedFolders.add(cf)) {
-                val isExpanded = cf !in collapsedFolders
-                result.add(
-                    ScenarioListItem.FolderHeader(
-                        name = cf,
-                        totalCount = 0,
-                        enabledCount = 0,
-                        isExpanded = isExpanded,
-                    )
-                )
-                if (isExpanded) {
-                    result.add(ScenarioListItem.FolderEndBoundary(cf))
-                }
-            }
+        events.forEachIndexed { index, event ->
+            appendFoldersThrough(index)
+            if (event.folder.isNullOrBlank()) result.add(ScenarioListItem.EventItem(event, null))
         }
-
-        ReorderLog.d("[BuildVisible] sourceEvents=${events.size}, customFolders=$customFolders, collapsed=$collapsedFolders -> ${result.size} visible items: ${result.map { it.summary }}")
+        appendFoldersThrough(Int.MAX_VALUE)
         return result
+    }
+
+    /** Capture every header, even an empty one, at its position in the full event sequence. */
+    fun reconstructFolders(
+        items: List<ScenarioListItem>,
+        allSourceEvents: List<UiImageEvent>,
+    ): List<ScenarioFolder> {
+        val counts = allSourceEvents.groupingBy { it.folder?.trim() }.eachCount()
+        var eventIndex = 0
+        return buildList {
+            items.forEach { item ->
+                when (item) {
+                    is ScenarioListItem.FolderHeader -> {
+                        add(ScenarioFolder(item.name, eventIndex))
+                        if (!item.isExpanded) eventIndex += counts[item.name] ?: 0
+                    }
+                    is ScenarioListItem.EventItem -> eventIndex++
+                    is ScenarioListItem.FolderEndBoundary -> Unit
+                }
+            }
+        }
     }
 
     /**
@@ -160,43 +166,35 @@ object ScenarioFolderReorderHelper {
 
         val list = items.toMutableList()
         val draggedItem = list[fromIndex]
-        ReorderLog.d("[MoveItem] fromIdx=$fromIndex (${draggedItem.summary}) -> toIdx=$toIndex (${list[toIndex].summary})")
 
-        // Rule for moving a Collapsed FolderHeader:
-        // A collapsed folder header must never be placed inside an expanded folder.
-        if (draggedItem is ScenarioListItem.FolderHeader && !draggedItem.isExpanded) {
-            val destinationFolder = getEffectiveFolderAt(list, toIndex)
+        // Headers can only be picked up while collapsed; end markers are targets, not handles.
+        if (draggedItem is ScenarioListItem.FolderEndBoundary ||
+            draggedItem is ScenarioListItem.FolderHeader && draggedItem.isExpanded) return items
+
+        if (draggedItem is ScenarioListItem.FolderHeader) {
+            // Check the INSERTION slot after removal. Checking the old target index misses
+            // downward moves onto an expanded header and allows an illegal nested folder.
+            list.removeAt(fromIndex)
+            var destination = toIndex
+            val destinationFolder = getEffectiveFolderAt(list, destination)
             if (destinationFolder != null) {
-                // Moving downward into an expanded folder -> jump past its end boundary
-                if (toIndex > fromIndex) {
-                    val boundaryIndex = list.indexOfFirst {
+                destination = if (toIndex > fromIndex) {
+                    list.indexOfFirst {
                         it is ScenarioListItem.FolderEndBoundary && it.folderName == destinationFolder
-                    }
-                    if (boundaryIndex != -1) {
-                        ReorderLog.d("[MoveItemRule] Collapsed folder '${draggedItem.name}' jumped to boundaryIdx=$boundaryIndex")
-                        val item = list.removeAt(fromIndex)
-                        list.add(boundaryIndex, item)
-                        return list
-                    }
+                    }.takeIf { it >= 0 }?.plus(1) ?: return items
                 } else {
-                    // Moving upward into an expanded folder -> jump above its header
-                    val headerIndex = list.indexOfFirst {
+                    list.indexOfFirst {
                         it is ScenarioListItem.FolderHeader && it.name == destinationFolder
-                    }
-                    if (headerIndex != -1) {
-                        ReorderLog.d("[MoveItemRule] Collapsed folder '${draggedItem.name}' jumped to headerIdx=$headerIndex")
-                        val item = list.removeAt(fromIndex)
-                        list.add(headerIndex, item)
-                        return list
-                    }
+                    }.takeIf { it >= 0 } ?: return items
                 }
             }
+            list.add(destination, draggedItem)
+            return list
         }
 
         // Standard move for individual events or valid folder swaps
         val item = list.removeAt(fromIndex)
         list.add(toIndex, item)
-        ReorderLog.d("[MoveItemResult] List order: ${list.map { it.summary }}")
         return list
     }
 
@@ -259,7 +257,6 @@ object ScenarioFolderReorderHelper {
             }
         }
 
-        ReorderLog.d("[ReconstructEvents] Reconstructed ${result.size} events: ${result.map { "${it.name}(folder=${it.folder})" }}")
         return result
     }
 }

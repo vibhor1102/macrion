@@ -12,6 +12,7 @@ import io.github.vibhor1102.macrion.core.base.identifier.Identifier
 import io.github.vibhor1102.macrion.core.domain.model.OR
 import io.github.vibhor1102.macrion.core.domain.model.event.ScreenEvent
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.event.toUiImageEvent
+import io.github.vibhor1102.macrion.core.domain.model.scenario.ScenarioFolder
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -43,7 +44,7 @@ class ScenarioFolderReorderHelperTest {
 
         val visible = ScenarioFolderReorderHelper.buildVisibleItems(
             events = events,
-            customFolders = emptyList(),
+            folders = emptyList(),
             collapsedFolders = emptySet(),
         )
 
@@ -73,7 +74,7 @@ class ScenarioFolderReorderHelperTest {
 
         val visible = ScenarioFolderReorderHelper.buildVisibleItems(
             events = events,
-            customFolders = emptyList(),
+            folders = emptyList(),
             collapsedFolders = setOf("Combat"),
         )
 
@@ -99,7 +100,7 @@ class ScenarioFolderReorderHelperTest {
 
         val visible = ScenarioFolderReorderHelper.buildVisibleItems(
             events = events,
-            customFolders = emptyList(),
+            folders = emptyList(),
             collapsedFolders = emptySet(),
         )
 
@@ -285,4 +286,94 @@ class ScenarioFolderReorderHelperTest {
         assertEquals("Event A2", reconstructed[3].name)
         assertEquals("FolderA", reconstructed[3].folder)
     }
+    @Test
+    fun `collapsed folder crossing expanded header downward cannot nest`() {
+        val events = listOf(createTestEvent(1, "A", "A"), createTestEvent(2, "B", "B"))
+            .map { it.toUiImageEvent(false) }
+        val visible = ScenarioFolderReorderHelper.buildVisibleItems(events, emptyList(), setOf("A"))
+        val moved = ScenarioFolderReorderHelper.moveItem(visible, 0, 1)
+        assertEquals(listOf("folder_header_B", 2L, "folder_end_B", "folder_header_A"), moved.map { it.key })
+        assertEquals(listOf("B", "A"), ScenarioFolderReorderHelper.reconstructEvents(moved, events).map { it.folder })
+    }
+
+    @Test
+    fun `last event leaving folder preserves empty folder at its exact position`() {
+        val source = listOf(createTestEvent(1, "Before"), createTestEvent(2, "Member", "F"), createTestEvent(3, "After"))
+            .map { it.toUiImageEvent(false) }
+        val visible = ScenarioFolderReorderHelper.buildVisibleItems(source, emptyList(), emptySet())
+        val moved = ScenarioFolderReorderHelper.moveItem(visible, 2, 1)
+        val folders = ScenarioFolderReorderHelper.reconstructFolders(moved, source)
+        val events = ScenarioFolderReorderHelper.reconstructEvents(moved, source).map { it.toUiImageEvent(false) }
+        assertEquals(listOf(ScenarioFolder("F", 2)), folders)
+        assertEquals(moved.map { it.key }, ScenarioFolderReorderHelper.buildVisibleItems(events, folders, emptySet()).map { it.key })
+    }
+
+    @Test
+    fun `all legal source and target pairs preserve boundaries events and saved positions`() {
+        val events = listOf(
+            createTestEvent(1, "Root before"), createTestEvent(2, "A1", "A"),
+            createTestEvent(3, "A2", "A"), createTestEvent(4, "Root middle"),
+            createTestEvent(5, "B1", "B"), createTestEvent(6, "Root after"),
+        ).map { it.toUiImageEvent(false) }
+        val folders = listOf(ScenarioFolder("Empty before", 0), ScenarioFolder("A", 1),
+            ScenarioFolder("Empty middle", 3), ScenarioFolder("B", 4), ScenarioFolder("Empty after", 6))
+        for (mask in 0 until (1 shl folders.size)) {
+            val collapsed = folders.filterIndexed { index, _ -> mask and (1 shl index) != 0 }.map { it.name }.toSet()
+            val visible = ScenarioFolderReorderHelper.buildVisibleItems(events, folders, collapsed)
+            for (from in visible.indices) for (to in visible.indices) {
+                val moved = ScenarioFolderReorderHelper.moveItem(visible, from, to)
+                assertRoundTrip(moved, events, collapsed)
+            }
+        }
+    }
+
+    @Test
+    fun `seeded drag sequences on large lists survive each drop and reload`() {
+        var events = (1L..1200L).map { id ->
+            createTestEvent(id, "Event $id", if (id % 10L == 0L) null else "Folder ${id / 10}")
+                .toUiImageEvent(false)
+        }
+        var folders = listOf(ScenarioFolder("Empty", 0))
+        val random = kotlin.random.Random(917)
+        var collapsed = events.mapNotNull { it.folder }.filterIndexed { index, _ -> index % 3 != 0 }.toSet()
+        repeat(100) {
+            var visible = ScenarioFolderReorderHelper.buildVisibleItems(events, folders, collapsed)
+            val movable = visible.filter { it is ScenarioListItem.EventItem || it is ScenarioListItem.FolderHeader && !it.isExpanded }
+            val key = movable[random.nextInt(movable.size)].key
+            repeat(5) {
+                val from = visible.indexOfFirst { it.key == key }
+                val to = (from + if (random.nextBoolean()) 1 else -1).coerceIn(0, visible.lastIndex)
+                visible = ScenarioFolderReorderHelper.moveItem(visible, from, to)
+            }
+            assertRoundTrip(visible, events, collapsed)
+            folders = ScenarioFolderReorderHelper.reconstructFolders(visible, events)
+            events = ScenarioFolderReorderHelper.reconstructEvents(visible, events).map { it.toUiImageEvent(false) }
+            if (it % 10 == 0) collapsed = folders.filter { random.nextBoolean() }.map { it.name }.toSet()
+        }
+    }
+
+    private fun assertRoundTrip(items: List<ScenarioListItem>, source: List<io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.event.UiImageEvent>, collapsed: Set<String>) {
+        var open: String? = null
+        items.forEach { item ->
+            when (item) {
+                is ScenarioListItem.FolderHeader -> {
+                    assertNull("Nested header ${item.name}", open)
+                    if (item.isExpanded) open = item.name
+                }
+                is ScenarioListItem.FolderEndBoundary -> {
+                    assertEquals(item.folderName, open)
+                    open = null
+                }
+                is ScenarioListItem.EventItem -> Unit
+            }
+        }
+        assertNull(open)
+        val events = ScenarioFolderReorderHelper.reconstructEvents(items, source)
+        assertEquals(source.size, events.size)
+        assertEquals(source.map { it.event.id }.toSet(), events.map { it.id }.toSet())
+        val folders = ScenarioFolderReorderHelper.reconstructFolders(items, source)
+        val reloaded = ScenarioFolderReorderHelper.buildVisibleItems(events.map { it.toUiImageEvent(false) }, folders, collapsed)
+        assertEquals(items.map { it.key }, reloaded.map { it.key })
+    }
+
 }

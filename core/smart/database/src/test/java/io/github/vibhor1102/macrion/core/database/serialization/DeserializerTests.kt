@@ -101,4 +101,24 @@ class DeserializerTests {
         // Then
         assertEquals(DEFAULT_COMPLETE_SCENARIO, deserializedScenario)
     }
+    @Test
+    fun folderPositionsRoundTripIncludingEmptyFoldersAndEscapedNames() {
+        val expected = DEFAULT_COMPLETE_SCENARIO.copy(scenario = DEFAULT_COMPLETE_SCENARIO.scenario.copy(
+            folders = listOf(ScenarioFolderEntity("Empty \"quoted\" / 日本語", 0), ScenarioFolderEntity("After", 1)),
+        ))
+        assertEquals(expected, DeserializerFactory.create(DATABASE_VERSION)?.deserializeCompleteScenario(expected.encodeToJsonObject()))
+    }
+
+    @Test
+    fun oldVersion28BackupWithoutFoldersStillLoads() {
+        assertEquals(emptyList<ScenarioFolderEntity>(), DeserializerFactory.create(28)
+            ?.deserializeCompleteScenario(DEFAULT_COMPLETE_SCENARIO.encodeToJsonObject())?.scenario?.folders)
+    }
+
+    @Test
+    fun version27BackupWithoutFoldersStillLoads() {
+        assertEquals(emptyList<ScenarioFolderEntity>(), DeserializerFactory.create(27)
+            ?.deserializeCompleteScenario(DEFAULT_COMPLETE_SCENARIO.encodeToJsonObject())?.scenario?.folders)
+    }
+
 }

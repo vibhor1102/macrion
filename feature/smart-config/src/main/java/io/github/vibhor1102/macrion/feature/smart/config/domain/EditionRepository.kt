@@ -90,6 +90,7 @@ class EditionRepository @Inject constructor(
         }
 
         Log.d(TAG, "Start edition of scenario $scenarioId")
+        Log.d("MacrionReorder", "[LoadScenario] id=$scenarioId, savedFolders=${scenario.folders}")
 
         scenarioEditor.startEdition(
             scenario = scenario,
@@ -104,12 +105,15 @@ class EditionRepository @Inject constructor(
     suspend fun saveEditions(): Boolean {
         Log.d(TAG, "Save editions")
 
+        val scenario = scenarioEditor.editedScenario.value ?: return false
+        Log.d("MacrionReorder", "[SaveScenario] id=${scenario.id}, folders=${scenario.folders}")
         val updateResult = repository.updateScenario(
-            scenario = scenarioEditor.editedScenario.value ?: return false,
+            scenario = scenario,
             events = scenarioEditor.getAllEditedEvents(),
             counters = scenarioEditor.allEditedCounters.value ?: emptyList(),
         )
 
+        Log.d("MacrionReorder", "[SaveScenarioResult] id=${scenario.id}, success=$updateResult")
         // In case of error, do not stop the edition
         if (!updateResult) return false
 
@@ -135,6 +139,8 @@ class EditionRepository @Inject constructor(
             newEvents.mapIndexed { index, event -> event.copy(priority = index) }
         )
     }
+
+    fun deleteScreenEvents(events: List<ScreenEvent>) = scenarioEditor.deleteScreenEvents(events)
 
     fun getScreenEvents(): List<ScreenEvent> = scenarioEditor.getScreenEvents()
 

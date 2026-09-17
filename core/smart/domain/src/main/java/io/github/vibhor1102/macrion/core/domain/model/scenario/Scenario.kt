@@ -40,4 +40,8 @@ data class Scenario(
     val computeRate: Double = 0.0,
     val eventCount: Int = 0,
     val stats: ScenarioStats? = null,
+    val folders: List<ScenarioFolder> = emptyList(),
 ): Identifiable
+
+/** Number of screen events before this folder, including hidden events in collapsed folders. */
+data class ScenarioFolder(val name: String, val eventIndex: Int)

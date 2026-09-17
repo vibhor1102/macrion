@@ -123,8 +123,14 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
 
     @Composable private fun Content() {
         CompositionLocalProvider(LocalMonitoredViewsManager provides viewModel.monitoredViewsManager) {
-            val sourceItems by viewModel.eventsItems.collectAsStateWithLifecycle(null)
-            var customFolders by rememberSaveable { mutableStateOf<List<String>>(emptyList()) }
+            val draft by viewModel.listState.collectAsStateWithLifecycle(null)
+            val sourceItems = draft?.events
+            val folders = draft?.folders.orEmpty()
+            var dragActive by remember { mutableStateOf(false) }
+            var pendingEvents by remember { mutableStateOf<List<ScreenEvent>?>(null) }
+            var pendingFolders by remember {
+                mutableStateOf<List<io.github.vibhor1102.macrion.core.domain.model.scenario.ScenarioFolder>?>(null)
+            }
             var collapsedFolders by rememberSaveable { mutableStateOf<Set<String>>(emptySet()) }
             var reorderedVisibleItems by remember { mutableStateOf<List<ScenarioListItem>?>(null) }
 
@@ -149,8 +155,8 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
                 onDispose { accessibilityManager?.removeTouchExplorationStateChangeListener(listener) }
             }
 
-            val visibleItems = remember(sourceItems, customFolders, collapsedFolders) {
-                ScenarioFolderReorderHelper.buildVisibleItems(sourceItems ?: emptyList(), customFolders, collapsedFolders)
+            val visibleItems = remember(sourceItems, folders, collapsedFolders) {
+                ScenarioFolderReorderHelper.buildVisibleItems(sourceItems ?: emptyList(), folders, collapsedFolders)
             }
 
             val itemsToDisplay = reorderedVisibleItems ?: visibleItems
@@ -166,40 +172,44 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
             val reorderableState = rememberReorderableLazyListState(lazyListState) { from, to ->
                 val current = reorderedVisibleItems ?: visibleItems
                 ReorderLog.d("[ReorderGesture] moving fromIdx=${from.index} (${from.key}) -> toIdx=${to.index} (${to.key})")
-                reorderedVisibleItems = ScenarioFolderReorderHelper.moveItem(current, from.index, to.index)
+                reorderedVisibleItems = ScenarioFolderReorderHelper.moveItem(
+                    current, current.indexOfFirst { it.key == from.key }, current.indexOfFirst { it.key == to.key },
+                )
             }
 
-            LaunchedEffect(sourceItems, customFolders, collapsedFolders) {
-                ReorderLog.d("[DbEmission] sourceItems=${sourceItems?.size}, isDragging=${reorderableState.isAnyItemDragging}, hasLocalReorder=${reorderedVisibleItems != null}")
-                if (!reorderableState.isAnyItemDragging) {
+            LaunchedEffect(sourceItems, folders, collapsedFolders, dragActive, pendingEvents, pendingFolders) {
+                ReorderLog.d("[DraftEmission] events=${sourceItems?.size}, folders=$folders, dragging=$dragActive")
+                val expectedEvents = pendingEvents
+                if (!dragActive && (expectedEvents == null ||
+                    (sourceItems?.map { it.event } == expectedEvents && folders == pendingFolders))) {
                     reorderedVisibleItems = null
+                    pendingEvents = null
+                    pendingFolders = null
                 }
             }
 
-            val onDragStarted: (androidx.compose.ui.geometry.Offset) -> Unit = remember(haptic) {
-                { offset ->
-                    haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
-                }
+            val onDragStarted: (androidx.compose.ui.geometry.Offset) -> Unit = {
+                dragActive = true
+                haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
             }
 
-            val onDragStopped: () -> Unit = remember(viewModel, sourceItems) {
-                {
-                    val currentReordered = reorderedVisibleItems
-                    ReorderLog.d("[DragStop] currentReordered=${currentReordered?.map { it.summary }}")
-                    if (currentReordered != null) {
-                        val updatedEvents = ScenarioFolderReorderHelper.reconstructEvents(
-                            visibleItems = currentReordered,
-                            allSourceEvents = sourceItems ?: emptyList(),
-                        )
-                        ReorderLog.d("[SavingEvents] saving ${updatedEvents.size} events to database...")
-                        viewModel.updateRawEvents(updatedEvents)
-                    }
-                }
+            fun commitLayout(items: List<ScenarioListItem>) {
+                val source = sourceItems.orEmpty()
+                reorderedVisibleItems = items
+                pendingEvents = ScenarioFolderReorderHelper.reconstructEvents(items, source)
+                    .mapIndexed { index, event -> event.copy(priority = index) }
+                pendingFolders = ScenarioFolderReorderHelper.reconstructFolders(items, source)
+                viewModel.updateLayout(items, source)
             }
 
-            val allFolderNames = remember(sourceItems, customFolders) {
-                val fromEvents = (sourceItems ?: emptyList()).mapNotNull { it.folder?.trim()?.ifEmpty { null } }
-                (fromEvents + customFolders).distinct()
+            val onDragStopped: () -> Unit = {
+                reorderedVisibleItems?.let { commitLayout(it) }
+                dragActive = false
+                ReorderLog.d("[DragStop] draft order=${pendingEvents?.map { it.id }}, folders=$pendingFolders")
+            }
+
+            val allFolderNames = remember(sourceItems, folders) {
+                ((sourceItems ?: emptyList()).mapNotNull { it.folder } + folders.map { it.name }).distinct()
             }
 
             DisposableEffect(allFolderNames, collapsedFolders) {
@@ -251,7 +261,7 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
                 Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
                     when {
                         sourceItems == null -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
-                        sourceItems?.isEmpty() == true && customFolders.isEmpty() -> EmptyState(R.string.message_empty_screen_event_title, R.string.message_empty_screen_event_desc)
+                        sourceItems?.isEmpty() == true && folders.isEmpty() -> EmptyState(R.string.message_empty_screen_event_title, R.string.message_empty_screen_event_desc)
                         else -> LazyColumn(Modifier.fillMaxSize(), state = lazyListState) {
                             itemsIndexed(
                                 items = itemsToDisplay,
@@ -334,11 +344,7 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
                                             onMoveEvent = { fromIdx, toIdx ->
                                                 val current = itemsToDisplay
                                                 val updated = ScenarioFolderReorderHelper.moveItem(current, fromIdx, toIdx)
-                                                val updatedEvents = ScenarioFolderReorderHelper.reconstructEvents(
-                                                    visibleItems = updated,
-                                                    allSourceEvents = sourceItems ?: emptyList(),
-                                                )
-                                                viewModel.updateRawEvents(updatedEvents)
+                                                commitLayout(updated)
                                             },
                                             context = context,
                                         )
@@ -369,12 +375,10 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
                         TextButton(
                             onClick = {
                                 val trimmed = folderNameInput.trim()
-                                if (trimmed.isNotEmpty() && trimmed !in customFolders) {
-                                    customFolders = customFolders + trimmed
-                                }
+                                viewModel.createFolder(trimmed)
                                 showNewFolderDialog = false
                             },
-                            enabled = folderNameInput.trim().isNotEmpty(),
+                            enabled = folderNameInput.trim().isNotEmpty() && folderNameInput.trim() !in allFolderNames,
                         ) {
                             Text(stringResource(R.string.generic_create))
                         }
@@ -409,11 +413,14 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
                                 val trimmed = newNameInput.trim()
                                 if (trimmed.isNotEmpty() && trimmed != oldName) {
                                     viewModel.renameFolder(oldName, trimmed)
-                                    customFolders = customFolders.map { if (it == oldName) trimmed else it }
+                                    if (oldName in collapsedFolders) {
+                                        collapsedFolders = collapsedFolders - oldName + trimmed
+                                    }
                                 }
                                 folderToRename = null
                             },
-                            enabled = newNameInput.trim().isNotEmpty(),
+                            enabled = newNameInput.trim().isNotEmpty() &&
+                                (newNameInput.trim() == oldName || newNameInput.trim() !in allFolderNames),
                         ) {
                             Text(stringResource(R.string.generic_modify))
                         }
@@ -439,7 +446,7 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
                         TextButton(
                             onClick = {
                                 viewModel.deleteFolder(targetFolder, deleteEvents = true)
-                                customFolders = customFolders - targetFolder
+                                collapsedFolders = collapsedFolders - targetFolder
                                 folderToDelete = null
                             },
                         ) {
@@ -458,7 +465,7 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
                             TextButton(
                                 onClick = {
                                     viewModel.deleteFolder(targetFolder, deleteEvents = false)
-                                    customFolders = customFolders - targetFolder
+                                    collapsedFolders = collapsedFolders - targetFolder
                                     folderToDelete = null
                                 },
                             ) {

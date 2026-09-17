@@ -180,7 +180,8 @@ class EventDialogViewModel @Inject constructor(
     }
 
     fun getExistingFolders(): List<String> =
-        editionRepository.getScreenEvents().mapNotNull { it.folder }.filter { it.isNotBlank() }.distinct().sorted()
+        (editionRepository.editionState.getScenario()?.folders.orEmpty().map { it.name } +
+            editionRepository.getScreenEvents().mapNotNull { it.folder }).filter { it.isNotBlank() }.distinct().sorted()
 
     private fun updateEditedEvent(closure: (oldValue: Event) -> Event?) {
         editionRepository.editionState.getEditedEvent()?.let { oldValue ->

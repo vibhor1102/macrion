@@ -115,6 +115,55 @@ class Migration27to28Tests {
         }
     }
 
+    @Test
+    fun migrate_scenarioFoldersDefaultToEmptyAndCanStorePositions() {
+        helper.createDatabase(dbPath, OLD_DB_VERSION).use { it.insertTestScenario(3) }
+        helper.runMigrationsAndValidate(dbPath, NEW_DB_VERSION, true).use { db ->
+            db.query("SELECT folders FROM $SCENARIO_TABLE WHERE id = 3").use { cursor ->
+                assertTrue(cursor.moveToFirst())
+                assertEquals("[]", cursor.getString(0))
+            }
+            val converter = io.github.vibhor1102.macrion.core.database.entity.ScenarioFoldersConverter()
+            val folders = listOf(io.github.vibhor1102.macrion.core.database.entity.ScenarioFolderEntity("Empty", 0))
+            db.execSQL("UPDATE $SCENARIO_TABLE SET folders = ? WHERE id = 3", arrayOf(converter.encode(folders)))
+            db.query("SELECT folders FROM $SCENARIO_TABLE WHERE id = 3").use { cursor ->
+                assertTrue(cursor.moveToFirst())
+                assertEquals(folders, converter.decode(cursor.getString(0)))
+            }
+        }
+    }
+
+    @Test
+    fun emptyFoldersSurviveDaoSaveAndDatabaseReopen() = kotlinx.coroutines.runBlocking<Unit> {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val databaseName = "folder-persistence-test"
+        context.deleteDatabase(databaseName)
+        val folders = listOf(
+            io.github.vibhor1102.macrion.core.database.entity.ScenarioFolderEntity("First", 0),
+            io.github.vibhor1102.macrion.core.database.entity.ScenarioFolderEntity("Second", 0),
+        )
+        fun open() = androidx.room.Room.databaseBuilder(context, ClickDatabase::class.java, databaseName).build()
+        try {
+            val first = open()
+            try {
+                val scenario = io.github.vibhor1102.macrion.core.database.entity.ScenarioEntity(9, "Test", 600)
+                first.scenarioDao().add(scenario)
+                first.scenarioDao().update(scenario.copy(folders = folders))
+            } finally {
+                first.close()
+            }
+            val reopened = open()
+            try {
+                assertEquals(folders, reopened.scenarioDao().getScenario(9)?.scenario?.folders)
+                assertEquals(folders, reopened.scenarioDao().getCompleteScenario(9)?.scenario?.folders)
+            } finally {
+                reopened.close()
+            }
+        } finally {
+            context.deleteDatabase(databaseName)
+        }
+    }
+
     // ---- Helpers ----
 
     private fun SupportSQLiteDatabase.insertTestScenario(id: Long) {
