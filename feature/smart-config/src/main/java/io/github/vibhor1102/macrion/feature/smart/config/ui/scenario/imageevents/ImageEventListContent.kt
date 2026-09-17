@@ -357,6 +357,7 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
                                             touchExplorationEnabled = touchExplorationEnabled,
                                             reorderableState = reorderableState,
                                             currentFolderContext = ScenarioFolderReorderHelper.getEffectiveFolderAt(itemsToDisplay, index),
+                                            isInFolder = listItem.folderName != null,
                                             onEventClick = remember(listItem.item.event) { { onEventItemClicked(listItem.item.event) } },
                                             onDragStarted = onDragStarted,
                                             onDragStopped = onDragStopped,
@@ -537,6 +538,7 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
         touchExplorationEnabled: Boolean,
         reorderableState: sh.calvin.reorderable.ReorderableLazyListState,
         currentFolderContext: String?,
+        isInFolder: Boolean = false,
         onEventClick: () -> Unit,
         onDragStarted: (androidx.compose.ui.geometry.Offset) -> Unit,
         onDragStopped: () -> Unit,
@@ -601,6 +603,7 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
                     reorderHandleModifier = reorderHandleModifier,
                     handleInteractionSource = handleInteractionSource,
                     accessibilityActions = accessibilityActions,
+                    isInFolder = isInFolder,
                 )
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             }

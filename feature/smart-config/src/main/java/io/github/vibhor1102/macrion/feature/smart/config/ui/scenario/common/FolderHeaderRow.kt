@@ -59,8 +59,8 @@ internal fun FolderHeaderRow(
         label = "chevron_rotation",
     )
     val rowBackground by animateColorAsState(
-        if (isBeingDragged) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f)
-        else MaterialTheme.colorScheme.surfaceContainerHigh,
+        if (isBeingDragged) MaterialTheme.colorScheme.primaryContainer
+        else MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.70f),
         label = "folder_row_bg",
     )
 
@@ -86,7 +86,7 @@ internal fun FolderHeaderRow(
             modifier = Modifier
                 .size(20.dp)
                 .rotate(chevronRotation),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            tint = MaterialTheme.colorScheme.onPrimaryContainer,
         )
 
         Spacer(Modifier.width(8.dp))
@@ -107,7 +107,7 @@ internal fun FolderHeaderRow(
             fontWeight = FontWeight.SemiBold,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            color = MaterialTheme.colorScheme.onSurface,
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
         )
 
         Spacer(Modifier.width(8.dp))
@@ -120,7 +120,7 @@ internal fun FolderHeaderRow(
                     painter = painterResource(UiR.drawable.ic_more),
                     contentDescription = stringResource(R.string.folder_menu_options),
                     modifier = Modifier.size(24.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
                 )
             }
 
@@ -235,7 +235,7 @@ private fun FolderDragHandle(
                 painter = painterResource(UiR.drawable.ic_drag_indicator),
                 contentDescription = null,
                 modifier = Modifier.size(22.dp),
-                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
+                tint = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.38f),
             )
         }
         return
@@ -245,7 +245,7 @@ private fun FolderDragHandle(
     val isActive = isPressed || isBeingDragged
 
     val handleTint by animateColorAsState(
-        if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+        if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onPrimaryContainer,
         animationSpec = tween(durationMillis = 100),
         label = "folder_handle_tint",
     )
@@ -285,19 +285,19 @@ internal fun FolderEndBoundaryRow(
     ) {
         HorizontalDivider(
             modifier = Modifier.weight(1f),
-            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.35f),
         )
         Text(
             text = folderName,
             style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.7f),
+            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.75f),
             modifier = Modifier.padding(horizontal = 8.dp),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
         HorizontalDivider(
             modifier = Modifier.weight(1f),
-            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.35f),
         )
     }
 }

@@ -66,9 +66,12 @@ internal fun EventListRow(
     isBeingDragged: Boolean = false,
     dragFolderFeedback: String? = null,
     accessibilityActions: List<CustomAccessibilityAction> = emptyList(),
+    isInFolder: Boolean = false,
 ) {
     val rowBackground by animateColorAsState(
-        if (isBeingDragged) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f) else Color.Transparent,
+        if (isBeingDragged) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.55f)
+        else if (isInFolder) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.22f)
+        else Color.Transparent,
         label = "event_row_drag_bg",
     )
 
