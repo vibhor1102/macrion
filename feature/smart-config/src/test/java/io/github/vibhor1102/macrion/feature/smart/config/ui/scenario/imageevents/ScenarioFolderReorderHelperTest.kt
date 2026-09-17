@@ -247,7 +247,7 @@ class ScenarioFolderReorderHelperTest {
     }
 
     @Test
-    fun `moveItem collapsed folder past expanded folder jumps the whole expanded folder`() {
+    fun `moveItem collapsed folder over expanded folder rejects move inside but allows moving above or below`() {
         val events = listOf(
             createTestEvent(1, "Event A1", "FolderA"),
             createTestEvent(2, "Event A2", "FolderA"),
@@ -264,18 +264,21 @@ class ScenarioFolderReorderHelperTest {
         // 3: Boundary(FolderA)
         // 4: Header(FolderB) [collapsed]
 
-        // Drag FolderB (index 4) upward attempting to drop inside FolderA (e.g. index 2):
-        val moved = ScenarioFolderReorderHelper.moveItem(visible, fromIndex = 4, toIndex = 2)
+        // Drag FolderB (index 4) upward attempting to drop inside FolderA (index 2):
+        val movedInside = ScenarioFolderReorderHelper.moveItem(visible, fromIndex = 4, toIndex = 2)
+        // Rejected: items unchanged!
+        assertEquals(visible, movedInside)
 
-        // Rule: FolderB must jump ABOVE Header(FolderA) (index 0), NOT split FolderA!
-        assertTrue(moved[0] is ScenarioListItem.FolderHeader && (moved[0] as ScenarioListItem.FolderHeader).name == "FolderB")
-        assertTrue(moved[1] is ScenarioListItem.FolderHeader && (moved[1] as ScenarioListItem.FolderHeader).name == "FolderA")
-        assertTrue(moved[2] is ScenarioListItem.EventItem && (moved[2] as ScenarioListItem.EventItem).item.name == "Event A1")
-        assertTrue(moved[3] is ScenarioListItem.EventItem && (moved[3] as ScenarioListItem.EventItem).item.name == "Event A2")
-        assertTrue(moved[4] is ScenarioListItem.FolderEndBoundary && (moved[4] as ScenarioListItem.FolderEndBoundary).folderName == "FolderA")
+        // Drag FolderB (index 4) above Header(FolderA) (index 0):
+        val movedAbove = ScenarioFolderReorderHelper.moveItem(visible, fromIndex = 4, toIndex = 0)
+        assertTrue(movedAbove[0] is ScenarioListItem.FolderHeader && (movedAbove[0] as ScenarioListItem.FolderHeader).name == "FolderB")
+        assertTrue(movedAbove[1] is ScenarioListItem.FolderHeader && (movedAbove[1] as ScenarioListItem.FolderHeader).name == "FolderA")
+        assertTrue(movedAbove[2] is ScenarioListItem.EventItem && (movedAbove[2] as ScenarioListItem.EventItem).item.name == "Event A1")
+        assertTrue(movedAbove[3] is ScenarioListItem.EventItem && (movedAbove[3] as ScenarioListItem.EventItem).item.name == "Event A2")
+        assertTrue(movedAbove[4] is ScenarioListItem.FolderEndBoundary && (movedAbove[4] as ScenarioListItem.FolderEndBoundary).folderName == "FolderA")
 
         // Reconstruct events: All FolderB events precede All FolderA events!
-        val reconstructed = ScenarioFolderReorderHelper.reconstructEvents(moved, events)
+        val reconstructed = ScenarioFolderReorderHelper.reconstructEvents(movedAbove, events)
         assertEquals(4, reconstructed.size)
         assertEquals("Event B1", reconstructed[0].name)
         assertEquals("FolderB", reconstructed[0].folder)
@@ -286,14 +289,26 @@ class ScenarioFolderReorderHelperTest {
         assertEquals("Event A2", reconstructed[3].name)
         assertEquals("FolderA", reconstructed[3].folder)
     }
+
     @Test
     fun `collapsed folder crossing expanded header downward cannot nest`() {
         val events = listOf(createTestEvent(1, "A", "A"), createTestEvent(2, "B", "B"))
             .map { it.toUiImageEvent(false) }
         val visible = ScenarioFolderReorderHelper.buildVisibleItems(events, emptyList(), setOf("A"))
-        val moved = ScenarioFolderReorderHelper.moveItem(visible, 0, 1)
-        assertEquals(listOf("folder_header_B", 2L, "folder_end_B", "folder_header_A"), moved.map { it.key })
-        assertEquals(listOf("B", "A"), ScenarioFolderReorderHelper.reconstructEvents(moved, events).map { it.folder })
+        // visible:
+        // 0: Header(A) [collapsed]
+        // 1: Header(B) [expanded]
+        // 2: Event 2L (B)
+        // 3: Boundary(B)
+
+        // Moving into index 1 (Header B) would place A inside B: rejected!
+        val movedInside = ScenarioFolderReorderHelper.moveItem(visible, 0, 1)
+        assertEquals(visible, movedInside)
+
+        // Moving past Boundary B to index 3 places A after B:
+        val movedPast = ScenarioFolderReorderHelper.moveItem(visible, 0, 3)
+        assertEquals(listOf("folder_header_B", 2L, "folder_end_B", "folder_header_A"), movedPast.map { it.key })
+        assertEquals(listOf("B", "A"), ScenarioFolderReorderHelper.reconstructEvents(movedPast, events).map { it.folder })
     }
 
     @Test

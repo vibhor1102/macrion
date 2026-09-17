@@ -157,23 +157,15 @@ object ScenarioFolderReorderHelper {
             draggedItem is ScenarioListItem.FolderHeader && draggedItem.isExpanded) return items
 
         if (draggedItem is ScenarioListItem.FolderHeader) {
-            // Check the INSERTION slot after removal. Checking the old target index misses
-            // downward moves onto an expanded header and allows an illegal nested folder.
+            // Folders cannot be nested inside other folders. If the insertion slot falls
+            // inside an expanded folder, reject the move (leave list unchanged) so the dragged
+            // folder hovers smoothly without oscillation or list displacement.
             list.removeAt(fromIndex)
-            var destination = toIndex
-            val destinationFolder = getEffectiveFolderAt(list, destination)
+            val destinationFolder = getEffectiveFolderAt(list, toIndex)
             if (destinationFolder != null) {
-                destination = if (toIndex > fromIndex) {
-                    list.indexOfFirst {
-                        it is ScenarioListItem.FolderEndBoundary && it.folderName == destinationFolder
-                    }.takeIf { it >= 0 }?.plus(1) ?: return items
-                } else {
-                    list.indexOfFirst {
-                        it is ScenarioListItem.FolderHeader && it.name == destinationFolder
-                    }.takeIf { it >= 0 } ?: return items
-                }
+                return items
             }
-            list.add(destination, draggedItem)
+            list.add(toIndex, draggedItem)
             return list
         }
 
