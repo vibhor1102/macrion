@@ -47,6 +47,7 @@ internal class CustomLayoutNotificationBuilder(
         setLocalOnly(true)
         setStyle(NotificationCompat.DecoratedCustomViewStyle())
         setContentIntent(ServiceNotificationAction.Config.getPendingIntent(context, appComponentsProvider))
+        setDeleteIntent(ServiceNotificationAction.Dismiss.getPendingIntent(context, appComponentsProvider))
 
         updateState(context, initialState)
     }

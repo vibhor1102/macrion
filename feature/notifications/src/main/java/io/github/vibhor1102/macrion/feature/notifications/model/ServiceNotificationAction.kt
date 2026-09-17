@@ -71,6 +71,11 @@ internal sealed class ServiceNotificationAction {
         override val iconRes: Int = R.drawable.ic_notification_cancel
 
     }
+
+    data object Dismiss : ServiceNotificationAction() {
+        override val textRes: Int = 0
+        override val iconRes: Int = 0
+    }
 }
 
 internal sealed class NotificationActionPendingIntent {
@@ -86,6 +91,7 @@ internal fun getAllActionsBroadcastIntentFilter(): IntentFilter =
         addAction(ServiceNotificationAction.Hide.getBroadcastAction())
         addAction(ServiceNotificationAction.Switch.getBroadcastAction())
         addAction(ServiceNotificationAction.Stop.getBroadcastAction())
+        addAction(ServiceNotificationAction.Dismiss.getBroadcastAction())
     }
 
 internal fun Intent.toServiceNotificationAction(): ServiceNotificationAction? =
@@ -96,6 +102,7 @@ internal fun Intent.toServiceNotificationAction(): ServiceNotificationAction? =
         ServiceNotificationAction.Hide.getBroadcastAction() -> ServiceNotificationAction.Hide
         ServiceNotificationAction.Switch.getBroadcastAction() -> ServiceNotificationAction.Switch
         ServiceNotificationAction.Stop.getBroadcastAction() -> ServiceNotificationAction.Stop
+        ServiceNotificationAction.Dismiss.getBroadcastAction() -> ServiceNotificationAction.Dismiss
         else -> null
     }
 
@@ -127,6 +134,7 @@ private fun ServiceNotificationAction.getIntent(appComponentsProvider: AppCompon
         ServiceNotificationAction.Hide -> NotificationActionPendingIntent.Broadcast(getBroadcastAction())
         ServiceNotificationAction.Stop -> NotificationActionPendingIntent.Broadcast(getBroadcastAction())
         ServiceNotificationAction.Switch -> NotificationActionPendingIntent.Broadcast(getBroadcastAction())
+        ServiceNotificationAction.Dismiss -> NotificationActionPendingIntent.Broadcast(getBroadcastAction())
         ServiceNotificationAction.Config -> NotificationActionPendingIntent.Activity(appComponentsProvider.scenarioActivityComponentName)
     }
 
@@ -138,5 +146,6 @@ private fun ServiceNotificationAction.getBroadcastAction(): String =
         ServiceNotificationAction.Hide -> "io.github.vibhor1102.macrion.HIDE"
         ServiceNotificationAction.Switch -> "io.github.vibhor1102.macrion.SWITCH"
         ServiceNotificationAction.Stop -> "io.github.vibhor1102.macrion.STOP"
+        ServiceNotificationAction.Dismiss -> "io.github.vibhor1102.macrion.DISMISS"
         ServiceNotificationAction.Config -> throw IllegalArgumentException("This action doesn't use broadcasts")
     }
