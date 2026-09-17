@@ -106,6 +106,8 @@ internal class SmartProcessingRepositoryImpl @Inject constructor(
     override val detectionState: Flow<DetectionState> = detectorEngine.state
         .mapNotNull { it.toDetectionState() }
 
+    override val screenshotRateLimitError: Flow<Int> = detectorEngine.screenshotRateLimitError
+
     private val shouldKeepScreenOn: Flow<Boolean> = _scenarioId
         .combine(detectionState) { id, state ->
             id ?: return@combine false

@@ -73,6 +73,8 @@ internal class SettingsDataSource @Inject constructor(
             booleanPreferencesKey("isToolbarAutoHideEnabled")
         val KEY_TOOLBAR_AUTO_HIDE_DELAY_SECONDS: Preferences.Key<Int> =
             intPreferencesKey("toolbarAutoHideDelaySeconds")
+        val KEY_SCREENSHOT_RATE_LIMIT_PER_MINUTE: Preferences.Key<Int> =
+            intPreferencesKey("screenshotRateLimitPerMinute")
     }
 
     private val dataStore: PreferencesDataStore =
@@ -195,5 +197,13 @@ internal class SettingsDataSource @Inject constructor(
     internal suspend fun setToolbarAutoHideDelaySeconds(seconds: Int) =
         dataStore.edit { preferences ->
             preferences[KEY_TOOLBAR_AUTO_HIDE_DELAY_SECONDS] = seconds
+        }
+
+    internal fun screenshotRateLimitPerMinute(): Flow<Int> =
+        dataStore.data.map { preferences -> preferences[KEY_SCREENSHOT_RATE_LIMIT_PER_MINUTE] ?: 10 }
+
+    internal suspend fun setScreenshotRateLimitPerMinute(limit: Int) =
+        dataStore.edit { preferences ->
+            preferences[KEY_SCREENSHOT_RATE_LIMIT_PER_MINUTE] = limit.coerceAtLeast(0)
         }
 }

@@ -45,6 +45,9 @@ interface SmartProcessingRepository : Dumpable {
     /** State of the scenario processing.*/
     val detectionState: Flow<DetectionState>
 
+    /** Emits the screenshot rate limit whenever execution is paused due to exceeding it. */
+    val screenshotRateLimitError: Flow<Int>
+
 
     /** @return the unique identifier of the scenario that will be/is processed. */
     fun getScenarioId(): Identifier?

@@ -23,11 +23,13 @@ import android.media.MediaScannerConnection
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
+import android.os.SystemClock
 import android.provider.DocumentsContract
 import android.provider.MediaStore
 import android.util.Log
 import dagger.hilt.android.qualifiers.ApplicationContext
 import io.github.vibhor1102.macrion.core.display.recorder.DisplayRecorder
+import io.github.vibhor1102.macrion.core.settings.domain.SettingsRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -44,22 +46,45 @@ import javax.inject.Singleton
 internal class ScreenshotExecutor @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val displayRecorder: DisplayRecorder,
+    private val settingsRepository: SettingsRepository,
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val captureTimestamps = ArrayDeque<Long>()
 
-    suspend fun captureScreenshot(folderUri: String?, folderName: String?) {
+    fun resetState() {
+        synchronized(captureTimestamps) {
+            captureTimestamps.clear()
+        }
+    }
+
+    suspend fun captureScreenshot(folderUri: String?, folderName: String?): Boolean {
+        val limit = settingsRepository.getScreenshotRateLimitPerMinute()
+        if (limit > 0) {
+            val now = SystemClock.elapsedRealtime()
+            synchronized(captureTimestamps) {
+                while (captureTimestamps.isNotEmpty() && (now - captureTimestamps.first()) > 60_000L) {
+                    captureTimestamps.removeFirst()
+                }
+                if (captureTimestamps.size >= limit) {
+                    Log.w(TAG, "Screenshot rate limit ($limit/min) reached. Cannot capture screenshot.")
+                    return false
+                }
+                captureTimestamps.addLast(now)
+            }
+        }
+
         val screenshot = displayRecorder.takeScreenshot()
         if (screenshot == null) {
             Log.w(TAG, "Cannot capture screenshot: DisplayRecorder returned null frame")
-            return
+            return true
         }
 
         val snapshot = try {
             screenshot.copy(screenshot.config ?: Bitmap.Config.ARGB_8888, false)
         } catch (e: Exception) {
             Log.w(TAG, "Failed to copy screenshot frame", e)
-            return
-        } ?: return
+            return true
+        } ?: return true
 
         scope.launch {
             try {
@@ -70,6 +95,7 @@ internal class ScreenshotExecutor @Inject constructor(
                 snapshot.recycle()
             }
         }
+        return true
     }
 
     private fun saveBitmap(bitmap: Bitmap, folderUri: String?) {

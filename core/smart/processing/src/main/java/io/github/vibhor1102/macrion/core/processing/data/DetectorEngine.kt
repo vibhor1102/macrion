@@ -56,7 +56,9 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 
 import javax.inject.Inject
@@ -87,6 +89,9 @@ class DetectorEngine @Inject constructor(
     private val debugReportTimingListener: DebugReportTimingListener,
     private val ocrModelsRepository: OCRModelsRepository,
 ) {
+
+    private val _screenshotRateLimitError = MutableSharedFlow<Int>(extraBufferCapacity = 1)
+    val screenshotRateLimitError: SharedFlow<Int> = _screenshotRateLimitError
 
     /** Process the events conditions to detect them on the screen. */
     private var scenarioProcessor: ScenarioProcessor? = null
@@ -284,6 +289,10 @@ class DetectorEngine @Inject constructor(
                 androidExecutor = actionExecutor,
                 unblockWorkaroundEnabled = settingsRepository.isInputBlockWorkaroundEnabled(),
                 onStopRequested = { stopDetection() },
+                onScreenshotRateLimitExceeded = {
+                    stopDetection()
+                    _screenshotRateLimitError.tryEmit(settingsRepository.getScreenshotRateLimitPerMinute())
+                },
                 progressListener = if (liveDebugging || generateReport) debuggingListener else null,
                 debugReportTimingListener = activeDebugReportTimingListener,
                 reportSessionStartNs = debugReportSessionStartNs,

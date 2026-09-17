@@ -184,6 +184,7 @@ class MainMenu(
                 launch { viewModel.detectionState.collect(::updateDetectionState) }
                 launch { viewModel.nativeLibError.collect(::showNativeLibErrorDialogIfNeeded) }
                 launch { viewModel.screenCaptureError.collect(::showScreenCaptureErrorDialogIfNeeded) }
+                launch { viewModel.screenshotRateLimitError.collect(::showScreenshotRateLimitErrorDialog) }
                 launch { debuggingViewModel.isDebugging.collect(::updateDebugOverlayViewVisibility) }
                 launch {
                     viewModel.isToolbarAutoHideEnabled.collect {
@@ -507,6 +508,15 @@ class MainMenu(
             message = R.string.error_dialog_message_screen_capture_unsupported,
             confirmLabel = android.R.string.ok,
             onConfirm = { onStopClicked() },
+        ).showAsOverlay()
+    }
+
+    private fun showScreenshotRateLimitErrorDialog(limit: Int) {
+        context.createMacrionMessageDialog(
+            title = context.getString(R.string.dialog_screenshot_rate_limit_title),
+            message = context.getString(R.string.dialog_screenshot_rate_limit_message, limit),
+            confirmLabel = android.R.string.ok,
+            onConfirm = {},
         ).showAsOverlay()
     }
 

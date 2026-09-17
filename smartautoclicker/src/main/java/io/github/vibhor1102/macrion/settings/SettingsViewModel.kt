@@ -145,6 +145,13 @@ class SettingsViewModel @Inject constructor(
         settingsRepository.setMaxToleratedDifference(difference)
     }
 
+    val screenshotRateLimitPerMinute: Flow<Int> =
+        settingsRepository.screenshotRateLimitPerMinuteFlow
+
+    fun setScreenshotRateLimit(limit: Int) {
+        settingsRepository.setScreenshotRateLimitPerMinute(limit)
+    }
+
     val isToolbarAutoHideEnabled: Flow<Boolean> =
         settingsRepository.isToolbarAutoHideEnabledFlow
 

@@ -72,6 +72,7 @@ internal class ActionExecutor(
     private val processingState: ProcessingState,
     randomize: Boolean,
     unblockWorkaroundEnabled: Boolean = false,
+    private val onScreenshotRateLimitExceeded: (() -> Unit)? = null,
 ) {
 
     init { androidExecutor.resetState() }
@@ -95,8 +96,8 @@ internal class ActionExecutor(
         }
     }
 
-    suspend fun executeActions(event: Event, results: ConditionsResults? = null) {
-        event.actions.forEach { action ->
+    suspend fun executeActions(event: Event, results: ConditionsResults? = null): Boolean {
+        for (action in event.actions) {
             CrashDiagnostics.record(when (action) {
                 is Click -> CrashDiagnostics.Event.CLICK
                 is Swipe -> CrashDiagnostics.Event.SWIPE
@@ -124,13 +125,20 @@ internal class ActionExecutor(
                     is SystemAction -> executeSystemAction(action)
                     is SetText -> executeSetText(action)
                     is PlaySound -> executePlaySound(action)
-                    is CaptureScreenshot -> executeCaptureScreenshot(action)
+                    is CaptureScreenshot -> {
+                        val allowed = executeCaptureScreenshot(action)
+                        if (!allowed) {
+                            onScreenshotRateLimitExceeded?.invoke()
+                            return false
+                        }
+                    }
                 }
             } catch (error: Exception) {
                 if (error !is kotlinx.coroutines.CancellationException) CrashDiagnostics.recordFailure(error)
                 throw error
             }
         }
+        return true
     }
 
     private suspend fun executeClick(event: Event, click: Click, results: ConditionsResults?) {
@@ -342,8 +350,8 @@ internal class ActionExecutor(
         androidExecutor.playSound(soundUri)
     }
 
-    private suspend fun executeCaptureScreenshot(action: CaptureScreenshot) {
-        androidExecutor.captureScreenshot(action.screenshotFolderUri, action.screenshotFolderName)
+    private suspend fun executeCaptureScreenshot(action: CaptureScreenshot): Boolean {
+        return androidExecutor.captureScreenshot(action.screenshotFolderUri, action.screenshotFolderName)
     }
 }
 

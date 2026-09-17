@@ -142,6 +142,22 @@ internal class SettingsRepositoryImpl @Inject constructor(
         }
     }
 
+    private val _screenshotRateLimitPerMinuteFlow: StateFlow<Int> = combine(
+        dataSource.areAdvancedSettingsEnabled(),
+        dataSource.screenshotRateLimitPerMinute(),
+    ) { areAdvancedEnabled, limit ->
+        if (areAdvancedEnabled) limit else 10
+    }.stateIn(coroutineScope, SharingStarted.Eagerly, 10)
+    override val screenshotRateLimitPerMinuteFlow: Flow<Int> = _screenshotRateLimitPerMinuteFlow
+
+    override fun getScreenshotRateLimitPerMinute(): Int = _screenshotRateLimitPerMinuteFlow.value
+
+    override fun setScreenshotRateLimitPerMinute(limit: Int) {
+        coroutineScope.launch {
+            dataSource.setScreenshotRateLimitPerMinute(limit)
+        }
+    }
+
     private val _isToolbarAutoHideEnabledFlow: StateFlow<Boolean> = dataSource.isToolbarAutoHideEnabled()
         .stateIn(coroutineScope, SharingStarted.Eagerly, true)
     override val isToolbarAutoHideEnabledFlow: Flow<Boolean> = _isToolbarAutoHideEnabledFlow

@@ -231,4 +231,13 @@
     <string name="content_desc_tuck_toolbar">Tuck toolbar to screen edge</string>
     <string name="content_desc_expand_toolbar">Expand toolbar</string>
     <string name="toast_advanced_settings_restored_defaults">Advanced settings have been restored to default values.</string>
+    <string name="settings_screenshot_rate_limit_title">Screenshot rate limit</string>
+    <string name="settings_screenshot_rate_limit_desc">Maximum screenshots allowed per minute to protect storage. Enter 0 to disable.</string>
+    <string name="settings_screenshot_rate_limit_item">%1$d per minute</string>
+    <string name="settings_screenshot_rate_limit_item_default">%1$d per minute (Default)</string>
+    <string name="settings_screenshot_rate_limit_item_disabled">Disabled (unlimited)</string>
+    <string name="settings_screenshot_rate_limit_dialog_title">Screenshot rate limit</string>
+    <string name="settings_screenshot_rate_limit_dialog_desc">Enter the maximum number of screenshots allowed per rolling minute. Enter 0 to disable the limit.</string>
+    <string name="settings_screenshot_rate_limit_dialog_label">Screenshots per minute</string>
+    <string name="settings_screenshot_rate_limit_invalid">Please enter a valid number (0 or greater)</string>
 </resources>

@@ -70,6 +70,10 @@ interface SettingsRepository {
     fun getMaxToleratedDifference(): Int
     fun setMaxToleratedDifference(difference: Int)
 
+    val screenshotRateLimitPerMinuteFlow: Flow<Int>
+    fun getScreenshotRateLimitPerMinute(): Int
+    fun setScreenshotRateLimitPerMinute(limit: Int)
+
     val isToolbarAutoHideEnabledFlow: Flow<Boolean>
     fun isToolbarAutoHideEnabled(): Boolean
     fun setToolbarAutoHideEnabled(enabled: Boolean)

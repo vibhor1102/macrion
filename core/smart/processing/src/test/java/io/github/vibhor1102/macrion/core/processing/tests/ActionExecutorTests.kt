@@ -260,6 +260,7 @@ class ActionExecutorTests {
 
     @Test
     fun execute_oneCaptureScreenshot() = runTest {
+        mockWhen(mockAndroidExecutor.captureScreenshot(anyOrNull(), anyOrNull())).thenReturn(true)
         val screenshotAction = CaptureScreenshot(
             id = Identifier(databaseId = 1L),
             eventId = TEST_EVENT_ID,
@@ -269,13 +270,43 @@ class ActionExecutorTests {
             screenshotFolderName = "CustomFolder",
         )
 
-        actionExecutor.executeActions(
+        val result = actionExecutor.executeActions(
             event = getNewDefaultEvent(actions = listOf(screenshotAction)),
             results = ConditionsResults(),
         )
 
+        assertTrue(result)
         verify(mockAndroidExecutor).captureScreenshot("content://custom/uri", "CustomFolder")
         verify(mockAndroidExecutor, never()).dispatchGesture(anyNotNull())
+    }
+
+    @Test
+    fun execute_oneCaptureScreenshot_rateLimitExceeded() = runTest {
+        mockWhen(mockAndroidExecutor.captureScreenshot(anyOrNull(), anyOrNull())).thenReturn(false)
+        var rateLimitExceeded = false
+        val rateLimitExecutor = ActionExecutor(
+            androidExecutor = mockAndroidExecutor,
+            processingState = mockProcessingState,
+            randomize = false,
+            onScreenshotRateLimitExceeded = { rateLimitExceeded = true },
+        )
+        val screenshotAction = CaptureScreenshot(
+            id = Identifier(databaseId = 1L),
+            eventId = TEST_EVENT_ID,
+            name = TEST_NAME,
+            priority = 0,
+            screenshotFolderUri = null,
+            screenshotFolderName = null,
+        )
+
+        val result = rateLimitExecutor.executeActions(
+            event = getNewDefaultEvent(actions = listOf(screenshotAction)),
+            results = ConditionsResults(),
+        )
+
+        assertFalse(result)
+        assertTrue(rateLimitExceeded)
+        verify(mockAndroidExecutor).captureScreenshot(null, null)
     }
 
     @Test

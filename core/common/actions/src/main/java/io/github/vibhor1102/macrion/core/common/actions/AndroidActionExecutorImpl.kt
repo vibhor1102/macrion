@@ -72,6 +72,7 @@ internal class AndroidActionExecutorImpl @Inject constructor(
         gestureExecutor.clear()
         notificationRequestExecutor.clear()
         soundExecutor.stopSound()
+        screenshotExecutor.resetState()
     }
 
     override fun clear() {
@@ -152,8 +153,8 @@ internal class AndroidActionExecutorImpl @Inject constructor(
         soundExecutor.playSound(soundUri)
     }
 
-    override suspend fun captureScreenshot(folderUri: String?, folderName: String?) {
-        screenshotExecutor.captureScreenshot(folderUri, folderName)
+    override suspend fun captureScreenshot(folderUri: String?, folderName: String?): Boolean {
+        return screenshotExecutor.captureScreenshot(folderUri, folderName)
     }
 
     override fun dump(writer: PrintWriter, prefix: CharSequence) {

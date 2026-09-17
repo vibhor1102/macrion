@@ -118,8 +118,8 @@ interface AndroidActionExecutor: Dumpable {
     /** Play an audio notification sound from the given URI. */
     fun playSound(soundUri: String)
 
-    /** Capture a screenshot and save it to storage. */
-    suspend fun captureScreenshot(folderUri: String?, folderName: String?)
+    /** Capture a screenshot and save it to storage. Returns false if rate limit was exceeded. */
+    suspend fun captureScreenshot(folderUri: String?, folderName: String?): Boolean
 }
 
 /** The maximum supported duration for a gesture. This limitation comes from Android GestureStroke API.  */

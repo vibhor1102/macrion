@@ -125,11 +125,20 @@ internal fun SettingsRoute(
         }
     }
 
+    val screenshotRateLimit by viewModel.screenshotRateLimitPerMinute.collectAsStateWithLifecycle(10)
+    var displayedScreenshotRateLimit by remember { mutableIntStateOf(screenshotRateLimit) }
+    LaunchedEffect(screenshotRateLimit, areAdvancedSettingsEnabled) {
+        if (areAdvancedSettingsEnabled) {
+            displayedScreenshotRateLimit = screenshotRateLimit
+        }
+    }
+
     var showTroubleshooting by rememberSaveable { mutableStateOf(false) }
     var showToolbarSizeDialog by rememberSaveable { mutableStateOf(false) }
     var showToolbarAutoHideDelayDialog by rememberSaveable { mutableStateOf(false) }
     var showAdvancedNoticeDialog by rememberSaveable { mutableStateOf(false) }
     var showMaxDifferenceDialog by rememberSaveable { mutableStateOf(false) }
+    var showScreenshotRateLimitDialog by rememberSaveable { mutableStateOf(false) }
 
     val context = LocalContext.current
     val onCopyVersion = {
@@ -224,6 +233,7 @@ internal fun SettingsRoute(
                 } else {
                     stringResource(R.string.settings_max_difference_item, displayedMaxDifference)
                 }
+                val screenshotRateLimitLabel = formatScreenshotRateLimit(displayedScreenshotRateLimit)
                 add(
                     SettingsSection(
                         R.string.settings_section_advanced,
@@ -232,10 +242,17 @@ internal fun SettingsRoute(
                                 title = R.string.settings_enable_advanced_title,
                                 description = R.string.settings_enable_advanced_desc,
                                 checked = areAdvancedSettingsEnabled,
-                                childItem = SettingsItem.Action(
-                                    title = R.string.settings_max_difference_title,
-                                    value = maxDiffLabel,
-                                    onClick = { showMaxDifferenceDialog = true },
+                                childItems = listOf(
+                                    SettingsItem.Action(
+                                        title = R.string.settings_max_difference_title,
+                                        value = maxDiffLabel,
+                                        onClick = { showMaxDifferenceDialog = true },
+                                    ),
+                                    SettingsItem.Action(
+                                        title = R.string.settings_screenshot_rate_limit_title,
+                                        value = screenshotRateLimitLabel,
+                                        onClick = { showScreenshotRateLimitDialog = true },
+                                    ),
                                 ),
                                 isChildVisible = areAdvancedSettingsEnabled,
                                 onClick = {
@@ -248,6 +265,7 @@ internal fun SettingsRoute(
                                     } else {
                                         viewModel.setAdvancedSettingsEnabled(false)
                                         viewModel.setMaxToleratedDifference(20)
+                                        viewModel.setScreenshotRateLimit(10)
                                         Toast.makeText(context, R.string.toast_advanced_settings_restored_defaults, Toast.LENGTH_SHORT).show()
                                     }
                                 },
@@ -329,6 +347,17 @@ internal fun SettingsRoute(
                 },
             )
         }
+
+        if (showScreenshotRateLimitDialog) {
+            ScreenshotRateLimitDialog(
+                currentLimit = screenshotRateLimit,
+                onDismiss = { showScreenshotRateLimitDialog = false },
+                onConfirm = { limit ->
+                    viewModel.setScreenshotRateLimit(limit)
+                    showScreenshotRateLimitDialog = false
+                },
+            )
+        }
     }
 }
 
@@ -395,7 +424,7 @@ private fun SettingsSection(section: SettingsSection) {
         section.items.forEachIndexed { index, item ->
             key(item.title) {
                 val isOnlyOrLastItem = index == section.items.lastIndex
-                val hasChild = item is SettingsItem.Switch && item.childItem != null
+                val hasChild = item is SettingsItem.Switch && item.childItems.isNotEmpty()
                 val isChildVisible = item is SettingsItem.Switch && item.isChildVisible
 
                 val bottomCorners by animateDpAsState(
@@ -432,8 +461,7 @@ private fun SettingsSection(section: SettingsSection) {
                     SettingsRow(item)
                 }
 
-                if (item is SettingsItem.Switch && item.childItem != null) {
-                    val child = item.childItem
+                if (item is SettingsItem.Switch && item.childItems.isNotEmpty()) {
                     AnimatedVisibility(
                         visible = isChildVisible,
                         enter = expandVertically(
@@ -456,18 +484,21 @@ private fun SettingsSection(section: SettingsSection) {
                         ),
                     ) {
                         Column {
-                            Spacer(Modifier.height(4.dp))
-                            val childShape = if (isOnlyOrLastItem) {
-                                RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = 16.dp, bottomEnd = 16.dp)
-                            } else {
-                                RoundedCornerShape(4.dp)
-                            }
-                            Card(
-                                modifier = Modifier.fillMaxWidth(),
-                                shape = childShape,
-                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
-                            ) {
-                                SettingsRow(child)
+                            item.childItems.forEachIndexed { childIndex, child ->
+                                Spacer(Modifier.height(4.dp))
+                                val isLastChild = childIndex == item.childItems.lastIndex
+                                val childShape = if (isOnlyOrLastItem && isLastChild) {
+                                    RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = 16.dp, bottomEnd = 16.dp)
+                                } else {
+                                    RoundedCornerShape(4.dp)
+                                }
+                                Card(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    shape = childShape,
+                                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
+                                ) {
+                                    SettingsRow(child)
+                                }
                             }
                         }
                     }
@@ -604,9 +635,25 @@ private sealed interface SettingsItem {
         @param:StringRes val description: Int,
         val checked: Boolean,
         override val onClick: () -> Unit,
-        val childItem: SettingsItem? = null,
+        val childItems: List<SettingsItem> = emptyList(),
         val isChildVisible: Boolean = false,
-    ) : SettingsItem
+    ) : SettingsItem {
+        constructor(
+            @StringRes title: Int,
+            @StringRes description: Int,
+            checked: Boolean,
+            onClick: () -> Unit,
+            childItem: SettingsItem,
+            isChildVisible: Boolean = false,
+        ) : this(
+            title = title,
+            description = description,
+            checked = checked,
+            onClick = onClick,
+            childItems = listOf(childItem),
+            isChildVisible = isChildVisible,
+        )
+    }
 
     data class Action(
         @param:StringRes override val title: Int,
