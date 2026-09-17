@@ -731,7 +731,7 @@ private fun BriefItemsCarousel(
                 contentPadding = PaddingValues(horizontal = horizontalPadding),
                 pageSpacing = 8.dp,
                 userScrollEnabled = deletingItemId == null,
-                key = { page -> displayedItems.getOrNull(page)?.id ?: page },
+                key = { page -> displayedItems.getOrNull(page)?.id?.toBundleKey() ?: page },
             ) { page ->
                 val brief = displayedItems[page]
                 val isDeleting = brief.id == deletingItemId
@@ -755,7 +755,7 @@ private fun BriefItemsCarousel(
                 contentPadding = PaddingValues(vertical = verticalPadding),
                 pageSpacing = 8.dp,
                 userScrollEnabled = deletingItemId == null,
-                key = { page -> displayedItems.getOrNull(page)?.id ?: page },
+                key = { page -> displayedItems.getOrNull(page)?.id?.toBundleKey() ?: page },
             ) { page ->
                 val brief = displayedItems[page]
                 val isDeleting = brief.id == deletingItemId
@@ -819,4 +819,8 @@ private fun BriefItemContainer(
 
 private val PORTRAIT_FADE_HEIGHT = 180.dp
 private val LANDSCAPE_FADE_WIDTH = 252.dp
+
+private fun Identifier.toBundleKey(): String =
+    if (tempId != null) "temp_$tempId" else "db_$databaseId"
+
 
