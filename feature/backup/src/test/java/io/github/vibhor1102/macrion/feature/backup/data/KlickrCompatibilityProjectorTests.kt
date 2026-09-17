@@ -1,14 +1,17 @@
 package io.github.vibhor1102.macrion.feature.backup.data
 
 import io.github.vibhor1102.macrion.feature.backup.data.base.BackupArchiveFormat
-import io.github.vibhor1102.macrion.core.database.entity.CompleteScenario
-import io.github.vibhor1102.macrion.core.database.entity.CompleteActionEntity
-import io.github.vibhor1102.macrion.core.database.entity.CompleteEventEntity
 import io.github.vibhor1102.macrion.core.database.entity.ActionEntity
 import io.github.vibhor1102.macrion.core.database.entity.ActionType
+import io.github.vibhor1102.macrion.core.database.entity.ClickPositionType
+import io.github.vibhor1102.macrion.core.database.entity.CompleteActionEntity
+import io.github.vibhor1102.macrion.core.database.entity.CompleteEventEntity
+import io.github.vibhor1102.macrion.core.database.entity.CompleteScenario
 import io.github.vibhor1102.macrion.core.database.entity.ConditionEntity
 import io.github.vibhor1102.macrion.core.database.entity.ConditionType
 import io.github.vibhor1102.macrion.core.database.entity.EventEntity
+import io.github.vibhor1102.macrion.core.database.entity.EventToggleEntity
+import io.github.vibhor1102.macrion.core.database.entity.EventToggleType
 import io.github.vibhor1102.macrion.core.database.entity.EventType
 import io.github.vibhor1102.macrion.core.database.entity.ScenarioEntity
 
@@ -136,6 +139,273 @@ class KlickrCompatibilityProjectorTests {
         )
         assertEquals(1, projection.losses.single().componentCount)
         assertEquals(KlickrCompatibilityLossReason.UNSUPPORTED_COMPONENT, projection.losses.single().reason)
+    }
+
+    @Test
+    fun danglingEventToggleIsPrunedWhenTargetEventIsOmitted() {
+        val targetEvent = CompleteEventEntity(
+            event = EventEntity(id = 20, scenarioId = 42, name = "Target", conditionOperator = 0, priority = 1, type = EventType.TRIGGER_EVENT),
+            actions = listOf(
+                CompleteActionEntity(
+                    action = ActionEntity(id = 200, eventId = 20, name = "Capture", type = ActionType.CAPTURE_SCREENSHOT),
+                    intentExtras = emptyList(),
+                    eventsToggle = emptyList(),
+                ),
+            ),
+            conditions = listOf(
+                ConditionEntity(id = 2000, eventId = 20, name = "Cond", type = ConditionType.ON_TIMER_REACHED, priority = 0),
+            ),
+        )
+
+        val sourceEvent = CompleteEventEntity(
+            event = EventEntity(id = 10, scenarioId = 42, name = "Source", conditionOperator = 0, priority = 0, type = EventType.TRIGGER_EVENT),
+            actions = listOf(
+                CompleteActionEntity(
+                    action = ActionEntity(id = 100, eventId = 10, name = "Wait", type = ActionType.PAUSE, pauseDuration = 100),
+                    intentExtras = emptyList(),
+                    eventsToggle = emptyList(),
+                ),
+                CompleteActionEntity(
+                    action = ActionEntity(id = 101, eventId = 10, priority = 1, name = "Toggle", type = ActionType.TOGGLE_EVENT, toggleAll = false),
+                    intentExtras = emptyList(),
+                    eventsToggle = listOf(
+                        EventToggleEntity(id = 500, actionId = 101, type = EventToggleType.ENABLE, toggleEventId = 20),
+                        EventToggleEntity(id = 501, actionId = 101, type = EventToggleType.DISABLE, toggleEventId = 10),
+                    ),
+                ),
+            ),
+            conditions = listOf(
+                ConditionEntity(id = 1000, eventId = 10, name = "Cond", type = ConditionType.ON_TIMER_REACHED, priority = 0),
+            ),
+        )
+
+        val scenario = CompleteScenario(
+            scenario = ScenarioEntity(id = 42, name = "Test", detectionQuality = 600),
+            events = listOf(sourceEvent, targetEvent),
+            counters = emptyList(),
+        )
+
+        val projection = KlickrCompatibilityProjector.projectSmartScenario(scenario)
+
+        assertTrue(projection.isExportable)
+        val projected = projection.value!!
+        assertEquals(listOf(10L), projected.events.map { it.event.id })
+        val toggleAction = projected.events.single().actions.first { it.action.type == ActionType.TOGGLE_EVENT }
+        assertEquals(listOf(10L), toggleAction.eventsToggle.map { it.toggleEventId })
+        verifyKlickrImportCompatibility(projected)
+
+        assertTrue(projection.losses.any { it.reason == KlickrCompatibilityLossReason.UNSUPPORTED_COMPONENT })
+        assertTrue(projection.losses.any { it.reason == KlickrCompatibilityLossReason.MEANINGLESS_EVENT })
+        assertTrue(projection.losses.any { it.reason == KlickrCompatibilityLossReason.BROKEN_REFERENCE })
+    }
+
+    @Test
+    fun cascadingPruningExcludesScenarioWhenAllEventsBecomeMeaningless() {
+        val targetEvent = CompleteEventEntity(
+            event = EventEntity(id = 20, scenarioId = 42, name = "Target", conditionOperator = 0, priority = 1, type = EventType.TRIGGER_EVENT),
+            actions = listOf(
+                CompleteActionEntity(
+                    action = ActionEntity(id = 200, eventId = 20, name = "Play Sound", type = ActionType.PLAY_SOUND),
+                    intentExtras = emptyList(),
+                    eventsToggle = emptyList(),
+                ),
+            ),
+            conditions = listOf(
+                ConditionEntity(id = 2000, eventId = 20, name = "Cond", type = ConditionType.ON_TIMER_REACHED, priority = 0),
+            ),
+        )
+
+        val sourceEvent = CompleteEventEntity(
+            event = EventEntity(id = 10, scenarioId = 42, name = "Source", conditionOperator = 0, priority = 0, type = EventType.TRIGGER_EVENT),
+            actions = listOf(
+                CompleteActionEntity(
+                    action = ActionEntity(id = 100, eventId = 10, name = "Toggle", type = ActionType.TOGGLE_EVENT, toggleAll = false),
+                    intentExtras = emptyList(),
+                    eventsToggle = listOf(
+                        EventToggleEntity(id = 500, actionId = 100, type = EventToggleType.ENABLE, toggleEventId = 20),
+                    ),
+                ),
+            ),
+            conditions = listOf(
+                ConditionEntity(id = 1000, eventId = 10, name = "Cond", type = ConditionType.ON_TIMER_REACHED, priority = 0),
+            ),
+        )
+
+        val scenario = CompleteScenario(
+            scenario = ScenarioEntity(id = 42, name = "Test", detectionQuality = 600),
+            events = listOf(sourceEvent, targetEvent),
+            counters = emptyList(),
+        )
+
+        val projection = KlickrCompatibilityProjector.projectSmartScenario(scenario)
+
+        assertEquals(null, projection.value)
+        assertTrue(projection.losses.any { it.reason == KlickrCompatibilityLossReason.MEANINGLESS_SCENARIO })
+    }
+
+    @Test
+    fun danglingClickOnConditionIsPrunedWhenTargetConditionIsOmitted() {
+        val targetEvent = CompleteEventEntity(
+            event = EventEntity(id = 20, scenarioId = 42, name = "Target", conditionOperator = 0, priority = 1, type = EventType.TRIGGER_EVENT),
+            actions = listOf(
+                CompleteActionEntity(
+                    action = ActionEntity(id = 200, eventId = 20, name = "Screenshot", type = ActionType.CAPTURE_SCREENSHOT),
+                    intentExtras = emptyList(),
+                    eventsToggle = emptyList(),
+                ),
+            ),
+            conditions = listOf(
+                ConditionEntity(id = 2000, eventId = 20, name = "Cond Target", type = ConditionType.ON_TIMER_REACHED, priority = 0),
+            ),
+        )
+
+        val sourceEvent = CompleteEventEntity(
+            event = EventEntity(id = 10, scenarioId = 42, name = "Source", conditionOperator = 0, priority = 0, type = EventType.TRIGGER_EVENT),
+            actions = listOf(
+                CompleteActionEntity(
+                    action = ActionEntity(id = 100, eventId = 10, name = "Wait", type = ActionType.PAUSE, pauseDuration = 50),
+                    intentExtras = emptyList(),
+                    eventsToggle = emptyList(),
+                ),
+                CompleteActionEntity(
+                    action = ActionEntity(
+                        id = 101,
+                        eventId = 10,
+                        priority = 1,
+                        name = "Click condition",
+                        type = ActionType.CLICK,
+                        clickPositionType = ClickPositionType.ON_DETECTED_CONDITION,
+                        clickOnConditionId = 2000,
+                    ),
+                    intentExtras = emptyList(),
+                    eventsToggle = emptyList(),
+                ),
+            ),
+            conditions = listOf(
+                ConditionEntity(id = 1000, eventId = 10, name = "Cond Source", type = ConditionType.ON_TIMER_REACHED, priority = 0),
+            ),
+        )
+
+        val scenario = CompleteScenario(
+            scenario = ScenarioEntity(id = 42, name = "Test", detectionQuality = 600),
+            events = listOf(sourceEvent, targetEvent),
+            counters = emptyList(),
+        )
+
+        val projection = KlickrCompatibilityProjector.projectSmartScenario(scenario)
+
+        assertTrue(projection.isExportable)
+        val projected = projection.value!!
+        assertEquals(listOf(10L), projected.events.map { it.event.id })
+        assertEquals(listOf(ActionType.PAUSE), projected.events.single().actions.map { it.action.type })
+        verifyKlickrImportCompatibility(projected)
+        assertTrue(projection.losses.any { it.reason == KlickrCompatibilityLossReason.BROKEN_REFERENCE })
+    }
+
+    @Test
+    fun realWorldFloodClanChatScenarioRegression() {
+        val event405 = CompleteEventEntity(
+            event = EventEntity(id = 405, scenarioId = 4, name = "Screenshot event", conditionOperator = 1, priority = 0, type = EventType.IMAGE_EVENT),
+            actions = listOf(
+                CompleteActionEntity(
+                    action = ActionEntity(id = 1912, eventId = 405, name = "Capture", type = ActionType.CAPTURE_SCREENSHOT),
+                    intentExtras = emptyList(),
+                    eventsToggle = emptyList(),
+                ),
+            ),
+            conditions = listOf(
+                ConditionEntity(id = 1014, eventId = 405, name = "Cond", type = ConditionType.ON_IMAGE_DETECTED, priority = 0, path = "c1.png"),
+            ),
+        )
+
+        val event406 = CompleteEventEntity(
+            event = EventEntity(id = 406, scenarioId = 4, name = "Default event", conditionOperator = 1, priority = 1, type = EventType.IMAGE_EVENT),
+            actions = listOf(
+                CompleteActionEntity(
+                    action = ActionEntity(id = 1913, eventId = 406, priority = 0, name = "Wait", type = ActionType.PAUSE, pauseDuration = 200),
+                    intentExtras = emptyList(),
+                    eventsToggle = emptyList(),
+                ),
+                CompleteActionEntity(
+                    action = ActionEntity(id = 1914, eventId = 406, priority = 1, name = "Write text", type = ActionType.TEXT, textValue = "hi"),
+                    intentExtras = emptyList(),
+                    eventsToggle = emptyList(),
+                ),
+                CompleteActionEntity(
+                    action = ActionEntity(id = 1915, eventId = 406, priority = 2, name = "Toggle event", type = ActionType.TOGGLE_EVENT, toggleAll = false),
+                    intentExtras = emptyList(),
+                    eventsToggle = listOf(
+                        EventToggleEntity(id = 1259, actionId = 1915, type = EventToggleType.ENABLE, toggleEventId = 405),
+                        EventToggleEntity(id = 1260, actionId = 1915, type = EventToggleType.DISABLE, toggleEventId = 406),
+                    ),
+                ),
+            ),
+            conditions = listOf(
+                ConditionEntity(id = 1015, eventId = 406, name = "Cond", type = ConditionType.ON_IMAGE_DETECTED, priority = 0, path = "c2.png"),
+            ),
+        )
+
+        val event407 = CompleteEventEntity(
+            event = EventEntity(id = 407, scenarioId = 4, name = "2", conditionOperator = 2, priority = 2, type = EventType.IMAGE_EVENT),
+            actions = listOf(
+                CompleteActionEntity(
+                    action = ActionEntity(id = 1916, eventId = 407, priority = 0, name = "Write text", type = ActionType.TEXT, textValue = "hello"),
+                    intentExtras = emptyList(),
+                    eventsToggle = emptyList(),
+                ),
+            ),
+            conditions = listOf(
+                ConditionEntity(id = 1016, eventId = 407, name = "Cond", type = ConditionType.ON_IMAGE_DETECTED, priority = 0, path = "c3.png"),
+            ),
+        )
+
+        val original = CompleteScenario(
+            scenario = ScenarioEntity(id = 4, name = "Flood Clan Chat", detectionQuality = 1170),
+            events = listOf(event405, event406, event407),
+            counters = emptyList(),
+        )
+
+        val projection = KlickrCompatibilityProjector.projectSmartScenario(original)
+
+        assertTrue(projection.isExportable)
+        val projected = projection.value!!
+        assertEquals(listOf(406L, 407L), projected.events.map { it.event.id })
+
+        val toggleAction = projected.events.first { it.event.id == 406L }.actions.first { it.action.type == ActionType.TOGGLE_EVENT }
+        assertEquals(listOf(406L), toggleAction.eventsToggle.map { it.toggleEventId })
+
+        verifyKlickrImportCompatibility(projected)
+    }
+
+    private fun verifyKlickrImportCompatibility(completeScenario: CompleteScenario) {
+        val violations = KlickrCompatibilityProjector.validateReferentialIntegrity(completeScenario)
+        assertTrue("Referential integrity violations: $violations", violations.isEmpty())
+
+        val eventIds = completeScenario.events.map { it.event.id }.toSet()
+        val conditionIds = completeScenario.events.flatMap { it.conditions }.map { it.id }.toSet()
+
+        for (event in completeScenario.events) {
+            assertTrue("Event must have actions", event.actions.isNotEmpty())
+            assertTrue("Event must have conditions", event.conditions.isNotEmpty())
+
+            for (action in event.actions) {
+                if (action.action.type == ActionType.TOGGLE_EVENT && action.action.toggleAll != true) {
+                    for (toggle in action.eventsToggle) {
+                        assertTrue(
+                            "Toggle ${toggle.id} references non-existent event ${toggle.toggleEventId}. Surviving events: $eventIds",
+                            toggle.toggleEventId in eventIds,
+                        )
+                    }
+                }
+                if (action.action.type == ActionType.CLICK && action.action.clickPositionType == ClickPositionType.ON_DETECTED_CONDITION) {
+                    val condId = action.action.clickOnConditionId
+                    assertTrue(
+                        "Click action ${action.action.id} references non-existent condition $condId. Surviving conditions: $conditionIds",
+                        condId != null && condId in conditionIds,
+                    )
+                }
+            }
+        }
     }
 
     private fun completeScenario(vararg events: CompleteEventEntity) = CompleteScenario(

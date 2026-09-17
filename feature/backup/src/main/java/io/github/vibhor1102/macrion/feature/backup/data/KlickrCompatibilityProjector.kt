@@ -6,8 +6,11 @@
  */
 package io.github.vibhor1102.macrion.feature.backup.data
 
-import io.github.vibhor1102.macrion.core.database.entity.CompleteScenario
 import io.github.vibhor1102.macrion.core.database.entity.ActionType
+import io.github.vibhor1102.macrion.core.database.entity.ClickPositionType
+import io.github.vibhor1102.macrion.core.database.entity.CompleteActionEntity
+import io.github.vibhor1102.macrion.core.database.entity.CompleteEventEntity
+import io.github.vibhor1102.macrion.core.database.entity.CompleteScenario
 import io.github.vibhor1102.macrion.core.dumb.data.database.DumbScenarioWithActions
 import io.github.vibhor1102.macrion.feature.backup.data.base.BackupArchiveFormat
 
@@ -84,7 +87,9 @@ internal object KlickrCompatibilityProjector {
     fun projectSmartScenario(scenario: CompleteScenario): KlickrCompatibilityProjection<CompleteScenario> {
         val detached = scenario.detachedCopy()
         val losses = mutableListOf<KlickrCompatibilityLoss>()
-        val compatibleEvents = detached.events.mapNotNull { event ->
+
+        // Pass 1: Filter out action types unsupported by the target Klick'r profile
+        var currentEvents = detached.events.map { event ->
             val compatibleActions = event.actions.filterNot { action ->
                 action.action.type == ActionType.EXTERNAL_ACTION ||
                     action.action.type == ActionType.PLAY_SOUND ||
@@ -98,20 +103,93 @@ internal object KlickrCompatibilityProjector {
                     scenarioId = detached.scenario.id,
                 )
             }
-
-            if (compatibleActions.isEmpty() || event.conditions.isEmpty()) {
-                losses += KlickrCompatibilityLoss(
-                    reason = KlickrCompatibilityLossReason.MEANINGLESS_EVENT,
-                    componentCount = 1,
-                    scenarioId = detached.scenario.id,
-                )
-                null
-            } else {
-                event.copy(actions = compatibleActions)
-            }
+            event.copy(actions = compatibleActions)
         }
 
-        if (compatibleEvents.isEmpty()) {
+        // Pass 2: Multi-pass pruning to maintain referential integrity and prune dead components
+        while (true) {
+            val viableEventIds = currentEvents
+                .filter { it.actions.isNotEmpty() && it.conditions.isNotEmpty() }
+                .map { it.event.id }
+                .toSet()
+            val viableConditionIds = currentEvents
+                .filter { it.actions.isNotEmpty() && it.conditions.isNotEmpty() }
+                .flatMap { it.conditions }
+                .map { it.id }
+                .toSet()
+
+            var changed = false
+            val nextEvents = mutableListOf<CompleteEventEntity>()
+
+            for (event in currentEvents) {
+                val repairedActions = mutableListOf<CompleteActionEntity>()
+
+                for (action in event.actions) {
+                    when {
+                        action.action.type == ActionType.TOGGLE_EVENT -> {
+                            val survivingToggles = action.eventsToggle.filter { it.toggleEventId in viableEventIds }
+                            val droppedToggles = action.eventsToggle.size - survivingToggles.size
+                            if (droppedToggles > 0) {
+                                losses += KlickrCompatibilityLoss(
+                                    reason = KlickrCompatibilityLossReason.BROKEN_REFERENCE,
+                                    componentCount = droppedToggles,
+                                    scenarioId = detached.scenario.id,
+                                )
+                                changed = true
+                            }
+
+                            if (action.action.toggleAll != true && survivingToggles.isEmpty()) {
+                                losses += KlickrCompatibilityLoss(
+                                    reason = KlickrCompatibilityLossReason.BROKEN_REFERENCE,
+                                    componentCount = 1,
+                                    scenarioId = detached.scenario.id,
+                                )
+                                changed = true
+                            } else {
+                                repairedActions += action.copy(eventsToggle = survivingToggles)
+                            }
+                        }
+
+                        action.action.type == ActionType.CLICK &&
+                            action.action.clickPositionType == ClickPositionType.ON_DETECTED_CONDITION -> {
+                            val condId = action.action.clickOnConditionId
+                            if (condId == null || condId !in viableConditionIds) {
+                                losses += KlickrCompatibilityLoss(
+                                    reason = KlickrCompatibilityLossReason.BROKEN_REFERENCE,
+                                    componentCount = 1,
+                                    scenarioId = detached.scenario.id,
+                                )
+                                changed = true
+                            } else {
+                                repairedActions += action
+                            }
+                        }
+
+                        else -> repairedActions += action
+                    }
+                }
+
+                if (repairedActions.isEmpty() || event.conditions.isEmpty()) {
+                    losses += KlickrCompatibilityLoss(
+                        reason = KlickrCompatibilityLossReason.MEANINGLESS_EVENT,
+                        componentCount = 1,
+                        scenarioId = detached.scenario.id,
+                    )
+                    changed = true
+                } else {
+                    val actionsWithReindexedPriority = repairedActions.mapIndexed { index, act ->
+                        if (act.action.priority == index) act
+                        else act.copy(action = act.action.copy(priority = index))
+                    }
+                    nextEvents += event.copy(actions = actionsWithReindexedPriority)
+                }
+            }
+
+            currentEvents = nextEvents
+            if (!changed) break
+        }
+
+        if (currentEvents.isEmpty()) {
             losses += KlickrCompatibilityLoss(
                 reason = KlickrCompatibilityLossReason.MEANINGLESS_SCENARIO,
                 componentCount = 1,
@@ -120,10 +198,56 @@ internal object KlickrCompatibilityProjector {
             return KlickrCompatibilityProjection(value = null, losses = losses)
         }
 
+        val resultScenario = detached.copy(events = currentEvents)
+        val violations = validateReferentialIntegrity(resultScenario)
+        check(violations.isEmpty()) {
+            "Klick'r compatibility projection produced invalid referential integrity: $violations"
+        }
+
         return KlickrCompatibilityProjection(
-            value = detached.copy(events = compatibleEvents),
+            value = resultScenario,
             losses = losses,
         )
+    }
+
+    fun validateReferentialIntegrity(scenario: CompleteScenario): List<String> {
+        val violations = mutableListOf<String>()
+        val eventIds = scenario.events.map { it.event.id }.toSet()
+        val conditionIds = scenario.events.flatMap { it.conditions }.map { it.id }.toSet()
+
+        for (event in scenario.events) {
+            if (event.actions.isEmpty()) {
+                violations += "Event ${event.event.id} has no actions"
+            }
+            if (event.conditions.isEmpty()) {
+                violations += "Event ${event.event.id} has no conditions"
+            }
+            for (action in event.actions) {
+                if (action.action.type == ActionType.EXTERNAL_ACTION ||
+                    action.action.type == ActionType.PLAY_SOUND ||
+                    action.action.type == ActionType.CAPTURE_SCREENSHOT
+                ) {
+                    violations += "Action ${action.action.id} has unsupported type ${action.action.type}"
+                }
+                if (action.action.type == ActionType.TOGGLE_EVENT && action.action.toggleAll != true) {
+                    if (action.eventsToggle.isEmpty()) {
+                        violations += "Toggle action ${action.action.id} in event ${event.event.id} has no targets"
+                    }
+                    for (toggle in action.eventsToggle) {
+                        if (toggle.toggleEventId !in eventIds) {
+                            violations += "Toggle ${toggle.id} in action ${action.action.id} references missing event ${toggle.toggleEventId}"
+                        }
+                    }
+                }
+                if (action.action.type == ActionType.CLICK && action.action.clickPositionType == ClickPositionType.ON_DETECTED_CONDITION) {
+                    val condId = action.action.clickOnConditionId
+                    if (condId == null || condId !in conditionIds) {
+                        violations += "Click action ${action.action.id} references missing condition $condId"
+                    }
+                }
+            }
+        }
+        return violations
     }
 
     fun projectDumbScenario(scenario: DumbScenarioWithActions): KlickrCompatibilityProjection<DumbScenarioWithActions> =
