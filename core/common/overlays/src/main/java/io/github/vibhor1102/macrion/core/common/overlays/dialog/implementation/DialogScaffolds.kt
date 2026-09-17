@@ -97,6 +97,7 @@ internal fun NavBarDialogScaffold(
     content: @Composable () -> Unit,
     navBar: @Composable () -> Unit,
     floatingActions: @Composable () -> Unit,
+    modal: (@Composable () -> Unit)? = null,
     isPortrait: Boolean,
 ) {
     Surface(
@@ -106,61 +107,69 @@ internal fun NavBarDialogScaffold(
             .fillMaxWidth()
             .heightIn(min = dimensionResource(R.dimen.bottom_sheet_min_height)),
     ) {
-        if (isPortrait) {
-            Box(modifier = Modifier.fillMaxSize()) {
-                Column(modifier = Modifier.fillMaxSize()) {
-                    Box(modifier = Modifier.fillMaxWidth()) { topBar() }
-                    Box(modifier = Modifier.fillMaxWidth()) { persistentHeader() }
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f)
-                            .padding(bottom = dimensionResource(R.dimen.android_bottom_navigation_height)),
-                    ) {
-                        content()
-                    }
-                }
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(
-                            end = dimensionResource(R.dimen.margin_horizontal_default),
-                            bottom = dimensionResource(R.dimen.dialog_create_copy_buttons_bottom_margin),
-                        ),
-                ) {
-                    floatingActions()
-                }
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .align(Alignment.BottomCenter),
-                ) {
-                    navBar()
-                }
-            }
-        } else {
-            Column(modifier = Modifier.fillMaxSize()) {
-                Box(modifier = Modifier.fillMaxWidth()) { topBar() }
-                Row(modifier = Modifier.fillMaxWidth().weight(1f)) {
-                    Box(modifier = Modifier.fillMaxHeight()) { navBar() }
-                    Box(modifier = Modifier.weight(1f).fillMaxSize()) {
-                        Column(modifier = Modifier.fillMaxSize()) {
-                            Box(modifier = Modifier.fillMaxWidth()) { persistentHeader() }
-                            Box(modifier = Modifier.fillMaxWidth().weight(1f)) { content() }
+        Box(modifier = Modifier.fillMaxSize()) {
+            if (isPortrait) {
+                Box(modifier = Modifier.fillMaxSize()) {
+                    Column(modifier = Modifier.fillMaxSize()) {
+                        Box(modifier = Modifier.fillMaxWidth()) { topBar() }
+                        Box(modifier = Modifier.fillMaxWidth()) { persistentHeader() }
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .weight(1f)
+                                .padding(bottom = dimensionResource(R.dimen.android_bottom_navigation_height)),
+                        ) {
+                            content()
                         }
+                    }
+                    if (modal == null) {
                         Box(
                             modifier = Modifier
                                 .align(Alignment.BottomEnd)
                                 .padding(
                                     end = dimensionResource(R.dimen.margin_horizontal_default),
-                                    bottom = dimensionResource(R.dimen.margin_vertical_extra_large),
+                                    bottom = dimensionResource(R.dimen.dialog_create_copy_buttons_bottom_margin),
                                 ),
                         ) {
                             floatingActions()
                         }
                     }
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .align(Alignment.BottomCenter),
+                    ) {
+                        navBar()
+                    }
+                }
+            } else {
+                Column(modifier = Modifier.fillMaxSize()) {
+                    Box(modifier = Modifier.fillMaxWidth()) { topBar() }
+                    Row(modifier = Modifier.fillMaxWidth().weight(1f)) {
+                        Box(modifier = Modifier.fillMaxHeight()) { navBar() }
+                        Box(modifier = Modifier.weight(1f).fillMaxSize()) {
+                            Column(modifier = Modifier.fillMaxSize()) {
+                                Box(modifier = Modifier.fillMaxWidth()) { persistentHeader() }
+                                Box(modifier = Modifier.fillMaxWidth().weight(1f)) { content() }
+                            }
+                            if (modal == null) {
+                                Box(
+                                    modifier = Modifier
+                                        .align(Alignment.BottomEnd)
+                                        .padding(
+                                            end = dimensionResource(R.dimen.margin_horizontal_default),
+                                            bottom = dimensionResource(R.dimen.margin_vertical_extra_large),
+                                        ),
+                                ) {
+                                    floatingActions()
+                                }
+                            }
+                        }
+                    }
                 }
             }
+
+            modal?.invoke()
         }
     }
 }

@@ -18,6 +18,7 @@
 package io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.imageevents
 
 import android.content.Context
+import android.content.res.Configuration
 import android.view.ViewGroup
 import android.view.accessibility.AccessibilityManager
 import androidx.activity.compose.BackHandler
@@ -25,6 +26,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -34,6 +39,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,11 +48,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
@@ -345,6 +353,8 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
             // New Folder Dialog
             if (showNewFolderDialog) {
                 var folderNameInput by remember { mutableStateOf("") }
+                val trimmed = folderNameInput.trim()
+                val canCreate = trimmed.isNotEmpty() && trimmed !in allFolderNames
                 InlineModalDialog(
                     onDismissRequest = { showNewFolderDialog = false },
                     title = { Text(stringResource(R.string.folder_action_new)) },
@@ -354,17 +364,25 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
                             onValueChange = { folderNameInput = it },
                             label = { Text(stringResource(R.string.folder_name_hint)) },
                             singleLine = true,
+                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                            keyboardActions = KeyboardActions(
+                                onDone = {
+                                    if (canCreate) {
+                                        viewModel.createFolder(trimmed)
+                                        showNewFolderDialog = false
+                                    }
+                                },
+                            ),
                             modifier = Modifier.fillMaxWidth(),
                         )
                     },
                     confirmButton = {
                         TextButton(
                             onClick = {
-                                val trimmed = folderNameInput.trim()
                                 viewModel.createFolder(trimmed)
                                 showNewFolderDialog = false
                             },
-                            enabled = folderNameInput.trim().isNotEmpty() && folderNameInput.trim() !in allFolderNames,
+                            enabled = canCreate,
                         ) {
                             Text(stringResource(R.string.generic_create))
                         }
@@ -381,6 +399,8 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
             if (folderToRename != null) {
                 val oldName = folderToRename!!
                 var newNameInput by remember(oldName) { mutableStateOf(oldName) }
+                val trimmed = newNameInput.trim()
+                val canModify = trimmed.isNotEmpty() && (trimmed == oldName || trimmed !in allFolderNames)
                 InlineModalDialog(
                     onDismissRequest = { folderToRename = null },
                     title = { Text(stringResource(R.string.folder_action_rename)) },
@@ -390,14 +410,27 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
                             onValueChange = { newNameInput = it },
                             label = { Text(stringResource(R.string.folder_name_hint)) },
                             singleLine = true,
+                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                            keyboardActions = KeyboardActions(
+                                onDone = {
+                                    if (canModify) {
+                                        if (trimmed != oldName) {
+                                            viewModel.renameFolder(oldName, trimmed)
+                                            if (oldName in collapsedFolders) {
+                                                collapsedFolders = collapsedFolders - oldName + trimmed
+                                            }
+                                        }
+                                        folderToRename = null
+                                    }
+                                },
+                            ),
                             modifier = Modifier.fillMaxWidth(),
                         )
                     },
                     confirmButton = {
                         TextButton(
                             onClick = {
-                                val trimmed = newNameInput.trim()
-                                if (trimmed.isNotEmpty() && trimmed != oldName) {
+                                if (trimmed != oldName) {
                                     viewModel.renameFolder(oldName, trimmed)
                                     if (oldName in collapsedFolders) {
                                         collapsedFolders = collapsedFolders - oldName + trimmed
@@ -405,8 +438,7 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
                                 }
                                 folderToRename = null
                             },
-                            enabled = newNameInput.trim().isNotEmpty() &&
-                                (newNameInput.trim() == oldName || newNameInput.trim() !in allFolderNames),
+                            enabled = canModify,
                         ) {
                             Text(stringResource(R.string.generic_modify))
                         }
@@ -562,6 +594,33 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
         confirmButton: @Composable () -> Unit,
         dismissButton: (@Composable () -> Unit)? = null,
     ) {
+        DisposableEffect(Unit) {
+            onDispose {
+                dialogController.activeModal = null
+            }
+        }
+
+        SideEffect {
+            dialogController.activeModal = {
+                InlineModalDialogContent(
+                    onDismissRequest = onDismissRequest,
+                    title = title,
+                    text = text,
+                    confirmButton = confirmButton,
+                    dismissButton = dismissButton,
+                )
+            }
+        }
+    }
+
+    @Composable
+    private fun InlineModalDialogContent(
+        onDismissRequest: () -> Unit,
+        title: @Composable () -> Unit,
+        text: @Composable () -> Unit,
+        confirmButton: @Composable () -> Unit,
+        dismissButton: (@Composable () -> Unit)? = null,
+    ) {
         BackHandler(onBack = onDismissRequest)
 
         Box(
@@ -575,13 +634,19 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
                 ),
             contentAlignment = Alignment.Center,
         ) {
+            val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+            val verticalPadding = if (isLandscape) 16.dp else 24.dp
+            val titleSpacer = if (isLandscape) 12.dp else 16.dp
+            val buttonSpacer = if (isLandscape) 16.dp else 24.dp
+
             Surface(
                 shape = MaterialTheme.shapes.extraLarge,
                 color = MaterialTheme.colorScheme.surfaceContainerHigh,
                 tonalElevation = 6.dp,
                 modifier = Modifier
+                    .widthIn(min = 280.dp, max = 440.dp)
                     .fillMaxWidth()
-                    .padding(horizontal = 28.dp)
+                    .padding(horizontal = 24.dp, vertical = 16.dp)
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
                         indication = null,
@@ -591,19 +656,22 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(24.dp),
+                        .verticalScroll(rememberScrollState())
+                        .padding(horizontal = 24.dp, vertical = verticalPadding),
                 ) {
                     CompositionLocalProvider(
                         LocalContentColor provides MaterialTheme.colorScheme.onSurface,
                     ) {
-                        ProvideTextStyle(MaterialTheme.typography.headlineSmall) {
+                        ProvideTextStyle(
+                            if (isLandscape) MaterialTheme.typography.titleLarge else MaterialTheme.typography.headlineSmall,
+                        ) {
                             title()
                         }
-                        Spacer(Modifier.height(16.dp))
+                        Spacer(Modifier.height(titleSpacer))
                         ProvideTextStyle(MaterialTheme.typography.bodyMedium) {
                             text()
                         }
-                        Spacer(Modifier.height(24.dp))
+                        Spacer(Modifier.height(buttonSpacer))
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.End,

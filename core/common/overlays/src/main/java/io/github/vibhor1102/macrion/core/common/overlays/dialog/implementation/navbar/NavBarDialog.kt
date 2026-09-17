@@ -44,8 +44,12 @@ import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.core.ui.bindings.dialogs.TopBarNavigationView
 import io.github.vibhor1102.macrion.core.ui.bindings.dialogs.FloatingActionButtonsView
 
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 
 /** The Compose-native description of a page in a navigation dialog. */
 data class DialogNavigationItem(
@@ -65,6 +69,7 @@ abstract class NavBarDialog(@StyleRes theme: Int) : OverlayDialog(theme) {
     private var selectedNavigationItemId = mutableIntStateOf(View.NO_ID)
     lateinit var floatingActionButtons: FloatingActionButtonsView
     lateinit var topBarBinding: TopBarNavigationView
+    var activeModal by mutableStateOf<(@Composable () -> Unit)?>(null)
 
     /** Navigation pages are data rather than an Android menu so the visible surface stays Compose-native. */
     abstract fun navigationItems(): List<DialogNavigationItem>
@@ -117,6 +122,7 @@ abstract class NavBarDialog(@StyleRes theme: Int) : OverlayDialog(theme) {
                             )
                         },
                         floatingActions = { floatingActionButtons.Content() },
+                        modal = activeModal,
                         isPortrait = isPortrait,
                     )
                 }
@@ -150,6 +156,7 @@ abstract class NavBarDialog(@StyleRes theme: Int) : OverlayDialog(theme) {
     }
 
     override fun onDestroy() {
+        activeModal = null
         contentMap.values.forEach { content ->
             content.destroy()
         }
@@ -186,6 +193,7 @@ abstract class NavBarDialog(@StyleRes theme: Int) : OverlayDialog(theme) {
 
     private fun updateContentView(itemId: Int, forceUpdate: Boolean = false) {
         if (!forceUpdate && selectedNavigationItemId.intValue == itemId) return
+        activeModal = null
 
         // Get the current content and stop it, if any.
         contentMap[selectedNavigationItemId.intValue]?.apply {
