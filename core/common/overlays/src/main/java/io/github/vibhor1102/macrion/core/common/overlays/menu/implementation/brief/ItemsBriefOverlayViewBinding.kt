@@ -18,6 +18,8 @@ package io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.br
 
 import android.content.res.Configuration
 import android.view.LayoutInflater
+import android.view.ViewConfiguration
+import kotlin.math.roundToInt
 import kotlinx.coroutines.delay
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutLinearInEasing
@@ -38,6 +40,8 @@ import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerDefaults
+import androidx.compose.foundation.pager.PagerSnapDistance
 import androidx.compose.foundation.pager.VerticalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -637,6 +641,35 @@ private fun BriefItemsCarousel(
         if (displayedItems.isEmpty()) 0 else requestedIndex.coerceIn(0, displayedItems.lastIndex)
     }
     val pagerState = rememberPagerState(initialPage = initialPage) { displayedItems.size }
+    val context = LocalContext.current
+    val maximumFlingVelocity = remember(context) {
+        ViewConfiguration.get(context).scaledMaximumFlingVelocity.toFloat()
+    }
+    val pagerSnapDistance = remember(maximumFlingVelocity) {
+        object : PagerSnapDistance {
+            override fun calculateTargetPage(
+                startPage: Int,
+                suggestedTargetPage: Int,
+                velocity: Float,
+                pageSize: Int,
+                pageSpacing: Int,
+            ): Int {
+                if (maximumFlingVelocity == 0f) return suggestedTargetPage
+                val normalizedVelocity = kotlin.math.abs(velocity) / maximumFlingVelocity
+                val maxAdditionalPages = (FLING_LINEAR_FACTOR * normalizedVelocity +
+                    FLING_QUADRATIC_FACTOR * normalizedVelocity * normalizedVelocity).roundToInt().coerceAtLeast(1)
+                return suggestedTargetPage.coerceIn(startPage - maxAdditionalPages, startPage + maxAdditionalPages)
+            }
+        }
+    }
+    val flingBehavior = PagerDefaults.flingBehavior(
+        state = pagerState,
+        pagerSnapDistance = pagerSnapDistance,
+        snapAnimationSpec = spring(
+            dampingRatio = EXPRESSIVE_SNAP_DAMPING_RATIO,
+            stiffness = EXPRESSIVE_SNAP_STIFFNESS,
+        ),
+    )
 
     LaunchedEffect(items) {
         if (items == displayedItems) return@LaunchedEffect
@@ -730,6 +763,7 @@ private fun BriefItemsCarousel(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(horizontal = horizontalPadding),
                 pageSpacing = 8.dp,
+                flingBehavior = flingBehavior,
                 userScrollEnabled = deletingItemId == null,
                 key = { page -> displayedItems.getOrNull(page)?.id?.toBundleKey() ?: page },
             ) { page ->
@@ -754,6 +788,7 @@ private fun BriefItemsCarousel(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(vertical = verticalPadding),
                 pageSpacing = 8.dp,
+                flingBehavior = flingBehavior,
                 userScrollEnabled = deletingItemId == null,
                 key = { page -> displayedItems.getOrNull(page)?.id?.toBundleKey() ?: page },
             ) { page ->
@@ -820,7 +855,13 @@ private fun BriefItemContainer(
 private val PORTRAIT_FADE_HEIGHT = 180.dp
 private val LANDSCAPE_FADE_WIDTH = 252.dp
 
+private const val FLING_LINEAR_FACTOR = 2f
+private const val FLING_QUADRATIC_FACTOR = 2f
+private const val EXPRESSIVE_SNAP_DAMPING_RATIO = 0.8f
+private const val EXPRESSIVE_SNAP_STIFFNESS = 380f
+
 private fun Identifier.toBundleKey(): String =
     if (tempId != null) "temp_$tempId" else "db_$databaseId"
+
 
 
