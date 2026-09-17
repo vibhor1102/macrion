@@ -74,7 +74,7 @@ internal fun FolderHeaderRow(
                 interactionSource = handleInteractionSource ?: remember { MutableInteractionSource() },
             )
         } else {
-            Spacer(Modifier.width(16.dp))
+            Spacer(Modifier.width(44.dp))
         }
 
         Icon(
