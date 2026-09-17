@@ -118,31 +118,7 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
         }
     }
 
-    private sealed class ScenarioListItem {
-        abstract val key: Any
 
-        data class FolderHeader(
-            val name: String,
-            val totalCount: Int,
-            val enabledCount: Int,
-            val isExpanded: Boolean,
-        ) : ScenarioListItem() {
-            override val key: Any get() = "folder_header_$name"
-        }
-
-        data class FolderEndBoundary(
-            val folderName: String,
-        ) : ScenarioListItem() {
-            override val key: Any get() = "folder_end_$folderName"
-        }
-
-        data class EventItem(
-            val item: UiImageEvent,
-            val folderName: String?,
-        ) : ScenarioListItem() {
-            override val key: Any get() = item.event.id.toLazyListKey()
-        }
-    }
 
     @Composable private fun Content() {
         CompositionLocalProvider(LocalMonitoredViewsManager provides viewModel.monitoredViewsManager) {
@@ -173,18 +149,14 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
             }
 
             val visibleItems = remember(sourceItems, customFolders, collapsedFolders) {
-                buildVisibleItems(sourceItems ?: emptyList(), customFolders, collapsedFolders)
+                ScenarioFolderReorderHelper.buildVisibleItems(sourceItems ?: emptyList(), customFolders, collapsedFolders)
             }
 
             val itemsToDisplay = reorderedVisibleItems ?: visibleItems
             val lazyListState = rememberLazyListState()
             val reorderableState = rememberReorderableLazyListState(lazyListState) { from, to ->
-                val current = (reorderedVisibleItems ?: visibleItems).toMutableList()
-                if (from.index in current.indices && to.index in current.indices) {
-                    val moved = current.removeAt(from.index)
-                    current.add(to.index, moved)
-                    reorderedVisibleItems = current
-                }
+                val current = reorderedVisibleItems ?: visibleItems
+                reorderedVisibleItems = ScenarioFolderReorderHelper.moveItem(current, from.index, to.index)
             }
 
             LaunchedEffect(sourceItems, customFolders, collapsedFolders) {
@@ -203,12 +175,11 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
                 {
                     val currentReordered = reorderedVisibleItems
                     if (currentReordered != null) {
-                        val updatedEvents = reconstructEventsFromVisibleItems(
+                        val updatedEvents = ScenarioFolderReorderHelper.reconstructEvents(
                             visibleItems = currentReordered,
                             allSourceEvents = sourceItems ?: emptyList(),
                         )
                         viewModel.updateRawEvents(updatedEvents)
-                        reorderedVisibleItems = null
                     }
                 }
             }
@@ -339,21 +310,18 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
                                             isLastIndex = index == itemsToDisplay.lastIndex,
                                             touchExplorationEnabled = touchExplorationEnabled,
                                             reorderableState = reorderableState,
-                                            currentFolderContext = getEffectiveFolderAt(itemsToDisplay, index),
+                                            currentFolderContext = ScenarioFolderReorderHelper.getEffectiveFolderAt(itemsToDisplay, index),
                                             onEventClick = remember(listItem.item.event) { { onEventItemClicked(listItem.item.event) } },
                                             onDragStarted = onDragStarted,
                                             onDragStopped = onDragStopped,
                                             onMoveEvent = { fromIdx, toIdx ->
-                                                val current = itemsToDisplay.toMutableList()
-                                                if (fromIdx in current.indices && toIdx in current.indices) {
-                                                    val moved = current.removeAt(fromIdx)
-                                                    current.add(toIdx, moved)
-                                                    val updatedEvents = reconstructEventsFromVisibleItems(
-                                                        visibleItems = current,
-                                                        allSourceEvents = sourceItems ?: emptyList(),
-                                                    )
-                                                    viewModel.updateRawEvents(updatedEvents)
-                                                }
+                                                val current = itemsToDisplay
+                                                val updated = ScenarioFolderReorderHelper.moveItem(current, fromIdx, toIdx)
+                                                val updatedEvents = ScenarioFolderReorderHelper.reconstructEvents(
+                                                    visibleItems = updated,
+                                                    allSourceEvents = sourceItems ?: emptyList(),
+                                                )
+                                                viewModel.updateRawEvents(updatedEvents)
                                             },
                                             context = context,
                                         )
@@ -486,123 +454,6 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
         }
     }
 
-    private fun buildVisibleItems(
-        events: List<UiImageEvent>,
-        customFolders: List<String>,
-        collapsedFolders: Set<String>,
-    ): List<ScenarioListItem> {
-        val result = mutableListOf<ScenarioListItem>()
-        val processedFolders = mutableSetOf<String>()
-
-        for (event in events) {
-            val f = event.folder?.trim()?.ifEmpty { null }
-            if (f == null) {
-                result.add(ScenarioListItem.EventItem(event, null))
-            } else {
-                if (processedFolders.add(f)) {
-                    val folderEvents = events.filter { it.folder?.trim() == f }
-                    val isExpanded = f !in collapsedFolders
-                    result.add(
-                        ScenarioListItem.FolderHeader(
-                            name = f,
-                            totalCount = folderEvents.size,
-                            enabledCount = folderEvents.count { it.event.enabledOnStart },
-                            isExpanded = isExpanded,
-                        )
-                    )
-                    if (isExpanded) {
-                        for (fe in folderEvents) {
-                            result.add(ScenarioListItem.EventItem(fe, f))
-                        }
-                        result.add(ScenarioListItem.FolderEndBoundary(f))
-                    }
-                }
-            }
-        }
-
-        // Add any empty custom folders
-        for (cf in customFolders) {
-            if (processedFolders.add(cf)) {
-                val isExpanded = cf !in collapsedFolders
-                result.add(
-                    ScenarioListItem.FolderHeader(
-                        name = cf,
-                        totalCount = 0,
-                        enabledCount = 0,
-                        isExpanded = isExpanded,
-                    )
-                )
-                if (isExpanded) {
-                    result.add(ScenarioListItem.FolderEndBoundary(cf))
-                }
-            }
-        }
-
-        return result
-    }
-
-    private fun getEffectiveFolderAt(items: List<ScenarioListItem>, targetIndex: Int): String? {
-        var activeFolder: String? = null
-        for (i in 0 until targetIndex.coerceAtMost(items.size)) {
-            when (val item = items[i]) {
-                is ScenarioListItem.FolderHeader -> {
-                    activeFolder = if (item.isExpanded) item.name else null
-                }
-                is ScenarioListItem.FolderEndBoundary -> {
-                    activeFolder = null
-                }
-                is ScenarioListItem.EventItem -> { /* stays same */ }
-            }
-        }
-        return activeFolder
-    }
-
-    private fun reconstructEventsFromVisibleItems(
-        visibleItems: List<ScenarioListItem>,
-        allSourceEvents: List<UiImageEvent>,
-    ): List<ScreenEvent> {
-        val result = mutableListOf<ScreenEvent>()
-        var currentFolder: String? = null
-        val seenEventIds = mutableSetOf<Long>()
-        val allEventsByFolder = allSourceEvents.groupBy { it.folder?.trim()?.ifEmpty { null } }
-
-        for (item in visibleItems) {
-            when (item) {
-                is ScenarioListItem.FolderHeader -> {
-                    if (!item.isExpanded) {
-                        val folderEvents = allEventsByFolder[item.name].orEmpty()
-                        for (uiEvent in folderEvents) {
-                            val idKey = uiEvent.event.id.databaseId.let { if (it != 0L) it else -requireNotNull(uiEvent.event.id.tempId) }
-                            if (seenEventIds.add(idKey)) {
-                                result.add(uiEvent.event.copy(folder = item.name))
-                            }
-                        }
-                        currentFolder = null
-                    } else {
-                        currentFolder = item.name
-                    }
-                }
-                is ScenarioListItem.FolderEndBoundary -> {
-                    currentFolder = null
-                }
-                is ScenarioListItem.EventItem -> {
-                    val idKey = item.item.event.id.databaseId.let { if (it != 0L) it else -requireNotNull(item.item.event.id.tempId) }
-                    if (seenEventIds.add(idKey)) {
-                        result.add(item.item.event.copy(folder = currentFolder))
-                    }
-                }
-            }
-        }
-
-        for (uiEvent in allSourceEvents) {
-            val idKey = uiEvent.event.id.databaseId.let { if (it != 0L) it else -requireNotNull(uiEvent.event.id.tempId) }
-            if (seenEventIds.add(idKey)) {
-                result.add(uiEvent.event)
-            }
-        }
-
-        return result
-    }
 
     @Composable
     private fun androidx.compose.foundation.lazy.LazyItemScope.ImageEventListItem(
