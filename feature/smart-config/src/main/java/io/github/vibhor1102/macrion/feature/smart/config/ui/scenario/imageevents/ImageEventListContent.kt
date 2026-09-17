@@ -42,6 +42,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.layout
+import androidx.compose.runtime.snapshots.Snapshot
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
@@ -262,7 +264,22 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
                     when {
                         sourceItems == null -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
                         sourceItems?.isEmpty() == true && folders.isEmpty() -> EmptyState(R.string.message_empty_screen_event_title, R.string.message_empty_screen_event_desc)
-                        else -> LazyColumn(Modifier.fillMaxSize(), state = lazyListState) {
+                        else -> LazyColumn(
+                            modifier = Modifier.fillMaxSize().layout { measurable, constraints ->
+                                // Log synchronously: snapshotFlow coalesces multiple measurements in
+                                // one frame and can hide a temporary viewport that changes the anchor.
+                                fun viewportSnapshot() = Snapshot.withoutReadObservation {
+                                    val info = lazyListState.layoutInfo
+                                    "first=${lazyListState.firstVisibleItemIndex}@${lazyListState.firstVisibleItemScrollOffset}, " +
+                                        "viewport=${info.viewportSize}, end=${info.visibleItemsInfo.lastOrNull()?.let { it.offset + it.size }}"
+                                }
+                                val before = viewportSnapshot()
+                                val placeable = measurable.measure(constraints)
+                                ReorderLog.d("[ListMeasure] constraints=$constraints, lookahead=$isLookingAhead, before=[$before], after=[${viewportSnapshot()}]")
+                                layout(placeable.width, placeable.height) { placeable.placeRelative(0, 0) }
+                            },
+                            state = lazyListState,
+                        ) {
                             itemsIndexed(
                                 items = itemsToDisplay,
                                 key = { _, item -> item.key },
