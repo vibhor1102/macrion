@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2024 Kevin Buzeau
+ * Copyright (C) 2026 Vibhor Goel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,6 +20,7 @@ package io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.imageevent
 import android.content.Context
 import android.view.ViewGroup
 import android.view.accessibility.AccessibilityManager
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -31,11 +33,14 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.unit.dp
@@ -49,6 +54,7 @@ import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.n
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredViewType
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.core.domain.model.event.ScreenEvent
+import io.github.vibhor1102.macrion.core.ui.R as UiR
 import io.github.vibhor1102.macrion.feature.smart.config.R
 import io.github.vibhor1102.macrion.feature.smart.config.ui.event.EventDialog
 import io.github.vibhor1102.macrion.feature.smart.config.ui.copy.event.EventCopyDialog
@@ -58,6 +64,7 @@ import io.github.vibhor1102.macrion.feature.smart.config.ui.common.compose.tutor
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.event.UiImageEvent
 import io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.common.DualDragGestureDetector
 import io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.common.EventListRow
+import io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.common.FolderHeaderRow
 
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
@@ -107,10 +114,39 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
         }
     }
 
+    private sealed class ScenarioListItem {
+        abstract val key: Any
+
+        data class FolderHeader(
+            val name: String,
+            val totalCount: Int,
+            val enabledCount: Int,
+            val isExpanded: Boolean,
+            val isUngrouped: Boolean = false,
+        ) : ScenarioListItem() {
+            override val key: Any get() = "folder_$name"
+        }
+
+        data class EventItem(
+            val item: UiImageEvent,
+            val folderName: String?,
+        ) : ScenarioListItem() {
+            override val key: Any get() = item.event.id.toLazyListKey()
+        }
+    }
+
     @Composable private fun Content() {
         CompositionLocalProvider(LocalMonitoredViewsManager provides viewModel.monitoredViewsManager) {
             val sourceItems by viewModel.eventsItems.collectAsStateWithLifecycle(null)
-            var reorderedItems by remember { mutableStateOf<List<UiImageEvent>?>(null) }
+            var customFolders by rememberSaveable { mutableStateOf<List<String>>(emptyList()) }
+            var collapsedFolders by rememberSaveable { mutableStateOf<Set<String>>(emptySet()) }
+            var reorderedVisibleItems by remember { mutableStateOf<List<ScenarioListItem>?>(null) }
+
+            // Dialog states
+            var showNewFolderDialog by remember { mutableStateOf(false) }
+            var folderToRename by remember { mutableStateOf<String?>(null) }
+            var folderToDelete by remember { mutableStateOf<String?>(null) }
+
             val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
             val accessibilityManager = remember(context) {
                 context.getSystemService(AccessibilityManager::class.java)
@@ -127,18 +163,24 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
                 onDispose { accessibilityManager?.removeTouchExplorationStateChangeListener(listener) }
             }
 
-            val itemsToDisplay = reorderedItems ?: sourceItems ?: emptyList()
+            val visibleItems = remember(sourceItems, customFolders, collapsedFolders) {
+                buildVisibleItems(sourceItems ?: emptyList(), customFolders, collapsedFolders)
+            }
+
+            val itemsToDisplay = reorderedVisibleItems ?: visibleItems
             val lazyListState = rememberLazyListState()
             val reorderableState = rememberReorderableLazyListState(lazyListState) { from, to ->
-                val current = (reorderedItems ?: sourceItems ?: emptyList()).toMutableList()
+                val current = (reorderedVisibleItems ?: visibleItems).toMutableList()
                 if (from.index in current.indices && to.index in current.indices) {
-                    reorderedItems = current.apply { add(to.index, removeAt(from.index)) }
+                    val moved = current.removeAt(from.index)
+                    current.add(to.index, moved)
+                    reorderedVisibleItems = current
                 }
             }
 
-            LaunchedEffect(sourceItems) {
+            LaunchedEffect(sourceItems, customFolders, collapsedFolders) {
                 if (!reorderableState.isAnyItemDragging) {
-                    reorderedItems = null
+                    reorderedVisibleItems = null
                 }
             }
 
@@ -147,53 +189,395 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
                     haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
                 }
             }
+
             val onDragStopped: () -> Unit = remember(viewModel, sourceItems) {
                 {
-                    val currentReordered = reorderedItems
-                    if (currentReordered != null && currentReordered != sourceItems) {
-                        viewModel.updateEventsPriority(currentReordered)
-                    } else {
-                        reorderedItems = null
+                    val currentReordered = reorderedVisibleItems
+                    if (currentReordered != null) {
+                        val updatedEvents = reconstructEventsFromVisibleItems(
+                            visibleItems = currentReordered,
+                            allSourceEvents = sourceItems ?: emptyList(),
+                        )
+                        viewModel.updateRawEvents(updatedEvents)
+                        reorderedVisibleItems = null
                     }
                 }
             }
-            val onMoveEvent: (Int, Int) -> Unit = remember(viewModel, sourceItems) {
-                { from, to ->
-                    val current = (sourceItems ?: emptyList()).toMutableList()
-                    if (from in current.indices && to in current.indices) {
-                        val updated = current.apply { add(to, removeAt(from)) }
-                        viewModel.updateEventsPriority(updated)
-                    }
-                }
+
+            val allFolderNames = remember(sourceItems, customFolders) {
+                val fromEvents = (sourceItems ?: emptyList()).mapNotNull { it.folder?.trim()?.ifEmpty { null } }
+                (fromEvents + customFolders).distinct()
             }
 
             Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
                 when {
                     sourceItems == null -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
-                    sourceItems?.isEmpty() == true -> EmptyState(R.string.message_empty_screen_event_title, R.string.message_empty_screen_event_desc)
-                    else -> LazyColumn(Modifier.fillMaxSize(), state = lazyListState) {
-                        itemsIndexed(
-                            items = itemsToDisplay,
-                            key = { _, item -> item.event.id.toLazyListKey() },
-                            contentType = { _, _ -> "image_event_item" },
-                        ) { index, item ->
-                            ImageEventListItem(
-                                item = item,
-                                index = index,
-                                isLastIndex = index == itemsToDisplay.lastIndex,
-                                touchExplorationEnabled = touchExplorationEnabled,
-                                reorderableState = reorderableState,
-                                onEventClick = remember(item.event) { { onEventItemClicked(item.event) } },
-                                onDragStarted = onDragStarted,
-                                onDragStopped = onDragStopped,
-                                onMoveEvent = onMoveEvent,
-                                context = context,
+                    sourceItems?.isEmpty() == true && customFolders.isEmpty() -> EmptyState(R.string.message_empty_screen_event_title, R.string.message_empty_screen_event_desc)
+                    else -> Column(Modifier.fillMaxSize()) {
+                        // Header summary & folder actions bar
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                        ) {
+                            Text(
+                                text = if (allFolderNames.isNotEmpty()) {
+                                    "${allFolderNames.size} folders · ${sourceItems?.size ?: 0} events"
+                                } else {
+                                    "${sourceItems?.size ?: 0} events"
+                                },
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
+
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                TextButton(
+                                    onClick = { showNewFolderDialog = true },
+                                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
+                                ) {
+                                    Icon(
+                                        painter = painterResource(UiR.drawable.ic_add),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(18.dp),
+                                    )
+                                    Spacer(Modifier.width(4.dp))
+                                    Text(stringResource(R.string.folder_action_new))
+                                }
+
+                                if (allFolderNames.isNotEmpty()) {
+                                    IconButton(
+                                        onClick = {
+                                            if (collapsedFolders.size >= allFolderNames.size) {
+                                                collapsedFolders = emptySet()
+                                            } else {
+                                                collapsedFolders = allFolderNames.toSet()
+                                            }
+                                        },
+                                    ) {
+                                        val allCollapsed = collapsedFolders.size >= allFolderNames.size
+                                        Icon(
+                                            painter = painterResource(
+                                                if (allCollapsed) UiR.drawable.ic_unfold_more
+                                                else UiR.drawable.ic_unfold_less
+                                            ),
+                                            contentDescription = stringResource(
+                                                if (allCollapsed) R.string.folder_expand_all
+                                                else R.string.folder_collapse_all
+                                            ),
+                                            tint = MaterialTheme.colorScheme.primary,
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+
+                        LazyColumn(Modifier.fillMaxSize(), state = lazyListState) {
+                            itemsIndexed(
+                                items = itemsToDisplay,
+                                key = { _, item -> item.key },
+                                contentType = { _, item ->
+                                    when (item) {
+                                        is ScenarioListItem.FolderHeader -> "folder_header_item"
+                                        is ScenarioListItem.EventItem -> "image_event_item"
+                                    }
+                                },
+                            ) { index, listItem ->
+                                when (listItem) {
+                                    is ScenarioListItem.FolderHeader -> {
+                                        ReorderableItem(
+                                            state = reorderableState,
+                                            key = listItem.key,
+                                            animateItemModifier = if (reorderableState.isAnyItemDragging) Modifier.animateItem() else Modifier,
+                                        ) { isBeingDragged ->
+                                            val reorderHandleModifier = Modifier
+                                                .draggableHandle(
+                                                    onDragStarted = onDragStarted,
+                                                    onDragStopped = onDragStopped,
+                                                    dragGestureDetector = DualDragGestureDetector,
+                                                )
+                                                .clearAndSetSemantics { }
+
+                                            Column {
+                                                FolderHeaderRow(
+                                                    name = listItem.name,
+                                                    eventCount = listItem.totalCount,
+                                                    enabledCount = listItem.enabledCount,
+                                                    isExpanded = listItem.isExpanded,
+                                                    onToggleExpand = {
+                                                        collapsedFolders = if (listItem.isExpanded) {
+                                                            collapsedFolders + listItem.name
+                                                        } else {
+                                                            collapsedFolders - listItem.name
+                                                        }
+                                                    },
+                                                    onRenameClick = { folderToRename = listItem.name },
+                                                    onDeleteClick = { folderToDelete = listItem.name },
+                                                    onAddEventClick = {
+                                                        showEventConfigDialog(
+                                                            viewModel.createNewEventInFolder(context, listItem.name)
+                                                        )
+                                                    },
+                                                    reorderHandleModifier = reorderHandleModifier,
+                                                    isBeingDragged = isBeingDragged,
+                                                    isUngrouped = listItem.isUngrouped,
+                                                )
+                                                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                                            }
+                                        }
+                                    }
+                                    is ScenarioListItem.EventItem -> {
+                                        ImageEventListItem(
+                                            item = listItem.item,
+                                            index = index,
+                                            isLastIndex = index == itemsToDisplay.lastIndex,
+                                            touchExplorationEnabled = touchExplorationEnabled,
+                                            reorderableState = reorderableState,
+                                            onEventClick = remember(listItem.item.event) { { onEventItemClicked(listItem.item.event) } },
+                                            onDragStarted = onDragStarted,
+                                            onDragStopped = onDragStopped,
+                                            onMoveEvent = { fromIdx, toIdx ->
+                                                val current = itemsToDisplay.toMutableList()
+                                                if (fromIdx in current.indices && toIdx in current.indices) {
+                                                    val moved = current.removeAt(fromIdx)
+                                                    current.add(toIdx, moved)
+                                                    val updatedEvents = reconstructEventsFromVisibleItems(
+                                                        visibleItems = current,
+                                                        allSourceEvents = sourceItems ?: emptyList(),
+                                                    )
+                                                    viewModel.updateRawEvents(updatedEvents)
+                                                }
+                                            },
+                                            context = context,
+                                        )
+                                    }
+                                }
+                            }
                         }
                     }
                 }
             }
+
+            // New Folder Dialog
+            if (showNewFolderDialog) {
+                var folderNameInput by remember { mutableStateOf("") }
+                AlertDialog(
+                    onDismissRequest = { showNewFolderDialog = false },
+                    title = { Text(stringResource(R.string.folder_action_new)) },
+                    text = {
+                        OutlinedTextField(
+                            value = folderNameInput,
+                            onValueChange = { folderNameInput = it },
+                            label = { Text(stringResource(R.string.folder_name_hint)) },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                val trimmed = folderNameInput.trim()
+                                if (trimmed.isNotEmpty() && trimmed !in customFolders) {
+                                    customFolders = customFolders + trimmed
+                                }
+                                showNewFolderDialog = false
+                            },
+                            enabled = folderNameInput.trim().isNotEmpty(),
+                        ) {
+                            Text(stringResource(R.string.generic_create))
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showNewFolderDialog = false }) {
+                            Text(stringResource(R.string.generic_cancel))
+                        }
+                    },
+                )
+            }
+
+            // Rename Folder Dialog
+            if (folderToRename != null) {
+                val oldName = folderToRename!!
+                var newNameInput by remember(oldName) { mutableStateOf(oldName) }
+                AlertDialog(
+                    onDismissRequest = { folderToRename = null },
+                    title = { Text(stringResource(R.string.folder_action_rename)) },
+                    text = {
+                        OutlinedTextField(
+                            value = newNameInput,
+                            onValueChange = { newNameInput = it },
+                            label = { Text(stringResource(R.string.folder_name_hint)) },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                val trimmed = newNameInput.trim()
+                                if (trimmed.isNotEmpty() && trimmed != oldName) {
+                                    viewModel.renameFolder(oldName, trimmed)
+                                    customFolders = customFolders.map { if (it == oldName) trimmed else it }
+                                }
+                                folderToRename = null
+                            },
+                            enabled = newNameInput.trim().isNotEmpty(),
+                        ) {
+                            Text(stringResource(R.string.generic_modify))
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { folderToRename = null }) {
+                            Text(stringResource(R.string.generic_cancel))
+                        }
+                    },
+                )
+            }
+
+            // Delete Folder Dialog
+            if (folderToDelete != null) {
+                val targetFolder = folderToDelete!!
+                AlertDialog(
+                    onDismissRequest = { folderToDelete = null },
+                    title = { Text(stringResource(R.string.folder_delete_dialog_title)) },
+                    text = {
+                        Text(stringResource(R.string.folder_delete_dialog_message, targetFolder))
+                    },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                viewModel.deleteFolder(targetFolder, deleteEvents = true)
+                                customFolders = customFolders - targetFolder
+                                folderToDelete = null
+                            },
+                        ) {
+                            Text(
+                                text = stringResource(R.string.folder_delete_all_events),
+                                color = MaterialTheme.colorScheme.error,
+                            )
+                        }
+                    },
+                    dismissButton = {
+                        Row {
+                            TextButton(onClick = { folderToDelete = null }) {
+                                Text(stringResource(R.string.generic_cancel))
+                            }
+                            Spacer(Modifier.width(8.dp))
+                            TextButton(
+                                onClick = {
+                                    viewModel.deleteFolder(targetFolder, deleteEvents = false)
+                                    customFolders = customFolders - targetFolder
+                                    folderToDelete = null
+                                },
+                            ) {
+                                Text(stringResource(R.string.folder_delete_keep_events))
+                            }
+                        }
+                    },
+                )
+            }
         }
+    }
+
+    private fun buildVisibleItems(
+        events: List<UiImageEvent>,
+        customFolders: List<String>,
+        collapsedFolders: Set<String>,
+    ): List<ScenarioListItem> {
+        val eventFolders = events.mapNotNull { it.folder?.trim()?.ifEmpty { null } }.distinct()
+        val allFolders = (eventFolders + customFolders).distinct()
+
+        if (allFolders.isEmpty()) {
+            return events.map { ScenarioListItem.EventItem(it, null) }
+        }
+
+        val result = mutableListOf<ScenarioListItem>()
+        val eventsByFolder = events.groupBy { it.folder?.trim()?.ifEmpty { null } }
+
+        for (folderName in allFolders) {
+            val folderEvents = eventsByFolder[folderName].orEmpty()
+            val isExpanded = folderName !in collapsedFolders
+            result.add(
+                ScenarioListItem.FolderHeader(
+                    name = folderName,
+                    totalCount = folderEvents.size,
+                    enabledCount = folderEvents.count { it.event.enabledOnStart },
+                    isExpanded = isExpanded,
+                    isUngrouped = false,
+                )
+            )
+            if (isExpanded) {
+                folderEvents.forEach { event ->
+                    result.add(ScenarioListItem.EventItem(event, folderName))
+                }
+            }
+        }
+
+        val ungroupedEvents = eventsByFolder[null].orEmpty()
+        if (ungroupedEvents.isNotEmpty()) {
+            val isExpanded = "Ungrouped" !in collapsedFolders
+            result.add(
+                ScenarioListItem.FolderHeader(
+                    name = "Ungrouped",
+                    totalCount = ungroupedEvents.size,
+                    enabledCount = ungroupedEvents.count { it.event.enabledOnStart },
+                    isExpanded = isExpanded,
+                    isUngrouped = true,
+                )
+            )
+            if (isExpanded) {
+                ungroupedEvents.forEach { event ->
+                    result.add(ScenarioListItem.EventItem(event, null))
+                }
+            }
+        }
+
+        return result
+    }
+
+    private fun reconstructEventsFromVisibleItems(
+        visibleItems: List<ScenarioListItem>,
+        allSourceEvents: List<UiImageEvent>,
+    ): List<ScreenEvent> {
+        val result = mutableListOf<ScreenEvent>()
+        var currentFolder: String? = null
+        val seenEventIds = mutableSetOf<Long>()
+        val allEventsByFolder = allSourceEvents.groupBy { it.folder?.trim()?.ifEmpty { null } }
+
+        for (item in visibleItems) {
+            when (item) {
+                is ScenarioListItem.FolderHeader -> {
+                    currentFolder = if (item.isUngrouped) null else item.name
+                    if (!item.isExpanded) {
+                        val folderEvents = allEventsByFolder[currentFolder].orEmpty()
+                        for (uiEvent in folderEvents) {
+                            val idKey = uiEvent.event.id.databaseId.let { if (it != 0L) it else -requireNotNull(uiEvent.event.id.tempId) }
+                            if (seenEventIds.add(idKey)) {
+                                result.add(uiEvent.event.copy(folder = currentFolder))
+                            }
+                        }
+                    }
+                }
+                is ScenarioListItem.EventItem -> {
+                    val idKey = item.item.event.id.databaseId.let { if (it != 0L) it else -requireNotNull(item.item.event.id.tempId) }
+                    if (seenEventIds.add(idKey)) {
+                        result.add(item.item.event.copy(folder = currentFolder))
+                    }
+                }
+            }
+        }
+
+        for (uiEvent in allSourceEvents) {
+            val idKey = uiEvent.event.id.databaseId.let { if (it != 0L) it else -requireNotNull(uiEvent.event.id.tempId) }
+            if (seenEventIds.add(idKey)) {
+                result.add(uiEvent.event)
+            }
+        }
+
+        return result
     }
 
     @Composable
@@ -271,13 +655,6 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
         }
     }
 
-    /**
-     * Lazy layouts persist item state in a Bundle, so keys must be Bundle-saveable.
-     * Database ids are positive and temporary ids are positive but have a database id of zero;
-     * making temporary ids negative yields a stable, allocation-free key for both cases.
-     */
-    private fun io.github.vibhor1102.macrion.core.base.identifier.Identifier.toLazyListKey(): Long =
-        if (databaseId != 0L) databaseId else -requireNotNull(tempId)
 
     @Composable private fun EmptyState(title: Int, description: Int) {
         Column(Modifier.fillMaxSize().padding(24.dp), verticalArrangement = Arrangement.Center,
@@ -322,3 +699,11 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
         )
     }
 }
+
+/**
+ * Lazy layouts persist item state in a Bundle, so keys must be Bundle-saveable.
+ * Database ids are positive and temporary ids are positive but have a database id of zero;
+ * making temporary ids negative yields a stable, allocation-free key for both cases.
+ */
+private fun io.github.vibhor1102.macrion.core.base.identifier.Identifier.toLazyListKey(): Long =
+    if (databaseId != 0L) databaseId else -requireNotNull(tempId)

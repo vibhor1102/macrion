@@ -31,7 +31,9 @@ data class UiImageEvent(
     @field:StringRes val enabledOnStartTextRes: Int,
     @field:DrawableRes val enabledOnStartIconRes: Int,
     val haveError: Boolean,
-) : UiEvent()
+) : UiEvent() {
+    val folder: String? get() = event.folder
+}
 
 fun ScreenEvent.toUiImageEvent(inError: Boolean): UiImageEvent {
     @StringRes val enabledOnStartTextRes: Int

@@ -161,6 +161,9 @@ internal class ScenarioEditor {
         imageEventsEditor.updateList(newEvents)
     }
 
+    fun getScreenEvents(): List<ScreenEvent> =
+        imageEventsEditor.editedList.value ?: emptyList()
+
     fun getAllEditedEvents(): List<Event> = buildList {
         imageEventsEditor.editedList.value?.let { addAll(it) }
         triggerEventsEditor.editedList.value?.let { addAll(it) }

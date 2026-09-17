@@ -78,6 +78,7 @@ data class EventEntity(
     @ColumnInfo(name = "type") val type: EventType,
     @ColumnInfo(name = "keep_detecting") val keepDetecting: Boolean? = null,
     @ColumnInfo(name = "detecetion_cooldown_ms") val detectionCooldownMs: Long? = null,
+    @ColumnInfo(name = "folder_name") val folderName: String? = null,
 ) : EntityWithId
 
 /**

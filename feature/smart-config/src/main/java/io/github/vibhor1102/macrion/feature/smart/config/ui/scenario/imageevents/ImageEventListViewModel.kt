@@ -68,4 +68,36 @@ class ImageEventListViewModel @Inject constructor(
         editionRepository.updateImageEventsOrder(
             uiEvents.map { it.event }
         )
+
+    /** Update raw ScreenEvents list directly. */
+    fun updateRawEvents(events: List<ScreenEvent>) =
+        editionRepository.updateImageEventsOrder(events)
+
+    /** Rename an existing folder across all events in that folder. */
+    fun renameFolder(oldName: String, newName: String) {
+        val trimmed = newName.trim()
+        if (trimmed.isEmpty() || trimmed == oldName) return
+        val current = editionRepository.getScreenEvents()
+        val updated = current.map {
+            if (it.folder == oldName) it.copy(folder = trimmed) else it
+        }
+        editionRepository.updateImageEventsOrder(updated)
+    }
+
+    /** Delete a folder, optionally deleting all events inside or keeping them as ungrouped. */
+    fun deleteFolder(folderName: String, deleteEvents: Boolean) {
+        val current = editionRepository.getScreenEvents()
+        val updated = if (deleteEvents) {
+            current.filter { it.folder != folderName }
+        } else {
+            current.map {
+                if (it.folder == folderName) it.copy(folder = null) else it
+            }
+        }
+        editionRepository.updateImageEventsOrder(updated)
+    }
+
+    /** Create a new event assigned to a specific folder. */
+    fun createNewEventInFolder(context: Context, folderName: String): ScreenEvent =
+        editionRepository.editedItemsBuilder.createNewImageEvent(context).copy(folder = folderName)
 }

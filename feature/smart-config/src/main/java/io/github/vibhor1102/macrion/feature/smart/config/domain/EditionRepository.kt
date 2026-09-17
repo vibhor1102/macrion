@@ -136,6 +136,8 @@ class EditionRepository @Inject constructor(
         )
     }
 
+    fun getScreenEvents(): List<ScreenEvent> = scenarioEditor.getScreenEvents()
+
     fun addNewCounter(counter: Counter) {
         scenarioEditor.addCounter(counter)
     }

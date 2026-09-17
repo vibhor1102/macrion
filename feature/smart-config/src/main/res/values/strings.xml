@@ -606,4 +606,21 @@
     <string name="scenario_switcher_retry">Retry</string>
     <string name="scenario_switcher_switching">Switching to %1$s</string>
 
+    <!-- Folders -->
+    <string name="folder_field_label">Folder (optional)</string>
+    <string name="folder_ungrouped_label">Ungrouped</string>
+    <string name="folder_action_new">New folder</string>
+    <string name="folder_action_add_event">Add event to folder</string>
+    <string name="folder_action_rename">Rename folder</string>
+    <string name="folder_action_delete">Delete folder</string>
+    <string name="folder_delete_dialog_title">Delete Folder</string>
+    <string name="folder_delete_dialog_message">What would you like to do with the events inside \"%1$s\"?</string>
+    <string name="folder_delete_keep_events">Keep events (Ungroup)</string>
+    <string name="folder_delete_all_events">Delete events</string>
+    <string name="folder_name_hint">Folder name</string>
+    <string name="folder_collapse_all">Collapse all</string>
+    <string name="folder_expand_all">Expand all</string>
+    <string name="generic_cancel">Cancel</string>
+    <string name="generic_create">Create</string>
+
 </resources>
