@@ -66,7 +66,6 @@ import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewMo
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.compose.LocalMonitoredViewsManager
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.compose.tutorialAnchor
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.event.UiImageEvent
-import io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.common.DualDragGestureDetector
 import io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.common.EventListRow
 import io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.common.FolderEndBoundaryRow
 import io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.common.FolderHeaderRow
@@ -293,7 +292,6 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
                                                     .draggableHandle(
                                                         onDragStarted = onDragStarted,
                                                         onDragStopped = onDragStopped,
-                                                        dragGestureDetector = DualDragGestureDetector,
                                                     )
                                                     .clearAndSetSemantics { }
                                             } else Modifier
@@ -658,7 +656,6 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
                 .draggableHandle(
                     onDragStarted = onDragStarted,
                     onDragStopped = onDragStopped,
-                    dragGestureDetector = DualDragGestureDetector,
                 )
                 .clearAndSetSemantics { }
 
