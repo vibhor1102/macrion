@@ -492,6 +492,7 @@ internal open class CompatDeserializer : Deserializer {
             ActionType.SYSTEM -> deserializeActionSystem(jsonAction)
             ActionType.TEXT -> deserializeActionSetText(jsonAction)
             ActionType.PLAY_SOUND -> deserializeActionPlaySound(jsonAction)
+            ActionType.CAPTURE_SCREENSHOT -> deserializeActionCaptureScreenshot(jsonAction)
             null -> null
         }
 
@@ -735,6 +736,21 @@ internal open class CompatDeserializer : Deserializer {
             type = ActionType.PLAY_SOUND,
             soundUri = jsonPlaySound.getString("soundUri"),
             soundTitle = jsonPlaySound.getString("soundTitle"),
+        )
+    }
+
+    open fun deserializeActionCaptureScreenshot(jsonCaptureScreenshot: JsonObject): ActionEntity? {
+        val id = jsonCaptureScreenshot.getLong("id", true) ?: return null
+        val eventId = jsonCaptureScreenshot.getLong("eventId", true) ?: return null
+
+        return ActionEntity(
+            id = id,
+            eventId = eventId,
+            name = jsonCaptureScreenshot.getString("name") ?: "",
+            priority = jsonCaptureScreenshot.getInt("priority")?.coerceAtLeast(0) ?: 0,
+            type = ActionType.CAPTURE_SCREENSHOT,
+            screenshotFolderUri = jsonCaptureScreenshot.getString("screenshotFolderUri"),
+            screenshotFolderName = jsonCaptureScreenshot.getString("screenshotFolderName"),
         )
     }
 

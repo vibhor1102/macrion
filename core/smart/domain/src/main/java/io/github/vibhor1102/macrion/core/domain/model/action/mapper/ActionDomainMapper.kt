@@ -24,6 +24,7 @@ import io.github.vibhor1102.macrion.core.domain.model.action.intent.toDomainInte
 import io.github.vibhor1102.macrion.core.domain.model.action.toggleevent.toDomain
 import io.github.vibhor1102.macrion.core.domain.model.action.ExternalAction
 import io.github.vibhor1102.macrion.core.domain.model.action.PlaySound
+import io.github.vibhor1102.macrion.core.domain.model.action.CaptureScreenshot
 
 /** Convert an Action entity into a Domain Action. */
 internal fun CompleteActionEntity.toDomain(cleanIds: Boolean = false): Action = when (action.type) {
@@ -38,6 +39,7 @@ internal fun CompleteActionEntity.toDomain(cleanIds: Boolean = false): Action = 
     ActionType.SYSTEM -> toDomainSystem(cleanIds)
     ActionType.TEXT -> toDomainSetText(cleanIds)
     ActionType.PLAY_SOUND -> toDomainPlaySound(cleanIds)
+    ActionType.CAPTURE_SCREENSHOT -> toDomainCaptureScreenshot(cleanIds)
 }
 
 private fun CompleteActionEntity.toDomainClick(cleanIds: Boolean = false) = Click(
@@ -150,6 +152,15 @@ private fun CompleteActionEntity.toDomainPlaySound(cleanIds: Boolean = false) = 
     priority = action.priority,
     soundUri = action.soundUri,
     soundTitle = action.soundTitle,
+)
+
+private fun CompleteActionEntity.toDomainCaptureScreenshot(cleanIds: Boolean = false) = CaptureScreenshot(
+    id = Identifier(id = action.id, asTemporary = cleanIds),
+    eventId = Identifier(id = action.eventId, asTemporary = cleanIds),
+    name = action.name,
+    priority = action.priority,
+    screenshotFolderUri = action.screenshotFolderUri,
+    screenshotFolderName = action.screenshotFolderName,
 )
 
 private fun ClickPositionType.toDomain(): Click.PositionType =

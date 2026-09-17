@@ -134,6 +134,17 @@
     <string name="field_sound_selector_label">Notification sound</string>
     <string name="dialog_title_select_sound">Select sound</string>
     <string name="play_sound_tip_custom_files">Tip: To use custom sounds, place your audio files in your phone\'s Notifications folder using a file manager. They will appear here automatically.</string>
+    <string name="item_capture_screenshot_title">Capture screenshot</string>
+    <string name="item_capture_screenshot_desc">Capture the screen and save to storage</string>
+    <string name="item_capture_screenshot_details_default">Location: Pictures/Macrion</string>
+    <string name="item_capture_screenshot_details_custom">Location: %1$s</string>
+    <string name="dialog_title_capture_screenshot">Capture screenshot</string>
+    <string name="capture_screenshot_location_label">Save destination</string>
+    <string name="capture_screenshot_location_default">Pictures/Macrion (Default)</string>
+    <string name="capture_screenshot_button_choose_folder">Choose folder</string>
+    <string name="capture_screenshot_button_reset_folder">Reset to default</string>
+    <string name="capture_screenshot_button_open_folder">Open folder in Files</string>
+    <string name="capture_screenshot_storage_note">Screenshots are saved as JPEGs. Default folder is automatically visible in Gallery and Photos.</string>
 
     <!-- Dialog Copy =============================================================================================== -->
 

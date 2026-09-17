@@ -30,6 +30,7 @@ dependencies {
     implementation(libs.androidx.core.ktx)
 
     implementation(project(":core:common:base"))
+    implementation(project(":core:common:display"))
     implementation(project(":core:common:permissions"))
     implementation(project(":core:common:ui"))
 }

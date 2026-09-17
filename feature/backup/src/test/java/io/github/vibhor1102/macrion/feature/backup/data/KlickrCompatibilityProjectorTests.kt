@@ -121,6 +121,23 @@ class KlickrCompatibilityProjectorTests {
         assertEquals(KlickrCompatibilityLossReason.UNSUPPORTED_COMPONENT, projection.losses.single().reason)
     }
 
+    @Test
+    fun captureScreenshotActionsAreRemovedWithoutMutatingTheOriginalScenario() {
+        val original = completeScenario(
+            completeEvent(ActionType.PAUSE, ActionType.CAPTURE_SCREENSHOT),
+        )
+
+        val projection = KlickrCompatibilityProjector.projectSmartScenario(original)
+
+        assertEquals(listOf(ActionType.PAUSE), projection.value!!.events.single().actions.map { it.action.type })
+        assertEquals(
+            listOf(ActionType.PAUSE, ActionType.CAPTURE_SCREENSHOT),
+            original.events.single().actions.map { it.action.type },
+        )
+        assertEquals(1, projection.losses.single().componentCount)
+        assertEquals(KlickrCompatibilityLossReason.UNSUPPORTED_COMPONENT, projection.losses.single().reason)
+    }
+
     private fun completeScenario(vararg events: CompleteEventEntity) = CompleteScenario(
         scenario = ScenarioEntity(id = 42, name = "Test", detectionQuality = 600),
         events = events.toList(),

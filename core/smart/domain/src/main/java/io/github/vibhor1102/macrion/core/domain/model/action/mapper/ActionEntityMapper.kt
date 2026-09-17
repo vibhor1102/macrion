@@ -33,6 +33,7 @@ import io.github.vibhor1102.macrion.core.domain.model.action.SystemAction
 import io.github.vibhor1102.macrion.core.domain.model.action.ToggleEvent
 import io.github.vibhor1102.macrion.core.domain.model.action.ExternalAction
 import io.github.vibhor1102.macrion.core.domain.model.action.PlaySound
+import io.github.vibhor1102.macrion.core.domain.model.action.CaptureScreenshot
 
 
 internal fun Action.toEntity(): ActionEntity {
@@ -50,6 +51,7 @@ internal fun Action.toEntity(): ActionEntity {
         is SystemAction -> toSystemActionEntity()
         is SetText -> toSetTextEntity()
         is PlaySound -> toPlaySoundEntity()
+        is CaptureScreenshot -> toCaptureScreenshotEntity()
     }
 }
 
@@ -186,4 +188,15 @@ private fun PlaySound.toPlaySoundEntity(): ActionEntity =
         type = ActionType.PLAY_SOUND,
         soundUri = soundUri,
         soundTitle = soundTitle,
+    )
+
+private fun CaptureScreenshot.toCaptureScreenshotEntity(): ActionEntity =
+    ActionEntity(
+        id = id.databaseId,
+        eventId = eventId.databaseId,
+        priority = priority,
+        name = name!!.trim(),
+        type = ActionType.CAPTURE_SCREENSHOT,
+        screenshotFolderUri = screenshotFolderUri,
+        screenshotFolderName = screenshotFolderName,
     )

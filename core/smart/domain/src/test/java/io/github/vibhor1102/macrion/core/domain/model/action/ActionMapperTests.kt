@@ -208,4 +208,20 @@ class ActionMapperTests {
             ActionTestsData.getNewPlaySoundEntity(eventId = ActionTestsData.ACTION_EVENT_ID).toDomain(),
         )
     }
+
+    @Test
+    fun captureScreenshot_toEntity() {
+        assertEquals(
+            ActionTestsData.getNewCaptureScreenshotEntity(eventId = ActionTestsData.ACTION_EVENT_ID).action,
+            ActionTestsData.getNewCaptureScreenshot(eventId = ActionTestsData.ACTION_EVENT_ID).toEntity(),
+        )
+    }
+
+    @Test
+    fun captureScreenshot_toDomain() {
+        assertEquals(
+            ActionTestsData.getNewCaptureScreenshot(eventId = ActionTestsData.ACTION_EVENT_ID),
+            ActionTestsData.getNewCaptureScreenshotEntity(eventId = ActionTestsData.ACTION_EVENT_ID).toDomain(),
+        )
+    }
 }

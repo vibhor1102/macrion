@@ -30,6 +30,7 @@ import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.action.
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.action.getToggleEventIconRes
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.action.getExternalActionIconRes
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.action.getPlaySoundIconRes
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.action.getCaptureScreenshotIconRes
 
 
 /** Choices for the action type selection dialog. */
@@ -120,5 +121,12 @@ sealed class ActionTypeChoice(
         R.string.item_play_sound_title,
         R.string.item_play_sound_desc,
         getPlaySoundIconRes(),
+    )
+
+    /** Capture screenshot Action choice. */
+    data object CaptureScreenshot : ActionTypeChoice(
+        R.string.item_capture_screenshot_title,
+        R.string.item_capture_screenshot_desc,
+        getCaptureScreenshotIconRes(),
     )
 }

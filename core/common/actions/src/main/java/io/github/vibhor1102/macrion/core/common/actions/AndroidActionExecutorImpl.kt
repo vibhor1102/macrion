@@ -38,6 +38,7 @@ import javax.inject.Singleton
 
 
 import io.github.vibhor1102.macrion.core.common.actions.sound.SoundExecutor
+import io.github.vibhor1102.macrion.core.common.actions.screenshot.ScreenshotExecutor
 
 @Singleton
 internal class AndroidActionExecutorImpl @Inject constructor(
@@ -45,6 +46,7 @@ internal class AndroidActionExecutorImpl @Inject constructor(
     private val notificationRequestExecutor: NotificationRequestExecutor,
     private val textExecutor: TextExecutor,
     private val soundExecutor: SoundExecutor,
+    private val screenshotExecutor: ScreenshotExecutor,
 ) : AndroidActionExecutor {
 
     /** Keep the service in a week reference to avoid potential leak. */
@@ -148,6 +150,10 @@ internal class AndroidActionExecutorImpl @Inject constructor(
 
     override fun playSound(soundUri: String) {
         soundExecutor.playSound(soundUri)
+    }
+
+    override suspend fun captureScreenshot(folderUri: String?, folderName: String?) {
+        screenshotExecutor.captureScreenshot(folderUri, folderName)
     }
 
     override fun dump(writer: PrintWriter, prefix: CharSequence) {

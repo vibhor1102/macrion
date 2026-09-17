@@ -32,6 +32,7 @@ import io.github.vibhor1102.macrion.core.domain.model.action.Intent
 import io.github.vibhor1102.macrion.core.domain.model.action.Notification
 import io.github.vibhor1102.macrion.core.domain.model.action.Pause
 import io.github.vibhor1102.macrion.core.domain.model.action.PlaySound
+import io.github.vibhor1102.macrion.core.domain.model.action.CaptureScreenshot
 import io.github.vibhor1102.macrion.core.domain.model.action.SetText
 import io.github.vibhor1102.macrion.core.domain.model.action.Swipe
 import io.github.vibhor1102.macrion.core.domain.model.action.SystemAction
@@ -143,6 +144,7 @@ private fun Action.getDebugIcon(): Int =
         is Notification -> R.drawable.ic_action_notification
         is Pause -> R.drawable.ic_wait
         is PlaySound -> R.drawable.ic_action_play_sound
+        is CaptureScreenshot -> R.drawable.ic_action_screenshot
         is SetText -> R.drawable.ic_action_set_text
         is Swipe -> R.drawable.ic_swipe
         is SystemAction -> R.drawable.ic_action_system

@@ -94,6 +94,8 @@ import kotlinx.serialization.Serializable
  *
  * @param soundUri [ActionType.PLAY_SOUND] only: the URI of the sound to play.
  * @param soundTitle [ActionType.PLAY_SOUND] only: the user-visible title of the sound.
+ * @param screenshotFolderUri [ActionType.CAPTURE_SCREENSHOT] only: the optional custom folder URI for screenshots.
+ * @param screenshotFolderName [ActionType.CAPTURE_SCREENSHOT] only: the user-visible display name of the custom folder.
  */
 @Entity(
     tableName = ACTION_TABLE,
@@ -175,6 +177,10 @@ data class ActionEntity(
     // ActionType.PLAY_SOUND
     @ColumnInfo(name = "sound_uri") val soundUri: String? = null,
     @ColumnInfo(name = "sound_title") val soundTitle: String? = null,
+
+    // ActionType.CAPTURE_SCREENSHOT
+    @ColumnInfo(name = "screenshot_folder_uri") val screenshotFolderUri: String? = null,
+    @ColumnInfo(name = "screenshot_folder_name") val screenshotFolderName: String? = null,
 ) : EntityWithId
 
 /**

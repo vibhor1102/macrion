@@ -135,6 +135,7 @@ class SmartActionsBriefViewModel @Inject constructor(
                 add(ActionTypeChoice.ToggleEvent)
                 add(ActionTypeChoice.Notification)
                 add(ActionTypeChoice.PlaySound)
+                add(ActionTypeChoice.CaptureScreenshot)
                 add(ActionTypeChoice.Intent)
             }
         }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
@@ -182,6 +183,7 @@ class SmartActionsBriefViewModel @Inject constructor(
         ActionTypeChoice.System -> editionRepository.editedItemsBuilder.createNewSystemAction(context)
         ActionTypeChoice.SetText -> editionRepository.editedItemsBuilder.createNewSetText(context)
         ActionTypeChoice.PlaySound -> editionRepository.editedItemsBuilder.createNewPlaySound(context)
+        ActionTypeChoice.CaptureScreenshot -> editionRepository.editedItemsBuilder.createNewCaptureScreenshot(context)
         ActionTypeChoice.Copy -> throw IllegalArgumentException("Unsupported action type for creation $choice")
     }
 

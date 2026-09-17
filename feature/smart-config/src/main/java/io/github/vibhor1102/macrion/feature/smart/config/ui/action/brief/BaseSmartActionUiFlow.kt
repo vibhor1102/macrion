@@ -27,6 +27,7 @@ import io.github.vibhor1102.macrion.core.domain.model.action.Intent
 import io.github.vibhor1102.macrion.core.domain.model.action.Notification
 import io.github.vibhor1102.macrion.core.domain.model.action.Pause
 import io.github.vibhor1102.macrion.core.domain.model.action.PlaySound
+import io.github.vibhor1102.macrion.core.domain.model.action.CaptureScreenshot
 import io.github.vibhor1102.macrion.core.domain.model.action.SetText
 import io.github.vibhor1102.macrion.core.domain.model.action.Swipe
 import io.github.vibhor1102.macrion.core.domain.model.action.SystemAction
@@ -41,6 +42,7 @@ import io.github.vibhor1102.macrion.feature.smart.config.ui.action.selection.Act
 import io.github.vibhor1102.macrion.feature.smart.config.ui.action.selection.ActionTypeSelectionDialog
 import io.github.vibhor1102.macrion.feature.smart.config.ui.action.settext.SetTextDialog
 import io.github.vibhor1102.macrion.feature.smart.config.ui.action.sound.PlaySoundDialog
+import io.github.vibhor1102.macrion.feature.smart.config.ui.action.screenshot.CaptureScreenshotDialog
 import io.github.vibhor1102.macrion.feature.smart.config.ui.action.swipe.SwipeDialog
 import io.github.vibhor1102.macrion.feature.smart.config.ui.action.system.SystemActionDialog
 import io.github.vibhor1102.macrion.feature.smart.config.ui.action.toggleevent.ToggleEventDialog
@@ -110,6 +112,7 @@ internal fun BaseOverlay.showActionConfigDialog(configurator: ActionConfigurator
         is ExternalAction -> ExternalActionDialog(actionConfigDialogListener)
         is SetText -> SetTextDialog(actionConfigDialogListener)
         is PlaySound -> PlaySoundDialog(actionConfigDialogListener)
+        is CaptureScreenshot -> CaptureScreenshotDialog(actionConfigDialogListener)
         is Notification -> {
             if (PermissionPostNotification().checkIfGranted(context)) NotificationDialog(actionConfigDialogListener)
             else newNotificationPermissionStarterOverlay(context)

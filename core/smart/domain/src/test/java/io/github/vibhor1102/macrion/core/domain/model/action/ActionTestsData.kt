@@ -467,6 +467,39 @@ internal object ActionTestsData {
         eventId: Long,
     ) = PlaySound(id.asIdentifier(), eventId.asIdentifier(), name, priority, soundUri, soundTitle)
 
+    /* ------- Capture Screenshot Action Data ------- */
+
+    private const val CAPTURE_SCREENSHOT_ID = 23L
+    private const val CAPTURE_SCREENSHOT_NAME = "Capture screenshot name"
+    private const val CAPTURE_SCREENSHOT_FOLDER_URI = "content://com.android.externalstorage.documents/tree/primary%3APictures"
+    private const val CAPTURE_SCREENSHOT_FOLDER_NAME = "Pictures"
+
+    fun getNewCaptureScreenshotEntity(
+        id: Long = CAPTURE_SCREENSHOT_ID,
+        name: String = CAPTURE_SCREENSHOT_NAME,
+        priority: Int = 0,
+        screenshotFolderUri: String? = CAPTURE_SCREENSHOT_FOLDER_URI,
+        screenshotFolderName: String? = CAPTURE_SCREENSHOT_FOLDER_NAME,
+        eventId: Long,
+    ) = CompleteActionEntity(
+        action = ActionEntity(
+            id, eventId, priority, name, ActionType.CAPTURE_SCREENSHOT,
+            screenshotFolderUri = screenshotFolderUri,
+            screenshotFolderName = screenshotFolderName,
+        ),
+        intentExtras = emptyList(),
+        eventsToggle = emptyList(),
+    )
+
+    fun getNewCaptureScreenshot(
+        id: Long = CAPTURE_SCREENSHOT_ID,
+        name: String? = CAPTURE_SCREENSHOT_NAME,
+        priority: Int = 0,
+        screenshotFolderUri: String? = CAPTURE_SCREENSHOT_FOLDER_URI,
+        screenshotFolderName: String? = CAPTURE_SCREENSHOT_FOLDER_NAME,
+        eventId: Long,
+    ) = CaptureScreenshot(id.asIdentifier(), eventId.asIdentifier(), name, priority, screenshotFolderUri, screenshotFolderName)
+
     fun getNewEventToggleExtra(
         id: Long = EVENT_TOGGLE_ID,
         actionId: Long = EVENT_TOGGLE_ACTION_ID,

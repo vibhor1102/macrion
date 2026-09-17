@@ -40,6 +40,7 @@ import io.github.vibhor1102.macrion.core.domain.model.action.Intent
 import io.github.vibhor1102.macrion.core.domain.model.action.Notification
 import io.github.vibhor1102.macrion.core.domain.model.action.Pause
 import io.github.vibhor1102.macrion.core.domain.model.action.PlaySound
+import io.github.vibhor1102.macrion.core.domain.model.action.CaptureScreenshot
 import io.github.vibhor1102.macrion.core.domain.model.action.SetText
 import io.github.vibhor1102.macrion.core.domain.model.action.Swipe
 import io.github.vibhor1102.macrion.core.domain.model.action.SystemAction
@@ -432,6 +433,16 @@ class EditedItemsBuilder internal constructor(
             priority = 0,
         )
 
+    fun createNewCaptureScreenshot(context: Context): CaptureScreenshot =
+        CaptureScreenshot(
+            id = actionsIdCreator.generateNewIdentifier(),
+            eventId = getEditedEventIdOrThrow(),
+            name = defaultValues.captureScreenshotName(context),
+            screenshotFolderUri = null,
+            screenshotFolderName = null,
+            priority = 0,
+        )
+
     fun createNewActionFrom(from: Action, eventId: Identifier = getEditedEventIdOrThrow()): Action = when (from) {
         is Click -> createNewClickFrom(from, eventId)
         is Swipe -> createNewSwipeFrom(from, eventId)
@@ -444,6 +455,7 @@ class EditedItemsBuilder internal constructor(
         is SystemAction -> createNewSystemActionFrom(from, eventId)
         is SetText -> createNewSetTextFrom(from, eventId)
         is PlaySound -> createNewPlaySoundFrom(from, eventId)
+        is CaptureScreenshot -> createNewCaptureScreenshotFrom(from, eventId)
     }
 
     private fun createNewClickFrom(from: Click, eventId: Identifier): Click {
@@ -578,6 +590,18 @@ class EditedItemsBuilder internal constructor(
             name = "" + from.name,
             soundUri = from.soundUri,
             soundTitle = from.soundTitle,
+        )
+    }
+
+    private fun createNewCaptureScreenshotFrom(from: CaptureScreenshot, eventId: Identifier): CaptureScreenshot {
+        val actionId = actionsIdCreator.generateNewIdentifier()
+
+        return from.copy(
+            id = actionId,
+            eventId = eventId,
+            name = "" + from.name,
+            screenshotFolderUri = from.screenshotFolderUri,
+            screenshotFolderName = from.screenshotFolderName,
         )
     }
 
