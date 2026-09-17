@@ -67,15 +67,12 @@ internal fun FolderHeaderRow(
             .clickable(onClick = onToggleExpand),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        if (showReorderHandle) {
-            FolderDragHandle(
-                modifier = reorderHandleModifier,
-                isBeingDragged = isBeingDragged,
-                interactionSource = handleInteractionSource ?: remember { MutableInteractionSource() },
-            )
-        } else {
-            Spacer(Modifier.width(44.dp))
-        }
+        FolderDragHandle(
+            modifier = if (showReorderHandle) reorderHandleModifier else Modifier,
+            enabled = showReorderHandle,
+            isBeingDragged = isBeingDragged,
+            interactionSource = handleInteractionSource ?: remember { MutableInteractionSource() },
+        )
 
         Icon(
             painter = painterResource(UiR.drawable.ic_chevron_right),
@@ -192,9 +189,25 @@ internal fun FolderHeaderRow(
 @Composable
 private fun FolderDragHandle(
     modifier: Modifier,
+    enabled: Boolean,
     isBeingDragged: Boolean,
     interactionSource: MutableInteractionSource,
 ) {
+    if (!enabled) {
+        Box(
+            modifier = Modifier.size(44.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                painter = painterResource(UiR.drawable.ic_drag_indicator),
+                contentDescription = null,
+                modifier = Modifier.size(22.dp),
+                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
+            )
+        }
+        return
+    }
+
     val isPressed by interactionSource.collectIsPressedAsState()
     val isActive = isPressed || isBeingDragged
 
