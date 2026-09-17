@@ -122,17 +122,15 @@ internal fun NavBarDialogScaffold(
                             content()
                         }
                     }
-                    if (modal == null) {
-                        Box(
-                            modifier = Modifier
-                                .align(Alignment.BottomEnd)
-                                .padding(
-                                    end = dimensionResource(R.dimen.margin_horizontal_default),
-                                    bottom = dimensionResource(R.dimen.dialog_create_copy_buttons_bottom_margin),
-                                ),
-                        ) {
-                            floatingActions()
-                        }
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(
+                                end = dimensionResource(R.dimen.margin_horizontal_default),
+                                bottom = dimensionResource(R.dimen.dialog_create_copy_buttons_bottom_margin),
+                            ),
+                    ) {
+                        floatingActions()
                     }
                     Box(
                         modifier = Modifier
@@ -152,17 +150,15 @@ internal fun NavBarDialogScaffold(
                                 Box(modifier = Modifier.fillMaxWidth()) { persistentHeader() }
                                 Box(modifier = Modifier.fillMaxWidth().weight(1f)) { content() }
                             }
-                            if (modal == null) {
-                                Box(
-                                    modifier = Modifier
-                                        .align(Alignment.BottomEnd)
-                                        .padding(
-                                            end = dimensionResource(R.dimen.margin_horizontal_default),
-                                            bottom = dimensionResource(R.dimen.margin_vertical_extra_large),
-                                        ),
-                                ) {
-                                    floatingActions()
-                                }
+                            Box(
+                                modifier = Modifier
+                                    .align(Alignment.BottomEnd)
+                                    .padding(
+                                        end = dimensionResource(R.dimen.margin_horizontal_default),
+                                        bottom = dimensionResource(R.dimen.margin_vertical_extra_large),
+                                    ),
+                            ) {
+                                floatingActions()
                             }
                         }
                     }
