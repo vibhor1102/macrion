@@ -151,4 +151,26 @@ class EventMapperTests {
             triggerEvent,
         )
     }
+
+    @Test
+    fun imageEvent_toEntity_withFolder() {
+        assertEquals(
+            EventTestsData.getNewImageEventEntity(scenarioId = EventTestsData.EVENT_SCENARIO_ID, priority = 0, folderName = "Battle Loop"),
+            EventTestsData.getNewImageEvent(scenarioId = EventTestsData.EVENT_SCENARIO_ID, priority = 0, folder = "Battle Loop").toEntity()
+        )
+    }
+
+    @Test
+    fun imageEvent_toDomain_withFolder() {
+        val completeEvent = CompleteEventEntity(
+            event = EventTestsData.getNewImageEventEntity(scenarioId = EventTestsData.EVENT_SCENARIO_ID, priority = 0, folderName = "Battle Loop"),
+            actions = emptyList(),
+            conditions = emptyList(),
+        )
+
+        assertEquals(
+            EventTestsData.getNewImageEvent(scenarioId = EventTestsData.EVENT_SCENARIO_ID, priority = 0, folder = "Battle Loop"),
+            completeEvent.toDomainScreenEvent()
+        )
+    }
 }

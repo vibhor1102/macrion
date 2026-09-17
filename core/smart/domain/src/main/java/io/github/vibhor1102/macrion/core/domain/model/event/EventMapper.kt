@@ -43,6 +43,7 @@ private fun ScreenEvent.toEntity() = EventEntity(
     enabledOnStart = enabledOnStart,
     type = EventType.IMAGE_EVENT,
     detectionCooldownMs = cooldownMs,
+    folderName = folder,
 )
 
 private fun TriggerEvent.toEntity() : EventEntity =
@@ -77,6 +78,7 @@ internal fun CompleteEventEntity.toDomainScreenEvent(cleanIds: Boolean = false):
         actions = actions.map { it.toDomain(cleanIds) }.sortedByPriority().toMutableList(),
         conditions = conditions.mapNotNull { it.toDomain(cleanIds) as? ScreenCondition }.sortedByPriority().toMutableList(),
         cooldownMs = event.detectionCooldownMs ?: 0L,
+        folder = event.folderName,
     )
 
 /** @return the complete trigger event for this entity. */

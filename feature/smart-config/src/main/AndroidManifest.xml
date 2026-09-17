@@ -43,6 +43,14 @@
             android:noHistory="true"
             android:exported="false"/>
 
+        <activity
+            android:name=".ui.common.starters.PickFolderActivity"
+            android:theme="@style/AppTheme.TranslucentActivity"
+            android:taskAffinity=""
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:exported="false"/>
+
     </application>
 
 </manifest>

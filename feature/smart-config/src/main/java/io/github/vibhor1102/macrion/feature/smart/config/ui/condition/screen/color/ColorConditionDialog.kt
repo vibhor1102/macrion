@@ -69,7 +69,7 @@ class ColorConditionDialog(private val listener: OnConditionConfigCompleteListen
     @Composable private fun Content() {
         val state by viewModel.uiState.collectAsStateWithLifecycle()
         val ui = state ?: return
-        var name by rememberSaveable { mutableStateOf(ui.conditionName) }
+        var name by rememberSaveable(ui.id) { mutableStateOf(ui.conditionName) }
         Surface(
             shape = OverlayDialogShape,
             modifier = Modifier.fillMaxWidth().heightIn(max = 600.dp), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
@@ -81,6 +81,12 @@ class ColorConditionDialog(private val listener: OnConditionConfigCompleteListen
                         isError = ui.conditionNameError, maxLength = context.resources.getInteger(R.integer.name_max_length))
                     ColorCard(ui)
                     ThresholdCard(ui.detectionThreshold)
+                    io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.component.ConditionExecutionLimiterCard(
+                        state = ui.computeRateState,
+                        onToggle = viewModel::toggleLimiter,
+                        onRateChanged = viewModel::setComputeRate,
+                        onUnitChanged = viewModel::setComputeRateUnit,
+                    )
                 }
             }
         }

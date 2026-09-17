@@ -8,6 +8,7 @@
  */
 package io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.reorder
 
+import android.app.Dialog
 import android.view.ViewGroup
 import androidx.activity.compose.BackHandler
 import androidx.annotation.StringRes
@@ -63,6 +64,15 @@ class ItemsReorderDialog(
     private val itemDescriptor: (ItemBrief) -> ReorderItemDescriptor,
     private val onSaveOrder: (List<ItemBrief>) -> Unit,
 ) : OverlayDialog(theme) {
+
+    override fun onDialogCreated(dialog: Dialog) {
+        // This full-height list needs the actual frame size, just like NavBarDialog.
+        // WRAP_CONTENT can probe a taller viewport and move a list away from its end.
+        dialog.window?.setLayout(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.MATCH_PARENT,
+        )
+    }
 
     override fun onCreateView(): ViewGroup {
         return ComposeView(context).apply {
@@ -197,7 +207,10 @@ class ItemsReorderDialog(
                                     key = { _, item -> item.id.toString() },
                                 ) { _, item ->
                                     val descriptor = itemDescriptor(item)
-                                    ReorderableItem(reorderState, key = item.id.toString()) { isBeingDragged ->
+                                    ReorderableItem(
+                                        state = reorderState,
+                                        key = item.id.toString(),
+                                    ) { isBeingDragged ->
                                         Column {
                                             ReorderItemRow(
                                                 title = descriptor.title,

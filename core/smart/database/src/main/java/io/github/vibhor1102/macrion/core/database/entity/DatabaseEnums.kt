@@ -56,6 +56,10 @@ enum class ActionType {
     TEXT,
     /** Fire a named external automation plugin event. */
     EXTERNAL_ACTION,
+    /** Play an audio notification sound. */
+    PLAY_SOUND,
+    /** Capture a full-screen screenshot and save to storage. */
+    CAPTURE_SCREENSHOT,
 }
 
 

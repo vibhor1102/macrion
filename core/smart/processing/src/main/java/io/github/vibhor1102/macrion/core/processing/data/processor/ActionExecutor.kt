@@ -52,6 +52,8 @@ import io.github.vibhor1102.macrion.core.domain.model.event.Event
 import io.github.vibhor1102.macrion.core.domain.model.event.ScreenEvent
 import io.github.vibhor1102.macrion.core.processing.data.processor.state.ProcessingState
 import io.github.vibhor1102.macrion.core.domain.model.action.ExternalAction
+import io.github.vibhor1102.macrion.core.domain.model.action.PlaySound
+import io.github.vibhor1102.macrion.core.domain.model.action.CaptureScreenshot
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -106,6 +108,8 @@ internal class ActionExecutor(
                 is Notification -> CrashDiagnostics.Event.NOTIFICATION
                 is SystemAction -> CrashDiagnostics.Event.SYSTEM_ACTION
                 is SetText -> CrashDiagnostics.Event.SET_TEXT
+                is PlaySound -> CrashDiagnostics.Event.PLAY_SOUND
+                is CaptureScreenshot -> CrashDiagnostics.Event.CAPTURE_SCREENSHOT
             })
             try {
                 when (action) {
@@ -119,6 +123,8 @@ internal class ActionExecutor(
                     is Notification -> executeNotification(event, action)
                     is SystemAction -> executeSystemAction(action)
                     is SetText -> executeSetText(action)
+                    is PlaySound -> executePlaySound(action)
+                    is CaptureScreenshot -> executeCaptureScreenshot(action)
                 }
             } catch (error: Exception) {
                 if (error !is kotlinx.coroutines.CancellationException) CrashDiagnostics.recordFailure(error)
@@ -329,6 +335,15 @@ internal class ActionExecutor(
                 validate = action.validateInput,
             )
         }
+    }
+
+    private fun executePlaySound(action: PlaySound) {
+        val soundUri = action.soundUri ?: return
+        androidExecutor.playSound(soundUri)
+    }
+
+    private suspend fun executeCaptureScreenshot(action: CaptureScreenshot) {
+        androidExecutor.captureScreenshot(action.screenshotFolderUri, action.screenshotFolderName)
     }
 }
 

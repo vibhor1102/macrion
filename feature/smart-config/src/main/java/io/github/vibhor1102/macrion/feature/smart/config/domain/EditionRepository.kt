@@ -104,8 +104,9 @@ class EditionRepository @Inject constructor(
     suspend fun saveEditions(): Boolean {
         Log.d(TAG, "Save editions")
 
+        val scenario = scenarioEditor.editedScenario.value ?: return false
         val updateResult = repository.updateScenario(
-            scenario = scenarioEditor.editedScenario.value ?: return false,
+            scenario = scenario,
             events = scenarioEditor.getAllEditedEvents(),
             counters = scenarioEditor.allEditedCounters.value ?: emptyList(),
         )
@@ -135,6 +136,10 @@ class EditionRepository @Inject constructor(
             newEvents.mapIndexed { index, event -> event.copy(priority = index) }
         )
     }
+
+    fun deleteScreenEvents(events: List<ScreenEvent>) = scenarioEditor.deleteScreenEvents(events)
+
+    fun getScreenEvents(): List<ScreenEvent> = scenarioEditor.getScreenEvents()
 
     fun addNewCounter(counter: Counter) {
         scenarioEditor.addCounter(counter)

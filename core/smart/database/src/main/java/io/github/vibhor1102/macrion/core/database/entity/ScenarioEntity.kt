@@ -21,6 +21,7 @@ import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.room.Relation
+import androidx.room.TypeConverters
 
 import io.github.vibhor1102.macrion.core.base.interfaces.EntityWithId
 import io.github.vibhor1102.macrion.core.database.SCENARIO_TABLE
@@ -51,6 +52,9 @@ data class ScenarioEntity(
     @ColumnInfo(name = "compute_rate", defaultValue="0.0") val computeRate: Double = 0.0,
     @ColumnInfo(name = "randomize", defaultValue="0") val randomize: Boolean = false,
     @ColumnInfo(name = "keep_screen_on", defaultValue="0") val keepScreenOn: Boolean = false,
+    @TypeConverters(ScenarioFoldersConverter::class)
+    @ColumnInfo(name = "folders", defaultValue = "'[]'")
+    val folders: List<ScenarioFolderEntity> = emptyList(),
 ) : EntityWithId
 
 /**

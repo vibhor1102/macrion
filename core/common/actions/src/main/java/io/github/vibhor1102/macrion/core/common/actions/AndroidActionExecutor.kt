@@ -114,6 +114,12 @@ interface AndroidActionExecutor: Dumpable {
 
     /** Fire a named external automation event. */
     fun fireExternalAction(externalActionName: String)
+
+    /** Play an audio notification sound from the given URI. */
+    fun playSound(soundUri: String)
+
+    /** Capture a screenshot and save it to storage. */
+    suspend fun captureScreenshot(folderUri: String?, folderName: String?)
 }
 
 /** The maximum supported duration for a gesture. This limitation comes from Android GestureStroke API.  */

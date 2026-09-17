@@ -120,6 +120,7 @@ class LocalService(
                 override fun onHide() = hideMenu()
                 override fun onStop() = stopScenario()
                 override fun onSwitch() = openScenarioSwitcherAfterPause()
+                override fun onDismiss() = onNotificationDismissed()
             }
         )
     }
@@ -531,11 +532,46 @@ class LocalService(
             hideCurrent = true,
         )
     }
+
+    private fun onNotificationDismissed() {
+        if (!state.isStarted) return
+
+        when (determineNotificationDismissAction(
+            isOverlayHidden = overlayManager.isOverlayStackHidden(),
+            isScenarioRunning = isScenarioRunning(),
+            hasOverlayAboveRoot = overlayManager.hasOverlayAboveRoot(),
+        )) {
+            NotificationDismissAction.DO_NOTHING -> Unit
+            NotificationDismissAction.RESTORE_OVERLAY -> showMenu()
+            NotificationDismissAction.STOP_SCENARIO -> stopScenario()
+        }
+    }
 }
 
 private const val SCENARIO_SWITCHER_PAUSE_TIMEOUT_MS = 5_000L
 private const val SCENARIO_STOP_TIMEOUT_MS = 5_000L
 private const val TAG = "LocalService"
+
+internal enum class NotificationDismissAction {
+    DO_NOTHING,
+    RESTORE_OVERLAY,
+    STOP_SCENARIO,
+}
+
+internal fun determineNotificationDismissAction(
+    isOverlayHidden: Boolean,
+    isScenarioRunning: Boolean,
+    hasOverlayAboveRoot: Boolean,
+): NotificationDismissAction {
+    if (!isOverlayHidden) {
+        return NotificationDismissAction.DO_NOTHING
+    }
+    return if (isScenarioRunning || hasOverlayAboveRoot) {
+        NotificationDismissAction.RESTORE_OVERLAY
+    } else {
+        NotificationDismissAction.STOP_SCENARIO
+    }
+}
 
 internal fun canRunCurrentScenario(
     isLoaded: Boolean,

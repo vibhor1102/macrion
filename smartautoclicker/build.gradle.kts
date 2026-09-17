@@ -34,6 +34,10 @@ plugins {
 
 val supportedAbis = listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
 val isRelease = project.isBuildForVariant(MacrionFlavour.F_DROID, MacrionBuildType.RELEASE)
+val macrionDebugMode = providers.gradleProperty("macrionDebugMode").orElse("debug").get()
+require(macrionDebugMode in setOf("debug", "performance")) {
+    "macrionDebugMode must be debug or performance"
+}
 val macrionAbiProperty = providers.gradleProperty("macrionAbi").orNull?.trim()
     ?: providers.gradleProperty("macrionDebugAbi").orNull?.trim()
 val targetAbiFilter = when {
@@ -66,6 +70,12 @@ obfuscationConfig {
 android {
     namespace = "io.github.vibhor1102.macrion"
 
+    // AGP otherwise attaches release-style vital lint to non-debuggable debug builds.
+    // Explicit lint tasks and actual release builds retain their normal checks.
+    if (macrionDebugMode == "performance" && !isRelease) {
+        lint.checkReleaseBuilds = false
+    }
+
     dependenciesInfo {
         includeInApk = false
         includeInBundle = false
@@ -86,6 +96,17 @@ android {
     buildFeatures {
         buildConfig = true
         compose = true
+    }
+
+    buildTypes {
+        debug {
+            isDebuggable = macrionDebugMode == "debug"
+            // Keep local diagnostic UI available even when ART debugging is disabled.
+            buildConfigField("boolean", "LOCAL_DIAGNOSTICS", "true")
+        }
+        release {
+            buildConfigField("boolean", "LOCAL_DIAGNOSTICS", "false")
+        }
     }
 
     defaultConfig {
@@ -162,6 +183,7 @@ dependencies {
     implementation(libs.kotlinx.coroutines.core)
 
     implementation(composeBom)
+    debugImplementation("androidx.compose.runtime:runtime-tracing")
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.ui)

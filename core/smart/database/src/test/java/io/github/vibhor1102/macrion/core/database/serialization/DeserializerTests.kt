@@ -43,7 +43,21 @@ class DeserializerTests {
                 CompleteEventEntity(
                     event = EventEntity(1, 1, "Event", 1, 0, true, EventType.IMAGE_EVENT),
                     conditions = listOf(
-                        ConditionEntity(1, 1, "Condition", ConditionType.ON_IMAGE_DETECTED, 0, true, "/toto/tutu", 1, 2, 3, 4, 5, 1)
+                        ConditionEntity(
+                            id = 1,
+                            eventId = 1,
+                            name = "Condition",
+                            type = ConditionType.ON_IMAGE_DETECTED,
+                            priority = 0,
+                            shouldBeDetected = true,
+                            path = "/toto/tutu",
+                            areaLeft = 1,
+                            areaTop = 2,
+                            areaRight = 3,
+                            areaBottom = 4,
+                            threshold = 5,
+                            detectionType = 1,
+                        )
                     ),
                     actions = listOf(
                         CompleteActionEntity(
@@ -87,4 +101,24 @@ class DeserializerTests {
         // Then
         assertEquals(DEFAULT_COMPLETE_SCENARIO, deserializedScenario)
     }
+    @Test
+    fun folderPositionsRoundTripIncludingEmptyFoldersAndEscapedNames() {
+        val expected = DEFAULT_COMPLETE_SCENARIO.copy(scenario = DEFAULT_COMPLETE_SCENARIO.scenario.copy(
+            folders = listOf(ScenarioFolderEntity("Empty \"quoted\" / 日本語", 0), ScenarioFolderEntity("After", 1)),
+        ))
+        assertEquals(expected, DeserializerFactory.create(DATABASE_VERSION)?.deserializeCompleteScenario(expected.encodeToJsonObject()))
+    }
+
+    @Test
+    fun oldVersion28BackupWithoutFoldersStillLoads() {
+        assertEquals(emptyList<ScenarioFolderEntity>(), DeserializerFactory.create(28)
+            ?.deserializeCompleteScenario(DEFAULT_COMPLETE_SCENARIO.encodeToJsonObject())?.scenario?.folders)
+    }
+
+    @Test
+    fun version27BackupWithoutFoldersStillLoads() {
+        assertEquals(emptyList<ScenarioFolderEntity>(), DeserializerFactory.create(27)
+            ?.deserializeCompleteScenario(DEFAULT_COMPLETE_SCENARIO.encodeToJsonObject())?.scenario?.folders)
+    }
+
 }

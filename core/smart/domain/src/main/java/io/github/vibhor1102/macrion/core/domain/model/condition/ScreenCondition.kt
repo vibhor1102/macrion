@@ -40,12 +40,13 @@ sealed class ScreenCondition : Condition(), Prioritizable {
         priority: Int = this.priority,
         threshold: Int = this.threshold,
         shouldBeDetected: Boolean = this.shouldBeDetected,
+        computeRate: Double = this.computeRate,
     ) =
         when (this) {
-            is Color -> copy(eventId = eventId, priority = priority, threshold = threshold, shouldBeDetected = shouldBeDetected)
-            is Image -> copy(eventId = eventId, priority = priority, threshold = threshold, shouldBeDetected = shouldBeDetected)
-            is Number -> copy(eventId = eventId, priority = priority, threshold = threshold)
-            is Text -> copy(eventId = eventId, priority = priority, threshold = threshold, shouldBeDetected = shouldBeDetected)
+            is Color -> copy(eventId = eventId, priority = priority, threshold = threshold, shouldBeDetected = shouldBeDetected, computeRate = computeRate)
+            is Image -> copy(eventId = eventId, priority = priority, threshold = threshold, shouldBeDetected = shouldBeDetected, computeRate = computeRate)
+            is Number -> copy(eventId = eventId, priority = priority, threshold = threshold, computeRate = computeRate)
+            is Text -> copy(eventId = eventId, priority = priority, threshold = threshold, shouldBeDetected = shouldBeDetected, computeRate = computeRate)
         }
 
     /**
@@ -65,11 +66,12 @@ sealed class ScreenCondition : Condition(), Prioritizable {
         override var priority: Int,
         @field:ColorInt val color: Int,
         val detectionArea: Rect,
+        override val computeRate: Double = 0.0,
     ) : ScreenCondition(), Prioritizable {
 
         override fun hashCodeNoIds(): Int =
             name.hashCode() + color.hashCode() + threshold.hashCode() + shouldBeDetected.hashCode() +
-                    detectionArea.hashCode() + priority.hashCode()
+                    detectionArea.hashCode() + priority.hashCode() + computeRate.hashCode()
     }
 
     /**
@@ -95,6 +97,7 @@ sealed class ScreenCondition : Condition(), Prioritizable {
         val area: Rect,
         @param:DetectionType val detectionType: Int,
         val detectionArea: Rect? = null,
+        override val computeRate: Double = 0.0,
     ): ScreenCondition(), Prioritizable {
 
         /** Tells if this condition is complete and valid to be saved. */
@@ -103,7 +106,7 @@ sealed class ScreenCondition : Condition(), Prioritizable {
 
         override fun hashCodeNoIds(): Int =
             name.hashCode() + path.hashCode() + area.hashCode() + threshold.hashCode() + detectionType.hashCode() +
-                    shouldBeDetected.hashCode() + detectionArea.hashCode() + priority.hashCode()
+                    shouldBeDetected.hashCode() + detectionArea.hashCode() + priority.hashCode() + computeRate.hashCode()
     }
 
     data class Number(
@@ -117,6 +120,7 @@ sealed class ScreenCondition : Condition(), Prioritizable {
         val comparisonOperation: ComparisonOperation,
         val counterValue: CounterOperationValue,
         val numberFormatType: NumberFormatType = NumberFormatType.AUTO,
+        override val computeRate: Double = 0.0,
     ): ScreenCondition(), Prioritizable {
 
         /** Tells if this condition is complete and valid to be saved. */
@@ -126,7 +130,7 @@ sealed class ScreenCondition : Condition(), Prioritizable {
         override fun hashCodeNoIds(): Int =
             name.hashCode() + counterValue.hashCode() + threshold.hashCode() + shouldBeDetected.hashCode() +
                     detectionArea.hashCode() + priority.hashCode() + comparisonOperation.hashCode() +
-                    numberFormatType.hashCode()
+                    numberFormatType.hashCode() + computeRate.hashCode()
 
     }
 
@@ -140,6 +144,7 @@ sealed class ScreenCondition : Condition(), Prioritizable {
         val text: String,
         val detectionArea: Rect,
         val alphabet: OCRAlphabet,
+        override val computeRate: Double = 0.0,
     ): ScreenCondition(), Prioritizable {
 
         /** Tells if this condition is complete and valid to be saved. */
@@ -148,7 +153,7 @@ sealed class ScreenCondition : Condition(), Prioritizable {
 
         override fun hashCodeNoIds(): Int =
             name.hashCode() + text.hashCode() + threshold.hashCode() + shouldBeDetected.hashCode() +
-                    detectionArea.hashCode() + priority.hashCode()
+                    detectionArea.hashCode() + priority.hashCode() + computeRate.hashCode()
 
     }
 }

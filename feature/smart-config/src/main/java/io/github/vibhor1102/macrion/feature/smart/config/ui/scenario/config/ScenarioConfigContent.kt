@@ -3,6 +3,14 @@ package io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.config
 
 import android.content.Context
 import android.view.ViewGroup
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -126,7 +134,7 @@ class ScenarioConfigContent(appContext: Context) : NavBarDialogContent(appContex
 
     @Composable
     private fun ComputeRateCard(state: ComputeRateLimitUiState) {
-        var value by rememberSaveable { mutableStateOf(state.value.toNaturalDisplayString()) }
+        var value by rememberSaveable(state.value) { mutableStateOf(state.value.toNaturalDisplayString()) }
         var focused by remember { mutableStateOf(false) }
         var menuExpanded by remember { mutableStateOf(false) }
         androidx.compose.runtime.LaunchedEffect(menuExpanded) {
@@ -137,8 +145,7 @@ class ScenarioConfigContent(appContext: Context) : NavBarDialogContent(appContex
             )
         }
         LaunchedEffect(state.value, state.unit, state.isEnabled, focused) {
-            if (!focused) value = if (state.isEnabled) state.value.toNaturalDisplayString()
-            else context.getString(R.string.field_scenario_fps_limit_disable_rate)
+            if (!focused && state.isEnabled) value = state.value.toNaturalDisplayString()
         }
         ElevatedCard(Modifier.fillMaxWidth()) {
             Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
@@ -155,38 +162,59 @@ class ScenarioConfigContent(appContext: Context) : NavBarDialogContent(appContex
                     Spacer(Modifier.width(12.dp))
                     Switch(state.isEnabled, { viewModel.toggleFpsLimiter() })
                 }
-                Row(Modifier.fillMaxWidth().padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                    OutlinedTextField(
-                        value,
-                        { input ->
-                            if (input.matches(Regex("\\d*(\\.\\d*)?"))) {
-                                value = input
-                                input.toDoubleOrNull()?.takeIf { it > FRAME_LIMIT_MIN_VALUE && it <= state.maxValue }
-                                    ?.let(viewModel::setComputeRate)
-                            }
-                        },
-                        Modifier.weight(1f).onFocusChanged { focused = it.isFocused },
-                        enabled = state.isEnabled,
-                        label = { Text(stringResource(R.string.field_scenario_fps_rate_label)) },
-                        singleLine = true,
-                        keyboardOptions = macrionDoneKeyboardOptions(KeyboardType.Decimal),
-                        keyboardActions = macrionDoneKeyboardActions(),
-                    )
-                    Text("/", Modifier.padding(horizontal = 8.dp), style = MaterialTheme.typography.headlineMedium)
-                    ExposedDropdownMenuBox(menuExpanded, { if (state.isEnabled) menuExpanded = !menuExpanded }, Modifier.weight(.8f)) {
+                AnimatedVisibility(
+                    visible = state.isEnabled,
+                    enter = expandVertically(
+                        animationSpec = spring(
+                            dampingRatio = 0.85f,
+                            stiffness = Spring.StiffnessMedium,
+                        ),
+                        expandFrom = Alignment.Top,
+                    ) + fadeIn(
+                        animationSpec = tween(150),
+                    ),
+                    exit = shrinkVertically(
+                        animationSpec = spring(
+                            dampingRatio = 0.85f,
+                            stiffness = Spring.StiffnessMedium,
+                        ),
+                        shrinkTowards = Alignment.Top,
+                    ) + fadeOut(
+                        animationSpec = tween(100),
+                    ),
+                ) {
+                    Row(Modifier.fillMaxWidth().padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                         OutlinedTextField(
-                            stringResource(state.unit.title), {}, readOnly = true, enabled = state.isEnabled,
-                            modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable).fillMaxWidth(),
-                            label = { Text(stringResource(R.string.field_scenario_fps_rate_unit_label)) },
-                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(menuExpanded) },
+                            value,
+                            { input ->
+                                if (input.matches(Regex("\\d*(\\.\\d*)?"))) {
+                                    value = input
+                                    input.toDoubleOrNull()?.takeIf { it > FRAME_LIMIT_MIN_VALUE && it <= state.maxValue }
+                                        ?.let(viewModel::setComputeRate)
+                                }
+                            },
+                            Modifier.weight(1f).onFocusChanged { focused = it.isFocused },
+                            label = { Text(stringResource(R.string.field_scenario_fps_rate_label)) },
                             singleLine = true,
+                            keyboardOptions = macrionDoneKeyboardOptions(KeyboardType.Decimal),
+                            keyboardActions = macrionDoneKeyboardActions(),
                         )
-                        ExposedDropdownMenu(menuExpanded, { menuExpanded = false }) {
-                            allComputeRateUnitDropdownItems().forEach { item ->
-                                DropdownMenuItem(
-                                    { Text(stringResource(item.title)) },
-                                    { viewModel.setComputeRateUnit(item); menuExpanded = false },
-                                )
+                        Text("/", Modifier.padding(horizontal = 8.dp), style = MaterialTheme.typography.headlineMedium)
+                        ExposedDropdownMenuBox(menuExpanded, { menuExpanded = !menuExpanded }, Modifier.weight(.8f)) {
+                            OutlinedTextField(
+                                stringResource(state.unit.title), {}, readOnly = true,
+                                modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable).fillMaxWidth(),
+                                label = { Text(stringResource(R.string.field_scenario_fps_rate_unit_label)) },
+                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(menuExpanded) },
+                                singleLine = true,
+                            )
+                            ExposedDropdownMenu(menuExpanded, { menuExpanded = false }) {
+                                allComputeRateUnitDropdownItems().forEach { item ->
+                                    DropdownMenuItem(
+                                        { Text(stringResource(item.title)) },
+                                        { viewModel.setComputeRateUnit(item); menuExpanded = false },
+                                    )
+                                }
                             }
                         }
                     }

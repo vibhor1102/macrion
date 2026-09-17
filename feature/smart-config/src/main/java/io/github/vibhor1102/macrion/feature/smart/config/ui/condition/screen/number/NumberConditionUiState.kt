@@ -19,8 +19,10 @@ package io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.nu
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.condition.UiNumberFormatDropdownItem
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.counter.UiCounterOperatorDropdownItem
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.counter.UiStaticOrCounterSelection
+import io.github.vibhor1102.macrion.core.base.identifier.Identifier
 
 data class NumberConditionUiState(
+    val id: Identifier,
     val canBeSaved: Boolean,
     val name: String,
     val nameError: Boolean,
@@ -31,4 +33,5 @@ data class NumberConditionUiState(
     val operandValue: UiStaticOrCounterSelection,
     val conditionEffectDesc: String,
     val numberFormatDropdownItem: UiNumberFormatDropdownItem,
+    val computeRateState: io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.config.ComputeRateLimitUiState,
 )

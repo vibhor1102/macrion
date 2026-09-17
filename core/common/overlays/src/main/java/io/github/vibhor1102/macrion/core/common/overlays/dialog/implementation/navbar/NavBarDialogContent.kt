@@ -41,6 +41,7 @@ import io.github.vibhor1102.macrion.core.ui.bindings.dialogs.DialogNavigationBut
 import io.github.vibhor1102.macrion.core.common.overlays.di.createHiltViewModelFactory
 import io.github.vibhor1102.macrion.core.ui.R
 import dagger.hilt.EntryPoints
+import androidx.compose.runtime.Composable
 
 abstract class NavBarDialogContent(
     appContext: Context,
@@ -79,6 +80,13 @@ abstract class NavBarDialogContent(
     /** The Android context. */
     protected val context: Context
         get() = rootContainer.context
+
+    /** Active in-tree modal dialog displayed on top of the entire dialog scaffold. */
+    var activeModal: (@Composable () -> Unit)?
+        get() = dialogController.activeModal
+        set(value) {
+            dialogController.activeModal = value
+        }
 
     /**
      * Creates the content.

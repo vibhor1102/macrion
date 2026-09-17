@@ -90,6 +90,12 @@ internal class EditionDefaultValues {
     fun setTextName(context: Context): String =
         context.getString(R.string.default_set_text_name)
 
+    fun playSoundName(context: Context): String =
+        context.getString(R.string.default_play_sound_name)
+
+    fun captureScreenshotName(context: Context): String =
+        context.getString(R.string.default_capture_screenshot_name)
+
     fun counterComparisonOperation(): ComparisonOperation =
         ComparisonOperation.EQUALS
 }

@@ -49,3 +49,34 @@ sealed class ComputeRateUnitDropdownItem(@StringRes title: Int) : DropdownItem(t
 
 fun allComputeRateUnitDropdownItems(): List<ComputeRateUnitDropdownItem> =
     listOf(ComputeRateUnitDropdownItem.Second, ComputeRateUnitDropdownItem.Minute)
+
+const val FRAME_LIMIT_DEFAULT_VALUE = 60.0
+const val FRAME_LIMIT_MIN_VALUE = 0.0
+const val FRAME_LIMIT_MAX_VALUE = 1000.0
+
+fun getInitialComputeRateUnitItem(computeRate: Double): ComputeRateUnitDropdownItem =
+    if (computeRate == 0.0 || computeRate >= 1.0) ComputeRateUnitDropdownItem.Second
+    else ComputeRateUnitDropdownItem.Minute
+
+fun toComputeRateLimitUiState(
+    computeRate: Double,
+    userUnit: ComputeRateUnitDropdownItem?,
+    fallbackRate: Double = FRAME_LIMIT_DEFAULT_VALUE,
+): ComputeRateLimitUiState {
+    val rate = if (computeRate > 0.0) computeRate else fallbackRate
+    val unit = userUnit ?: getInitialComputeRateUnitItem(rate)
+    return when (unit) {
+        ComputeRateUnitDropdownItem.Second -> ComputeRateLimitUiState(
+            isEnabled = computeRate > 0.0,
+            unit = unit,
+            maxValue = FRAME_LIMIT_MAX_VALUE,
+            value = rate,
+        )
+        ComputeRateUnitDropdownItem.Minute -> ComputeRateLimitUiState(
+            isEnabled = computeRate > 0.0,
+            unit = unit,
+            maxValue = FRAME_LIMIT_MAX_VALUE * 60.0,
+            value = rate * 60,
+        )
+    }
+}

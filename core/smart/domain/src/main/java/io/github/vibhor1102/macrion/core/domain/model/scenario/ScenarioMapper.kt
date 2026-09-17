@@ -19,6 +19,7 @@ package io.github.vibhor1102.macrion.core.domain.model.scenario
 import io.github.vibhor1102.macrion.core.base.ScenarioStats
 import io.github.vibhor1102.macrion.core.base.identifier.Identifier
 import io.github.vibhor1102.macrion.core.database.entity.CompleteScenario
+import io.github.vibhor1102.macrion.core.database.entity.ScenarioFolderEntity
 import io.github.vibhor1102.macrion.core.database.entity.ScenarioEntity
 import io.github.vibhor1102.macrion.core.database.entity.ScenarioStatsEntity
 import io.github.vibhor1102.macrion.core.database.entity.ScenarioWithEvents
@@ -35,6 +36,7 @@ internal fun Scenario.toEntity() = ScenarioEntity(
     randomize = randomize,
     keepScreenOn = keepScreenOn,
     computeRate = computeRate,
+    folders = folders.map { ScenarioFolderEntity(it.name, it.eventIndex) },
 )
 
 /** @return the scenario for this entity. */
@@ -45,6 +47,7 @@ internal fun ScenarioWithEvents.toDomain(asDomain: Boolean = false) = Scenario(
     computeRate = scenario.computeRate,
     randomize = scenario.randomize,
     keepScreenOn = scenario.keepScreenOn,
+    folders = scenario.folders.map { ScenarioFolder(it.name, it.eventIndex) },
     eventCount = events.size,
     stats = stats.toDomain(),
 )
@@ -65,6 +68,7 @@ private fun ScenarioEntity.toDomain(cleanIds: Boolean = false) = Scenario(
     randomize = randomize,
     keepScreenOn = keepScreenOn,
     computeRate = computeRate,
+    folders = folders.map { ScenarioFolder(it.name, it.eventIndex) },
 )
 
 private fun ScenarioStatsEntity?.toDomain() =

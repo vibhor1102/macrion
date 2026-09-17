@@ -55,5 +55,7 @@ sealed class Action : Identifiable, Completable, Prioritizable {
             is Notification -> copy(id = id, eventId = eventId, name = name, priority = priority)
             is SystemAction -> copy(id = id, eventId = eventId, name = name, priority = priority)
             is SetText -> copy(id = id, eventId = eventId, name = name, priority = priority)
+            is PlaySound -> copy(id = id, eventId = eventId, name = name, priority = priority)
+            is CaptureScreenshot -> copy(id = id, eventId = eventId, name = name, priority = priority)
         }
 }

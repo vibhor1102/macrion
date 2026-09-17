@@ -24,7 +24,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
@@ -45,6 +47,8 @@ class TopBarNavigationView(val context: Context) {
     private val buttonModifiers = DialogNavigationButton.entries.associateWith {
         mutableStateOf<@Composable () -> Modifier>({ Modifier })
     }
+
+    var extraAction by mutableStateOf<(@Composable () -> Unit)?>(null)
 
     fun setTitle(text: CharSequence) { title.value = text.toString() }
     fun setTitle(@StringRes text: Int) = setTitle(context.getText(text))
@@ -89,6 +93,7 @@ class TopBarNavigationView(val context: Context) {
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
+                extraAction?.invoke()
                 DialogTopBarButton(DialogNavigationButton.DELETE, R.drawable.ic_delete)
                 DialogTopBarButton(DialogNavigationButton.SAVE, R.drawable.ic_save_filled)
             }

@@ -30,6 +30,7 @@ import io.github.vibhor1102.macrion.core.domain.model.AND
 import io.github.vibhor1102.macrion.core.domain.model.EXACT
 import io.github.vibhor1102.macrion.core.domain.model.OR
 import io.github.vibhor1102.macrion.core.domain.model.action.Action
+import io.github.vibhor1102.macrion.core.domain.model.action.CaptureScreenshot
 import io.github.vibhor1102.macrion.core.domain.model.action.Click
 import io.github.vibhor1102.macrion.core.domain.model.action.Pause
 import io.github.vibhor1102.macrion.core.domain.model.action.Swipe
@@ -254,6 +255,26 @@ class ActionExecutorTests {
         )
 
         verify(mockAndroidExecutor).fireExternalAction("Open xyz game intent")
+        verify(mockAndroidExecutor, never()).dispatchGesture(anyNotNull())
+    }
+
+    @Test
+    fun execute_oneCaptureScreenshot() = runTest {
+        val screenshotAction = CaptureScreenshot(
+            id = Identifier(databaseId = 1L),
+            eventId = TEST_EVENT_ID,
+            name = TEST_NAME,
+            priority = 0,
+            screenshotFolderUri = "content://custom/uri",
+            screenshotFolderName = "CustomFolder",
+        )
+
+        actionExecutor.executeActions(
+            event = getNewDefaultEvent(actions = listOf(screenshotAction)),
+            results = ConditionsResults(),
+        )
+
+        verify(mockAndroidExecutor).captureScreenshot("content://custom/uri", "CustomFolder")
         verify(mockAndroidExecutor, never()).dispatchGesture(anyNotNull())
     }
 

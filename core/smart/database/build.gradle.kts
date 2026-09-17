@@ -42,3 +42,8 @@ dependencies {
     testImplementation(libs.androidx.room.testing)
     testImplementation(libs.kotlinx.coroutines.test)
 }
+// Migration tests must package the schema exported by this build, not the previous checkout.
+// Room wires compilation to copyRoomSchemas, but unit-test asset merging can otherwise run first.
+tasks.matching { it.name.startsWith("merge") && it.name.endsWith("UnitTestAssets") }.configureEach {
+    dependsOn("copyRoomSchemas")
+}

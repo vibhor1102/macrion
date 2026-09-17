@@ -44,4 +44,6 @@
     <string name="default_system_action_name">System action</string>
 
     <string name="default_set_text_name">Write text</string>
+    <string name="default_play_sound_name">Play sound</string>
+    <string name="default_capture_screenshot_name">Capture screenshot</string>
 </resources>

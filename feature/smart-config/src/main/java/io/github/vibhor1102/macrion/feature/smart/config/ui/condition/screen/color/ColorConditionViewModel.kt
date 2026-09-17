@@ -36,6 +36,10 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterIsInstance
 import io.github.vibhor1102.macrion.core.settings.domain.SettingsRepository
+import io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.config.ComputeRateUnitDropdownItem
+import io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.config.FRAME_LIMIT_DEFAULT_VALUE
+import io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.config.getInitialComputeRateUnitItem
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
@@ -44,7 +48,7 @@ import javax.inject.Inject
 class ColorConditionViewModel @Inject constructor(
     private val editionRepository: EditionRepository,
     settingsRepository: SettingsRepository,
-) : ViewModel()  {
+) : ViewModel() {
 
     val maxThreshold: StateFlow<Float> = settingsRepository.maxToleratedDifferenceFlow
         .map { it.toFloat() }
@@ -63,9 +67,22 @@ class ColorConditionViewModel @Inject constructor(
             .map { it.hasChanged }
             .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
+    private val userComputeRateUnit: MutableStateFlow<ComputeRateUnitDropdownItem?> =
+        MutableStateFlow(editionRepository.editionState.getEditedCondition<ScreenCondition.Color>()?.computeRate?.let { getInitialComputeRateUnitItem(it) })
+
+    private var cachedComputeRate: Double = editionRepository.editionState.getEditedCondition<ScreenCondition.Color>()?.computeRate?.takeIf { it > 0.0 } ?: FRAME_LIMIT_DEFAULT_VALUE
+
     val uiState: StateFlow<ColorConditionUiState?> = configuredCondition
-        .map { colorCondition -> colorCondition.toUiState() }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+        .let { conditionFlow ->
+            kotlinx.coroutines.flow.combine(conditionFlow, userComputeRateUnit) { colorCondition, unit ->
+                colorCondition.toUiState(unit)
+            }
+        }
+        .stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5000),
+            editionRepository.editionState.getEditedCondition<ScreenCondition.Color>()?.toUiState(userComputeRateUnit.value),
+        )
 
     /** Tells if the user is currently editing a condition. If that's not the case, dialog should be closed. */
     @OptIn(FlowPreview::class)
@@ -150,7 +167,27 @@ class ColorConditionViewModel @Inject constructor(
         }
     }
 
-    private fun ScreenCondition.Color.toUiState(): ColorConditionUiState {
+    fun toggleLimiter() {
+        editionRepository.editionState.getEditedCondition<ScreenCondition.Color>()?.let { condition ->
+            val newRate = if (condition.computeRate != 0.0) 0.0 else cachedComputeRate
+            updateEditedCondition { it.copy(computeRate = newRate) }
+        }
+    }
+
+    fun setComputeRateUnit(unit: io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.config.ComputeRateUnitDropdownItem) {
+        userComputeRateUnit.value = unit
+    }
+
+    fun setComputeRate(value: Double) {
+        if (value <= io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.config.FRAME_LIMIT_MIN_VALUE) return
+        val unit = userComputeRateUnit.value ?: io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.config.ComputeRateUnitDropdownItem.Second
+        val newValue = if (unit is io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.config.ComputeRateUnitDropdownItem.Minute) value / 60 else value
+        if (newValue > io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.config.FRAME_LIMIT_MAX_VALUE) return
+        cachedComputeRate = newValue
+        updateEditedCondition { it.copy(computeRate = newValue) }
+    }
+
+    private fun ScreenCondition.Color.toUiState(userUnit: io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.config.ComputeRateUnitDropdownItem?): ColorConditionUiState {
         val hsv = if (currentHsv != null && lastColorInt == color) {
             currentHsv!!
         } else {
@@ -160,6 +197,7 @@ class ColorConditionViewModel @Inject constructor(
             }
         }
         return ColorConditionUiState(
+            id = id,
             canBeSaved = isComplete(),
             conditionName = name,
             conditionNameError = name.isEmpty(),
@@ -171,6 +209,7 @@ class ColorConditionViewModel @Inject constructor(
             value = hsv[2],
             shouldBeDetectedChecked = shouldBeDetected,
             detectionThreshold = threshold,
+            computeRateState = io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.config.toComputeRateLimitUiState(computeRate, userUnit, cachedComputeRate),
         )
     }
 }

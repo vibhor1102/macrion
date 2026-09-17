@@ -67,20 +67,23 @@ class ColorCaptureViewModel @Inject constructor(
         return selectedPosition to selectedColor
     }
 
-    fun captureScreen(initialPosition: PointF? = null) {
+    fun captureScreen(initialPosition: PointF? = null, onCaptureFailed: (() -> Unit)? = null) {
         _uiState.update { capturingState() }
 
         screenshotJob = viewModelScope.launch(ioDispatcher) {
             delay(200L.milliseconds) // Wait a bit to ensure menu is effectively invisible and a new screen frame is available
 
             val screenshot = displayRecorder.takeScreenshot()
-            _uiState.update {
-                if (screenshot == null) capturingState() else {
-                    withContext(mainDispatcher) {
-                        monitoredViewsManager.notifyClick(MonitoredViewType.SCREEN_CONDITION_CAPTURE_MENU_BUTTON_CAPTURE)
-                    }
-                    pixelSelectionState(screenshot, initialPosition)
+            if (screenshot == null) {
+                _uiState.update { screenshotSelectionState() }
+                withContext(mainDispatcher) {
+                    onCaptureFailed?.invoke()
                 }
+            } else {
+                withContext(mainDispatcher) {
+                    monitoredViewsManager.notifyClick(MonitoredViewType.SCREEN_CONDITION_CAPTURE_MENU_BUTTON_CAPTURE)
+                }
+                _uiState.update { pixelSelectionState(screenshot, initialPosition) }
             }
         }
     }

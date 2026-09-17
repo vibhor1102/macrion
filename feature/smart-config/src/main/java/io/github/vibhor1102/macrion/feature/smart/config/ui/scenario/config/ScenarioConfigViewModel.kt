@@ -61,6 +61,7 @@ class ScenarioConfigViewModel @Inject constructor(
                 context = context,
                 displaySize = displayConfigManager.displayConfig.sizePx,
                 computeRateUnit = userUnit,
+                fallbackRate = cachedComputeRate,
             )
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
@@ -84,7 +85,7 @@ class ScenarioConfigViewModel @Inject constructor(
         }
     }
 
-    /** Toggle the randomization value. */
+    /** Toggle the keep screen on value. */
     fun toggleKeepScreenOn() {
         editionRepository.editionState.getScenario()?.let { scenario ->
             viewModelScope.launch {
@@ -161,33 +162,15 @@ private fun Scenario.toUiState(
     context: Context,
     displaySize: Point,
     computeRateUnit: ComputeRateUnitDropdownItem?,
+    fallbackRate: Double,
 ): ScenarioConfigUiState =
     ScenarioConfigUiState(
         name = name,
         randomizeChecked = randomize,
         keepScreenOnChecked = keepScreenOn,
-        computeRateState = toComputeRateUiState(computeRateUnit),
+        computeRateState = toComputeRateLimitUiState(computeRate, computeRateUnit, fallbackRate),
         qualityUiState = toDetectionQualityUiState(context, displaySize),
     )
-
-private fun Scenario.toComputeRateUiState(userUnit: ComputeRateUnitDropdownItem?): ComputeRateLimitUiState {
-    val unit = userUnit ?: ComputeRateUnitDropdownItem.Second
-    return when (unit) {
-        ComputeRateUnitDropdownItem.Second -> ComputeRateLimitUiState(
-            isEnabled = computeRate > 0.0,
-            unit = unit,
-            maxValue = FRAME_LIMIT_MAX_VALUE,
-            value = computeRate,
-        )
-
-        ComputeRateUnitDropdownItem.Minute -> ComputeRateLimitUiState(
-            isEnabled = computeRate > 0.0,
-            unit = unit,
-            maxValue = FRAME_LIMIT_MAX_VALUE * 60.0,
-            value = computeRate * 60,
-        )
-    }
-}
 
 private fun Scenario.toDetectionQualityUiState(context: Context, displaySize: Point): DetectionQualityUiState {
     val maxVal = maxOf(displaySize.x, displaySize.y, 1).toFloat()
@@ -213,7 +196,3 @@ private fun Scenario.getInitialComputeRateUnitItem(): ComputeRateUnitDropdownIte
 
 private fun DisplayConfigManager.getMaxDetectionQuality(): Int =
     maxOf(displayConfig.sizePx.x, displayConfig.sizePx.y, 1)
-
-internal const val FRAME_LIMIT_DEFAULT_VALUE = 60.0
-internal const val FRAME_LIMIT_MIN_VALUE = 0.0
-internal const val FRAME_LIMIT_MAX_VALUE = 1000.0

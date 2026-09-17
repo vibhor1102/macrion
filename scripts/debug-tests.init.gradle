@@ -1,0 +1,10 @@
+// Only used when the deployment helper receives explicit focused tests.
+gradle.projectsEvaluated {
+    allprojects {
+        tasks.withType(Test).configureEach {
+            maxParallelForks = 1
+            failOnNoDiscoveredTests = true
+            filter.failOnNoMatchingTests = true
+        }
+    }
+}

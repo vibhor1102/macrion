@@ -50,6 +50,7 @@ private fun ScreenCondition.Color.toColorConditionEntity() = ConditionEntity(
     detectionAreaTop = detectionArea.top,
     detectionAreaRight = detectionArea.right,
     detectionAreaBottom = detectionArea.bottom,
+    computeRate = computeRate,
 )
 
 /** @return the entity equivalent of this condition. */
@@ -71,6 +72,7 @@ private fun ScreenCondition.Image.toImageConditionEntity() = ConditionEntity(
     detectionAreaTop = detectionArea?.top,
     detectionAreaRight = detectionArea?.right,
     detectionAreaBottom = detectionArea?.bottom,
+    computeRate = computeRate,
 )
 
 private fun ScreenCondition.Number.toNumberConditionEntity(): ConditionEntity {
@@ -93,6 +95,7 @@ private fun ScreenCondition.Number.toNumberConditionEntity(): ConditionEntity {
         numberCounterValue = if (isNumberValue) counterValue.value else null,
         numberCounterOperationCounterName = if (isNumberValue) null else counterValue.value as String,
         numberFormatType = numberFormatType.toEntity(),
+        computeRate = computeRate,
     )
 }
 
@@ -110,6 +113,7 @@ private fun ScreenCondition.Text.toTextConditionEntity() = ConditionEntity(
     detectionAreaTop = detectionArea.top,
     detectionAreaRight = detectionArea.right,
     detectionAreaBottom = detectionArea.bottom,
+    computeRate = computeRate,
 )
 
 private fun TriggerCondition.OnBroadcastReceived.toBroadcastReceivedEntity(): ConditionEntity =
@@ -172,6 +176,7 @@ private fun ConditionEntity.toDomainColorCondition(cleanIds: Boolean = false): S
         shouldBeDetected = shouldBeDetected ?: true,
         detectionArea = getDetectionArea()!!,
         color = colorRgba!!,
+        computeRate = computeRate,
     )
 
 private fun ConditionEntity.toDomainImageCondition(cleanIds: Boolean = false): ScreenCondition.Image =
@@ -186,6 +191,7 @@ private fun ConditionEntity.toDomainImageCondition(cleanIds: Boolean = false): S
         detectionType = detectionType!!,
         detectionArea = getDetectionArea(),
         shouldBeDetected = shouldBeDetected ?: true,
+        computeRate = computeRate,
     )
 
 private fun ConditionEntity.toDomainNumberCondition(cleanIds: Boolean = false): ScreenCondition.Number =
@@ -203,6 +209,7 @@ private fun ConditionEntity.toDomainNumberCondition(cleanIds: Boolean = false): 
             counterName = numberCounterOperationCounterName,
         ),
         numberFormatType = numberFormatType.toDomain(),
+        computeRate = computeRate,
     )
 
 private fun ConditionEntity.toDomainTextCondition(cleanIds: Boolean = false): ScreenCondition.Text =
@@ -216,6 +223,7 @@ private fun ConditionEntity.toDomainTextCondition(cleanIds: Boolean = false): Sc
         detectionArea = getDetectionArea()!!,
         text = textToDetect!!,
         alphabet = getTextAlphabet(),
+        computeRate = computeRate,
     )
 
 private fun ConditionEntity.toDomainBroadcastReceived(cleanIds: Boolean = false): TriggerCondition =

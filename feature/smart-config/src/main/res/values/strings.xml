@@ -125,6 +125,27 @@
     <string name="item_set_text_details_text">%1$s</string>
     <string name="item_set_text_details_text_empty">Clear text</string>
 
+    <string name="item_play_sound_title">Play sound</string>
+    <string name="item_play_sound_desc">Play an audio notification sound</string>
+    <string name="item_play_sound_details_text">Sound: %1$s</string>
+    <string name="item_play_sound_details_none">No sound selected</string>
+    <string name="dialog_title_play_sound">Play sound</string>
+    <string name="default_notification_sound">Default notification sound</string>
+    <string name="field_sound_selector_label">Notification sound</string>
+    <string name="dialog_title_select_sound">Select sound</string>
+    <string name="play_sound_tip_custom_files">Tip: To use custom sounds, place your audio files in your phone\'s Notifications folder using a file manager. They will appear here automatically.</string>
+    <string name="item_capture_screenshot_title">Capture screenshot</string>
+    <string name="item_capture_screenshot_desc">Capture the screen and save to storage</string>
+    <string name="item_capture_screenshot_details_default">Location: Pictures/Macrion</string>
+    <string name="item_capture_screenshot_details_custom">Location: %1$s</string>
+    <string name="dialog_title_capture_screenshot">Capture screenshot</string>
+    <string name="capture_screenshot_location_label">Save destination</string>
+    <string name="capture_screenshot_location_default">Pictures/Macrion (Default)</string>
+    <string name="capture_screenshot_button_choose_folder">Choose folder</string>
+    <string name="capture_screenshot_button_reset_folder">Reset to default</string>
+    <string name="capture_screenshot_button_open_folder">Open folder in Files</string>
+    <string name="capture_screenshot_storage_note">Screenshots are saved as JPEGs. Default folder is automatically visible in Gallery and Photos.</string>
+
     <!-- Dialog Copy =============================================================================================== -->
 
     <string name="search_view_hint_event_copy">Search by event name</string>
@@ -166,6 +187,7 @@
     <string name="field_scenario_fps_rate_unit_label">Per</string>
     <string name="field_scenario_fps_dropdown_item_second">Second</string>
     <string name="field_scenario_fps_dropdown_item_minute">Minute</string>
+    <string name="field_condition_fps_limit_desc">Limit how often this condition is checked to save battery and CPU. Detection will be slower.</string>
 
     <string name="field_scenario_fps_limit_disable_rate" translatable="false">∞</string>
     <string name="field_scenario_quality_title">Detection resolution</string>
@@ -604,5 +626,24 @@
     <string name="scenario_switcher_error_unknown">The scenario could not be switched. Try again.</string>
     <string name="scenario_switcher_retry">Retry</string>
     <string name="scenario_switcher_switching">Switching to %1$s</string>
+
+    <!-- Folders -->
+    <string name="folder_field_label">Folder (optional)</string>
+    <string name="folder_ungrouped_label">Ungrouped</string>
+    <string name="folder_action_new">New folder</string>
+    <string name="folder_action_create_event">Create event</string>
+    <string name="folder_action_rename">Rename folder</string>
+    <string name="folder_action_delete">Delete folder</string>
+    <string name="folder_menu_options">Folder options</string>
+    <string name="folder_delete_dialog_title">Delete Folder</string>
+    <string name="folder_delete_dialog_message">What would you like to do with the events inside \"%1$s\"?</string>
+    <string name="folder_delete_keep_events">Keep events (Ungroup)</string>
+    <string name="folder_delete_all_events">Delete events</string>
+    <string name="folder_name_hint">Folder name</string>
+    <string name="folder_collapse_all">Collapse all</string>
+    <string name="folder_expand_all">Expand all</string>
+    <string name="folder_reorder_disabled_hint">Collapse all folders to reorder</string>
+    <string name="generic_cancel">Cancel</string>
+    <string name="generic_create">Create</string>
 
 </resources>

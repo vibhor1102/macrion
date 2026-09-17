@@ -172,6 +172,17 @@ class EventDialogViewModel @Inject constructor(
     }
 
 
+    fun setEventFolder(newFolder: String?) {
+        updateEditedEvent { oldValue ->
+            if (oldValue is ScreenEvent) oldValue.copy(folder = newFolder?.trim()?.ifEmpty { null })
+            else oldValue
+        }
+    }
+
+    fun getExistingFolders(): List<String> =
+        (editionRepository.editionState.getScenario()?.folders.orEmpty().map { it.name } +
+            editionRepository.getScreenEvents().mapNotNull { it.folder }).filter { it.isNotBlank() }.distinct().sorted()
+
     private fun updateEditedEvent(closure: (oldValue: Event) -> Event?) {
         editionRepository.editionState.getEditedEvent()?.let { oldValue ->
             viewModelScope.launch {
@@ -222,6 +233,7 @@ class EventDialogViewModel @Inject constructor(
                 inError = !condition.isComplete(),
             )
         },
+        folder = folder,
     )
 
     private fun TriggerEvent.toTriggerEventUiState(
