@@ -20,8 +20,12 @@ package io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.imageevent
 import android.content.Context
 import android.view.ViewGroup
 import android.view.accessibility.AccessibilityManager
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -209,7 +213,8 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
                 (fromEvents + customFolders).distinct()
             }
 
-            Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
+            Box(Modifier.fillMaxSize()) {
+                Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
                 when {
                     sourceItems == null -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
                     sourceItems?.isEmpty() == true && customFolders.isEmpty() -> EmptyState(R.string.message_empty_screen_event_title, R.string.message_empty_screen_event_desc)
@@ -364,7 +369,7 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
             // New Folder Dialog
             if (showNewFolderDialog) {
                 var folderNameInput by remember { mutableStateOf("") }
-                AlertDialog(
+                InlineModalDialog(
                     onDismissRequest = { showNewFolderDialog = false },
                     title = { Text(stringResource(R.string.folder_action_new)) },
                     text = {
@@ -402,7 +407,7 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
             if (folderToRename != null) {
                 val oldName = folderToRename!!
                 var newNameInput by remember(oldName) { mutableStateOf(oldName) }
-                AlertDialog(
+                InlineModalDialog(
                     onDismissRequest = { folderToRename = null },
                     title = { Text(stringResource(R.string.folder_action_rename)) },
                     text = {
@@ -440,7 +445,7 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
             // Delete Folder Dialog
             if (folderToDelete != null) {
                 val targetFolder = folderToDelete!!
-                AlertDialog(
+                InlineModalDialog(
                     onDismissRequest = { folderToDelete = null },
                     title = { Text(stringResource(R.string.folder_delete_dialog_title)) },
                     text = {
@@ -478,6 +483,7 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
                         }
                     },
                 )
+            }
             }
         }
     }
@@ -663,6 +669,73 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
             Spacer(Modifier.height(8.dp))
             Text(context.getString(description), style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    }
+
+    @Composable
+    private fun InlineModalDialog(
+        onDismissRequest: () -> Unit,
+        title: @Composable () -> Unit,
+        text: @Composable () -> Unit,
+        confirmButton: @Composable () -> Unit,
+        dismissButton: (@Composable () -> Unit)? = null,
+    ) {
+        BackHandler(onBack = onDismissRequest)
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.54f))
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    onClick = onDismissRequest,
+                ),
+            contentAlignment = Alignment.Center,
+        ) {
+            Surface(
+                shape = MaterialTheme.shapes.extraLarge,
+                color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                tonalElevation = 6.dp,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 28.dp)
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        onClick = { /* prevent click-through */ },
+                    ),
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(24.dp),
+                ) {
+                    CompositionLocalProvider(
+                        LocalContentColor provides MaterialTheme.colorScheme.onSurface,
+                    ) {
+                        ProvideTextStyle(MaterialTheme.typography.headlineSmall) {
+                            title()
+                        }
+                        Spacer(Modifier.height(16.dp))
+                        ProvideTextStyle(MaterialTheme.typography.bodyMedium) {
+                            text()
+                        }
+                        Spacer(Modifier.height(24.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.End,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            dismissButton?.invoke()
+                            if (dismissButton != null) {
+                                Spacer(Modifier.width(8.dp))
+                            }
+                            confirmButton()
+                        }
+                    }
+                }
+            }
         }
     }
 
