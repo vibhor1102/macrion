@@ -13,6 +13,9 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.awaitTouchSlopOrCancellation
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
@@ -23,12 +26,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.util.fastForEach
+import kotlinx.coroutines.withTimeoutOrNull
 import io.github.vibhor1102.macrion.core.ui.R as UiR
 import io.github.vibhor1102.macrion.feature.smart.config.R
 
@@ -202,11 +208,37 @@ private fun FolderDragHandle(
                 .size(44.dp)
                 .then(
                     if (onDisabledClick != null) {
-                        Modifier.clickable(
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = null,
-                            onClick = onDisabledClick,
-                        )
+                        Modifier.pointerInput(onDisabledClick) {
+                            awaitEachGesture {
+                                val down = awaitFirstDown(requireUnconsumed = false)
+                                down.consume()
+                                var triggered = false
+
+                                withTimeoutOrNull(viewConfiguration.longPressTimeoutMillis) {
+                                    val change = awaitTouchSlopOrCancellation(down.id) { slopChange, _ ->
+                                        slopChange.consume()
+                                        if (!triggered) {
+                                            triggered = true
+                                            onDisabledClick()
+                                        }
+                                    }
+                                    if (change == null && !triggered) {
+                                        triggered = true
+                                        onDisabledClick()
+                                    }
+                                }
+
+                                if (!triggered) {
+                                    triggered = true
+                                    onDisabledClick()
+                                }
+
+                                while (currentEvent.changes.any { it.pressed }) {
+                                    val event = awaitPointerEvent()
+                                    event.changes.fastForEach { if (it.pressed) it.consume() }
+                                }
+                            }
+                        }
                     } else Modifier
                 ),
             contentAlignment = Alignment.Center,
