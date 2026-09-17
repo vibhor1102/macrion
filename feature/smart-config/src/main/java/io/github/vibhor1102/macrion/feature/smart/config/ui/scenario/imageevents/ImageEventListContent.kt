@@ -39,6 +39,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
@@ -154,19 +155,29 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
 
             val itemsToDisplay = reorderedVisibleItems ?: visibleItems
             val lazyListState = rememberLazyListState()
+
+            LaunchedEffect(lazyListState) {
+                snapshotFlow { lazyListState.firstVisibleItemIndex to lazyListState.firstVisibleItemScrollOffset }
+                    .collect { (idx, offset) ->
+                        ReorderLog.d("[Viewport] firstVisibleItemIndex=$idx, scrollOffset=$offset")
+                    }
+            }
+
             val reorderableState = rememberReorderableLazyListState(lazyListState) { from, to ->
                 val current = reorderedVisibleItems ?: visibleItems
+                ReorderLog.d("[ReorderGesture] moving fromIdx=${from.index} (${from.key}) -> toIdx=${to.index} (${to.key})")
                 reorderedVisibleItems = ScenarioFolderReorderHelper.moveItem(current, from.index, to.index)
             }
 
             LaunchedEffect(sourceItems, customFolders, collapsedFolders) {
+                ReorderLog.d("[DbEmission] sourceItems=${sourceItems?.size}, isDragging=${reorderableState.isAnyItemDragging}, hasLocalReorder=${reorderedVisibleItems != null}")
                 if (!reorderableState.isAnyItemDragging) {
                     reorderedVisibleItems = null
                 }
             }
 
             val onDragStarted: (androidx.compose.ui.geometry.Offset) -> Unit = remember(haptic) {
-                {
+                { offset ->
                     haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
                 }
             }
@@ -174,11 +185,13 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
             val onDragStopped: () -> Unit = remember(viewModel, sourceItems) {
                 {
                     val currentReordered = reorderedVisibleItems
+                    ReorderLog.d("[DragStop] currentReordered=${currentReordered?.map { it.summary }}")
                     if (currentReordered != null) {
                         val updatedEvents = ScenarioFolderReorderHelper.reconstructEvents(
                             visibleItems = currentReordered,
                             allSourceEvents = sourceItems ?: emptyList(),
                         )
+                        ReorderLog.d("[SavingEvents] saving ${updatedEvents.size} events to database...")
                         viewModel.updateRawEvents(updatedEvents)
                     }
                 }
@@ -261,7 +274,10 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
                                             val reorderHandleModifier = if (!listItem.isExpanded) {
                                                 Modifier
                                                     .draggableHandle(
-                                                        onDragStarted = onDragStarted,
+                                                        onDragStarted = { offset ->
+                                                            ReorderLog.d("[DragStart] Folder '${listItem.name}' at offset=$offset")
+                                                            onDragStarted(offset)
+                                                        },
                                                         onDragStopped = onDragStopped,
                                                     )
                                                     .clearAndSetSemantics { }
@@ -274,6 +290,7 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
                                                     enabledCount = listItem.enabledCount,
                                                     isExpanded = listItem.isExpanded,
                                                     onToggleExpand = {
+                                                        ReorderLog.d("[FolderToggle] '${listItem.name}' toggled: wasExpanded=${listItem.isExpanded} -> willBe=${!listItem.isExpanded}")
                                                         collapsedFolders = if (listItem.isExpanded) {
                                                             collapsedFolders + listItem.name
                                                         } else {
@@ -505,7 +522,10 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
         ) { isBeingDragged ->
             val reorderHandleModifier = Modifier
                 .draggableHandle(
-                    onDragStarted = onDragStarted,
+                    onDragStarted = { offset ->
+                        ReorderLog.d("[DragStart] Event '${item.name}' (id=${item.event.id}) at offset=$offset")
+                        onDragStarted(offset)
+                    },
                     onDragStopped = onDragStopped,
                 )
                 .clearAndSetSemantics { }

@@ -16,6 +16,11 @@ import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.event.U
  */
 sealed class ScenarioListItem {
     abstract val key: Any
+    val summary: String get() = when (this) {
+        is FolderHeader -> "Header($name, count=$totalCount, expanded=$isExpanded)"
+        is FolderEndBoundary -> "EndBoundary($folderName)"
+        is EventItem -> "Event(${item.name}, folder=$folderName)"
+    }
 
     data class FolderHeader(
         val name: String,
@@ -38,6 +43,16 @@ sealed class ScenarioListItem {
     ) : ScenarioListItem() {
         override val key: Any get() = item.event.id.let {
             if (it.databaseId != 0L) it.databaseId else -requireNotNull(it.tempId)
+        }
+    }
+}
+
+internal object ReorderLog {
+    fun d(msg: String) {
+        try {
+            android.util.Log.d("MacrionReorder", msg)
+        } catch (_: Throwable) {
+            println("[MacrionReorder] $msg")
         }
     }
 }
@@ -106,6 +121,7 @@ object ScenarioFolderReorderHelper {
             }
         }
 
+        ReorderLog.d("[BuildVisible] sourceEvents=${events.size}, customFolders=$customFolders, collapsed=$collapsedFolders -> ${result.size} visible items: ${result.map { it.summary }}")
         return result
     }
 
@@ -144,6 +160,7 @@ object ScenarioFolderReorderHelper {
 
         val list = items.toMutableList()
         val draggedItem = list[fromIndex]
+        ReorderLog.d("[MoveItem] fromIdx=$fromIndex (${draggedItem.summary}) -> toIdx=$toIndex (${list[toIndex].summary})")
 
         // Rule for moving a Collapsed FolderHeader:
         // A collapsed folder header must never be placed inside an expanded folder.
@@ -156,6 +173,7 @@ object ScenarioFolderReorderHelper {
                         it is ScenarioListItem.FolderEndBoundary && it.folderName == destinationFolder
                     }
                     if (boundaryIndex != -1) {
+                        ReorderLog.d("[MoveItemRule] Collapsed folder '${draggedItem.name}' jumped to boundaryIdx=$boundaryIndex")
                         val item = list.removeAt(fromIndex)
                         list.add(boundaryIndex, item)
                         return list
@@ -166,6 +184,7 @@ object ScenarioFolderReorderHelper {
                         it is ScenarioListItem.FolderHeader && it.name == destinationFolder
                     }
                     if (headerIndex != -1) {
+                        ReorderLog.d("[MoveItemRule] Collapsed folder '${draggedItem.name}' jumped to headerIdx=$headerIndex")
                         val item = list.removeAt(fromIndex)
                         list.add(headerIndex, item)
                         return list
@@ -177,6 +196,7 @@ object ScenarioFolderReorderHelper {
         // Standard move for individual events or valid folder swaps
         val item = list.removeAt(fromIndex)
         list.add(toIndex, item)
+        ReorderLog.d("[MoveItemResult] List order: ${list.map { it.summary }}")
         return list
     }
 
@@ -239,6 +259,7 @@ object ScenarioFolderReorderHelper {
             }
         }
 
+        ReorderLog.d("[ReconstructEvents] Reconstructed ${result.size} events: ${result.map { "${it.name}(folder=${it.folder})" }}")
         return result
     }
 }
