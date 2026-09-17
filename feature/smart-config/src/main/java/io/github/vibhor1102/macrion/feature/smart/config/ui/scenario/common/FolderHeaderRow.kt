@@ -48,7 +48,6 @@ internal fun FolderHeaderRow(
     modifier: Modifier = Modifier,
     reorderHandleModifier: Modifier = Modifier,
     isBeingDragged: Boolean = false,
-    isUngrouped: Boolean = false,
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
     val chevronRotation by animateFloatAsState(
@@ -69,7 +68,7 @@ internal fun FolderHeaderRow(
             .clickable(onClick = onToggleExpand),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        if (!isUngrouped) {
+        if (!isExpanded) {
             FolderDragHandle(reorderHandleModifier, isBeingDragged)
         } else {
             Spacer(Modifier.width(16.dp))
@@ -121,72 +120,69 @@ internal fun FolderHeaderRow(
             )
         }
 
-        if (!isUngrouped) {
-            Box {
-                IconButton(
-                    onClick = { menuExpanded = true },
-                    modifier = Modifier.size(40.dp),
-                ) {
-                    Icon(
-                        painter = painterResource(UiR.drawable.ic_more),
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-
-                DropdownMenu(
-                    expanded = menuExpanded,
-                    onDismissRequest = { menuExpanded = false },
-                ) {
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.folder_action_rename)) },
-                        onClick = {
-                            menuExpanded = false
-                            onRenameClick()
-                        },
-                        leadingIcon = {
-                            Icon(
-                                painter = painterResource(UiR.drawable.ic_write),
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp),
-                            )
-                        },
-                    )
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.folder_action_add_event)) },
-                        onClick = {
-                            menuExpanded = false
-                            onAddEventClick()
-                        },
-                        leadingIcon = {
-                            Icon(
-                                painter = painterResource(UiR.drawable.ic_add),
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp),
-                            )
-                        },
-                    )
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.folder_action_delete)) },
-                        onClick = {
-                            menuExpanded = false
-                            onDeleteClick()
-                        },
-                        leadingIcon = {
-                            Icon(
-                                painter = painterResource(UiR.drawable.ic_delete),
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp),
-                                tint = MaterialTheme.colorScheme.error,
-                            )
-                        },
-                    )
-                }
+        Box {
+            IconButton(
+                onClick = { menuExpanded = true },
+                modifier = Modifier.size(40.dp),
+            ) {
+                Icon(
+                    painter = painterResource(UiR.drawable.ic_more),
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
-        } else {
-            Spacer(Modifier.width(12.dp))
+
+            DropdownMenu(
+                expanded = menuExpanded,
+                onDismissRequest = { menuExpanded = false },
+            ) {
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.folder_action_rename)) },
+                    onClick = {
+                        menuExpanded = false
+                        onRenameClick()
+                    },
+                    leadingIcon = {
+                        Icon(
+                            painter = painterResource(UiR.drawable.ic_write),
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp),
+                        )
+                    },
+                )
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.folder_action_add_event)) },
+                    onClick = {
+                        menuExpanded = false
+                        onAddEventClick()
+                    },
+                    leadingIcon = {
+                        Icon(
+                            painter = painterResource(UiR.drawable.ic_add),
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp),
+                        )
+                    },
+                )
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.folder_action_delete)) },
+                    onClick = {
+                        menuExpanded = false
+                        onDeleteClick()
+                    },
+                    leadingIcon = {
+                        Icon(
+                            painter = painterResource(UiR.drawable.ic_delete),
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp),
+                            tint = MaterialTheme.colorScheme.error,
+                        )
+                    },
+                )
+            }
         }
+        Spacer(Modifier.width(8.dp))
     }
 }
 
@@ -232,6 +228,36 @@ private fun FolderDragHandle(
             contentDescription = null,
             modifier = Modifier.size(22.dp),
             tint = handleTint,
+        )
+    }
+}
+
+@Composable
+internal fun FolderEndBoundaryRow(
+    folderName: String,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp, vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        HorizontalDivider(
+            modifier = Modifier.weight(1f),
+            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+        )
+        Text(
+            text = folderName,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.7f),
+            modifier = Modifier.padding(horizontal = 8.dp),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+        HorizontalDivider(
+            modifier = Modifier.weight(1f),
+            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
         )
     }
 }

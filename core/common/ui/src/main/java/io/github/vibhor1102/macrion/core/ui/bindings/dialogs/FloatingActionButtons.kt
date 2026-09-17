@@ -57,11 +57,15 @@ class FloatingActionButtonsView(val context: Context) {
     private val primaryDescription = mutableStateOf<CharSequence?>(null)
     private val primaryIcon = mutableIntStateOf(R.drawable.ic_add)
     private val secondaryIcon = mutableIntStateOf(R.drawable.ic_copy)
+    private val tertiaryIcon = mutableIntStateOf(R.drawable.ic_folder)
+    private val tertiaryDescription = mutableStateOf<CharSequence?>(null)
     private val badgeText = mutableStateOf<String?>(null)
     private val secondaryVisible = mutableStateOf(false)
+    private val tertiaryVisible = mutableStateOf(false)
     var primaryModifier by mutableStateOf<@Composable () -> Modifier>({ Modifier })
     private var onPrimary: () -> Unit = {}
     private var onSecondary: () -> Unit = {}
+    private var onTertiary: () -> Unit = {}
 
     fun configure(
         @DrawableRes primaryIcon: Int,
@@ -73,13 +77,31 @@ class FloatingActionButtonsView(val context: Context) {
         this.secondaryIcon.intValue = secondaryIcon
         this.onPrimary = onPrimary
         this.onSecondary = onSecondary
+        this.tertiaryVisible.value = false
     }
 
     fun performPrimaryClick() { onPrimary() }
     fun performSecondaryClick() { onSecondary() }
+    fun performTertiaryClick() { onTertiary() }
 
     fun setSecondaryVisible(visible: Boolean) {
         secondaryVisible.value = visible
+    }
+
+    fun setTertiary(
+        @DrawableRes icon: Int,
+        visible: Boolean,
+        description: CharSequence? = null,
+        onClick: () -> Unit,
+    ) {
+        tertiaryIcon.intValue = icon
+        tertiaryVisible.value = visible
+        tertiaryDescription.value = description
+        onTertiary = onClick
+    }
+
+    fun setTertiaryVisible(visible: Boolean) {
+        tertiaryVisible.value = visible
     }
 
     fun setBadge(text: String?, description: CharSequence? = null) {
@@ -92,6 +114,15 @@ class FloatingActionButtonsView(val context: Context) {
         if (!isVisible) return
         Box(modifier.wrapContentSize(), contentAlignment = Alignment.BottomCenter) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                if (tertiaryVisible.value) {
+                    SmallFloatingActionButton(onClick = onTertiary) {
+                        Icon(
+                            painterResource(tertiaryIcon.intValue),
+                            contentDescription = tertiaryDescription.value?.toString(),
+                        )
+                    }
+                    Spacer(Modifier.height(16.dp))
+                }
                 if (secondaryVisible.value) {
                     SmallFloatingActionButton(onClick = onSecondary) {
                         Icon(painterResource(secondaryIcon.intValue), contentDescription = null)

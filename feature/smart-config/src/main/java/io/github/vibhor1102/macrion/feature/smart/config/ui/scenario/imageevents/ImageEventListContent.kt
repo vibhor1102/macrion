@@ -68,6 +68,7 @@ import io.github.vibhor1102.macrion.feature.smart.config.ui.common.compose.tutor
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.event.UiImageEvent
 import io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.common.DualDragGestureDetector
 import io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.common.EventListRow
+import io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.common.FolderEndBoundaryRow
 import io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.common.FolderHeaderRow
 
 import sh.calvin.reorderable.ReorderableItem
@@ -126,9 +127,14 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
             val totalCount: Int,
             val enabledCount: Int,
             val isExpanded: Boolean,
-            val isUngrouped: Boolean = false,
         ) : ScenarioListItem() {
-            override val key: Any get() = "folder_$name"
+            override val key: Any get() = "folder_header_$name"
+        }
+
+        data class FolderEndBoundary(
+            val folderName: String,
+        ) : ScenarioListItem() {
+            override val key: Any get() = "folder_end_$folderName"
         }
 
         data class EventItem(
@@ -213,80 +219,64 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
                 (fromEvents + customFolders).distinct()
             }
 
+            DisposableEffect(allFolderNames, collapsedFolders) {
+                if (allFolderNames.isNotEmpty()) {
+                    val anyExpanded = allFolderNames.any { it !in collapsedFolders }
+                    dialogController.topBarBinding.extraAction = {
+                        IconButton(
+                            onClick = {
+                                collapsedFolders = if (anyExpanded) {
+                                    allFolderNames.toSet()
+                                } else {
+                                    emptySet()
+                                }
+                            },
+                        ) {
+                            Icon(
+                                painter = painterResource(
+                                    if (anyExpanded) UiR.drawable.ic_unfold_less else UiR.drawable.ic_unfold_more
+                                ),
+                                contentDescription = stringResource(
+                                    if (anyExpanded) R.string.folder_collapse_all else R.string.folder_expand_all
+                                ),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+                } else {
+                    dialogController.topBarBinding.extraAction = null
+                }
+                onDispose {
+                    dialogController.topBarBinding.extraAction = null
+                }
+            }
+
+            DisposableEffect(Unit) {
+                dialogController.floatingActionButtons.setTertiary(
+                    icon = UiR.drawable.ic_folder,
+                    visible = true,
+                    description = context.getString(R.string.folder_action_new),
+                ) {
+                    showNewFolderDialog = true
+                }
+                onDispose {
+                    dialogController.floatingActionButtons.setTertiaryVisible(false)
+                }
+            }
+
             Box(Modifier.fillMaxSize()) {
                 Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
-                when {
-                    sourceItems == null -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
-                    sourceItems?.isEmpty() == true && customFolders.isEmpty() -> EmptyState(R.string.message_empty_screen_event_title, R.string.message_empty_screen_event_desc)
-                    else -> Column(Modifier.fillMaxSize()) {
-                        // Header summary & folder actions bar
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp, vertical = 6.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                        ) {
-                            Text(
-                                text = if (allFolderNames.isNotEmpty()) {
-                                    "${allFolderNames.size} folders · ${sourceItems?.size ?: 0} events"
-                                } else {
-                                    "${sourceItems?.size ?: 0} events"
-                                },
-                                style = MaterialTheme.typography.labelLarge,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                TextButton(
-                                    onClick = { showNewFolderDialog = true },
-                                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
-                                ) {
-                                    Icon(
-                                        painter = painterResource(UiR.drawable.ic_add),
-                                        contentDescription = null,
-                                        modifier = Modifier.size(18.dp),
-                                    )
-                                    Spacer(Modifier.width(4.dp))
-                                    Text(stringResource(R.string.folder_action_new))
-                                }
-
-                                if (allFolderNames.isNotEmpty()) {
-                                    IconButton(
-                                        onClick = {
-                                            if (collapsedFolders.size >= allFolderNames.size) {
-                                                collapsedFolders = emptySet()
-                                            } else {
-                                                collapsedFolders = allFolderNames.toSet()
-                                            }
-                                        },
-                                    ) {
-                                        val allCollapsed = collapsedFolders.size >= allFolderNames.size
-                                        Icon(
-                                            painter = painterResource(
-                                                if (allCollapsed) UiR.drawable.ic_unfold_more
-                                                else UiR.drawable.ic_unfold_less
-                                            ),
-                                            contentDescription = stringResource(
-                                                if (allCollapsed) R.string.folder_expand_all
-                                                else R.string.folder_collapse_all
-                                            ),
-                                            tint = MaterialTheme.colorScheme.primary,
-                                        )
-                                    }
-                                }
-                            }
-                        }
-
-                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-
-                        LazyColumn(Modifier.fillMaxSize(), state = lazyListState) {
+                    when {
+                        sourceItems == null -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+                        sourceItems?.isEmpty() == true && customFolders.isEmpty() -> EmptyState(R.string.message_empty_screen_event_title, R.string.message_empty_screen_event_desc)
+                        else -> LazyColumn(Modifier.fillMaxSize(), state = lazyListState) {
                             itemsIndexed(
                                 items = itemsToDisplay,
                                 key = { _, item -> item.key },
                                 contentType = { _, item ->
                                     when (item) {
                                         is ScenarioListItem.FolderHeader -> "folder_header_item"
+                                        is ScenarioListItem.FolderEndBoundary -> "folder_end_item"
                                         is ScenarioListItem.EventItem -> "image_event_item"
                                     }
                                 },
@@ -298,13 +288,15 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
                                             key = listItem.key,
                                             animateItemModifier = if (reorderableState.isAnyItemDragging) Modifier.animateItem() else Modifier,
                                         ) { isBeingDragged ->
-                                            val reorderHandleModifier = Modifier
-                                                .draggableHandle(
-                                                    onDragStarted = onDragStarted,
-                                                    onDragStopped = onDragStopped,
-                                                    dragGestureDetector = DualDragGestureDetector,
-                                                )
-                                                .clearAndSetSemantics { }
+                                            val reorderHandleModifier = if (!listItem.isExpanded) {
+                                                Modifier
+                                                    .draggableHandle(
+                                                        onDragStarted = onDragStarted,
+                                                        onDragStopped = onDragStopped,
+                                                        dragGestureDetector = DualDragGestureDetector,
+                                                    )
+                                                    .clearAndSetSemantics { }
+                                            } else Modifier
 
                                             Column {
                                                 FolderHeaderRow(
@@ -328,10 +320,18 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
                                                     },
                                                     reorderHandleModifier = reorderHandleModifier,
                                                     isBeingDragged = isBeingDragged,
-                                                    isUngrouped = listItem.isUngrouped,
                                                 )
                                                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                                             }
+                                        }
+                                    }
+                                    is ScenarioListItem.FolderEndBoundary -> {
+                                        ReorderableItem(
+                                            state = reorderableState,
+                                            key = listItem.key,
+                                            animateItemModifier = if (reorderableState.isAnyItemDragging) Modifier.animateItem() else Modifier,
+                                        ) { _ ->
+                                            FolderEndBoundaryRow(folderName = listItem.folderName)
                                         }
                                     }
                                     is ScenarioListItem.EventItem -> {
@@ -341,6 +341,7 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
                                             isLastIndex = index == itemsToDisplay.lastIndex,
                                             touchExplorationEnabled = touchExplorationEnabled,
                                             reorderableState = reorderableState,
+                                            currentFolderContext = getEffectiveFolderAt(itemsToDisplay, index),
                                             onEventClick = remember(listItem.item.event) { { onEventItemClicked(listItem.item.event) } },
                                             onDragStarted = onDragStarted,
                                             onDragStopped = onDragStopped,
@@ -484,7 +485,6 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
                     },
                 )
             }
-            }
         }
     }
 
@@ -493,55 +493,70 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
         customFolders: List<String>,
         collapsedFolders: Set<String>,
     ): List<ScenarioListItem> {
-        val eventFolders = events.mapNotNull { it.folder?.trim()?.ifEmpty { null } }.distinct()
-        val allFolders = (eventFolders + customFolders).distinct()
-
-        if (allFolders.isEmpty()) {
-            return events.map { ScenarioListItem.EventItem(it, null) }
-        }
-
         val result = mutableListOf<ScenarioListItem>()
-        val eventsByFolder = events.groupBy { it.folder?.trim()?.ifEmpty { null } }
+        val processedFolders = mutableSetOf<String>()
 
-        for (folderName in allFolders) {
-            val folderEvents = eventsByFolder[folderName].orEmpty()
-            val isExpanded = folderName !in collapsedFolders
-            result.add(
-                ScenarioListItem.FolderHeader(
-                    name = folderName,
-                    totalCount = folderEvents.size,
-                    enabledCount = folderEvents.count { it.event.enabledOnStart },
-                    isExpanded = isExpanded,
-                    isUngrouped = false,
-                )
-            )
-            if (isExpanded) {
-                folderEvents.forEach { event ->
-                    result.add(ScenarioListItem.EventItem(event, folderName))
+        for (event in events) {
+            val f = event.folder?.trim()?.ifEmpty { null }
+            if (f == null) {
+                result.add(ScenarioListItem.EventItem(event, null))
+            } else {
+                if (processedFolders.add(f)) {
+                    val folderEvents = events.filter { it.folder?.trim() == f }
+                    val isExpanded = f !in collapsedFolders
+                    result.add(
+                        ScenarioListItem.FolderHeader(
+                            name = f,
+                            totalCount = folderEvents.size,
+                            enabledCount = folderEvents.count { it.event.enabledOnStart },
+                            isExpanded = isExpanded,
+                        )
+                    )
+                    if (isExpanded) {
+                        for (fe in folderEvents) {
+                            result.add(ScenarioListItem.EventItem(fe, f))
+                        }
+                        result.add(ScenarioListItem.FolderEndBoundary(f))
+                    }
                 }
             }
         }
 
-        val ungroupedEvents = eventsByFolder[null].orEmpty()
-        if (ungroupedEvents.isNotEmpty()) {
-            val isExpanded = "Ungrouped" !in collapsedFolders
-            result.add(
-                ScenarioListItem.FolderHeader(
-                    name = "Ungrouped",
-                    totalCount = ungroupedEvents.size,
-                    enabledCount = ungroupedEvents.count { it.event.enabledOnStart },
-                    isExpanded = isExpanded,
-                    isUngrouped = true,
+        // Add any empty custom folders
+        for (cf in customFolders) {
+            if (processedFolders.add(cf)) {
+                val isExpanded = cf !in collapsedFolders
+                result.add(
+                    ScenarioListItem.FolderHeader(
+                        name = cf,
+                        totalCount = 0,
+                        enabledCount = 0,
+                        isExpanded = isExpanded,
+                    )
                 )
-            )
-            if (isExpanded) {
-                ungroupedEvents.forEach { event ->
-                    result.add(ScenarioListItem.EventItem(event, null))
+                if (isExpanded) {
+                    result.add(ScenarioListItem.FolderEndBoundary(cf))
                 }
             }
         }
 
         return result
+    }
+
+    private fun getEffectiveFolderAt(items: List<ScenarioListItem>, targetIndex: Int): String? {
+        var activeFolder: String? = null
+        for (i in 0 until targetIndex.coerceAtMost(items.size)) {
+            when (val item = items[i]) {
+                is ScenarioListItem.FolderHeader -> {
+                    activeFolder = if (item.isExpanded) item.name else null
+                }
+                is ScenarioListItem.FolderEndBoundary -> {
+                    activeFolder = null
+                }
+                is ScenarioListItem.EventItem -> { /* stays same */ }
+            }
+        }
+        return activeFolder
     }
 
     private fun reconstructEventsFromVisibleItems(
@@ -556,16 +571,21 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
         for (item in visibleItems) {
             when (item) {
                 is ScenarioListItem.FolderHeader -> {
-                    currentFolder = if (item.isUngrouped) null else item.name
                     if (!item.isExpanded) {
-                        val folderEvents = allEventsByFolder[currentFolder].orEmpty()
+                        val folderEvents = allEventsByFolder[item.name].orEmpty()
                         for (uiEvent in folderEvents) {
                             val idKey = uiEvent.event.id.databaseId.let { if (it != 0L) it else -requireNotNull(uiEvent.event.id.tempId) }
                             if (seenEventIds.add(idKey)) {
-                                result.add(uiEvent.event.copy(folder = currentFolder))
+                                result.add(uiEvent.event.copy(folder = item.name))
                             }
                         }
+                        currentFolder = null
+                    } else {
+                        currentFolder = item.name
                     }
+                }
+                is ScenarioListItem.FolderEndBoundary -> {
+                    currentFolder = null
                 }
                 is ScenarioListItem.EventItem -> {
                     val idKey = item.item.event.id.databaseId.let { if (it != 0L) it else -requireNotNull(item.item.event.id.tempId) }
@@ -593,6 +613,7 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
         isLastIndex: Boolean,
         touchExplorationEnabled: Boolean,
         reorderableState: sh.calvin.reorderable.ReorderableLazyListState,
+        currentFolderContext: String?,
         onEventClick: () -> Unit,
         onDragStarted: (androidx.compose.ui.geometry.Offset) -> Unit,
         onDragStopped: () -> Unit,
@@ -653,6 +674,7 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
                     showReorderHandle = true,
                     onClick = onEventClick,
                     isBeingDragged = isBeingDragged,
+                    dragFolderFeedback = if (isBeingDragged) currentFolderContext else null,
                     reorderHandleModifier = reorderHandleModifier,
                     accessibilityActions = accessibilityActions,
                 )

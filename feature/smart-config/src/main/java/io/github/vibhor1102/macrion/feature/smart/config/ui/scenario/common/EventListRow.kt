@@ -63,6 +63,7 @@ internal fun EventListRow(
     modifier: Modifier = Modifier,
     reorderHandleModifier: Modifier = Modifier,
     isBeingDragged: Boolean = false,
+    dragFolderFeedback: String? = null,
     accessibilityActions: List<CustomAccessibilityAction> = emptyList(),
 ) {
     val rowBackground by animateColorAsState(
@@ -103,25 +104,69 @@ internal fun EventListRow(
                 maxLines = 1,
                 overflow = TextOverflow.Clip,
             )
-            Row(Modifier.fillMaxWidth().weight(1f), verticalAlignment = Alignment.CenterVertically) {
-                EventDetail(
-                    iconRes = enabledIconRes,
-                    text = androidx.compose.ui.res.stringResource(enabledTextRes),
-                    tint = null,
-                    modifier = Modifier.weight(1f),
-                )
-                EventDetail(
-                    iconRes = R.drawable.ic_click,
-                    text = actionsCount,
-                    tint = if (actionsInError) MaterialTheme.colorScheme.error else null,
-                    modifier = Modifier.weight(1f),
-                )
-                EventDetail(
-                    iconRes = conditionIconRes,
-                    text = conditionsCount,
-                    tint = null,
-                    modifier = Modifier.weight(1f),
-                )
+            if (isBeingDragged) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().weight(1f),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    androidx.compose.material3.Surface(
+                        shape = CircleShape,
+                        color = if (dragFolderFeedback != null) {
+                            MaterialTheme.colorScheme.primaryContainer
+                        } else {
+                            MaterialTheme.colorScheme.surfaceVariant
+                        },
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Icon(
+                                painter = painterResource(
+                                    if (dragFolderFeedback != null) UiR.drawable.ic_folder else UiR.drawable.ic_move
+                                ),
+                                contentDescription = null,
+                                modifier = Modifier.size(12.dp),
+                                tint = if (dragFolderFeedback != null) {
+                                    MaterialTheme.colorScheme.onPrimaryContainer
+                                } else {
+                                    MaterialTheme.colorScheme.onSurfaceVariant
+                                },
+                            )
+                            Spacer(Modifier.width(4.dp))
+                            Text(
+                                text = dragFolderFeedback ?: androidx.compose.ui.res.stringResource(R.string.folder_ungrouped_label),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = if (dragFolderFeedback != null) {
+                                    MaterialTheme.colorScheme.onPrimaryContainer
+                                } else {
+                                    MaterialTheme.colorScheme.onSurfaceVariant
+                                },
+                            )
+                        }
+                    }
+                }
+            } else {
+                Row(Modifier.fillMaxWidth().weight(1f), verticalAlignment = Alignment.CenterVertically) {
+                    EventDetail(
+                        iconRes = enabledIconRes,
+                        text = androidx.compose.ui.res.stringResource(enabledTextRes),
+                        tint = null,
+                        modifier = Modifier.weight(1f),
+                    )
+                    EventDetail(
+                        iconRes = R.drawable.ic_click,
+                        text = actionsCount,
+                        tint = if (actionsInError) MaterialTheme.colorScheme.error else null,
+                        modifier = Modifier.weight(1f),
+                    )
+                    EventDetail(
+                        iconRes = conditionIconRes,
+                        text = conditionsCount,
+                        tint = null,
+                        modifier = Modifier.weight(1f),
+                    )
+                }
             }
         }
         Spacer(Modifier.width(16.dp))
