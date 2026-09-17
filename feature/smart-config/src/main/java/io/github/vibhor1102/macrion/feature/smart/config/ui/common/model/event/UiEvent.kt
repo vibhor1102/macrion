@@ -16,10 +16,8 @@
  */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.event
 
-import androidx.compose.runtime.Immutable
 import io.github.vibhor1102.macrion.core.domain.model.event.Event
 
-@Immutable
 sealed class UiEvent {
     abstract val event: Event
 }

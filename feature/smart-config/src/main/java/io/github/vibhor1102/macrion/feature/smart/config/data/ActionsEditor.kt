@@ -47,7 +47,8 @@ internal class ActionsEditor<Parent>(
     )
 
     override fun startItemEdition(item: Action) {
-        val currentItem = editedList.value?.find { it.id == item.id } ?: item
+        val currentList = editedList.value ?: return
+        val currentItem = currentList.find { it.id == item.id } ?: item
         super.startItemEdition(currentItem)
 
         when (currentItem) {

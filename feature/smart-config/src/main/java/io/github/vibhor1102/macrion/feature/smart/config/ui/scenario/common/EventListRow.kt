@@ -14,7 +14,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -26,6 +25,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -47,7 +48,6 @@ import io.github.vibhor1102.macrion.core.ui.R as UiR
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.material3.ripple
 
 @Composable
 internal fun EventListRow(
@@ -62,6 +62,7 @@ internal fun EventListRow(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     reorderHandleModifier: Modifier = Modifier,
+    handleInteractionSource: MutableInteractionSource? = null,
     isBeingDragged: Boolean = false,
     dragFolderFeedback: String? = null,
     accessibilityActions: List<CustomAccessibilityAction> = emptyList(),
@@ -84,7 +85,11 @@ internal fun EventListRow(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (showReorderHandle) {
-            DragHandle(reorderHandleModifier, isBeingDragged)
+            DragHandle(
+                modifier = reorderHandleModifier,
+                isBeingDragged = isBeingDragged,
+                interactionSource = handleInteractionSource ?: remember { MutableInteractionSource() },
+            )
             Spacer(Modifier.width(8.dp))
         } else {
             Spacer(Modifier.width(16.dp))
@@ -176,10 +181,10 @@ internal fun EventListRow(
 /** Gives the active drag a visible state without reducing its 48dp touch target. */
 @Composable
 private fun DragHandle(
-    reorderHandleModifier: Modifier,
+    modifier: Modifier,
     isBeingDragged: Boolean,
+    interactionSource: MutableInteractionSource,
 ) {
-    val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     val isActive = isPressed || isBeingDragged
 
@@ -194,27 +199,19 @@ private fun DragHandle(
         label = "handle_container",
     )
 
-    Box(
-        modifier = Modifier
-            .size(48.dp)
-            .background(containerColor, CircleShape)
-            .clickable(
-                interactionSource = interactionSource,
-                indication = ripple(
-                    color = MaterialTheme.colorScheme.primary,
-                    bounded = true,
-                    radius = 24.dp,
-                ),
-                onClick = {},
-            )
-            .then(reorderHandleModifier),
-        contentAlignment = Alignment.Center,
+    IconButton(
+        onClick = {},
+        modifier = modifier.size(48.dp),
+        interactionSource = interactionSource,
+        colors = IconButtonDefaults.iconButtonColors(
+            containerColor = containerColor,
+            contentColor = handleTint,
+        ),
     ) {
         Icon(
             painter = painterResource(UiR.drawable.ic_drag_indicator),
             contentDescription = null,
             modifier = Modifier.size(24.dp),
-            tint = handleTint,
         )
     }
 }

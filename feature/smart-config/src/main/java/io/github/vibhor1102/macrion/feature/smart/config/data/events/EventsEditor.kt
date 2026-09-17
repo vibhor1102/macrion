@@ -45,7 +45,8 @@ internal abstract class EventsEditor<Item : Event, ChildCondition : Condition>(
 
     @Suppress("UNCHECKED_CAST")
     override fun startItemEdition(item: Item) {
-        val currentItem = editedList.value?.find { it.id == item.id } ?: item
+        val currentList = editedList.value ?: return
+        val currentItem = currentList.find { it.id == item.id } ?: item
         super.startItemEdition(currentItem)
         conditionsEditor.startEdition(currentItem.conditions as? List<ChildCondition> ?: listOf())
         actionsEditor.startEdition(currentItem.actions)

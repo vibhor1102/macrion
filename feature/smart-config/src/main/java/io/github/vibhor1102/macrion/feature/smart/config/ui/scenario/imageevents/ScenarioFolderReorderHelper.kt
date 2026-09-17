@@ -17,11 +17,6 @@ import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.event.U
  */
 sealed class ScenarioListItem {
     abstract val key: Any
-    val summary: String get() = when (this) {
-        is FolderHeader -> "Header($name, count=$totalCount, expanded=$isExpanded)"
-        is FolderEndBoundary -> "EndBoundary($folderName)"
-        is EventItem -> "Event(${item.name}, folder=$folderName)"
-    }
 
     data class FolderHeader(
         val name: String,
@@ -44,16 +39,6 @@ sealed class ScenarioListItem {
     ) : ScenarioListItem() {
         override val key: Any get() = item.event.id.let {
             if (it.databaseId != 0L) it.databaseId else -requireNotNull(it.tempId)
-        }
-    }
-}
-
-internal object ReorderLog {
-    fun d(msg: String) {
-        try {
-            android.util.Log.d("MacrionReorder", msg)
-        } catch (_: Throwable) {
-            println("[MacrionReorder] $msg")
         }
     }
 }

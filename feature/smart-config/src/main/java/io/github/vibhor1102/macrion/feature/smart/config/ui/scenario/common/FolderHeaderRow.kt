@@ -16,10 +16,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
-import androidx.compose.material3.ripple
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,7 +25,6 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -47,6 +44,7 @@ internal fun FolderHeaderRow(
     onAddEventClick: () -> Unit,
     modifier: Modifier = Modifier,
     reorderHandleModifier: Modifier = Modifier,
+    handleInteractionSource: MutableInteractionSource? = null,
     isBeingDragged: Boolean = false,
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
@@ -69,7 +67,11 @@ internal fun FolderHeaderRow(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (!isExpanded) {
-            FolderDragHandle(reorderHandleModifier, isBeingDragged)
+            FolderDragHandle(
+                modifier = reorderHandleModifier,
+                isBeingDragged = isBeingDragged,
+                interactionSource = handleInteractionSource ?: remember { MutableInteractionSource() },
+            )
         } else {
             Spacer(Modifier.width(16.dp))
         }
@@ -188,10 +190,10 @@ internal fun FolderHeaderRow(
 
 @Composable
 private fun FolderDragHandle(
-    reorderHandleModifier: Modifier,
+    modifier: Modifier,
     isBeingDragged: Boolean,
+    interactionSource: MutableInteractionSource,
 ) {
-    val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     val isActive = isPressed || isBeingDragged
 
@@ -206,28 +208,19 @@ private fun FolderDragHandle(
         label = "folder_handle_container",
     )
 
-    Box(
-        modifier = Modifier
-            .size(44.dp)
-            .background(containerColor, CircleShape)
-            .clickable(
-                interactionSource = interactionSource,
-                indication = ripple(
-                    color = MaterialTheme.colorScheme.primary,
-                    bounded = true,
-                    radius = 22.dp,
-                ),
-                onClick = {},
-            )
-            .then(reorderHandleModifier)
-            .clearAndSetSemantics { },
-        contentAlignment = Alignment.Center,
+    IconButton(
+        onClick = {},
+        modifier = modifier.size(44.dp),
+        interactionSource = interactionSource,
+        colors = IconButtonDefaults.iconButtonColors(
+            containerColor = containerColor,
+            contentColor = handleTint,
+        ),
     ) {
         Icon(
             painter = painterResource(UiR.drawable.ic_drag_indicator),
             contentDescription = null,
             modifier = Modifier.size(22.dp),
-            tint = handleTint,
         )
     }
 }

@@ -93,7 +93,8 @@ internal open class ListEditor<Item , Parent>(
 
     @CallSuper
     open fun startItemEdition(item: Item) {
-        val currentItem = _editedList.value?.find { it.id == item.id } ?: item
+        val currentList = _editedList.value ?: return
+        val currentItem = currentList.find { it.id == item.id } ?: item
 
         referenceEditedItem.value = currentItem
         _editedItem.value = currentItem

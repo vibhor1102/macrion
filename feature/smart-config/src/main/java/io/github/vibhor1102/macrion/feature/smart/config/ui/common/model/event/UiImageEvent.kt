@@ -18,11 +18,9 @@ package io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.event
 
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
-import androidx.compose.runtime.Immutable
 import io.github.vibhor1102.macrion.core.domain.model.event.ScreenEvent
 import io.github.vibhor1102.macrion.feature.smart.config.R
 
-@Immutable
 data class UiImageEvent(
     override val event: ScreenEvent,
     val name: String,

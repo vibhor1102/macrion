@@ -8,6 +8,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Test
 
 private data class TestItem(
@@ -18,6 +20,37 @@ private data class TestItem(
 }
 
 class ListEditorTest {
+
+    @Test
+    fun `item edition cannot start before the list is opened or after it is closed`() = runTest {
+        val editor = ListEditor<TestItem, String>(parentItem = MutableStateFlow("parent"))
+        val item = TestItem(Identifier(databaseId = 1L), "original")
+
+        editor.startItemEdition(item)
+        assertNull(editor.editedItem.value)
+        assertFalse(editor.isItemEditionStarted())
+        assertEquals(emptyList<TestItem>(), editor.getAllEditedItems())
+
+        editor.startEdition(listOf(item))
+        editor.startItemEdition(item)
+        editor.stopEdition()
+        editor.startItemEdition(item)
+        assertNull(editor.editedItem.value)
+        assertFalse(editor.isItemEditionStarted())
+        assertEquals(emptyList<TestItem>(), editor.getAllEditedItems())
+    }
+
+    @Test
+    fun `an open empty list accepts a new item`() = runTest {
+        val editor = ListEditor<TestItem, String>(parentItem = MutableStateFlow("parent"))
+        val item = TestItem(Identifier(databaseId = 1L), "new")
+
+        editor.startEdition(emptyList())
+        editor.startItemEdition(item)
+        assertEquals(item, editor.editedItem.value)
+        editor.upsertEditedItem()
+        assertEquals(listOf(item), editor.editedList.value)
+    }
 
     @Test
     fun `allEditedItems immediately reflects in-place updates to an existing edited item`() = runTest {

@@ -164,7 +164,6 @@ class DumbActionListContent(appContext: Context) : NavBarDialogContent(appContex
                         ReorderableItem(
                             state = reorderState,
                             key = key,
-                            animateItemModifier = if (reorderState.isAnyItemDragging) Modifier.animateItem() else Modifier,
                         ) { dragging ->
                             DumbActionListItem(
                                 details = item,
