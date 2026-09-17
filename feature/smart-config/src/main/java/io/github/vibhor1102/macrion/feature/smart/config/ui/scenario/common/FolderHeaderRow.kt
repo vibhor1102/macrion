@@ -158,7 +158,6 @@ internal fun FolderHeaderRow(
                         )
                     },
                 )
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                 DropdownMenuItem(
                     text = { Text(stringResource(R.string.folder_action_delete)) },
                     onClick = {
