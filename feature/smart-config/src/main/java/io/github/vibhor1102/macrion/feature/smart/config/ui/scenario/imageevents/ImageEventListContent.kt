@@ -43,6 +43,7 @@ import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -212,6 +213,25 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
                 allFolderNames.isNotEmpty() && allFolderNames.none { it !in collapsedFolders }
             }
 
+            val snackbarHostState = remember { SnackbarHostState() }
+            val coroutineScope = rememberCoroutineScope()
+
+            val onDisabledFolderDragClick: () -> Unit = remember(allFolderNames) {
+                {
+                    coroutineScope.launch {
+                        snackbarHostState.currentSnackbarData?.dismiss()
+                        val result = snackbarHostState.showSnackbar(
+                            message = context.getString(R.string.folder_reorder_disabled_hint),
+                            actionLabel = context.getString(R.string.folder_collapse_all),
+                            duration = SnackbarDuration.Short,
+                        )
+                        if (result == SnackbarResult.ActionPerformed) {
+                            collapsedFolders = allFolderNames.toSet()
+                        }
+                    }
+                }
+            }
+
             DisposableEffect(allFolderNames, collapsedFolders) {
                 if (allFolderNames.isNotEmpty()) {
                     val anyExpanded = allFolderNames.any { it !in collapsedFolders }
@@ -300,6 +320,7 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
                                                     enabledCount = listItem.enabledCount,
                                                     isExpanded = listItem.isExpanded,
                                                     showReorderHandle = canDragFolder,
+                                                    onDisabledHandleClick = if (!canDragFolder) onDisabledFolderDragClick else null,
                                                     onToggleExpand = {
                                                         collapsedFolders = if (listItem.isExpanded) {
                                                             collapsedFolders + listItem.name
@@ -354,6 +375,13 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
                         }
                     }
                 }
+
+                SnackbarHost(
+                    hostState = snackbarHostState,
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(start = 16.dp, end = 88.dp, bottom = 12.dp),
+                )
             }
 
             // New Folder Dialog

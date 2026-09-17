@@ -47,6 +47,7 @@ internal fun FolderHeaderRow(
     handleInteractionSource: MutableInteractionSource? = null,
     isBeingDragged: Boolean = false,
     showReorderHandle: Boolean = !isExpanded,
+    onDisabledHandleClick: (() -> Unit)? = null,
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
     val chevronRotation by animateFloatAsState(
@@ -72,6 +73,7 @@ internal fun FolderHeaderRow(
             enabled = showReorderHandle,
             isBeingDragged = isBeingDragged,
             interactionSource = handleInteractionSource ?: remember { MutableInteractionSource() },
+            onDisabledClick = onDisabledHandleClick,
         )
 
         Icon(
@@ -192,10 +194,21 @@ private fun FolderDragHandle(
     enabled: Boolean,
     isBeingDragged: Boolean,
     interactionSource: MutableInteractionSource,
+    onDisabledClick: (() -> Unit)? = null,
 ) {
     if (!enabled) {
         Box(
-            modifier = Modifier.size(44.dp),
+            modifier = Modifier
+                .size(44.dp)
+                .then(
+                    if (onDisabledClick != null) {
+                        Modifier.clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                            onClick = onDisabledClick,
+                        )
+                    } else Modifier
+                ),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
