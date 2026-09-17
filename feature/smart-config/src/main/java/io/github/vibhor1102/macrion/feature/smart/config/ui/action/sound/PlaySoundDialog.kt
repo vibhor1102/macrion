@@ -19,11 +19,11 @@ package io.github.vibhor1102.macrion.feature.smart.config.ui.action.sound
 import android.app.Dialog
 import android.util.Log
 import android.view.ViewGroup
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -33,6 +33,7 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -82,7 +83,7 @@ class PlaySoundDialog(
 
         Surface(
             shape = OverlayDialogShape,
-            modifier = Modifier.fillMaxWidth().heightIn(max = 640.dp),
+            modifier = Modifier.fillMaxWidth().heightIn(max = 420.dp),
             color = MaterialTheme.colorScheme.surface,
             contentColor = MaterialTheme.colorScheme.onSurface,
         ) {
@@ -93,6 +94,7 @@ class PlaySoundDialog(
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f, fill = false)
+                        .verticalScroll(rememberScrollState())
                         .padding(horizontal = 16.dp, vertical = 8.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
@@ -102,6 +104,14 @@ class PlaySoundDialog(
                         label = context.getString(R.string.generic_name),
                         isError = ui.nameError,
                         maxLength = context.resources.getInteger(R.integer.name_max_length),
+                    )
+
+                    SoundSelectorField(
+                        selectedTitle = ui.selectedTitle,
+                        selectedUri = ui.selectedUri,
+                        isPlaying = ui.selectedUri != null && ui.selectedUri == ui.playingPreviewUri,
+                        onTogglePreview = { ui.selectedUri?.let { viewModel.togglePreview(it) } },
+                        onClick = ::showSoundSelectionDialog,
                     )
 
                     Card(
@@ -118,27 +128,6 @@ class PlaySoundDialog(
                         )
                     }
 
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f, fill = false),
-                    ) {
-                        LazyColumn(
-                            modifier = Modifier.fillMaxWidth(),
-                            contentPadding = PaddingValues(vertical = 4.dp),
-                        ) {
-                            items(ui.sounds, key = { it.uri }) { sound ->
-                                SoundItemRow(
-                                    sound = sound,
-                                    isSelected = sound.uri == ui.selectedUri,
-                                    isPlaying = sound.uri == ui.playingPreviewUri,
-                                    onSelect = { viewModel.setSound(sound) },
-                                    onTogglePreview = { viewModel.togglePreview(sound.uri) },
-                                )
-                            }
-                        }
-                    }
-
                     Spacer(Modifier.height(4.dp))
                 }
             }
@@ -146,37 +135,69 @@ class PlaySoundDialog(
     }
 
     @Composable
-    private fun SoundItemRow(
-        sound: NotificationSoundItem,
-        isSelected: Boolean,
+    private fun SoundSelectorField(
+        selectedTitle: String?,
+        selectedUri: String?,
         isPlaying: Boolean,
-        onSelect: () -> Unit,
         onTogglePreview: () -> Unit,
+        onClick: () -> Unit,
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable(onClick = onSelect)
-                .padding(horizontal = 12.dp, vertical = 4.dp),
-            verticalAlignment = Alignment.CenterVertically,
+        OutlinedCard(
+            onClick = onClick,
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp),
+            colors = CardDefaults.outlinedCardColors(
+                containerColor = MaterialTheme.colorScheme.surface,
+            ),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
         ) {
-            RadioButton(
-                selected = isSelected,
-                onClick = onSelect,
-            )
-            Spacer(Modifier.width(8.dp))
-            Text(
-                text = sound.title,
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.weight(1f),
-            )
-            IconButton(onClick = onTogglePreview) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 16.dp, end = 8.dp, top = 10.dp, bottom = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
                 Icon(
-                    painter = painterResource(
-                        if (isPlaying) R.drawable.ic_stop else R.drawable.ic_play_arrow
-                    ),
+                    painter = painterResource(R.drawable.ic_action_play_sound),
                     contentDescription = null,
-                    tint = if (isPlaying) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(24.dp),
+                )
+                Spacer(Modifier.width(16.dp))
+                Column(
+                    modifier = Modifier.weight(1f),
+                ) {
+                    Text(
+                        text = stringResource(R.string.field_sound_selector_label),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Text(
+                        text = selectedTitle?.ifEmpty { null }
+                            ?: stringResource(R.string.default_notification_sound),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+                IconButton(
+                    onClick = onTogglePreview,
+                    enabled = !selectedUri.isNullOrBlank(),
+                ) {
+                    Icon(
+                        painter = painterResource(
+                            if (isPlaying) R.drawable.ic_stop else R.drawable.ic_play_arrow
+                        ),
+                        contentDescription = null,
+                        tint = if (isPlaying) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                Icon(
+                    painter = painterResource(R.drawable.ic_chevron_right),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(end = 4.dp),
                 )
             }
         }
@@ -226,6 +247,15 @@ class PlaySoundDialog(
         viewModel.stopPreview()
         listener.onDeleteClicked()
         super.back()
+    }
+
+    private fun showSoundSelectionDialog() {
+        viewModel.stopPreview()
+        overlayManager.navigateTo(
+            context = context,
+            newOverlay = NotificationSoundSelectionDialog(),
+            hideCurrent = true,
+        )
     }
 
     private fun onActionEditingStateChanged(isEditingAction: Boolean) {

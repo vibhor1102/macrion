@@ -131,6 +131,8 @@
     <string name="item_play_sound_details_none">No sound selected</string>
     <string name="dialog_title_play_sound">Play sound</string>
     <string name="default_notification_sound">Default notification sound</string>
+    <string name="field_sound_selector_label">Notification sound</string>
+    <string name="dialog_title_select_sound">Select sound</string>
     <string name="play_sound_tip_custom_files">Tip: To use custom sounds, place your audio files in your phone\'s Notifications folder using a file manager. They will appear here automatically.</string>
 
     <!-- Dialog Copy =============================================================================================== -->

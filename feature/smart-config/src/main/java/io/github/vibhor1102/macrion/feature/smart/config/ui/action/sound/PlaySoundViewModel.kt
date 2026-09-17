@@ -79,10 +79,17 @@ class PlaySoundViewModel @Inject constructor(
         }
     }
 
-    fun togglePreview(uri: String) {
+    fun togglePreview(uri: String?) {
+        if (uri.isNullOrBlank()) return
         if (playingPreviewUri.value == uri) {
             stopPreview()
         } else {
+            startPreview(uri)
+        }
+    }
+
+    fun playPreview(uri: String?) {
+        if (!uri.isNullOrBlank()) {
             startPreview(uri)
         }
     }
