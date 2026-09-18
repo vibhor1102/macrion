@@ -157,6 +157,8 @@ internal class ActionExecutor(
                 getOnConditionClickPath(event, click, results)
         } ?: return
 
+        click.waitBeforeMs?.takeIf { it > 0 }?.let { delay(it) }
+
         val clickGesture = GestureDescription.Builder().buildSingleStroke(
             path = clickPath,
             durationMs = click.pressDuration!!,
@@ -166,6 +168,8 @@ internal class ActionExecutor(
         withContext(Dispatchers.Main) {
             androidExecutor.dispatchGesture(clickGesture)
         }
+
+        click.waitAfterMs?.takeIf { it > 0 }?.let { delay(it) }
     }
 
     private fun getOnConditionClickPath(event: Event, click: Click, results: ConditionsResults?): Path? {
@@ -198,10 +202,12 @@ internal class ActionExecutor(
      * @param swipe the swipe to be executed.
      */
     private suspend fun executeSwipe(swipe: Swipe) {
+        if (swipe.from == null || swipe.to == null) return
+
+        swipe.waitBeforeMs?.takeIf { it > 0 }?.let { delay(it) }
+
         val swipeGesture = GestureDescription.Builder().buildSingleStroke(
-            path =
-                if (swipe.from == null || swipe.to == null) return
-                else Path().apply { line(swipe.from, swipe.to, random) },
+            path = Path().apply { line(swipe.from, swipe.to, random) },
             durationMs = swipe.swipeDuration!!,
             random = random,
         )
@@ -209,6 +215,8 @@ internal class ActionExecutor(
         withContext(Dispatchers.Main) {
             androidExecutor.dispatchGesture(swipeGesture)
         }
+
+        swipe.waitAfterMs?.takeIf { it > 0 }?.let { delay(it) }
     }
 
     /**
@@ -229,7 +237,7 @@ internal class ActionExecutor(
                         builder.addStroke(
                             path = path,
                             durationMs = subAction.swipeDuration!!,
-                            startTime = 0L,
+                            startTime = subAction.waitBeforeMs ?: 0L,
                             random = random,
                         )
                         hasValidStroke = true
@@ -241,7 +249,7 @@ internal class ActionExecutor(
                         builder.addStroke(
                             path = path,
                             durationMs = subAction.pressDuration!!,
-                            startTime = 0L,
+                            startTime = subAction.waitBeforeMs ?: 0L,
                             random = random,
                         )
                         hasValidStroke = true
@@ -255,6 +263,16 @@ internal class ActionExecutor(
             val gesture = builder.build()
             withContext(Dispatchers.Main) {
                 androidExecutor.dispatchGesture(gesture)
+            }
+            val maxWaitAfter = splitAction.subActions.maxOfOrNull {
+                when (it) {
+                    is Swipe -> it.waitAfterMs ?: 0L
+                    is Click -> it.waitAfterMs ?: 0L
+                    else -> 0L
+                }
+            } ?: 0L
+            if (maxWaitAfter > 0L) {
+                delay(maxWaitAfter)
             }
         }
     }

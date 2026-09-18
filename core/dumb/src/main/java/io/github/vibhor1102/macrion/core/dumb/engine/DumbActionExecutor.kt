@@ -72,10 +72,12 @@ class DumbActionExecutor @Inject constructor(
             is DumbAction.DumbClick -> executeDumbClick(action)
             is DumbAction.DumbSwipe -> executeDumbSwipe(action)
             is DumbAction.DumbPause -> executeDumbPause(action)
+            is DumbAction.DumbSplitAction -> executeDumbSplitAction(action)
         }
     }
 
     private suspend fun executeDumbClick(dumbClick: DumbAction.DumbClick) {
+        dumbClick.waitBeforeMs?.takeIf { it > 0 }?.let { delay(it) }
         val clickGesture = GestureDescription.Builder().buildSingleStroke(
             path = Path().apply { moveTo(dumbClick.position, random) },
             durationMs = dumbClick.pressDurationMs,
@@ -83,9 +85,11 @@ class DumbActionExecutor @Inject constructor(
         )
 
         executeRepeatableGesture(clickGesture, dumbClick)
+        dumbClick.waitAfterMs?.takeIf { it > 0 }?.let { delay(it) }
     }
 
     private suspend fun executeDumbSwipe(dumbSwipe: DumbAction.DumbSwipe) {
+        dumbSwipe.waitBeforeMs?.takeIf { it > 0 }?.let { delay(it) }
         val swipeGesture = GestureDescription.Builder().buildSingleStroke(
             path = Path().apply {
                 line(
@@ -99,6 +103,39 @@ class DumbActionExecutor @Inject constructor(
         )
 
         executeRepeatableGesture(swipeGesture, dumbSwipe)
+        dumbSwipe.waitAfterMs?.takeIf { it > 0 }?.let { delay(it) }
+    }
+
+    private suspend fun executeDumbSplitAction(splitAction: DumbAction.DumbSplitAction) {
+        splitAction.waitBeforeMs?.takeIf { it > 0 }?.let { delay(it) }
+        val builder = GestureDescription.Builder()
+        for (sub in splitAction.subActions) {
+            val startOffset = when (sub) {
+                is DumbAction.DumbClick -> sub.waitBeforeMs ?: 0L
+                is DumbAction.DumbSwipe -> sub.waitBeforeMs ?: 0L
+                else -> 0L
+            }
+            val path = Path()
+            val duration: Long
+            when (sub) {
+                is DumbAction.DumbClick -> {
+                    path.moveTo(sub.position, random)
+                    duration = sub.pressDurationMs
+                }
+                is DumbAction.DumbSwipe -> {
+                    path.line(from = sub.fromPosition, to = sub.toPosition, random = random)
+                    duration = sub.swipeDurationMs
+                }
+                else -> continue
+            }
+            builder.addStroke(
+                GestureDescription.StrokeDescription(path, startOffset, duration)
+            )
+        }
+
+        val gesture = builder.build()
+        executeRepeatableGesture(gesture, splitAction)
+        splitAction.waitAfterMs?.takeIf { it > 0 }?.let { delay(it) }
     }
 
     private suspend fun executeDumbPause(dumbPause: DumbAction.DumbPause) {

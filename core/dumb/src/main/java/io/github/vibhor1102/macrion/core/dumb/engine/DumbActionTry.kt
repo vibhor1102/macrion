@@ -51,4 +51,9 @@ private fun DumbAction.toFiniteDumbAction(scenarioId: Identifier): DumbAction =
         is DumbPause -> copy(
             scenarioId = scenarioId
         )
+        is DumbAction.DumbSplitAction -> copy(
+            scenarioId = scenarioId,
+            isRepeatInfinite = false,
+            subActions = subActions.map { it.toFiniteDumbAction(scenarioId) },
+        )
     }
