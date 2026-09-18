@@ -36,6 +36,10 @@ sealed class DumbAction : Identifiable {
             is DumbClick -> copy(scenarioId = scenarioId)
             is DumbPause -> copy(scenarioId = scenarioId)
             is DumbSwipe -> copy(scenarioId = scenarioId)
+            is DumbSplitAction -> copy(
+                scenarioId = scenarioId,
+                subActions = subActions.map { it.copyWithNewScenarioId(scenarioId) },
+            )
         }
 
     data class DumbClick(
@@ -48,6 +52,8 @@ sealed class DumbAction : Identifiable {
         override val repeatDelayMs: Long,
         val position: Point,
         val pressDurationMs: Long,
+        val waitBeforeMs: Long? = null,
+        val waitAfterMs: Long? = null,
     ) : DumbAction(), RepeatableWithDelay {
 
         override fun isValid(): Boolean =
@@ -65,9 +71,28 @@ sealed class DumbAction : Identifiable {
         val fromPosition: Point,
         val toPosition: Point,
         val swipeDurationMs: Long,
+        val waitBeforeMs: Long? = null,
+        val waitAfterMs: Long? = null,
     ) : DumbAction(), RepeatableWithDelay {
         override fun isValid(): Boolean =
             name.isNotBlank() && swipeDurationMs > 0 && isRepeatCountValid() && isRepeatDelayValid()
+    }
+
+    data class DumbSplitAction(
+        override val id: Identifier,
+        override val scenarioId: Identifier,
+        override val name: String,
+        override val priority: Int = 0,
+        override val repeatCount: Int = 1,
+        override val isRepeatInfinite: Boolean = false,
+        override val repeatDelayMs: Long = 0L,
+        val subActions: List<DumbAction> = emptyList(),
+        val waitBeforeMs: Long? = null,
+        val waitAfterMs: Long? = null,
+    ) : DumbAction(), RepeatableWithDelay {
+
+        override fun isValid(): Boolean =
+            name.isNotBlank() && subActions.size >= 2 && subActions.all { it.isValid() } && isRepeatCountValid() && isRepeatDelayValid()
     }
 
     data class DumbPause(

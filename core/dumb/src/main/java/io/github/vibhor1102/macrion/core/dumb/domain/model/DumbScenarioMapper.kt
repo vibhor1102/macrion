@@ -31,9 +31,15 @@ internal fun DumbScenarioWithActions.toDomain(asDomain: Boolean = false): DumbSc
         maxDurationMin = scenario.maxDurationMin,
         isDurationInfinite = scenario.isDurationInfinite,
         randomize = scenario.randomize,
-        dumbActions = dumbActions
-            .sortedBy { it.priority }
-            .map { dumbAction -> dumbAction.toDomain(asDomain) },
+        dumbActions = if (dumbActionsWithSubActions.isNotEmpty()) {
+            dumbActionsWithSubActions
+                .sortedBy { it.action.priority }
+                .map { it.toDomain(asDomain) }
+        } else {
+            dumbActions
+                .sortedBy { it.priority }
+                .map { dumbAction -> dumbAction.toDomain(asDomain) }
+        },
         stats = stats.toDomain(),
     )
 

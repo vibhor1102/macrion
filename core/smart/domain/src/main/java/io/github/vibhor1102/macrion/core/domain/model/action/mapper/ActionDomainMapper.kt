@@ -55,7 +55,9 @@ private fun CompleteActionEntity.toDomainClick(cleanIds: Boolean = false) = Clic
     clickOnConditionId = action.clickOnConditionId?.let { Identifier(id = it, asTemporary = cleanIds) },
     clickOffset =
         if (action.clickOffsetX != null && action.clickOffsetY != null) Point(action.clickOffsetX!!, action.clickOffsetY!!)
-        else null
+        else null,
+    waitBeforeMs = action.waitBeforeMs,
+    waitAfterMs = action.waitAfterMs,
 )
 
 private fun CompleteActionEntity.toDomainSwipe(cleanIds: Boolean = false) = Swipe(
@@ -66,6 +68,8 @@ private fun CompleteActionEntity.toDomainSwipe(cleanIds: Boolean = false) = Swip
     swipeDuration = action.swipeDuration!!,
     from = getPositionIfValid(action.fromX, action.fromY),
     to = getPositionIfValid(action.toX, action.toY),
+    waitBeforeMs = action.waitBeforeMs,
+    waitAfterMs = action.waitAfterMs,
 )
 
 private fun CompleteActionEntity.toDomainPause(cleanIds: Boolean = false) = Pause(
@@ -199,6 +203,8 @@ private fun CompleteActionEntity.toDomainSplitAction(cleanIds: Boolean = false) 
                 swipeDuration = item.duration,
                 from = getPositionIfValid(item.fromX, item.fromY),
                 to = getPositionIfValid(item.toX, item.toY),
+                waitBeforeMs = item.startOffset.takeIf { it > 0 },
+                waitAfterMs = item.waitAfterMs,
             )
             ActionType.CLICK -> Click(
                 id = Identifier(id = item.id, asTemporary = cleanIds),
@@ -208,6 +214,8 @@ private fun CompleteActionEntity.toDomainSplitAction(cleanIds: Boolean = false) 
                 pressDuration = item.duration ?: 50L,
                 positionType = Click.PositionType.USER_SELECTED,
                 position = getPositionIfValid(item.fromX, item.fromY),
+                waitBeforeMs = item.startOffset.takeIf { it > 0 },
+                waitAfterMs = item.waitAfterMs,
             )
             else -> Swipe(
                 id = Identifier(id = item.id, asTemporary = cleanIds),
@@ -217,6 +225,8 @@ private fun CompleteActionEntity.toDomainSplitAction(cleanIds: Boolean = false) 
                 swipeDuration = item.duration,
                 from = getPositionIfValid(item.fromX, item.fromY),
                 to = getPositionIfValid(item.toX, item.toY),
+                waitBeforeMs = item.startOffset.takeIf { it > 0 },
+                waitAfterMs = item.waitAfterMs,
             )
         }
     }

@@ -251,8 +251,23 @@ internal object KlickrCompatibilityProjector {
         return violations
     }
 
-    fun projectDumbScenario(scenario: DumbScenarioWithActions): KlickrCompatibilityProjection<DumbScenarioWithActions> =
-        KlickrCompatibilityProjection(scenario.detachedCopy())
+    fun projectDumbScenario(scenario: DumbScenarioWithActions): KlickrCompatibilityProjection<DumbScenarioWithActions> {
+        val detached = scenario.detachedCopy()
+        val losses = mutableListOf<KlickrCompatibilityLoss>()
+        val compatibleActions = detached.dumbActions.filterNot { it.type == io.github.vibhor1102.macrion.core.dumb.data.database.DumbActionType.SPLIT_ACTION }
+        val removed = detached.dumbActions.size - compatibleActions.size
+        if (removed > 0) {
+            losses += KlickrCompatibilityLoss(
+                reason = KlickrCompatibilityLossReason.UNSUPPORTED_COMPONENT,
+                componentCount = removed,
+                scenarioId = detached.scenario.id,
+            )
+        }
+        return KlickrCompatibilityProjection(
+            value = detached.copy(dumbActions = compatibleActions),
+            losses = losses,
+        )
+    }
 }
 
 private fun CompleteScenario.detachedCopy(): CompleteScenario = copy(

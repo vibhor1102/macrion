@@ -71,5 +71,11 @@ data class DumbScenarioWithActions(
         entityColumn = "dumb_scenario_id"
     )
     val stats: DumbScenarioStatsEntity?,
-
+    @kotlinx.serialization.Transient
+    @Relation(
+        entity = DumbActionEntity::class,
+        parentColumn = "id",
+        entityColumn = "dumb_scenario_id"
+    )
+    val dumbActionsWithSubActions: List<DumbActionWithSubActions> = emptyList(),
 )

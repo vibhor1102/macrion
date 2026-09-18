@@ -43,4 +43,4 @@ internal const val SPLIT_ACTION_ITEM_TABLE = "split_action_item_table"
 internal const val END_CONDITION_TABLE = "end_condition_table"
 
 /** Current version of the database. */
-const val DATABASE_VERSION = 31
+const val DATABASE_VERSION = 32

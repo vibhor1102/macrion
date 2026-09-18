@@ -67,7 +67,23 @@ data class DumbActionEntity(
 
     // ActionType.PAUSE
     @ColumnInfo(name = "pause_duration") val pauseDuration: Long? = null,
+
+    // Inbuilt delays
+    @ColumnInfo(name = "wait_before_ms") val waitBeforeMs: Long? = null,
+    @ColumnInfo(name = "wait_after_ms") val waitAfterMs: Long? = null,
 ) : EntityWithId
+
+/**
+ * Entity embedding a dumb action and its split action strokes.
+ */
+data class DumbActionWithSubActions(
+    @androidx.room.Embedded val action: DumbActionEntity,
+    @androidx.room.Relation(
+        parentColumn = "id",
+        entityColumn = "action_id"
+    )
+    val splitItems: List<DumbSplitActionItemEntity> = emptyList(),
+)
 
 /**
  * Type of [DumbActionEntity].
@@ -83,6 +99,8 @@ enum class DumbActionType {
     SWIPE,
     /** A pause, waiting before the next action. */
     PAUSE,
+    /** A composite multi-stroke gesture (e.g. pinch or dual-finger swipe). */
+    SPLIT_ACTION,
 }
 
 /** Type converter to read/write the [DumbActionType] into the database. */

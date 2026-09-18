@@ -136,4 +136,20 @@ interface DumbScenarioDao {
      */
     @Update
     suspend fun updateScenarioStats(stats: DumbScenarioStatsEntity)
+
+    /** Get the split action items for an action. */
+    @Query("SELECT * FROM dumb_split_action_item_table WHERE action_id = :actionId ORDER BY priority ASC")
+    suspend fun getSplitActionItems(actionId: Long): List<DumbSplitActionItemEntity>
+
+    /** Add new split action items. */
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun addSplitActionItems(items: List<DumbSplitActionItemEntity>): List<Long>
+
+    /** Update split action items. */
+    @Update
+    suspend fun updateSplitActionItems(items: List<DumbSplitActionItemEntity>)
+
+    /** Delete split action items. */
+    @Delete
+    suspend fun deleteSplitActionItems(items: List<DumbSplitActionItemEntity>)
 }

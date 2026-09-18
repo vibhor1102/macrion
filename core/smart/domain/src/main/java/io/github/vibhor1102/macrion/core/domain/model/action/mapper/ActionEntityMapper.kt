@@ -72,6 +72,8 @@ private fun Click.toClickEntity(): ActionEntity =
         clickOnConditionId = clickOnConditionId?.databaseId,
         clickOffsetX = clickOffset?.x,
         clickOffsetY = clickOffset?.y,
+        waitBeforeMs = waitBeforeMs,
+        waitAfterMs = waitAfterMs,
     )
 
 private fun Swipe.toSwipeEntity(): ActionEntity =
@@ -86,6 +88,8 @@ private fun Swipe.toSwipeEntity(): ActionEntity =
         fromY = from?.y,
         toX = to?.x,
         toY = to?.y,
+        waitBeforeMs = waitBeforeMs,
+        waitAfterMs = waitAfterMs,
     )
 
 private fun Pause.toPauseEntity(): ActionEntity =
@@ -225,6 +229,8 @@ internal fun Action.toSplitItemEntity(actionDbId: Long, itemPriority: Int): Spli
             toX = to?.x,
             toY = to?.y,
             duration = swipeDuration,
+            startOffset = waitBeforeMs ?: 0L,
+            waitAfterMs = waitAfterMs,
         )
         is Click -> SplitActionItemEntity(
             id = id.databaseId,
@@ -234,6 +240,8 @@ internal fun Action.toSplitItemEntity(actionDbId: Long, itemPriority: Int): Spli
             fromX = position?.x,
             fromY = position?.y,
             duration = pressDuration,
+            startOffset = waitBeforeMs ?: 0L,
+            waitAfterMs = waitAfterMs,
         )
         else -> SplitActionItemEntity(
             id = id.databaseId,

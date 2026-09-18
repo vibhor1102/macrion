@@ -181,6 +181,10 @@ data class ActionEntity(
     // ActionType.CAPTURE_SCREENSHOT
     @ColumnInfo(name = "screenshot_folder_uri") val screenshotFolderUri: String? = null,
     @ColumnInfo(name = "screenshot_folder_name") val screenshotFolderName: String? = null,
+
+    // Delays (Optional)
+    @ColumnInfo(name = "wait_before_ms") val waitBeforeMs: Long? = null,
+    @ColumnInfo(name = "wait_after_ms") val waitAfterMs: Long? = null,
 ) : EntityWithId
 
 /**

@@ -29,11 +29,13 @@ import javax.inject.Singleton
         DumbScenarioEntity::class,
         DumbActionEntity::class,
         DumbScenarioStatsEntity::class,
+        DumbSplitActionItemEntity::class,
     ],
     version = DUMB_DATABASE_VERSION,
     exportSchema = true,
     autoMigrations = [
-        AutoMigration (from = 1, to = 2),
+        AutoMigration(from = 1, to = 2),
+        AutoMigration(from = 3, to = 4),
     ]
 )
 @TypeConverters(
@@ -47,4 +49,4 @@ abstract class DumbDatabase : RoomDatabase() {
 }
 
 /** Current version of the database. */
-const val DUMB_DATABASE_VERSION = 3
+const val DUMB_DATABASE_VERSION = 4
