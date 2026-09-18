@@ -55,11 +55,19 @@ sealed class DumbActionTypeChoice(
         R.string.item_desc_dumb_pause,
         R.drawable.ic_wait,
     )
+
+    /** Zoom In / Out Action choice. */
+    data object Zoom : DumbActionTypeChoice(
+        R.string.item_title_dumb_zoom,
+        R.string.item_desc_dumb_zoom,
+        io.github.vibhor1102.macrion.core.ui.R.drawable.ic_pinch,
+    )
 }
 
 fun allDumbActionChoices() = listOf(
     DumbActionTypeChoice.Copy,
     DumbActionTypeChoice.Click,
     DumbActionTypeChoice.Swipe,
+    DumbActionTypeChoice.Zoom,
     DumbActionTypeChoice.Pause,
 )

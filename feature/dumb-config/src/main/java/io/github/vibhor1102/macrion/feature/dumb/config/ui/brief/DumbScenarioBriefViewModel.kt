@@ -32,6 +32,7 @@ import io.github.vibhor1102.macrion.core.dumb.engine.DumbEngine
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.ItemBriefDescription
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.ClickDescription
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.PauseDescription
+import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.SplitDescription
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.SwipeDescription
 import io.github.vibhor1102.macrion.feature.dumb.config.domain.DumbEditionRepository
 import io.github.vibhor1102.macrion.feature.dumb.config.ui.actions.copy.DumbActionDetails
@@ -57,7 +58,7 @@ import javax.inject.Inject
 
 
 class DumbScenarioBriefViewModel @Inject constructor(
-    @ApplicationContext context: Context,
+    @ApplicationContext private val context: Context,
     @param:Dispatcher(Main) private val mainDispatcher: CoroutineDispatcher,
     private val dumbEditionRepository: DumbEditionRepository,
     private val dumbEngine: DumbEngine,
@@ -84,6 +85,11 @@ class DumbScenarioBriefViewModel @Inject constructor(
             }
         }
         .filterNotNull()
+
+    val combinableDumbActions: Flow<List<DumbActionDetails>> = dumbActionsBriefList.map { list ->
+        list.mapNotNull { it.data as? DumbActionDetails }
+            .filter { it.action is DumbAction.DumbClick || it.action is DumbAction.DumbSwipe || it.action is DumbAction.DumbSplitAction }
+    }
 
     private val focusedAction: Flow<Pair<DumbAction?, Boolean>> =
         combine(briefVisualizationState, dumbEditionRepository.editedDumbScenario) { visualizationState, scenario ->
@@ -148,6 +154,25 @@ class DumbScenarioBriefViewModel @Inject constructor(
     fun createNewDumbPause(context: Context, ): DumbAction.DumbPause =
         dumbEditionRepository.dumbActionBuilder.createNewDumbPause(context)
 
+    fun createNewDumbZoomInOut(context: Context): DumbAction.DumbSplitAction =
+        dumbEditionRepository.dumbActionBuilder.createNewDumbZoomInOut(context)
+
+    fun combineWithNewSwipe(action: DumbAction): DumbAction.DumbSplitAction? {
+        val newSwipe = dumbEditionRepository.dumbActionBuilder.createNewDumbSwipe(
+            context = context,
+            from = Point(0, 0),
+            to = Point(0, 0),
+        ).copy(name = "Swipe 2")
+        return dumbEditionRepository.combineActionWithNew(action, newSwipe)
+    }
+
+    fun combineActions(actionA: DumbAction, actionB: DumbAction): DumbAction.DumbSplitAction? =
+        dumbEditionRepository.combineActions(actionA, actionB)
+
+    fun unsplitAction(splitAction: DumbAction.DumbSplitAction) {
+        dumbEditionRepository.unsplitAction(splitAction)
+    }
+
     fun createDumbActionCopy(actionToCopy: DumbAction): DumbAction =
         dumbEditionRepository.dumbActionBuilder.createNewDumbActionFrom(actionToCopy)
 
@@ -207,6 +232,15 @@ class DumbScenarioBriefViewModel @Inject constructor(
                 to = to?.toPoint() ?: Point(0, 0),
             )
 
+            is SplitDescription -> {
+                val subDumbActions = subDescriptions.mapNotNull { it.toDumbAction(context) }
+                if (subDumbActions.isNotEmpty()) {
+                    dumbEditionRepository.dumbActionBuilder.createNewDumbZoomInOut(context).copy(
+                        subActions = subDumbActions
+                    )
+                } else null
+            }
+
             else -> null
         }
 
@@ -225,6 +259,10 @@ class DumbScenarioBriefViewModel @Inject constructor(
 
             is DumbAction.DumbPause -> PauseDescription(
                 pauseDurationMs = pauseDurationMs,
+            )
+
+            is DumbAction.DumbSplitAction -> SplitDescription(
+                subDescriptions = subActions.map { it.toBriefDescription() }
             )
         }
 }

@@ -39,6 +39,7 @@ data class DumbActionDetails (
     val repeatCountText: String?,
     val haveError: Boolean,
     val action: DumbAction,
+    val subActionDetails: List<DumbActionDetails> = emptyList(),
 )
 
 /** @return the [DumbActionDetails] corresponding to this action. */
@@ -51,7 +52,22 @@ fun DumbAction.toDumbActionDetails(
         is DumbAction.DumbClick -> toClickDetails(context, withPositions, inError)
         is DumbAction.DumbSwipe -> toSwipeDetails(context, withPositions, inError)
         is DumbAction.DumbPause -> toPauseDetails(context, withPositions, inError)
+        is DumbAction.DumbSplitAction -> toSplitDetails(context, withPositions, inError)
     }
+
+private fun DumbAction.DumbSplitAction.toSplitDetails(context: Context, withPositions: Boolean, inError: Boolean): DumbActionDetails =
+    DumbActionDetails(
+        icon = io.github.vibhor1102.macrion.core.ui.R.drawable.ic_pinch,
+        name = name,
+        detailsText = when {
+            inError -> context.getString(R.string.item_error_action_invalid_generic)
+            else -> context.getString(R.string.item_desc_dumb_zoom)
+        },
+        repeatCountText = getRepeatDisplayText(context),
+        haveError = inError,
+        action = this,
+        subActionDetails = subActions.map { it.toDumbActionDetails(context, withPositions) },
+    )
 
 private fun DumbAction.DumbClick.toClickDetails(context: Context, withPositions: Boolean, inError: Boolean): DumbActionDetails =
     DumbActionDetails(

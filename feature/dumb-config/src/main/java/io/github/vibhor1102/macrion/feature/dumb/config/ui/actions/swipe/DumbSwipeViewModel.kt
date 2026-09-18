@@ -82,6 +82,16 @@ class DumbSwipeViewModel @Inject constructor(
     val repeatDelayError: Flow<Boolean> = editedDumbSwipe
         .map { !it.isRepeatDelayValid() }
 
+    /** Delay before starting the swipe. */
+    val waitBefore: Flow<String> = editedDumbSwipe
+        .map { it.waitBeforeMs?.toString() ?: "" }
+        .take(1)
+
+    /** Delay after finishing the swipe. */
+    val waitAfter: Flow<String> = editedDumbSwipe
+        .map { it.waitAfterMs?.toString() ?: "" }
+        .take(1)
+
     /** Subtext for the position selector. */
     val swipePositionText: Flow<String> = editedDumbSwipe
         .map { dumbSwipe ->
@@ -93,6 +103,14 @@ class DumbSwipeViewModel @Inject constructor(
                 dumbSwipe.toPosition.y,
             )
         }
+
+    fun setWaitBeforeMs(waitBefore: Long?) {
+        _editedDumbSwipe.value = _editedDumbSwipe.value?.copy(waitBeforeMs = waitBefore)
+    }
+
+    fun setWaitAfterMs(waitAfter: Long?) {
+        _editedDumbSwipe.value = _editedDumbSwipe.value?.copy(waitAfterMs = waitAfter)
+    }
 
     fun setEditedDumbSwipe(swipe: DumbAction.DumbSwipe) {
         _editedDumbSwipe.value = swipe.copy()

@@ -29,6 +29,7 @@ import io.github.vibhor1102.macrion.feature.dumb.config.ui.scenario.config.DumbS
 
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
+import io.github.vibhor1102.macrion.feature.dumb.config.ui.actions.split.DumbSplitActionViewModel
 
 @EntryPoint
 @InstallIn(OverlayComponent::class)
@@ -42,4 +43,5 @@ interface DumbConfigViewModelsEntryPoint {
     fun dumbScenarioViewModel(): DumbScenarioViewModel
     fun dumbScenarioConfigContentViewModel(): DumbScenarioConfigContentViewModel
     fun dumbSwipeViewModel(): DumbSwipeViewModel
+    fun dumbSplitActionViewModel(): DumbSplitActionViewModel
 }

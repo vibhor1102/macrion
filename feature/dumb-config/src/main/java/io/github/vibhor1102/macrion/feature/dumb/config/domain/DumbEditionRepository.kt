@@ -163,11 +163,96 @@ class DumbEditionRepository @Inject constructor(
         )
     }
 
+    fun unsplitAction(splitAction: DumbAction.DumbSplitAction) {
+        val editedScenario = _editedDumbScenario.value ?: return
+        val currentActions = editedScenario.dumbActions.toMutableList()
+        val index = currentActions.indexOfFirst { it.id == splitAction.id }
+        if (index == -1) return
+        currentActions.removeAt(index)
+        val standaloneActions = splitAction.subActions.mapIndexed { i, sub ->
+            when (sub) {
+                is DumbAction.DumbSwipe -> sub.copy(
+                    id = dumbActionBuilder.generateNewIdentifier(),
+                    scenarioId = editedScenario.id,
+                    name = sub.name.ifBlank { "Swipe ${i + 1}" },
+                    priority = index + i,
+                )
+                is DumbAction.DumbClick -> sub.copy(
+                    id = dumbActionBuilder.generateNewIdentifier(),
+                    scenarioId = editedScenario.id,
+                    name = sub.name.ifBlank { "Click ${i + 1}" },
+                    priority = index + i,
+                )
+                is DumbAction.DumbPause -> sub.copy(
+                    id = dumbActionBuilder.generateNewIdentifier(),
+                    scenarioId = editedScenario.id,
+                    priority = index + i,
+                )
+                is DumbAction.DumbSplitAction -> sub.copy(
+                    id = dumbActionBuilder.generateNewIdentifier(),
+                    scenarioId = editedScenario.id,
+                    priority = index + i,
+                )
+            }
+        }
+        currentActions.addAll(index, standaloneActions)
+        updateDumbActions(currentActions)
+    }
+
+    fun combineActions(actionA: DumbAction, actionB: DumbAction): DumbAction.DumbSplitAction? {
+        val editedScenario = _editedDumbScenario.value ?: return null
+        val currentList = editedScenario.dumbActions.toMutableList()
+        val idxA = currentList.indexOfFirst { it.id == actionA.id }
+        val idxB = currentList.indexOfFirst { it.id == actionB.id }
+        if (idxA == -1 || idxB == -1) return null
+
+        val insertIndex = minOf(idxA, idxB)
+        currentList.removeAll { it.id == actionA.id || it.id == actionB.id }
+
+        val splitAction = DumbAction.DumbSplitAction(
+            id = dumbActionBuilder.generateNewIdentifier(),
+            scenarioId = editedScenario.id,
+            name = "Zoom",
+            priority = insertIndex,
+            subActions = listOf(
+                actionA.copyWithNewPriority(0),
+                actionB.copyWithNewPriority(1),
+            ),
+        )
+
+        currentList.add(insertIndex, splitAction)
+        updateDumbActions(currentList)
+        return splitAction
+    }
+
+    fun combineActionWithNew(action: DumbAction, newSubAction: DumbAction): DumbAction.DumbSplitAction? {
+        val editedScenario = _editedDumbScenario.value ?: return null
+        val currentList = editedScenario.dumbActions.toMutableList()
+        val idx = currentList.indexOfFirst { it.id == action.id }
+        if (idx == -1) return null
+
+        val splitAction = DumbAction.DumbSplitAction(
+            id = dumbActionBuilder.generateNewIdentifier(),
+            scenarioId = editedScenario.id,
+            name = "Zoom",
+            priority = action.priority,
+            subActions = listOf(
+                action.copyWithNewPriority(0),
+                newSubAction.copyWithNewPriority(1),
+            ),
+        )
+
+        currentList[idx] = splitAction
+        updateDumbActions(currentList)
+        return splitAction
+    }
+
     private fun DumbAction.copyWithNewPriority(priority: Int): DumbAction =
         when (this) {
             is DumbAction.DumbClick -> copy(priority = priority)
             is DumbAction.DumbPause -> copy(priority = priority)
             is DumbAction.DumbSwipe -> copy(priority = priority)
+            is DumbAction.DumbSplitAction -> copy(priority = priority)
         }
 
     private fun MutableList<DumbAction>.updatePriorities(range: IntRange = indices) {

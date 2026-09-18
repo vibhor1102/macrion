@@ -44,14 +44,20 @@ class DumbSwipeDialog(
         val initialDuration by viewModel.swipeDuration.collectAsStateWithLifecycle(initialValue = null)
         val initialCount by viewModel.repeatCount.collectAsStateWithLifecycle(initialValue = null)
         val initialDelay by viewModel.repeatDelay.collectAsStateWithLifecycle(initialValue = null)
+        val initialWaitBefore by viewModel.waitBefore.collectAsStateWithLifecycle(initialValue = null)
+        val initialWaitAfter by viewModel.waitAfter.collectAsStateWithLifecycle(initialValue = null)
         var name by remember { mutableStateOf("") }
         var duration by remember { mutableStateOf("") }
         var count by remember { mutableStateOf("") }
         var delay by remember { mutableStateOf("") }
+        var waitBefore by remember { mutableStateOf("") }
+        var waitAfter by remember { mutableStateOf("") }
         LaunchedEffect(initialName) { initialName?.let { name = it } }
         LaunchedEffect(initialDuration) { initialDuration?.let { duration = it } }
         LaunchedEffect(initialCount) { initialCount?.let { count = it } }
         LaunchedEffect(initialDelay) { initialDelay?.let { delay = it } }
+        LaunchedEffect(initialWaitBefore) { initialWaitBefore?.let { waitBefore = it } }
+        LaunchedEffect(initialWaitAfter) { initialWaitAfter?.let { waitAfter = it } }
         MacrionGestureEditor(
             title = context.getString(R.string.item_title_dumb_swipe), name = name, duration = duration,
             repeatCount = count, repeatDelay = delay,
@@ -69,11 +75,15 @@ class DumbSwipeDialog(
             saveEnabled = viewModel.isValidDumbSwipe.collectAsStateWithLifecycle(false).value,
             maxNameLength = context.resources.getInteger(R.integer.name_max_length),
             infiniteRepeatIcon = R.drawable.ic_infinite,
+            waitBefore = waitBefore,
+            waitAfter = waitAfter,
             onNameChanged = { name = it; viewModel.setName(it) },
             onDurationChanged = { duration = it; viewModel.setPressDurationMs(it.toLongOrNull() ?: 0) },
             onRepeatCountChanged = { count = it; viewModel.setRepeatCount(it.toIntOrNull() ?: 0) },
             onRepeatDelayChanged = { delay = it; viewModel.setRepeatDelay(it.toLongOrNull() ?: 0) },
             onInfiniteRepeatChanged = viewModel::toggleInfiniteRepeat,
+            onWaitBeforeChanged = { waitBefore = it; viewModel.setWaitBeforeMs(it.toLongOrNull()) },
+            onWaitAfterChanged = { waitAfter = it; viewModel.setWaitAfterMs(it.toLongOrNull()) },
             onPositionClicked = ::onPositionCardClicked,
             onDismiss = { onDismissClicked(); back() },
             onDelete = { viewModel.getEditedDumbSwipe()?.let(onDeleteClicked); back() },

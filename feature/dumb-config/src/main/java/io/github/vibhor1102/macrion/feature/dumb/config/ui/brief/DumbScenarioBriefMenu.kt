@@ -56,6 +56,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
 
 class DumbScenarioBriefMenu(
@@ -105,17 +107,20 @@ class DumbScenarioBriefMenu(
             createNewDumbClick = { position -> viewModel.createNewDumbClick(context, position) },
             createNewDumbSwipe = { from, to -> viewModel.createNewDumbSwipe(context, from, to) },
             createNewDumbPause = { viewModel.createNewDumbPause(context) },
+            createNewDumbZoomInOut = { viewModel.createNewDumbZoomInOut(context) },
             createDumbActionCopy = viewModel::createDumbActionCopy,
         )
         createCopyActionUiFlowListener = DumbActionUiFlowListener(
             onDumbActionSaved = { action -> viewModel.addNewDumbAction(action, getFocusedItemIndex() + 1) },
             onDumbActionDeleted = {},
             onDumbActionCreationCancelled = {},
+            onDumbActionUnsplit = { split -> viewModel.unsplitAction(split) },
         )
         updateActionUiFlowListener = DumbActionUiFlowListener(
             onDumbActionSaved = viewModel::updateDumbAction,
             onDumbActionDeleted = viewModel::deleteDumbAction,
             onDumbActionCreationCancelled = {},
+            onDumbActionUnsplit = { split -> viewModel.unsplitAction(split) },
         )
 
         menuView = createDumbBriefOverlayToolbar(context)
@@ -124,7 +129,38 @@ class DumbScenarioBriefMenu(
 
     @androidx.compose.runtime.Composable
     override fun ItemBriefContent(item: ItemBrief, orientation: Int, onClick: () -> Unit) {
-        DumbActionBriefItem(item.data as DumbActionDetails, orientation, onClick)
+        val details = item.data as DumbActionDetails
+        val combinableActions by viewModel.combinableDumbActions.collectAsStateWithLifecycle(emptyList())
+        DumbActionBriefItem(
+            details = details,
+            orientation = orientation,
+            onClick = onClick,
+            onSubActionClick = { subIndex ->
+                val action = details.action
+                if (action is DumbAction.DumbSplitAction) {
+                    showDumbSubActionEditionUiFlow(action, subIndex)
+                }
+            },
+            combinableActions = combinableActions,
+            onCombineWithNewSwipe = {
+                val split = viewModel.combineWithNewSwipe(details.action)
+                if (split != null) {
+                    showDumbActionEditionUiFlow(split)
+                }
+            },
+            onCombineWithAction = { otherAction ->
+                val split = viewModel.combineActions(details.action, otherAction)
+                if (split != null) {
+                    showDumbActionEditionUiFlow(split)
+                }
+            },
+            onUnsplit = {
+                val action = details.action
+                if (action is DumbAction.DumbSplitAction) {
+                    viewModel.unsplitAction(action)
+                }
+            },
+        )
     }
 
     override fun onScreenOverlayVisibilityChanged(isVisible: Boolean) {
@@ -307,4 +343,34 @@ class DumbScenarioBriefMenu(
             listener = updateActionUiFlowListener,
         )
 
+    private fun showDumbSubActionEditionUiFlow(parent: DumbAction.DumbSplitAction, subIndex: Int) {
+        val subAction = parent.subActions.getOrNull(subIndex) ?: return
+        overlayManager.startDumbActionEditionUiFlow(
+            context = context,
+            dumbAction = subAction,
+            listener = DumbActionUiFlowListener(
+                onDumbActionSaved = { updatedSubAction ->
+                    val updatedSubActions = parent.subActions.toMutableList()
+                    if (subIndex in updatedSubActions.indices) {
+                        updatedSubActions[subIndex] = updatedSubAction
+                        val updatedParent = parent.copy(subActions = updatedSubActions)
+                        viewModel.updateDumbAction(updatedParent)
+                    }
+                },
+                onDumbActionDeleted = {
+                    if (parent.subActions.size > 2) {
+                        val updatedSubActions = parent.subActions.toMutableList()
+                        if (subIndex in updatedSubActions.indices) {
+                            updatedSubActions.removeAt(subIndex)
+                            val updatedParent = parent.copy(subActions = updatedSubActions)
+                            viewModel.updateDumbAction(updatedParent)
+                        }
+                    } else {
+                        viewModel.deleteDumbAction(parent)
+                    }
+                },
+                onDumbActionCreationCancelled = {},
+            ),
+        )
+    }
 }

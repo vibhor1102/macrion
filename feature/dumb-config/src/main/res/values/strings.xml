@@ -106,4 +106,18 @@
       - DO NOT TRANSLATE.
       -->
     <string name="title_action_count" translatable="false">%1$d/%2$d</string>
+
+    <string name="action_type_zoom">Zoom In / Out</string>
+    <string name="item_desc_dumb_zoom">Perform simultaneous touch gestures</string>
+    <string name="item_title_dumb_zoom">Zoom In / Out</string>
+    <string name="action_combine_with_new_swipe">Combine with new swipe</string>
+    <string name="action_combine_with">Combine with \"%1$s\"</string>
+    <string name="action_unsplit">Unsplit into separate actions</string>
+    <string name="action_edit_gestures">Configure gestures</string>
+    <string name="action_edit_stroke">Edit %1$s</string>
+    <string name="dialog_title_split_action">Zoom In / Out</string>
+    <string name="split_action_touch_actions_header">Touch Strokes</string>
+    <string name="split_action_add_swipe">Add Swipe</string>
+    <string name="split_action_add_click">Add Tap</string>
+    <string name="split_action_unsplit">Unsplit</string>
 </resources>
