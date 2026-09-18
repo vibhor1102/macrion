@@ -53,9 +53,6 @@ class SettingsViewModel @Inject constructor(
     val isStopConfirmationEnabled: Flow<Boolean> =
         settingsRepository.isStopConfirmationEnabledFlow
 
-    val isLegacyActionUiEnabled: Flow<Boolean> =
-        settingsRepository.isLegacyActionUiEnabledFlow
-
     val isLegacyNotificationUiEnabled: Flow<Boolean> =
         settingsRepository.isLegacyNotificationUiEnabledFlow
 
@@ -94,10 +91,6 @@ class SettingsViewModel @Inject constructor(
 
     fun toggleStopConfirmation() {
         settingsRepository.toggleStopConfirmation()
-    }
-
-    fun toggleLegacyActionUi() {
-        settingsRepository.toggleLegacyActionUi()
     }
 
     fun toggleLegacyNotificationUi() {

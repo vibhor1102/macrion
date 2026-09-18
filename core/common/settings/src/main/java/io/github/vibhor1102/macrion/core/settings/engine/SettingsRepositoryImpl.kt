@@ -49,10 +49,6 @@ internal class SettingsRepositoryImpl @Inject constructor(
 
     private val coroutineScope: CoroutineScope = CoroutineScope(ioDispatcher + SupervisorJob())
 
-    private val _isLegacyActionUiEnabledFlow: StateFlow<Boolean> = dataSource.isLegacyActionUiEnabled()
-        .stateIn(coroutineScope, SharingStarted.Eagerly, false)
-    override val isLegacyActionUiEnabledFlow: Flow<Boolean> = _isLegacyActionUiEnabledFlow
-
     private val _isLegacyNotificationUiEnabledFlow: StateFlow<Boolean> = dataSource.isLegacyNotificationUiEnabled()
         .stateIn(coroutineScope, SharingStarted.Eagerly, false)
     override val isLegacyNotificationUiEnabledFlow: Flow<Boolean> = _isLegacyNotificationUiEnabledFlow
@@ -213,15 +209,6 @@ internal class SettingsRepositoryImpl @Inject constructor(
     override fun toggleStopConfirmation() {
         coroutineScope.launch {
             dataSource.toggleStopConfirmation()
-        }
-    }
-
-    override fun isLegacyActionUiEnabled(): Boolean =
-        _isLegacyActionUiEnabledFlow.value
-
-    override fun toggleLegacyActionUi() {
-        coroutineScope.launch {
-            dataSource.toggleLegacyActionUi()
         }
     }
 

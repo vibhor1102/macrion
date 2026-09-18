@@ -100,8 +100,6 @@ class EventDialogViewModel @Inject constructor(
     fun isEventHaveRelatedActions(): Boolean =
         editionRepository.editionState.isEditedEventReferencedByAction()
 
-    fun isLegacyActionUiEnabled(): Boolean =
-        settingsRepository.isLegacyActionUiEnabled() && !tutorialRepository.isTutorialStarted()
 
     fun getTryInfo(): Pair<Scenario, ScreenEvent>? {
         val scenario = editionRepository.editionState.getScenario() ?: return null

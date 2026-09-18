@@ -55,8 +55,6 @@ internal class SettingsDataSource @Inject constructor(
             booleanPreferencesKey("isHomeButtonEnabled")
         val KEY_IS_STOP_CONFIRMATION_ENABLED: Preferences.Key<Boolean> =
             booleanPreferencesKey("isStopConfirmationEnabled")
-        val KEY_IS_LEGACY_ACTION_UI: Preferences.Key<Boolean> =
-            booleanPreferencesKey("isLegacyActionUiEnabled")
         val KEY_IS_LEGACY_NOTIFICATION_UI: Preferences.Key<Boolean> =
             booleanPreferencesKey("isLegacyNotificationUiEnabled")
         val KEY_FORCE_ENTIRE_SCREEN: Preferences.Key<Boolean> =
@@ -115,14 +113,6 @@ internal class SettingsDataSource @Inject constructor(
     internal suspend fun toggleStopConfirmation() =
         dataStore.edit { preferences ->
             preferences[KEY_IS_STOP_CONFIRMATION_ENABLED] = !(preferences[KEY_IS_STOP_CONFIRMATION_ENABLED] ?: false)
-        }
-
-    internal fun isLegacyActionUiEnabled(): Flow<Boolean> =
-        dataStore.data.map { preferences -> preferences[KEY_IS_LEGACY_ACTION_UI] ?: false }
-
-    internal suspend fun toggleLegacyActionUi() =
-        dataStore.edit { preferences ->
-            preferences[KEY_IS_LEGACY_ACTION_UI] = !(preferences[KEY_IS_LEGACY_ACTION_UI] ?: false)
         }
 
     internal fun isLegacyNotificationUiEnabled(): Flow<Boolean> =

@@ -39,7 +39,6 @@ import io.github.vibhor1102.macrion.core.domain.model.condition.ScreenCondition
 import io.github.vibhor1102.macrion.core.domain.model.event.Event
 import io.github.vibhor1102.macrion.core.processing.domain.SmartProcessingRepository
 import io.github.vibhor1102.macrion.core.processing.domain.model.DetectionState
-import io.github.vibhor1102.macrion.core.settings.domain.SettingsRepository
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.TutorialRepository
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.state.TutorialState
 import io.github.vibhor1102.macrion.core.ui.utils.createColorIndicatorDrawable
@@ -84,11 +83,8 @@ class SmartActionsBriefViewModel @Inject constructor(
     private val editionRepository: EditionRepository,
     private val smartProcessingRepository: SmartProcessingRepository,
     tutorialRepository: TutorialRepository,
-    settingsRepository: SettingsRepository,
     private val displayConfigManager: DisplayConfigManager,
 ) : ViewModel(), ActionConfigurator {
-
-    private val isLegacyUiEnabled: Flow<Boolean> = settingsRepository.isLegacyActionUiEnabledFlow
 
     private val editedActions: Flow<EditedListState<Action>> = editionRepository.editionState.editedEventActionsState
     private val editedEvent: Flow<Event> = editionRepository.editionState.editedEventState.mapNotNull { it.value }
@@ -126,9 +122,9 @@ class SmartActionsBriefViewModel @Inject constructor(
     val canCopyActions: Flow<Boolean> = isActionCopyAvailableUseCase()
 
     val actionTypeChoices: StateFlow<List<ActionTypeChoice>> =
-        combine(canCopyActions, isLegacyUiEnabled) { canCopy, legacyEnabled ->
+        canCopyActions.map { canCopy ->
             buildList {
-                if (!legacyEnabled && canCopy) add(ActionTypeChoice.Copy)
+                if (canCopy) add(ActionTypeChoice.Copy)
                 add(ActionTypeChoice.Click)
                 add(ActionTypeChoice.Swipe)
                 add(ActionTypeChoice.Zoom)

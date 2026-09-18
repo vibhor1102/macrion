@@ -59,7 +59,6 @@ import io.github.vibhor1102.macrion.feature.smart.config.R
 import io.github.vibhor1102.macrion.core.ui.R as UiR
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
 import io.github.vibhor1102.macrion.feature.smart.config.ui.action.brief.SmartActionsBriefMenu
-import io.github.vibhor1102.macrion.feature.smart.config.ui.action.brief.SmartActionsLegacyDialog
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.compose.LocalMonitoredViewsManager
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.compose.tutorialAnchor
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.formatters.toEffectDescription
@@ -374,8 +373,7 @@ class EventDialog(private val onConfigComplete: () -> Unit, private val onDelete
     private fun showConditions() { if (viewModel.isConfiguringScreenEvent()) showImageConditionsBriefMenu() else showTriggerConditionsDialog() }
     private fun showImageConditionsBriefMenu(index: Int = 0) = overlayManager.navigateTo(context, ScreenConditionsBriefMenu(index), true)
     private fun showTriggerConditionsDialog() = overlayManager.navigateTo(context, TriggerConditionListDialog())
-    private fun showActionsOverlay(index: Int = 0) = overlayManager.navigateTo(context,
-        if (viewModel.isLegacyActionUiEnabled()) SmartActionsLegacyDialog() else SmartActionsBriefMenu(index), true)
+    private fun showActionsOverlay(index: Int = 0) = overlayManager.navigateTo(context, SmartActionsBriefMenu(index), true)
     private fun showTryElementMenu() { viewModel.getTryInfo()?.let { (scenario, event) ->
         overlayManager.navigateTo(context, TryEventOverlayMenu(scenario, event), true) } }
 }

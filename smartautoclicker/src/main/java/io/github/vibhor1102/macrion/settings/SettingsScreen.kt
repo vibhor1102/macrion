@@ -103,7 +103,6 @@ internal fun SettingsRoute(
     val isScenarioSwitcherEnabled by viewModel.isScenarioSwitcherEnabled.collectAsStateWithLifecycle(false)
     val isHomeButtonEnabled by viewModel.isHomeButtonEnabled.collectAsStateWithLifecycle(false)
     val isStopConfirmationEnabled by viewModel.isStopConfirmationEnabled.collectAsStateWithLifecycle(false)
-    val isLegacyActionUiEnabled by viewModel.isLegacyActionUiEnabled.collectAsStateWithLifecycle(false)
     val isLegacyNotificationUiEnabled by viewModel.isLegacyNotificationUiEnabled.collectAsStateWithLifecycle(false)
     val isEntireScreenCaptureForced by viewModel.isEntireScreenCaptureForced.collectAsStateWithLifecycle(false)
     val isInputWorkaroundEnabled by viewModel.isInputWorkaroundEnabled.collectAsStateWithLifecycle(false)
@@ -206,7 +205,6 @@ internal fun SettingsRoute(
                     SettingsSection(
                         R.string.settings_section_compatibility,
                         listOf(
-                            SettingsItem.Switch(R.string.field_legacy_action_ui_title, R.string.field_legacy_action_ui_desc, isLegacyActionUiEnabled, viewModel::toggleLegacyActionUi),
                             SettingsItem.Switch(R.string.field_legacy_notification_ui_title, R.string.field_legacy_notification_ui_desc, isLegacyNotificationUiEnabled, viewModel::toggleLegacyNotificationUi),
                         ),
                     ),
