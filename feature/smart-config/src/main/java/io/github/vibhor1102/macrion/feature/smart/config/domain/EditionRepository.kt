@@ -211,6 +211,22 @@ class EditionRepository @Inject constructor(
         scenarioEditor.currentEventEditor.value?.actionsEditor?.deleteEditedItem()
     fun stopActionEdition() =
         scenarioEditor.currentEventEditor.value?.actionsEditor?.stopItemEdition()
+    fun addSubAction(newSubAction: Action) =
+        scenarioEditor.currentEventEditor.value?.actionsEditor?.addSubAction(newSubAction)
+    fun removeSubAction(subIndex: Int) =
+        scenarioEditor.currentEventEditor.value?.actionsEditor?.removeSubAction(subIndex)
+    fun unsplitAction(splitAction: SplitAction) =
+        scenarioEditor.currentEventEditor.value?.actionsEditor?.unsplitAction(splitAction) {
+            editedItemsBuilder.actionsIdCreator.generateNewIdentifier()
+        }
+    fun combineActions(actionA: Action, actionB: Action): SplitAction? =
+        scenarioEditor.currentEventEditor.value?.actionsEditor?.combineActions(
+            actionA, actionB, editedItemsBuilder.actionsIdCreator.generateNewIdentifier()
+        )
+    fun combineActionWithNew(action: Action, newSubAction: Action): SplitAction? =
+        scenarioEditor.currentEventEditor.value?.actionsEditor?.combineActionWithNew(
+            action, newSubAction, editedItemsBuilder.actionsIdCreator.generateNewIdentifier()
+        )
 
 
     // --- INTENT EXTRA

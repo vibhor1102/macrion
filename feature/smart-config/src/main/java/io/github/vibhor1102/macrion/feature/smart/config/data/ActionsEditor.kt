@@ -16,6 +16,7 @@
  */
 package io.github.vibhor1102.macrion.feature.smart.config.data
 
+import io.github.vibhor1102.macrion.core.base.identifier.Identifier
 import io.github.vibhor1102.macrion.core.domain.model.AND
 import io.github.vibhor1102.macrion.core.domain.model.action.Action
 import io.github.vibhor1102.macrion.core.domain.model.action.Click
@@ -75,6 +76,13 @@ internal class ActionsEditor<Parent>(
     }
 
     override fun stopItemEdition() {
+        val parent = parentSplitAction
+        if (parent != null) {
+            parentSplitAction = null
+            editedSubActionIndex = -1
+            super.startItemEdition(parent)
+            return
+        }
         parentSplitAction = null
         editedSubActionIndex = -1
         intentExtraEditor.stopEdition()
@@ -102,7 +110,7 @@ internal class ActionsEditor<Parent>(
                 currentList.add(updatedParent)
             }
             updateList(currentList)
-            stopItemEdition()
+            super.startItemEdition(updatedParent)
         } else {
             super.upsertEditedItem()
         }
@@ -110,19 +118,117 @@ internal class ActionsEditor<Parent>(
 
     override fun deleteEditedItem() {
         val parent = parentSplitAction
-        if (parent != null) {
+        val subIndex = editedSubActionIndex
+        if (parent != null && subIndex >= 0) {
             parentSplitAction = null
             editedSubActionIndex = -1
             val currentList = editedList.value?.toMutableList() ?: return
             val parentIndex = currentList.indexOfAction(parent)
-            if (parentIndex != -1) {
-                currentList.removeAt(parentIndex)
+            if (parent.subActions.size > 2 && subIndex in parent.subActions.indices) {
+                val updatedSubActions = parent.subActions.toMutableList()
+                updatedSubActions.removeAt(subIndex)
+                val reindexed = updatedSubActions.mapIndexed { idx, act -> act.copyBase(priority = idx) }
+                val updatedParent = parent.copy(subActions = reindexed)
+                if (parentIndex != -1) {
+                    currentList[parentIndex] = updatedParent
+                }
                 updateList(currentList)
+                super.startItemEdition(updatedParent)
+            } else {
+                if (parentIndex != -1) {
+                    currentList.removeAt(parentIndex)
+                    updateList(currentList)
+                }
+                stopItemEdition()
             }
-            stopItemEdition()
         } else {
             super.deleteEditedItem()
         }
+    }
+
+    fun addSubAction(newSubAction: Action) {
+        val current = editedItem.value as? SplitAction ?: return
+        val updatedSubActions = current.subActions + newSubAction.copyBase(priority = current.subActions.size)
+        val updated = current.copy(subActions = updatedSubActions)
+        updateEditedItem(updated)
+    }
+
+    fun removeSubAction(subIndex: Int) {
+        val current = editedItem.value as? SplitAction ?: return
+        if (current.subActions.size <= 2) return
+        val list = current.subActions.toMutableList()
+        if (subIndex in list.indices) {
+            list.removeAt(subIndex)
+            val reindexed = list.mapIndexed { idx, act -> act.copyBase(priority = idx) }
+            val updated = current.copy(subActions = reindexed)
+            updateEditedItem(updated)
+        }
+    }
+
+    fun unsplitAction(splitAction: SplitAction, idGenerator: () -> Identifier) {
+        val currentList = editedList.value?.toMutableList() ?: return
+        val index = currentList.indexOfFirst { it.id == splitAction.id }
+        if (index == -1) return
+        currentList.removeAt(index)
+        val standaloneActions = splitAction.subActions.mapIndexed { i, sub ->
+            sub.copyBase(
+                id = idGenerator(),
+                eventId = splitAction.eventId,
+                name = sub.name ?: "Touch ${i + 1}",
+                priority = index + i,
+            )
+        }
+        currentList.addAll(index, standaloneActions)
+        updateList(currentList)
+        stopItemEdition()
+    }
+
+    fun combineActions(actionA: Action, actionB: Action, newId: Identifier): SplitAction? {
+        val currentList = editedList.value?.toMutableList() ?: return null
+        val idxA = currentList.indexOfFirst { it.id == actionA.id }
+        val idxB = currentList.indexOfFirst { it.id == actionB.id }
+        if (idxA == -1 || idxB == -1) return null
+
+        val insertIndex = minOf(idxA, idxB)
+        currentList.removeAll { it.id == actionA.id || it.id == actionB.id }
+
+        val splitAction = SplitAction(
+            id = newId,
+            eventId = actionA.eventId,
+            name = "Zoom",
+            priority = insertIndex,
+            subActions = listOf(
+                actionA.copyBase(priority = 0),
+                actionB.copyBase(priority = 1),
+            ),
+        )
+
+        currentList.add(insertIndex, splitAction)
+        updateList(currentList)
+        startItemEdition(splitAction)
+        return splitAction
+    }
+
+    fun combineActionWithNew(action: Action, newSubAction: Action, newId: Identifier): SplitAction? {
+        val currentList = editedList.value?.toMutableList() ?: return null
+        val idx = currentList.indexOfFirst { it.id == action.id }
+        if (idx == -1) return null
+
+        val splitAction = SplitAction(
+            id = newId,
+            eventId = action.eventId,
+            name = "Zoom",
+            priority = action.priority,
+            subActions = listOf(
+                action.copyBase(priority = 0),
+                newSubAction.copyBase(priority = 1),
+            ),
+        )
+
+        currentList[idx] = splitAction
+        updateList(currentList)
+        startItemEdition(splitAction)
+        return splitAction
     }
 
     override fun itemCanBeSaved(item: Action?, parent: Parent?): Boolean =

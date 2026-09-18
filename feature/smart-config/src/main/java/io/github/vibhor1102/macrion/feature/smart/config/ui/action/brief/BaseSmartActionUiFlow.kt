@@ -54,6 +54,8 @@ import io.github.vibhor1102.macrion.feature.smart.config.ui.action.external.Exte
 
 import io.github.vibhor1102.macrion.core.domain.model.action.SplitAction
 
+import io.github.vibhor1102.macrion.feature.smart.config.ui.action.split.SplitActionDialog
+
 internal interface ActionConfigurator {
     fun getActionTypeChoices(): List<ActionTypeChoice>
     fun createAction(context: Context, choice: ActionTypeChoice): Action
@@ -76,12 +78,6 @@ internal fun BaseOverlay.showActionTypeSelectionDialog(configurator: ActionConfi
                 }
 
                 val action = configurator.createAction(context, choiceClicked)
-                if (action is SplitAction) {
-                    configurator.startActionEdition(action)
-                    configurator.upsertEditedAction()
-                    return@ActionTypeSelectionDialog
-                }
-
                 showActionConfigDialog(configurator, action)
             },
         ),
@@ -141,13 +137,6 @@ internal fun BaseOverlay.showSubActionConfigDialog(
 }
 
 internal fun BaseOverlay.showActionConfigDialog(configurator: ActionConfigurator, action: Action) {
-    if (action is SplitAction) {
-        if (action.subActions.isNotEmpty()) {
-            showSubActionConfigDialog(configurator, action, 0)
-        }
-        return
-    }
-
     configurator.startActionEdition(action)
 
     val actionConfigDialogListener: OnActionConfigCompleteListener by lazy {
@@ -159,6 +148,12 @@ internal fun BaseOverlay.showActionConfigDialog(configurator: ActionConfigurator
     }
 
     val overlay = when (action) {
+        is SplitAction -> SplitActionDialog(
+            listener = actionConfigDialogListener,
+            onConfigureSubAction = { parent, subIndex ->
+                showSubActionConfigDialog(configurator, parent, subIndex)
+            },
+        )
         is Click -> ClickDialog(actionConfigDialogListener)
         is Swipe -> SwipeDialog(actionConfigDialogListener)
         is Pause -> PauseDialog(actionConfigDialogListener)
@@ -174,7 +169,6 @@ internal fun BaseOverlay.showActionConfigDialog(configurator: ActionConfigurator
             if (PermissionPostNotification().checkIfGranted(context)) NotificationDialog(actionConfigDialogListener)
             else newNotificationPermissionStarterOverlay(context)
         }
-        is SplitAction -> return
     }
 
     overlayManager.navigateTo(

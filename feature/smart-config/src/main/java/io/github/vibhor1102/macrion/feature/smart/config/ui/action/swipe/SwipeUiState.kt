@@ -25,4 +25,7 @@ data class SwipeUiState(
     val swipeDurationError: Boolean,
     val positionsDescription: String,
     val positionsError: Boolean,
+    val waitBeforeMs: String? = null,
+    val waitAfterMs: String? = null,
 )
+

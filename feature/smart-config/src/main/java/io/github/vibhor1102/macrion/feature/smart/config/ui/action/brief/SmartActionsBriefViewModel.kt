@@ -77,7 +77,7 @@ import javax.inject.Inject
 
 
 class SmartActionsBriefViewModel @Inject constructor(
-    @ApplicationContext context: Context,
+    @ApplicationContext private val context: Context,
     isActionCopyAvailableUseCase: IsActionCopyAvailableUseCase,
     private val bitmapRepository: BitmapRepository,
     private val editionRepository: EditionRepository,
@@ -101,6 +101,16 @@ class SmartActionsBriefViewModel @Inject constructor(
             val actionList = actions.value ?: emptyList()
             actionList.mapIndexed { index, action ->
                 ItemBrief(action.id, action.toUiAction(context, event, inError = !actions.itemValidity[index]) )
+            }
+        }
+
+    val combinableUiActions: Flow<List<UiAction>> =
+        combine(editedEvent, editedActions) { event, actions ->
+            val actionList = actions.value ?: emptyList()
+            actionList.mapIndexedNotNull { index, action ->
+                if (action is Click || action is Swipe) {
+                    action.toUiAction(context, event, inError = !actions.itemValidity[index])
+                } else null
             }
         }
 
@@ -175,13 +185,7 @@ class SmartActionsBriefViewModel @Inject constructor(
     override fun createAction(context: Context, choice: ActionTypeChoice): Action = when (choice) {
         ActionTypeChoice.Click -> editionRepository.editedItemsBuilder.createNewClick(context)
         ActionTypeChoice.Swipe -> editionRepository.editedItemsBuilder.createNewSwipe(context)
-        ActionTypeChoice.Zoom -> {
-            val width = displayConfigManager.displayConfig.sizePx.x.takeIf { it > 0 }
-                ?: context.resources.displayMetrics.widthPixels
-            val height = displayConfigManager.displayConfig.sizePx.y.takeIf { it > 0 }
-                ?: context.resources.displayMetrics.heightPixels
-            editionRepository.editedItemsBuilder.createNewZoomInOut(context, width, height)
-        }
+        ActionTypeChoice.Zoom -> editionRepository.editedItemsBuilder.createNewZoomInOut(context)
         ActionTypeChoice.Pause -> editionRepository.editedItemsBuilder.createNewPause(context)
         ActionTypeChoice.Intent -> editionRepository.editedItemsBuilder.createNewIntent(context)
         ActionTypeChoice.ToggleEvent -> editionRepository.editedItemsBuilder.createNewToggleEvent(context)
@@ -268,6 +272,19 @@ class SmartActionsBriefViewModel @Inject constructor(
         }
     }
 
+    fun combineWithNewSwipe(action: Action): SplitAction? {
+        val newSwipe = editionRepository.editedItemsBuilder.createNewSwipe(context)
+        return editionRepository.combineActionWithNew(action, newSwipe)
+    }
+
+    fun combineActions(actionA: Action, actionB: Action): SplitAction? {
+        return editionRepository.combineActions(actionA, actionB)
+    }
+
+    fun unsplitAction(splitAction: SplitAction) {
+        editionRepository.unsplitAction(splitAction)
+    }
+
     private fun ItemBriefDescription.toAction(context: Context): Action? =
         when (this) {
             is ClickDescription -> editionRepository.editedItemsBuilder.createNewClick(context)
@@ -283,6 +300,36 @@ class SmartActionsBriefViewModel @Inject constructor(
                     to = to?.toPoint(),
                     swipeDuration = swipeDurationMs,
                 )
+
+            is SplitDescription -> {
+                val subActions = subDescriptions.mapIndexedNotNull { index, desc ->
+                    when (desc) {
+                        is ClickDescription -> editionRepository.editedItemsBuilder.createNewClick(context)
+                            .copy(
+                                position = desc.position?.toPoint(),
+                                pressDuration = desc.pressDurationMs,
+                                positionType = Click.PositionType.USER_SELECTED,
+                                priority = index,
+                            )
+                        is SwipeDescription -> editionRepository.editedItemsBuilder.createNewSwipe(context)
+                            .copy(
+                                from = desc.from?.toPoint(),
+                                to = desc.to?.toPoint(),
+                                swipeDuration = desc.swipeDurationMs,
+                                priority = index,
+                            )
+                        else -> null
+                    }
+                }
+                if (subActions.isEmpty()) null
+                else SplitAction(
+                    id = editionRepository.editedItemsBuilder.actionsIdCreator.generateNewIdentifier(),
+                    eventId = subActions.firstOrNull()?.eventId ?: editionRepository.editedItemsBuilder.actionsIdCreator.generateNewIdentifier(),
+                    name = context.getString(R.string.action_type_zoom),
+                    priority = 0,
+                    subActions = subActions,
+                )
+            }
 
             else -> null
         }

@@ -119,6 +119,18 @@ class SwipeViewModel @Inject constructor(
         }
     }
 
+    fun setWaitBeforeMs(waitBeforeMs: Long?) {
+        editionRepository.editionState.getEditedAction<Swipe>()?.let { swipe ->
+            editionRepository.updateEditedAction(swipe.copy(waitBeforeMs = waitBeforeMs))
+        }
+    }
+
+    fun setWaitAfterMs(waitAfterMs: Long?) {
+        editionRepository.editionState.getEditedAction<Swipe>()?.let { swipe ->
+            editionRepository.updateEditedAction(swipe.copy(waitAfterMs = waitAfterMs))
+        }
+    }
+
     fun saveLastConfig() {
         editionRepository.editionState.getEditedAction<Swipe>()?.let { swipe ->
             sharedPreferences.edit { putSwipeDurationConfig(swipe.swipeDuration ?: 0) }
@@ -143,6 +155,8 @@ class SwipeViewModel @Inject constructor(
             else
                 context.getString(R.string.generic_select_the_position),
             positionsError = !hasPositions,
+            waitBeforeMs = waitBeforeMs?.toString(),
+            waitAfterMs = waitAfterMs?.toString(),
         )
     }
 }

@@ -40,6 +40,8 @@ import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.action.
 
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredOverlayType
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredViewType
@@ -117,6 +119,7 @@ class SmartActionsBriefMenu(initialItemIndex: Int) : ItemBriefMenu(
     @androidx.compose.runtime.Composable
     override fun ItemBriefContent(item: ItemBrief, orientation: Int, onClick: () -> Unit) {
         val uiAction = item.data as UiAction
+        val combinableActions by viewModel.combinableUiActions.collectAsState(emptyList())
         SmartActionBriefItem(
             details = uiAction,
             orientation = orientation,
@@ -125,6 +128,25 @@ class SmartActionsBriefMenu(initialItemIndex: Int) : ItemBriefMenu(
                 val action = uiAction.action
                 if (action is io.github.vibhor1102.macrion.core.domain.model.action.SplitAction) {
                     showSubActionConfigDialog(viewModel, action, subIndex)
+                }
+            },
+            combinableActions = combinableActions,
+            onCombineWithNewSwipe = {
+                val split = viewModel.combineWithNewSwipe(uiAction.action)
+                if (split != null) {
+                    showActionConfigDialog(split)
+                }
+            },
+            onCombineWithAction = { otherAction ->
+                val split = viewModel.combineActions(uiAction.action, otherAction)
+                if (split != null) {
+                    showActionConfigDialog(split)
+                }
+            },
+            onUnsplit = {
+                val action = uiAction.action
+                if (action is io.github.vibhor1102.macrion.core.domain.model.action.SplitAction) {
+                    viewModel.unsplitAction(action)
                 }
             },
         )

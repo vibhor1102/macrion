@@ -404,6 +404,21 @@
     <string name="dialog_title_pause">Wait</string>
 
 
+    <!-- Dialog Action Split ======================================================================================= -->
+
+    <string name="dialog_title_split_action">Zoom In / Out</string>
+    <string name="action_type_zoom">Zoom In / Out</string>
+    <string name="split_action_touch_actions_header">Touch Strokes</string>
+    <string name="split_action_add_swipe">Add Swipe</string>
+    <string name="split_action_add_click">Add Tap</string>
+    <string name="split_action_unsplit">Unsplit</string>
+    <string name="split_action_stroke_not_configured">Position not set</string>
+    <string name="action_combine_title">Combine</string>
+    <string name="action_combine_with_new">Combine with new swipe</string>
+    <string name="action_combine_with_existing">Combine with existing action…</string>
+    <string name="action_unsplit_title">Unsplit</string>
+
+
     <!-- Dialog Action Intent ====================================================================================== -->
 
     <string name="dialog_title_intent" translatable="false">Intent</string>
@@ -651,5 +666,12 @@
     <string name="folder_reorder_disabled_hint">Collapse all folders to reorder</string>
     <string name="generic_cancel">Cancel</string>
     <string name="generic_create">Create</string>
+
+    <!-- Split and Combine Actions -->
+    <string name="action_combine_with_new_swipe">Combine with new swipe</string>
+    <string name="action_combine_with">Combine with \"%1$s\"</string>
+    <string name="action_unsplit">Unsplit into separate actions</string>
+    <string name="action_edit_gestures">Configure gestures</string>
+    <string name="action_edit_stroke">Edit %1$s</string>
 
 </resources>

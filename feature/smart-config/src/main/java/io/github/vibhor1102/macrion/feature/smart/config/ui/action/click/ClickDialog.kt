@@ -46,6 +46,7 @@ import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayDialog
 import io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.PositionSelectorMenu
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredOverlayType
 import io.github.vibhor1102.macrion.core.domain.model.action.Click
+import io.github.vibhor1102.macrion.core.ui.compose.ActionDelaysCard
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTextField
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.core.ui.compose.macrionDoneKeyboardActions
@@ -104,6 +105,12 @@ class ClickDialog(private val listener: OnActionConfigCompleteListener) : Overla
                             keyboardOptions = macrionDoneKeyboardOptions(KeyboardType.Number),
                             keyboardActions = macrionDoneKeyboardActions())
                         state.positionState?.let { PositionCard(it) }
+                        ActionDelaysCard(
+                            waitBefore = state.waitBeforeMs.orEmpty(),
+                            waitAfter = state.waitAfterMs.orEmpty(),
+                            onWaitBeforeChanged = { viewModel.setWaitBeforeMs(it.toLongOrNull()) },
+                            onWaitAfterChanged = { viewModel.setWaitAfterMs(it.toLongOrNull()) },
+                        )
                     }
                 }
             }

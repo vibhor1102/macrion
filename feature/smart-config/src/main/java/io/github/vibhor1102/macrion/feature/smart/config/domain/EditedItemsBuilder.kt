@@ -62,10 +62,10 @@ class EditedItemsBuilder internal constructor(
     private val editor: ScenarioEditor,
 ) {
 
-    private val defaultValues = EditionDefaultValues()
+    internal val defaultValues = EditionDefaultValues()
     private val eventsIdCreator = IdentifierCreator()
     private val conditionsIdCreator = IdentifierCreator()
-    private val actionsIdCreator = IdentifierCreator()
+    internal val actionsIdCreator = IdentifierCreator()
     private val intentExtrasIdCreator = IdentifierCreator()
     private val eventTogglesIdCreator = IdentifierCreator()
     private val endConditionsIdCreator = IdentifierCreator()
@@ -327,18 +327,16 @@ class EditedItemsBuilder internal constructor(
             priority = 0,
         )
 
-    fun createNewZoomInOut(context: Context, displayWidth: Int, displayHeight: Int): SplitAction {
+    fun createNewZoomInOut(context: Context): SplitAction {
         val eventId = getEditedEventIdOrThrow()
         val duration = defaultValues.swipeDuration(context)
-        val w = displayWidth.coerceAtLeast(100)
-        val h = displayHeight.coerceAtLeast(100)
 
         val swipe1 = Swipe(
             id = actionsIdCreator.generateNewIdentifier(),
             eventId = eventId,
             name = context.getString(R.string.item_swipe_title) + " 1",
-            from = Point((w * 0.40f).toInt(), (h * 0.42f).toInt()),
-            to = Point((w * 0.20f).toInt(), (h * 0.28f).toInt()),
+            from = null,
+            to = null,
             swipeDuration = duration,
             priority = 0,
         )
@@ -347,8 +345,8 @@ class EditedItemsBuilder internal constructor(
             id = actionsIdCreator.generateNewIdentifier(),
             eventId = eventId,
             name = context.getString(R.string.item_swipe_title) + " 2",
-            from = Point((w * 0.60f).toInt(), (h * 0.58f).toInt()),
-            to = Point((w * 0.80f).toInt(), (h * 0.72f).toInt()),
+            from = null,
+            to = null,
             swipeDuration = duration,
             priority = 1,
         )

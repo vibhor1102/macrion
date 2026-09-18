@@ -146,6 +146,7 @@ private class TestProcessingRepository(
     override val detectionState: Flow<DetectionState>,
 ) : SmartProcessingRepository {
     override val canStartDetection: Flow<Boolean> = emptyFlow()
+    override val screenshotRateLimitError: Flow<Int> = emptyFlow()
     override fun getScenarioId() = scenarioId.value
     override fun isRunning() = false
     override fun isScreenRecordActive() = false

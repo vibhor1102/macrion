@@ -1,0 +1,225 @@
+/*
+ * Copyright (C) 2026 Vibhor Goel
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ */
+package io.github.vibhor1102.macrion.feature.smart.config.ui.action.split
+
+import android.content.Context
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.qualifiers.ApplicationContext
+import io.github.vibhor1102.macrion.core.domain.model.action.Action
+import io.github.vibhor1102.macrion.core.domain.model.action.Click
+import io.github.vibhor1102.macrion.core.domain.model.action.SplitAction
+import io.github.vibhor1102.macrion.core.domain.model.action.Swipe
+import io.github.vibhor1102.macrion.core.ui.R as UiR
+import io.github.vibhor1102.macrion.feature.smart.config.R
+import io.github.vibhor1102.macrion.feature.smart.config.domain.EditionRepository
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.stateIn
+import javax.inject.Inject
+import kotlin.time.Duration.Companion.milliseconds
+
+class SplitActionViewModel @Inject constructor(
+    @ApplicationContext private val context: Context,
+    private val editionRepository: EditionRepository,
+) : ViewModel() {
+
+    private val configuredSplit = editionRepository.editionState.editedActionState
+        .mapNotNull { it.value }
+        .filterIsInstance<SplitAction>()
+
+    private val editedActionHasChanged: StateFlow<Boolean> =
+        editionRepository.editionState.editedActionState
+            .map { it.hasChanged }
+            .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
+    val isEditingAction: Flow<Boolean> = editionRepository.isEditingAction
+        .distinctUntilChanged()
+        .debounce(1000.milliseconds)
+
+    val uiState: StateFlow<SplitActionUiState?> = combine(
+        configuredSplit,
+        editionRepository.editionState.editedActionState,
+    ) { split, actionState ->
+        split.toUiState(
+            context = context,
+            hasUnsavedModifications = actionState.hasChanged,
+            canBeSaved = actionState.canBeSaved,
+        )
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    fun getEditedSplit(): SplitAction? =
+        editionRepository.editionState.getEditedAction<SplitAction>()
+
+    fun hasUnsavedModifications(): Boolean =
+        editedActionHasChanged.value
+
+    fun setName(name: String) {
+        editionRepository.editionState.getEditedAction<SplitAction>()?.let { split ->
+            editionRepository.updateEditedAction(split.copy(name = name))
+        }
+    }
+
+    fun addSwipe() {
+        editionRepository.editionState.getEditedAction<SplitAction>()?.let { split ->
+            val eventId = split.eventId
+            val subIndex = split.subActions.size
+            val duration = editionRepository.editedItemsBuilder.defaultValues.swipeDuration(context)
+            val newSwipe = Swipe(
+                id = editionRepository.editedItemsBuilder.actionsIdCreator.generateNewIdentifier(),
+                eventId = eventId,
+                name = context.getString(R.string.item_swipe_title) + " ${subIndex + 1}",
+                from = null,
+                to = null,
+                swipeDuration = duration,
+                priority = subIndex,
+            )
+            editionRepository.addSubAction(newSwipe)
+        }
+    }
+
+    fun addClick() {
+        editionRepository.editionState.getEditedAction<SplitAction>()?.let { split ->
+            val eventId = split.eventId
+            val subIndex = split.subActions.size
+            val duration = editionRepository.editedItemsBuilder.defaultValues.clickPressDuration(context)
+            val newClick = Click(
+                id = editionRepository.editedItemsBuilder.actionsIdCreator.generateNewIdentifier(),
+                eventId = eventId,
+                name = context.getString(R.string.item_click_title) + " ${subIndex + 1}",
+                pressDuration = duration,
+                positionType = Click.PositionType.USER_SELECTED,
+                position = null,
+                priority = subIndex,
+            )
+            editionRepository.addSubAction(newClick)
+        }
+    }
+
+    fun removeSubAction(index: Int) {
+        editionRepository.removeSubAction(index)
+    }
+
+    fun unsplit() {
+        editionRepository.editionState.getEditedAction<SplitAction>()?.let { split ->
+            editionRepository.unsplitAction(split)
+        }
+    }
+
+    fun save() {
+        editionRepository.upsertEditedAction()
+    }
+
+    fun delete() {
+        editionRepository.deleteEditedAction()
+    }
+
+    fun dismiss() {
+        editionRepository.stopActionEdition()
+    }
+
+    private fun SplitAction.toUiState(
+        context: Context,
+        hasUnsavedModifications: Boolean,
+        canBeSaved: Boolean,
+    ): SplitActionUiState {
+        val items = subActions.mapIndexed { index, subAction ->
+            when (subAction) {
+                is Swipe -> {
+                    val hasPos = subAction.from != null && subAction.to != null
+                    val details = if (hasPos) {
+                        val base = context.getString(
+                            R.string.field_swipe_positions_desc,
+                            subAction.from!!.x,
+                            subAction.from!!.y,
+                            subAction.to!!.x,
+                            subAction.to!!.y,
+                        ) + " • ${subAction.swipeDuration ?: 0}ms"
+                        val delays = subAction.delaysSummary()
+                        if (delays.isNotEmpty()) "$base ($delays)" else base
+                    } else {
+                        context.getString(R.string.split_action_stroke_not_configured)
+                    }
+                    SubActionItemUiState(
+                        index = index,
+                        name = subAction.name ?: "${context.getString(R.string.item_swipe_title)} ${index + 1}",
+                        details = details,
+                        icon = UiR.drawable.ic_swipe,
+                        isComplete = subAction.isComplete(),
+                        action = subAction,
+                    )
+                }
+                is Click -> {
+                    val hasPos = subAction.position != null
+                    val details = if (hasPos) {
+                        val base = "(${subAction.position!!.x}, ${subAction.position!!.y}) • ${subAction.pressDuration ?: 0}ms"
+                        val delays = subAction.delaysSummary()
+                        if (delays.isNotEmpty()) "$base ($delays)" else base
+                    } else {
+                        context.getString(R.string.split_action_stroke_not_configured)
+                    }
+                    SubActionItemUiState(
+                        index = index,
+                        name = subAction.name ?: "${context.getString(R.string.item_click_title)} ${index + 1}",
+                        details = details,
+                        icon = UiR.drawable.ic_click,
+                        isComplete = subAction.isComplete(),
+                        action = subAction,
+                    )
+                }
+                else -> {
+                    SubActionItemUiState(
+                        index = index,
+                        name = subAction.name ?: "Action ${index + 1}",
+                        details = "",
+                        icon = UiR.drawable.ic_swipe,
+                        isComplete = subAction.isComplete(),
+                        action = subAction,
+                    )
+                }
+            }
+        }
+
+        return SplitActionUiState(
+            name = name.orEmpty(),
+            nameError = name.isNullOrBlank(),
+            canBeSaved = canBeSaved,
+            hasUnsavedModifications = hasUnsavedModifications,
+            subActions = items,
+            canDeleteSubAction = subActions.size > 2,
+        )
+    }
+
+    private fun Swipe.delaysSummary(): String = buildString {
+        val wb = waitBeforeMs
+        val wa = waitAfterMs
+        if (wb != null && wb > 0) append("Wait before: ${wb}ms")
+        if (wa != null && wa > 0) {
+            if (isNotEmpty()) append(" • ")
+            append("Wait after: ${wa}ms")
+        }
+    }
+
+    private fun Click.delaysSummary(): String = buildString {
+        val wb = waitBeforeMs
+        val wa = waitAfterMs
+        if (wb != null && wb > 0) append("Wait before: ${wb}ms")
+        if (wa != null && wa > 0) {
+            if (isNotEmpty()) append(" • ")
+            append("Wait after: ${wa}ms")
+        }
+    }
+}

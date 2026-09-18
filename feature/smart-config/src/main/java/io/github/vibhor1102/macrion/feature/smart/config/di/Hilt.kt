@@ -122,6 +122,7 @@ interface ScenarioConfigViewModelsEntryPoint {
     fun setTextViewModel(): SetTextViewModel
     fun smartActionsBriefViewModel(): SmartActionsBriefViewModel
     fun swipeViewModel(): SwipeViewModel
+    fun splitActionViewModel(): io.github.vibhor1102.macrion.feature.smart.config.ui.action.split.SplitActionViewModel
     fun systemActionViewModel(): SystemActionViewModel
     fun textConditionViewModel(): TextConditionViewModel
     fun timerReachedConditionViewModel(): TimerReachedConditionViewModel
@@ -129,3 +130,4 @@ interface ScenarioConfigViewModelsEntryPoint {
     fun triggerConditionsViewModel(): TriggerConditionListViewModel
     fun triggerEventListViewModel(): TriggerEventListViewModel
 }
+

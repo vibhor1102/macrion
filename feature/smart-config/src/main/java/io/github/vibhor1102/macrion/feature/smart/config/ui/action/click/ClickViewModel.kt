@@ -148,6 +148,18 @@ class ClickViewModel @Inject constructor(
         }
     }
 
+    fun setWaitBeforeMs(waitBeforeMs: Long?) {
+        editionRepository.editionState.getEditedAction<Click>()?.let { click ->
+            editionRepository.updateEditedAction(click.copy(waitBeforeMs = waitBeforeMs))
+        }
+    }
+
+    fun setWaitAfterMs(waitAfterMs: Long?) {
+        editionRepository.editionState.getEditedAction<Click>()?.let { click ->
+            editionRepository.updateEditedAction(click.copy(waitAfterMs = waitAfterMs))
+        }
+    }
+
     /** Set the condition to click on when the events conditions are fulfilled. */
     fun setConditionToBeClicked(condition: ScreenCondition) {
         editionRepository.editionState.getEditedAction<Click>()?.let { click ->
@@ -195,6 +207,8 @@ class ClickViewModel @Inject constructor(
             pressDurationError = (pressDuration ?: -1) <= 0,
             positionState = positionState,
             availableConditions = availableConditions,
+            waitBeforeMs = waitBeforeMs?.toString(),
+            waitAfterMs = waitAfterMs?.toString(),
         )
     }
 
