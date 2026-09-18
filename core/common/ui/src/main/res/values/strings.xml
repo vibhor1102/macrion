@@ -71,6 +71,9 @@
     <string name="input_field_label_scenario_name">Scenario name</string>
     <string name="input_field_label_swipe_duration">Swipe duration (ms)</string>
     <string name="input_field_error_required">Required</string>
+    <string name="field_delays_title">Delays (Optional)</string>
+    <string name="field_wait_before_title">Wait before (ms)</string>
+    <string name="field_wait_after_title">Wait after (ms)</string>
 
 
     <!--

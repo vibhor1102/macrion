@@ -27,7 +27,19 @@ import io.github.vibhor1102.macrion.core.ui.views.gesturerecord.RecordedGesture
 
 import kotlin.math.hypot
 
+import androidx.compose.ui.input.pointer.PointerId
+
 private const val SWIPE_MIN_DISTANCE_PX = 40f
+private const val MAX_RECORDING_POINTERS = 10
+
+private data class PointerTrack(
+    val id: PointerId,
+    val origin: PointF,
+    val downTime: Long,
+    var current: PointF,
+    var lastUptime: Long,
+    var isUp: Boolean = false,
+)
 
 /**
  * Pure Compose overlay that intercepts touch gestures for recording and draws the display border.
@@ -48,37 +60,67 @@ fun GestureRecordOverlay(
                 if (!isRecording) return@pointerInput
                 awaitEachGesture {
                     val down = awaitFirstDown(requireUnconsumed = false)
-                    val downTime = down.uptimeMillis
-                    val origin = PointF(down.position.x, down.position.y)
-                    onGestureCaptured(RecordedGesture.Click(origin, 1L), false)
+                    val sessionStartTime = down.uptimeMillis
+                    val tracks = mutableMapOf<PointerId, PointerTrack>()
+                    val firstOrigin = PointF(down.position.x, down.position.y)
+                    tracks[down.id] = PointerTrack(
+                        id = down.id,
+                        origin = firstOrigin,
+                        downTime = down.uptimeMillis,
+                        current = firstOrigin,
+                        lastUptime = down.uptimeMillis,
+                    )
+                    onGestureCaptured(RecordedGesture.Click(firstOrigin, 1L), false)
 
-                    var isFinished = false
-                    while (!isFinished) {
+                    while (true) {
                         val event = awaitPointerEvent()
-                        if (event.changes.size > 1) {
-                            onGestureCaptured(null, false)
-                            break
+                        for (change in event.changes) {
+                            val track = tracks[change.id]
+                            if (track != null) {
+                                track.current = PointF(change.position.x, change.position.y)
+                                track.lastUptime = change.uptimeMillis
+                                if (!change.pressed) {
+                                    track.isUp = true
+                                }
+                            } else if (change.pressed && tracks.size < MAX_RECORDING_POINTERS) {
+                                val origin = PointF(change.position.x, change.position.y)
+                                tracks[change.id] = PointerTrack(
+                                    id = change.id,
+                                    origin = origin,
+                                    downTime = change.uptimeMillis,
+                                    current = origin,
+                                    lastUptime = change.uptimeMillis,
+                                )
+                            }
+                            change.consume()
                         }
-                        val change = event.changes.firstOrNull() ?: break
-                        val durationMs = (change.uptimeMillis - downTime).coerceAtLeast(1L)
-                        val currentPos = PointF(change.position.x, change.position.y)
-                        val distance = hypot(origin.x - currentPos.x, origin.y - currentPos.y)
 
-                        if (change.pressed) {
-                            val gesture = if (distance <= SWIPE_MIN_DISTANCE_PX) {
-                                RecordedGesture.Click(origin, durationMs)
+                        val allPointersUp = !event.changes.any { it.pressed } || tracks.values.all { it.isUp }
+
+                        val subGestures = tracks.values.map { t ->
+                            val dist = hypot(t.origin.x - t.current.x, t.origin.y - t.current.y)
+                            val dur = (t.lastUptime - t.downTime).coerceAtLeast(1L)
+                            if (dist <= SWIPE_MIN_DISTANCE_PX) {
+                                RecordedGesture.Click(t.origin, dur)
                             } else {
-                                RecordedGesture.Swipe(origin, currentPos, durationMs)
+                                RecordedGesture.Swipe(t.origin, t.current, dur)
                             }
-                            onGestureCaptured(gesture, false)
+                        }
+
+                        val maxUptime = tracks.values.maxOfOrNull { it.lastUptime } ?: sessionStartTime
+                        val totalDuration = (maxUptime - sessionStartTime).coerceAtLeast(1L)
+
+                        val finalGesture: RecordedGesture = if (subGestures.size == 1) {
+                            subGestures[0]
                         } else {
-                            isFinished = true
-                            val gesture = if (distance <= SWIPE_MIN_DISTANCE_PX) {
-                                RecordedGesture.Click(origin, durationMs)
-                            } else {
-                                RecordedGesture.Swipe(origin, currentPos, durationMs)
-                            }
-                            onGestureCaptured(gesture, true)
+                            RecordedGesture.Split(subGestures = subGestures, durationMs = totalDuration)
+                        }
+
+                        if (allPointersUp) {
+                            onGestureCaptured(finalGesture, true)
+                            break
+                        } else {
+                            onGestureCaptured(finalGesture, false)
                         }
                     }
                 }
