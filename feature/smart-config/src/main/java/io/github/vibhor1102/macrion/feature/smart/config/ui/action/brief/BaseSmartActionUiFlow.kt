@@ -111,8 +111,8 @@ internal fun BaseOverlay.showSubActionConfigDialog(
     }
 
     val overlay = when (subAction) {
-        is Click -> ClickDialog(actionConfigDialogListener)
-        is Swipe -> SwipeDialog(actionConfigDialogListener)
+        is Click -> ClickDialog(actionConfigDialogListener, canDelete = parent.subActions.size > 2)
+        is Swipe -> SwipeDialog(actionConfigDialogListener, canDelete = parent.subActions.size > 2)
         is Pause -> PauseDialog(actionConfigDialogListener)
         is Intent -> IntentDialog(actionConfigDialogListener)
         is SystemAction -> SystemActionDialog(actionConfigDialogListener)

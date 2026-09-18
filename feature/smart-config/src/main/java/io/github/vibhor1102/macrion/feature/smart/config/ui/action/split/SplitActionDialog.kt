@@ -131,6 +131,16 @@ class SplitActionDialog(
                             modifier = Modifier.padding(top = 4.dp),
                         )
 
+                        io.github.vibhor1102.macrion.core.ui.compose.CombinedGestureSummary(
+                            configuredCount = ui.subActions.count { it.isComplete },
+                            touchCount = ui.subActions.size,
+                            durationMs = ui.durationMs,
+                        )
+                        Text(
+                            text = stringResource(R.string.split_action_timing_help),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
                         ui.subActions.forEach { subItem ->
                             SubActionCard(
                                 item = subItem,
@@ -152,6 +162,7 @@ class SplitActionDialog(
                         ) {
                             OutlinedButton(
                                 onClick = viewModel::addSwipe,
+                                enabled = ui.subActions.size < 10,
                                 modifier = Modifier.weight(1f),
                             ) {
                                 Icon(
@@ -164,6 +175,7 @@ class SplitActionDialog(
                             }
                             OutlinedButton(
                                 onClick = viewModel::addClick,
+                                enabled = ui.subActions.size < 10,
                                 modifier = Modifier.weight(1f),
                             ) {
                                 Icon(
@@ -177,6 +189,7 @@ class SplitActionDialog(
                         }
 
                         TextButton(
+                            enabled = ui.canUnsplit && ui.canBeSaved,
                             onClick = ::onUnsplitClicked,
                             modifier = Modifier.align(Alignment.CenterHorizontally),
                         ) {
@@ -300,7 +313,7 @@ class SplitActionDialog(
                 if (canDelete) {
                     IconButton(
                         onClick = onDelete,
-                        modifier = Modifier.size(32.dp),
+                        modifier = Modifier.size(48.dp),
                     ) {
                         Icon(
                             painter = painterResource(UiR.drawable.ic_delete),
@@ -334,13 +347,11 @@ class SplitActionDialog(
     }
 
     private fun onSaveClicked() {
-        viewModel.save()
         listener.onConfirmClicked()
         super.back()
     }
 
     private fun onDeleteClicked() {
-        viewModel.delete()
         listener.onDeleteClicked()
         super.back()
     }

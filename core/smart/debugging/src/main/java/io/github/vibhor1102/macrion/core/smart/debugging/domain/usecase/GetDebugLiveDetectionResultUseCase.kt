@@ -82,13 +82,13 @@ class GetDebugLiveDetectionResultUseCase @Inject constructor(
     private fun List<Action>.getDurationMs(): Long =
         fold(initial = 0) { acc, action ->
             acc + when (action) {
-                is Click -> action.pressDuration ?: 0
-                is Swipe -> action.swipeDuration ?: 0
+                is Click -> (action.waitBeforeMs ?: 0) + (action.pressDuration ?: 0) + (action.waitAfterMs ?: 0)
+                is Swipe -> (action.waitBeforeMs ?: 0) + (action.swipeDuration ?: 0) + (action.waitAfterMs ?: 0)
                 is Pause -> action.pauseDuration ?: 0
                 is SplitAction -> action.subActions.maxOfOrNull { sub ->
                     when (sub) {
-                        is Swipe -> sub.swipeDuration ?: 0L
-                        is Click -> sub.pressDuration ?: 0L
+                        is Swipe -> (sub.waitBeforeMs ?: 0) + (sub.swipeDuration ?: 0) + (sub.waitAfterMs ?: 0)
+                        is Click -> (sub.waitBeforeMs ?: 0) + (sub.pressDuration ?: 0) + (sub.waitAfterMs ?: 0)
                         is Pause -> sub.pauseDuration ?: 0L
                         else -> 0L
                     }

@@ -26,5 +26,7 @@ data class SplitActionUiState(
     val canBeSaved: Boolean,
     val hasUnsavedModifications: Boolean,
     val subActions: List<SubActionItemUiState>,
+    val durationMs: Long,
     val canDeleteSubAction: Boolean,
+    val canUnsplit: Boolean,
 )

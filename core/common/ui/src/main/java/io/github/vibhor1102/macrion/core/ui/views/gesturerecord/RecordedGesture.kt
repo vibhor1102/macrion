@@ -25,28 +25,32 @@ import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.SwipeDescr
 
 sealed class RecordedGesture {
     abstract val durationMs: Long
+    open val startOffsetMs: Long = 0L
 
     data class Click(
         val position: PointF,
         override val durationMs: Long,
+        override val startOffsetMs: Long = 0L,
     ) : RecordedGesture()
 
     data class Swipe(
         val from: PointF,
         val to: PointF,
         override val durationMs: Long,
+        override val startOffsetMs: Long = 0L,
     ) : RecordedGesture()
 
     data class Split(
         val subGestures: List<RecordedGesture>,
         override val durationMs: Long,
+        override val startOffsetMs: Long = 0L,
     ) : RecordedGesture()
 }
 
 fun RecordedGesture.toActionDescription(): ItemBriefDescription =
     when (this) {
-        is RecordedGesture.Click -> ClickDescription(pressDurationMs = durationMs, position = position)
-        is RecordedGesture.Swipe -> SwipeDescription(swipeDurationMs = durationMs, from = from, to = to)
+        is RecordedGesture.Click -> ClickDescription(pressDurationMs = durationMs, position = position, startOffsetMs = startOffsetMs)
+        is RecordedGesture.Swipe -> SwipeDescription(swipeDurationMs = durationMs, from = from, to = to, startOffsetMs = startOffsetMs)
         is RecordedGesture.Split -> SplitDescription(
             subDescriptions = subGestures.map { it.toActionDescription() }
         )

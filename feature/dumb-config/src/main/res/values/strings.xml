@@ -120,4 +120,13 @@
     <string name="split_action_add_swipe">Add Swipe</string>
     <string name="split_action_add_click">Add Tap</string>
     <string name="split_action_unsplit">Unsplit</string>
+    <string name="action_combine_with_new_click">Combine with new click</string>
+    <string name="split_action_timing_help">Each touch starts after its Wait Before and finishes after its own Wait After. Configure every touch before saving. Up to 10 touches can run together.</string>
+    <string name="combined_touch_count">%1$d touch actions</string>
+    <string name="split_repeat_help">Repetition applies to the whole gesture. Each touch runs once per repetition; its individual repeat settings are restored when you Unsplit.</string>
+    <string name="split_action_position_not_set">Position not set</string>
+    <string name="split_discard_title">Discard changes?</string>
+    <string name="split_discard_message">Changes to this gesture and its touches have not been saved.</string>
+    <string name="split_discard_confirm">Discard</string>
+    <string name="split_keep_editing">Keep editing</string>
 </resources>

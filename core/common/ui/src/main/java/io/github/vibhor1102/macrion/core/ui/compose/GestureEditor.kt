@@ -35,6 +35,7 @@ fun MacrionPositionGestureEditor(
     positionError: Boolean,
     saveEnabled: Boolean,
     maxNameLength: Int,
+    deleteEnabled: Boolean = true,
     waitBefore: String = "",
     waitAfter: String = "",
     onNameChanged: (String) -> Unit,
@@ -54,7 +55,7 @@ fun MacrionPositionGestureEditor(
     ) {
         MacrionDialogSurface {
             Column(Modifier.fillMaxWidth()) {
-                GestureEditorTopBar(title, saveEnabled, onDismiss, onDelete, onSave)
+                GestureEditorTopBar(title, saveEnabled, onDismiss, onDelete, onSave, deleteEnabled)
                 Column(
                     modifier = Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState())
                         .imePadding()
@@ -79,7 +80,9 @@ fun MacrionGestureEditor(
     repeatCountLabel: String, repeatDelayLabel: String, nameError: Boolean, durationError: Boolean,
     repeatCountError: Boolean, repeatDelayError: Boolean, infiniteRepeat: Boolean,
     saveEnabled: Boolean, maxNameLength: Int, @DrawableRes infiniteRepeatIcon: Int,
+    deleteEnabled: Boolean = true,
     waitBefore: String = "", waitAfter: String = "",
+    showRepetition: Boolean = true,
     onNameChanged: (String) -> Unit,
     onDurationChanged: (String) -> Unit, onRepeatCountChanged: (String) -> Unit,
     onRepeatDelayChanged: (String) -> Unit, onInfiniteRepeatChanged: () -> Unit,
@@ -96,7 +99,7 @@ fun MacrionGestureEditor(
     ) {
         MacrionDialogSurface {
             Column(Modifier.fillMaxWidth()) {
-                GestureEditorTopBar(title, saveEnabled, onDismiss, onDelete, onSave)
+                GestureEditorTopBar(title, saveEnabled, onDismiss, onDelete, onSave, deleteEnabled)
                 Column(
                     modifier = Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState())
                         .imePadding()
@@ -105,19 +108,21 @@ fun MacrionGestureEditor(
                 ) {
                     MacrionTextField(name, onNameChanged, nameLabel, isError = nameError, maxLength = maxNameLength)
                     NumericField(duration, durationLabel, durationError, onDurationChanged)
-                    Row(verticalAlignment = Alignment.Top) {
-                        NumericField(repeatCount, repeatCountLabel, repeatCountError, onRepeatCountChanged,
-                            Modifier.weight(1f), enabled = !infiniteRepeat)
-                        Spacer(Modifier.width(16.dp))
-                        OutlinedIconToggleButton(
-                            checked = infiniteRepeat,
-                            onCheckedChange = { onInfiniteRepeatChanged() },
-                            modifier = Modifier.padding(top = 8.dp).size(48.dp),
-                        ) {
-                            Icon(painterResource(infiniteRepeatIcon), repeatCountLabel, Modifier.size(24.dp))
+                    if (showRepetition) {
+                        Row(verticalAlignment = Alignment.Top) {
+                            NumericField(repeatCount, repeatCountLabel, repeatCountError, onRepeatCountChanged,
+                                Modifier.weight(1f), enabled = !infiniteRepeat)
+                            Spacer(Modifier.width(16.dp))
+                            OutlinedIconToggleButton(
+                                checked = infiniteRepeat,
+                                onCheckedChange = { onInfiniteRepeatChanged() },
+                                modifier = Modifier.padding(top = 8.dp).size(48.dp),
+                            ) {
+                                Icon(painterResource(infiniteRepeatIcon), repeatCountLabel, Modifier.size(24.dp))
+                            }
                         }
+                        NumericField(repeatDelay, repeatDelayLabel, repeatDelayError, onRepeatDelayChanged)
                     }
-                    NumericField(repeatDelay, repeatDelayLabel, repeatDelayError, onRepeatDelayChanged)
                     PositionCard(positionTitle, positionDescription, false, onPositionClicked)
                     ActionDelaysCard(waitBefore, waitAfter, onWaitBeforeChanged, onWaitAfterChanged)
                     Spacer(Modifier.height(8.dp))
@@ -130,7 +135,7 @@ fun MacrionGestureEditor(
 @Composable
 private fun GestureEditorTopBar(
     title: String, saveEnabled: Boolean, onDismiss: () -> Unit,
-    onDelete: () -> Unit, onSave: () -> Unit,
+    onDelete: () -> Unit, onSave: () -> Unit, deleteEnabled: Boolean,
 ) {
     Row(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 12.dp),
@@ -138,7 +143,7 @@ private fun GestureEditorTopBar(
     ) {
         IconButton(onClick = onDismiss) { Icon(painterResource(R.drawable.ic_cancel), null) }
         Text(title, Modifier.weight(1f).padding(horizontal = 8.dp), style = MaterialTheme.typography.titleLarge)
-        FilledTonalIconButton(onClick = onDelete) { Icon(painterResource(R.drawable.ic_delete), null) }
+        FilledTonalIconButton(onClick = onDelete, enabled = deleteEnabled) { Icon(painterResource(R.drawable.ic_delete), null) }
         Spacer(Modifier.width(8.dp))
         FilledIconButton(onClick = onSave, enabled = saveEnabled) {
             Icon(painterResource(R.drawable.ic_save_filled), null)
@@ -250,13 +255,13 @@ fun ActionDelaysCard(
                     NumericField(
                         value = waitBefore,
                         label = stringResource(R.string.field_wait_before_title),
-                        isError = false,
+                        isError = waitBefore.isNotBlank() && waitBefore.toLongOrNull()?.let { it in 0..59_999L } != true,
                         onValueChanged = onWaitBeforeChanged,
                     )
                     NumericField(
                         value = waitAfter,
                         label = stringResource(R.string.field_wait_after_title),
-                        isError = false,
+                        isError = waitAfter.isNotBlank() && waitAfter.toLongOrNull()?.let { it in 0..59_999L } != true,
                         onValueChanged = onWaitAfterChanged,
                     )
                 }
@@ -265,3 +270,21 @@ fun ActionDelaysCard(
     }
 }
 
+@Composable
+fun CombinedGestureSummary(configuredCount: Int, touchCount: Int, durationMs: Long) {
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Card(Modifier.weight(1f)) {
+            Column(Modifier.padding(12.dp)) {
+                Text(stringResource(R.string.combined_gesture_configured), style = MaterialTheme.typography.labelMedium)
+                Text("$configuredCount / $touchCount", style = MaterialTheme.typography.titleMedium)
+            }
+        }
+        Card(Modifier.weight(1f)) {
+            Column(Modifier.padding(12.dp)) {
+                Text(stringResource(R.string.combined_gesture_duration), style = MaterialTheme.typography.labelMedium)
+                Text(if (configuredCount == touchCount) "$durationMs ms" else "—",
+                    style = MaterialTheme.typography.titleMedium)
+            }
+        }
+    }
+}

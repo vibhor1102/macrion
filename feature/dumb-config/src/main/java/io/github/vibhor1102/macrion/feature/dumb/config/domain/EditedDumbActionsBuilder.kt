@@ -75,11 +75,11 @@ class EditedDumbActionsBuilder {
         )
 
     fun createNewDumbZoomInOut(context: Context): DumbAction.DumbSplitAction {
-        val swipe1 = createNewDumbSwipe(context, Point(0, 0), Point(0, 0)).copy(
+        val swipe1 = createNewDumbSwipe(context, Point(-1, -1), Point(-1, -1)).copy(
             name = "Swipe 1",
             priority = 0,
         )
-        val swipe2 = createNewDumbSwipe(context, Point(0, 0), Point(0, 0)).copy(
+        val swipe2 = createNewDumbSwipe(context, Point(-1, -1), Point(-1, -1)).copy(
             name = "Swipe 2",
             priority = 1,
         )

@@ -160,11 +160,18 @@ class DumbScenarioBriefViewModel @Inject constructor(
     fun combineWithNewSwipe(action: DumbAction): DumbAction.DumbSplitAction? {
         val newSwipe = dumbEditionRepository.dumbActionBuilder.createNewDumbSwipe(
             context = context,
-            from = Point(0, 0),
-            to = Point(0, 0),
+            from = Point(-1, -1),
+            to = Point(-1, -1),
         ).copy(name = "Swipe 2")
         return dumbEditionRepository.combineActionWithNew(action, newSwipe)
     }
+
+    fun saveCombination(split: DumbAction.DumbSplitAction, sourceIds: Set<io.github.vibhor1102.macrion.core.base.identifier.Identifier>) =
+        dumbEditionRepository.saveCombination(split, sourceIds)
+
+    fun combineWithNewClick(action: DumbAction): DumbAction.DumbSplitAction? =
+        dumbEditionRepository.combineActionWithNew(action,
+            dumbEditionRepository.dumbActionBuilder.createNewDumbClick(context, Point(-1, -1)))
 
     fun combineActions(actionA: DumbAction, actionB: DumbAction): DumbAction.DumbSplitAction? =
         dumbEditionRepository.combineActions(actionA, actionB)
@@ -223,14 +230,16 @@ class DumbScenarioBriefViewModel @Inject constructor(
         when (this) {
             is ClickDescription -> createNewDumbClick(
                 context = context,
-                position = position?.toPoint() ?: Point(0, 0),
-            )
+                position = position?.toPoint() ?: Point(-1, -1),
+            ).copy(pressDurationMs = pressDurationMs, waitBeforeMs = startOffsetMs,
+                repeatCount = 1, isRepeatInfinite = false)
 
             is SwipeDescription -> createNewDumbSwipe(
                 context = context,
-                from = from?.toPoint() ?: Point(0, 0),
-                to = to?.toPoint() ?: Point(0, 0),
-            )
+                from = from?.toPoint() ?: Point(-1, -1),
+                to = to?.toPoint() ?: Point(-1, -1),
+            ).copy(swipeDurationMs = swipeDurationMs, waitBeforeMs = startOffsetMs,
+                repeatCount = 1, isRepeatInfinite = false)
 
             is SplitDescription -> {
                 val subDumbActions = subDescriptions.mapNotNull { it.toDumbAction(context) }

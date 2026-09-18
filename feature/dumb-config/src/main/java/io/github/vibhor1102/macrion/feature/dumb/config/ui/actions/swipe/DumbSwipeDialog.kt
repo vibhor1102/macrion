@@ -25,6 +25,8 @@ class DumbSwipeDialog(
     private val onConfirmClicked: (DumbAction.DumbSwipe) -> Unit,
     private val onDeleteClicked: (DumbAction.DumbSwipe) -> Unit,
     private val onDismissClicked: () -> Unit,
+    private val isCombinedChild: Boolean = false,
+    private val canDelete: Boolean = true,
 ) : OverlayDialog(R.style.AppTheme) {
     private val viewModel: DumbSwipeViewModel by viewModels(
         entryPoint = DumbConfigViewModelsEntryPoint::class.java,
@@ -59,8 +61,10 @@ class DumbSwipeDialog(
         LaunchedEffect(initialWaitBefore) { initialWaitBefore?.let { waitBefore = it } }
         LaunchedEffect(initialWaitAfter) { initialWaitAfter?.let { waitAfter = it } }
         MacrionGestureEditor(
+            deleteEnabled = canDelete,
             title = context.getString(R.string.item_title_dumb_swipe), name = name, duration = duration,
             repeatCount = count, repeatDelay = delay,
+            showRepetition = !isCombinedChild,
             positionTitle = context.getString(R.string.field_swipe_positions_title),
             positionDescription = viewModel.swipePositionText.collectAsStateWithLifecycle("").value,
             nameLabel = context.getString(R.string.input_field_label_name),
@@ -82,8 +86,8 @@ class DumbSwipeDialog(
             onRepeatCountChanged = { count = it; viewModel.setRepeatCount(it.toIntOrNull() ?: 0) },
             onRepeatDelayChanged = { delay = it; viewModel.setRepeatDelay(it.toLongOrNull() ?: 0) },
             onInfiniteRepeatChanged = viewModel::toggleInfiniteRepeat,
-            onWaitBeforeChanged = { waitBefore = it; viewModel.setWaitBeforeMs(it.toLongOrNull()) },
-            onWaitAfterChanged = { waitAfter = it; viewModel.setWaitAfterMs(it.toLongOrNull()) },
+            onWaitBeforeChanged = { waitBefore = it; viewModel.setWaitBeforeMs(it.takeIf { it.isNotBlank() }?.let { it.toLongOrNull() ?: -1L }) },
+            onWaitAfterChanged = { waitAfter = it; viewModel.setWaitAfterMs(it.takeIf { it.isNotBlank() }?.let { it.toLongOrNull() ?: -1L }) },
             onPositionClicked = ::onPositionCardClicked,
             onDismiss = { onDismissClicked(); back() },
             onDelete = { viewModel.getEditedDumbSwipe()?.let(onDeleteClicked); back() },
@@ -106,5 +110,5 @@ class DumbSwipeDialog(
         }
     }
 
-    private fun Point.toEditionPosition(): PointF? = if (x == 0 && y == 0) null else toPointF()
+    private fun Point.toEditionPosition(): PointF? = if (x < 0 || y < 0) null else toPointF()
 }

@@ -44,14 +44,15 @@ internal fun SmartActionBriefItem(
     details: UiAction,
     orientation: Int,
     onClick: () -> Unit,
-    onSubActionClick: ((Int) -> Unit)? = null,
     combinableActions: List<UiAction> = emptyList(),
+    onCombineWithNewClick: (() -> Unit)? = null,
     onCombineWithNewSwipe: (() -> Unit)? = null,
     onCombineWithAction: ((Action) -> Unit)? = null,
     onUnsplit: (() -> Unit)? = null,
 ) {
     val portrait = orientation == Configuration.ORIENTATION_PORTRAIT
     val isSplit = details.subUiActions.isNotEmpty()
+    val touchCount = details.subUiActions.size.coerceAtLeast(1)
     val isTouchAction = details.action is Click || details.action is Swipe || details.action is SplitAction
     var menuExpanded by remember { mutableStateOf(false) }
 
@@ -59,53 +60,20 @@ internal fun SmartActionBriefItem(
         if (isSplit) {
             ElevatedCard(
                 onClick = onClick,
-                modifier = if (portrait) {
-                    Modifier.fillMaxWidth().height(80.dp)
-                } else {
-                    Modifier.width(200.dp).fillMaxHeight()
-                }
+                modifier = if (portrait) Modifier.fillMaxWidth().height(80.dp)
+                    else Modifier.width(200.dp).fillMaxHeight(),
             ) {
-                Row(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxHeight(),
-                        contentAlignment = Alignment.CenterStart,
-                    ) {
-                        SmartActionSplitHalf(details.subUiActions[0])
+                Row(Modifier.fillMaxSize().padding(start = 16.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) {
+                        Text(details.name, style = MaterialTheme.typography.titleMedium,
+                            maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text(stringResource(R.string.combined_touch_count, details.subUiActions.size),
+                            style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
+                        Text(details.subUiActions.joinToString(" · ") { it.name },
+                            style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
-
-                    VerticalDivider(
-                        modifier = Modifier
-                            .fillMaxHeight()
-                            .padding(vertical = 8.dp),
-                        color = MaterialTheme.colorScheme.outlineVariant,
-                    )
-
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxHeight(),
-                        contentAlignment = Alignment.CenterStart,
-                    ) {
-                        SmartActionSplitHalf(
-                            details.subUiActions.getOrElse(1) { details.subUiActions[0] }
-                        )
-                    }
-
-                    IconButton(
-                        onClick = { menuExpanded = true },
-                        modifier = Modifier.size(36.dp).padding(end = 4.dp),
-                    ) {
-                        Icon(
-                            painter = painterResource(UiR.drawable.ic_more),
-                            contentDescription = null,
-                            modifier = Modifier.size(20.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
+                    IconButton(onClick = { menuExpanded = true }) {
+                        Icon(painterResource(UiR.drawable.ic_more), stringResource(R.string.action_edit_gestures))
                     }
                 }
             }
@@ -190,24 +158,25 @@ internal fun SmartActionBriefItem(
                         onUnsplit?.invoke()
                     },
                 )
-                details.subUiActions.forEachIndexed { index, subAction ->
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.action_edit_stroke, subAction.name)) },
-                        onClick = {
-                            menuExpanded = false
-                            onSubActionClick?.invoke(index)
-                        },
-                    )
-                }
-            } else if (isTouchAction) {
+            }
+            if (isTouchAction) {
                 DropdownMenuItem(
+                    enabled = touchCount < 10,
                     text = { Text(stringResource(R.string.action_combine_with_new_swipe)) },
                     onClick = {
                         menuExpanded = false
                         onCombineWithNewSwipe?.invoke()
                     },
                 )
-                val others = combinableActions.filter { it.action.id != details.action.id }
+                DropdownMenuItem(
+                    enabled = touchCount < 10,
+                    text = { Text(stringResource(R.string.action_combine_with_new_click)) },
+                    onClick = {
+                        menuExpanded = false
+                        onCombineWithNewClick?.invoke()
+                    },
+                )
+                val others = combinableActions.filter { it.action.id != details.action.id && touchCount + it.subUiActions.size.coerceAtLeast(1) <= 10 }
                 others.forEach { other ->
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.action_combine_with, other.name)) },
@@ -219,26 +188,6 @@ internal fun SmartActionBriefItem(
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun SmartActionSplitHalf(details: UiAction) {
-    Row(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .padding(start = 8.dp, end = 4.dp),
-        ) {
-            BriefText(details.name, 15, true, 1)
-            BriefText(details.description, 12, false, 1)
-        }
-        BriefIcon(details, Modifier.padding(end = 4.dp))
     }
 }
 

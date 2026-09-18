@@ -24,12 +24,14 @@ data class ClickDescription(
     val pressDurationMs: Long = MINIMAL_CLICK_ANIMATION_DURATION_MS,
     val position: PointF? = null,
     val imageConditionBitmap: Bitmap? = null,
+    val startOffsetMs: Long = 0L,
 ) : ItemBriefDescription
 
 data class SwipeDescription(
     val swipeDurationMs: Long = MINIMAL_SWIPE_ANIMATION_DURATION_MS,
     val from: PointF? = null,
     val to: PointF? = null,
+    val startOffsetMs: Long = 0L,
 ) : ItemBriefDescription
 
 data class PauseDescription(

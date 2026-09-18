@@ -64,7 +64,7 @@ internal open class ListEditor<Item , Parent>(
         EditedListState(edit, itemValidity, hasChanged, canBeSaved)
     }
 
-    private val referenceEditedItem: MutableStateFlow<Item?> = MutableStateFlow(null)
+    protected val referenceEditedItem: MutableStateFlow<Item?> = MutableStateFlow(null)
     private val _editedItem: MutableStateFlow<Item?> = MutableStateFlow(null)
     val editedItem: StateFlow<Item?> = _editedItem
     val editedItemState: Flow<EditedElementState<Item>> = combine(referenceEditedItem, _editedItem, parentItem) { ref, edit, parent ->
@@ -100,13 +100,19 @@ internal open class ListEditor<Item , Parent>(
         _editedItem.value = currentItem
     }
 
+    /** Resume an editor draft without looking up IDs in the top-level list. */
+    protected fun restoreItemEdition(reference: Item, draft: Item) {
+        referenceEditedItem.value = reference
+        _editedItem.value = draft
+    }
+
     @CallSuper
     open fun stopItemEdition() {
         referenceEditedItem.value = null
         _editedItem.value = null
     }
 
-    fun stopEdition() {
+    open fun stopEdition() {
         stopItemEdition()
         referenceList.value = null
         _editedList.value = null
@@ -165,7 +171,7 @@ internal open class ListEditor<Item , Parent>(
     private fun List<Item>.indexOfItem(item: Item): Int =
         indexOfFirst { it.id == item.id }
 
-    private fun buildAllItemList(editedList: List<Item>?, editedItem: Item?): List<Item> =
+    protected open fun buildAllItemList(editedList: List<Item>?, editedItem: Item?): List<Item> =
         buildList {
             val items = editedList ?: emptyList()
             if (editedItem == null) {

@@ -42,6 +42,10 @@ const val DUMB_SPLIT_ACTION_ITEM_TABLE = "dumb_split_action_item_table"
 data class DumbSplitActionItemEntity(
     @PrimaryKey(autoGenerate = true) override var id: Long = 0,
     @ColumnInfo(name = "action_id") var actionId: Long = 0,
+    @ColumnInfo(name = "name") val name: String? = null,
+    @ColumnInfo(name = "repeat_count", defaultValue = "1") val repeatCount: Int = 1,
+    @ColumnInfo(name = "is_repeat_infinite", defaultValue = "0") val isRepeatInfinite: Boolean = false,
+    @ColumnInfo(name = "repeat_delay_ms", defaultValue = "0") val repeatDelayMs: Long = 0L,
     @ColumnInfo(name = "priority") var priority: Int = 0,
     @ColumnInfo(name = "type") val type: DumbActionType = DumbActionType.SWIPE,
     @ColumnInfo(name = "from_x") val fromX: Int? = null,

@@ -108,7 +108,7 @@ class SmartActionsBriefViewModel @Inject constructor(
         combine(editedEvent, editedActions) { event, actions ->
             val actionList = actions.value ?: emptyList()
             actionList.mapIndexedNotNull { index, action ->
-                if (action is Click || action is Swipe) {
+                if (action is Click || action is Swipe || action is SplitAction) {
                     action.toUiAction(context, event, inError = !actions.itemValidity[index])
                 } else null
             }
@@ -272,6 +272,9 @@ class SmartActionsBriefViewModel @Inject constructor(
         }
     }
 
+    fun combineWithNewClick(action: Action): SplitAction? =
+        editionRepository.combineActionWithNew(action, editionRepository.editedItemsBuilder.createNewClick(context))
+
     fun combineWithNewSwipe(action: Action): SplitAction? {
         val newSwipe = editionRepository.editedItemsBuilder.createNewSwipe(context)
         return editionRepository.combineActionWithNew(action, newSwipe)
@@ -308,6 +311,7 @@ class SmartActionsBriefViewModel @Inject constructor(
                             .copy(
                                 position = desc.position?.toPoint(),
                                 pressDuration = desc.pressDurationMs,
+                                waitBeforeMs = desc.startOffsetMs,
                                 positionType = Click.PositionType.USER_SELECTED,
                                 priority = index,
                             )
@@ -316,6 +320,7 @@ class SmartActionsBriefViewModel @Inject constructor(
                                 from = desc.from?.toPoint(),
                                 to = desc.to?.toPoint(),
                                 swipeDuration = desc.swipeDurationMs,
+                                waitBeforeMs = desc.startOffsetMs,
                                 priority = index,
                             )
                         else -> null

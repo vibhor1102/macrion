@@ -95,6 +95,7 @@ class DumbSwipeViewModel @Inject constructor(
     /** Subtext for the position selector. */
     val swipePositionText: Flow<String> = editedDumbSwipe
         .map { dumbSwipe ->
+            if (dumbSwipe.fromPosition.x < 0 || dumbSwipe.fromPosition.y < 0) return@map context.getString(R.string.split_action_position_not_set)
             context.getString(
                 R.string.item_desc_dumb_swipe_positions,
                 dumbSwipe.fromPosition.x,

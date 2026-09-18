@@ -32,5 +32,7 @@ data class DumbSplitActionUiState(
     val waitAfter: String,
     val canBeSaved: Boolean,
     val subActions: List<DumbSubActionItemUiState>,
+    val durationMs: Long,
     val canDeleteSubAction: Boolean,
+    val canUnsplit: Boolean,
 )

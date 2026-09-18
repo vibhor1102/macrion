@@ -32,6 +32,7 @@ import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.milliseconds
 
+@OptIn(kotlinx.coroutines.FlowPreview::class)
 class SplitActionViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
     private val editionRepository: EditionRepository,
@@ -158,14 +159,16 @@ class SplitActionViewModel @Inject constructor(
                         name = subAction.name ?: "${context.getString(R.string.item_swipe_title)} ${index + 1}",
                         details = details,
                         icon = UiR.drawable.ic_swipe,
-                        isComplete = subAction.isComplete(),
+                        isComplete = SplitAction.isSubActionComplete(subAction),
                         action = subAction,
                     )
                 }
                 is Click -> {
-                    val hasPos = subAction.position != null
+                    val hasPos = subAction.position != null || subAction.positionType == Click.PositionType.ON_DETECTED_CONDITION
                     val details = if (hasPos) {
-                        val base = "(${subAction.position!!.x}, ${subAction.position!!.y}) • ${subAction.pressDuration ?: 0}ms"
+                        val base = if (subAction.positionType == Click.PositionType.ON_DETECTED_CONDITION)
+                            context.getString(R.string.split_action_detected_position)
+                        else "(${subAction.position!!.x}, ${subAction.position!!.y}) • ${subAction.pressDuration ?: 0}ms"
                         val delays = subAction.delaysSummary()
                         if (delays.isNotEmpty()) "$base ($delays)" else base
                     } else {
@@ -176,7 +179,7 @@ class SplitActionViewModel @Inject constructor(
                         name = subAction.name ?: "${context.getString(R.string.item_click_title)} ${index + 1}",
                         details = details,
                         icon = UiR.drawable.ic_click,
-                        isComplete = subAction.isComplete(),
+                        isComplete = SplitAction.isSubActionComplete(subAction),
                         action = subAction,
                     )
                 }
@@ -186,7 +189,7 @@ class SplitActionViewModel @Inject constructor(
                         name = subAction.name ?: "Action ${index + 1}",
                         details = "",
                         icon = UiR.drawable.ic_swipe,
-                        isComplete = subAction.isComplete(),
+                        isComplete = SplitAction.isSubActionComplete(subAction),
                         action = subAction,
                     )
                 }
@@ -199,7 +202,15 @@ class SplitActionViewModel @Inject constructor(
             canBeSaved = canBeSaved,
             hasUnsavedModifications = hasUnsavedModifications,
             subActions = items,
+            durationMs = subActions.maxOfOrNull { child ->
+                when (child) {
+                    is Click -> (child.waitBeforeMs ?: 0L) + (child.pressDuration ?: 0L) + (child.waitAfterMs ?: 0L)
+                    is Swipe -> (child.waitBeforeMs ?: 0L) + (child.swipeDuration ?: 0L) + (child.waitAfterMs ?: 0L)
+                    else -> 0L
+                }
+            } ?: 0L,
             canDeleteSubAction = subActions.size > 2,
+            canUnsplit = editionRepository.editionState.getEditedEventActions<Action>()?.any { it.id == id } == true,
         )
     }
 

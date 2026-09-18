@@ -62,7 +62,7 @@ import io.github.vibhor1102.macrion.feature.smart.config.ui.common.dialogs.showC
 import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.selection.ScreenConditionSelectionDialog
 import kotlinx.coroutines.launch
 
-class ClickDialog(private val listener: OnActionConfigCompleteListener) : OverlayDialog(R.style.ScenarioConfigTheme) {
+class ClickDialog(private val listener: OnActionConfigCompleteListener, private val canDelete: Boolean = true) : OverlayDialog(R.style.ScenarioConfigTheme) {
     override fun tutorialMonitoringTag(): String = MonitoredOverlayType.CLICK.name
     private val viewModel: ClickViewModel by viewModels(
         entryPoint = ScenarioConfigViewModelsEntryPoint::class.java,
@@ -108,8 +108,8 @@ class ClickDialog(private val listener: OnActionConfigCompleteListener) : Overla
                         ActionDelaysCard(
                             waitBefore = state.waitBeforeMs.orEmpty(),
                             waitAfter = state.waitAfterMs.orEmpty(),
-                            onWaitBeforeChanged = { viewModel.setWaitBeforeMs(it.toLongOrNull()) },
-                            onWaitAfterChanged = { viewModel.setWaitAfterMs(it.toLongOrNull()) },
+                            onWaitBeforeChanged = { viewModel.setWaitBeforeMs(it.takeIf { it.isNotBlank() }?.let { it.toLongOrNull() ?: -1L }) },
+                            onWaitAfterChanged = { viewModel.setWaitAfterMs(it.takeIf { it.isNotBlank() }?.let { it.toLongOrNull() ?: -1L }) },
                         )
                     }
                 }
@@ -121,7 +121,7 @@ class ClickDialog(private val listener: OnActionConfigCompleteListener) : Overla
             IconButton(onClick = ::back) { Icon(painterResource(R.drawable.ic_cancel), null) }
             Text(context.getString(R.string.dialog_title_click), Modifier.weight(1f).padding(horizontal = 8.dp),
                 style = MaterialTheme.typography.titleLarge, maxLines = 1, overflow = TextOverflow.Clip)
-            FilledTonalIconButton(onClick = ::delete) { Icon(painterResource(R.drawable.ic_delete), null) }
+            FilledTonalIconButton(onClick = ::delete, enabled = canDelete) { Icon(painterResource(R.drawable.ic_delete), null) }
             Spacer(Modifier.width(8.dp))
             FilledIconButton(
                 onClick = ::save,

@@ -12,7 +12,7 @@ A **Click** action injects a single touch stroke at a designated point on the di
 Click Action Parameters
  ├── Position Mode: USER_SELECTED (Static) vs ON_DETECTED_CONDITION (Dynamic)
  ├── Click Offset: (dx, dy) in pixels (Condition-relative only)
- └── Press Duration: Time held down in milliseconds (1 ms to 65,000 ms)
+ └── Press Duration: Time held down in milliseconds (1 ms to 59,999 ms)
 ```
 
 ### Position Types
@@ -167,3 +167,25 @@ When **Randomization** is enabled, both Clicks and Swipes undergo spatial pertur
 - Press and swipe durations are perturbed by $\Delta t \in [-5, +5]$ milliseconds.
 
 This guarantees that bot detection algorithms tracking identical repetitive touch centroids cannot identify a fixed coordinate signature.
+
+## Zoom In/Out and combined touches
+
+**Zoom In/Out** opens a parent editor with two unconfigured swipes in Smart and Dumb modes. Set each swipe's start and end positions separately. You can also add clicks or more swipes, up to ten touches. The parent shows the number of configured touches and the duration of their combined timeline.
+
+Saving a child updates the parent draft. Save the parent to apply the entire gesture; cancelling the parent discards its child changes as well. A child cannot be deleted when only two remain. Use **Unsplit** to turn a saved combined gesture into sequential actions.
+
+A touch action's menu can **Combine with new click**, **Combine with new swipe**, or combine with another touch action in the same list. Existing combined gestures are flattened into one set of touches. The original actions remain unchanged until you save the new parent.
+
+### Optional delays
+
+Expand **Delays** in a click or swipe editor to set **Wait Before** and **Wait After**, in milliseconds. Both are optional and can be cleared.
+
+Inside a combined gesture, Wait Before determines when that finger touches down. Wait After starts when that finger lifts and can overlap another finger's touch. For example, a 100 ms click with a 500 ms Wait After is finished at 600 ms; if the other finger finishes at 1,000 ms, the group finishes at 1,000 ms, without another 500 ms pause.
+
+A combined touch's Wait Before plus press/swipe duration must fit within 59,999 ms. Each optional wait accepts 0–59,999 ms.
+
+In Dumb mode, repetition is configured on the parent: each child runs once per parent repetition. The original child repeat settings are preserved for Unsplit, including after saving and reopening the scenario. Parent waits surround the entire repeated action; child waits apply to every repetition.
+
+### Recording
+
+Record a pinch or another gesture with multiple fingers to create a combined action. Each finger retains its press/swipe duration and its delay relative to the first finger. Swipes use their recorded start and end positions; recording does not preserve curved paths.

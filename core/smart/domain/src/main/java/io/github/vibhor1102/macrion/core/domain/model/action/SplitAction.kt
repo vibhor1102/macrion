@@ -17,6 +17,7 @@
 package io.github.vibhor1102.macrion.core.domain.model.action
 
 import io.github.vibhor1102.macrion.core.base.identifier.Identifier
+import io.github.vibhor1102.macrion.core.base.gesture.*
 
 /**
  * Split action containing two or more sub-actions executed concurrently as a single multi-stroke gesture.
@@ -36,7 +37,7 @@ data class SplitAction(
 ) : Action() {
 
     override fun isComplete(): Boolean =
-        super.isComplete() && subActions.size >= 2 && subActions.all { isSubActionComplete(it) }
+        super.isComplete() && subActions.size in 2..MAX_TOUCH_STROKES && subActions.all { isSubActionComplete(it) }
 
     override fun hashCodeNoIds(): Int =
         (name?.hashCode() ?: 0) + subActions.sumOf { it.hashCodeNoIds() }
@@ -48,9 +49,9 @@ data class SplitAction(
 
     companion object {
         fun isSubActionComplete(action: Action): Boolean = when (action) {
-            is Swipe -> action.swipeDuration != null && action.from != null && action.to != null
-            is Click -> action.pressDuration != null && action.position != null
-            else -> !action.name.isNullOrBlank() && action.isComplete()
+            is Swipe -> action.isComplete() && isCombinedTouchTimingValid(action.swipeDuration, action.waitBeforeMs, action.waitAfterMs)
+            is Click -> action.isComplete() && isCombinedTouchTimingValid(action.pressDuration, action.waitBeforeMs, action.waitAfterMs)
+            else -> false
         }
     }
 }

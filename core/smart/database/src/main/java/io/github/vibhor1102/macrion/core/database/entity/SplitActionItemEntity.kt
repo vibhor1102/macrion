@@ -58,6 +58,11 @@ import kotlinx.serialization.Serializable
 data class SplitActionItemEntity(
     @PrimaryKey(autoGenerate = true) override var id: Long = 0,
     @ColumnInfo(name = "action_id") var actionId: Long = 0,
+    @ColumnInfo(name = "name") val name: String? = null,
+    @ColumnInfo(name = "click_position_type") val clickPositionType: ClickPositionType? = null,
+    @ColumnInfo(name = "click_on_condition_id") var clickOnConditionId: Long? = null,
+    @ColumnInfo(name = "click_offset_x") val clickOffsetX: Int? = null,
+    @ColumnInfo(name = "click_offset_y") val clickOffsetY: Int? = null,
     @ColumnInfo(name = "priority") var priority: Int = 0,
     @ColumnInfo(name = "type") val type: ActionType = ActionType.SWIPE,
     @ColumnInfo(name = "from_x") val fromX: Int? = null,

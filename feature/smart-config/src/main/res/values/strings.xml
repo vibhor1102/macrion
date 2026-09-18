@@ -674,4 +674,10 @@
     <string name="action_edit_gestures">Configure gestures</string>
     <string name="action_edit_stroke">Edit %1$s</string>
 
+    <string name="action_combine_with_new_click">Combine with new click</string>
+    <string name="split_action_timing_help">Each touch starts after its Wait Before and finishes after its own Wait After. Configure every touch before saving. Up to 10 touches can run together.</string>
+    <string name="combined_touch_count">%1$d touch actions</string>
+    <string name="split_repeat_help">Repetition applies to the whole gesture. Each touch runs once per repetition; its individual repeat settings are restored when you Unsplit.</string>
+    <string name="split_action_position_not_set">Position not set</string>
+    <string name="split_action_detected_position">Position follows detected condition</string>
 </resources>

@@ -70,7 +70,9 @@ fun GestureDescription.Builder.addStroke(
             GestureDescription.StrokeDescription(
                 path,
                 startTime.toNormalizedStrokeStartTime(),
-                actualDurationMs.toNormalizedStrokeDurationMs(),
+                actualDurationMs.toNormalizedStrokeDurationMs().coerceAtMost(
+                    MAXIMUM_STROKE_DURATION_MS - startTime.toNormalizedStrokeStartTime(),
+                ),
             )
         )
     } catch (ex: IllegalStateException) {
@@ -93,7 +95,7 @@ fun GestureDescription.Builder.buildSingleStroke(
 }
 
 private fun Long.toNormalizedStrokeStartTime(): Long =
-    max(0, this)
+    coerceIn(0, MAXIMUM_STROKE_DURATION_MS - 1)
 
 private fun Long.toNormalizedStrokeDurationMs(): Long =
     max(MINIMUM_STROKE_DURATION_MS, min(MAXIMUM_STROKE_DURATION_MS, this))

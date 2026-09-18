@@ -70,19 +70,20 @@ fun GestureRecordOverlay(
                         current = firstOrigin,
                         lastUptime = down.uptimeMillis,
                     )
+                    down.consume()
                     onGestureCaptured(RecordedGesture.Click(firstOrigin, 1L), false)
 
                     while (true) {
                         val event = awaitPointerEvent()
                         for (change in event.changes) {
                             val track = tracks[change.id]
-                            if (track != null) {
+                            if (track != null && !track.isUp) {
                                 track.current = PointF(change.position.x, change.position.y)
                                 track.lastUptime = change.uptimeMillis
                                 if (!change.pressed) {
                                     track.isUp = true
                                 }
-                            } else if (change.pressed && tracks.size < MAX_RECORDING_POINTERS) {
+                            } else if (track == null && change.pressed && tracks.size < MAX_RECORDING_POINTERS) {
                                 val origin = PointF(change.position.x, change.position.y)
                                 tracks[change.id] = PointerTrack(
                                     id = change.id,
@@ -95,15 +96,20 @@ fun GestureRecordOverlay(
                             change.consume()
                         }
 
-                        val allPointersUp = !event.changes.any { it.pressed } || tracks.values.all { it.isUp }
+                        // Never save a partial gesture when the platform stroke limit is exceeded.
+                        if (event.changes.any { it.pressed && it.id !in tracks }) {
+                            onGestureCaptured(null, true)
+                            break
+                        }
+                        val allPointersUp = !event.changes.any { it.pressed }
 
                         val subGestures = tracks.values.map { t ->
                             val dist = hypot(t.origin.x - t.current.x, t.origin.y - t.current.y)
                             val dur = (t.lastUptime - t.downTime).coerceAtLeast(1L)
                             if (dist <= SWIPE_MIN_DISTANCE_PX) {
-                                RecordedGesture.Click(t.origin, dur)
+                                RecordedGesture.Click(t.origin, dur, t.downTime - sessionStartTime)
                             } else {
-                                RecordedGesture.Swipe(t.origin, t.current, dur)
+                                RecordedGesture.Swipe(t.origin, t.current, dur, t.downTime - sessionStartTime)
                             }
                         }
 

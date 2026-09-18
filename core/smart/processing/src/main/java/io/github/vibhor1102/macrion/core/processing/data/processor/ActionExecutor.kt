@@ -22,6 +22,7 @@ import io.github.vibhor1102.macrion.core.base.crash.CrashDiagnostics
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.GestureDescription
 import android.content.Intent as AndroidIntent
+import io.github.vibhor1102.macrion.core.base.gesture.combinedTouchTailDelay
 import android.graphics.Path
 import android.graphics.Point
 import android.util.Log
@@ -128,7 +129,7 @@ internal class ActionExecutor(
                     is SystemAction -> executeSystemAction(action)
                     is SetText -> executeSetText(action)
                     is PlaySound -> executePlaySound(action)
-                    is SplitAction -> executeSplitAction(action)
+                    is SplitAction -> executeSplitAction(event, action, results)
                     is CaptureScreenshot -> {
                         val allowed = executeCaptureScreenshot(action)
                         if (!allowed) {
@@ -223,8 +224,8 @@ internal class ActionExecutor(
      * Execute the provided split action simultaneously.
      * @param splitAction the split action containing sub-actions to execute in one gesture.
      */
-    private suspend fun executeSplitAction(splitAction: SplitAction) {
-        if (splitAction.subActions.isEmpty()) return
+    private suspend fun executeSplitAction(event: Event, splitAction: SplitAction, results: ConditionsResults?) {
+        if (!splitAction.isComplete()) return
 
         val builder = GestureDescription.Builder()
         var hasValidStroke = false
@@ -244,8 +245,13 @@ internal class ActionExecutor(
                     }
                 }
                 is Click -> {
-                    if (subAction.position != null && subAction.pressDuration != null) {
-                        val path = Path().apply { moveTo(subAction.position!!, random) }
+                    if (subAction.pressDuration != null) {
+                        val path = when (subAction.positionType) {
+                            Click.PositionType.USER_SELECTED -> subAction.position?.let { position ->
+                                Path().apply { moveTo(position, random) }
+                            }
+                            Click.PositionType.ON_DETECTED_CONDITION -> getOnConditionClickPath(event, subAction, results)
+                        } ?: return
                         builder.addStroke(
                             path = path,
                             durationMs = subAction.pressDuration!!,
@@ -264,13 +270,16 @@ internal class ActionExecutor(
             withContext(Dispatchers.Main) {
                 androidExecutor.dispatchGesture(gesture)
             }
-            val maxWaitAfter = splitAction.subActions.maxOfOrNull {
+            val maxWaitAfter = combinedTouchTailDelay(
+                (0 until gesture.strokeCount).map { gesture.getStroke(it).let { stroke -> stroke.startTime + stroke.duration } },
+                splitAction.subActions.map {
                 when (it) {
                     is Swipe -> it.waitAfterMs ?: 0L
                     is Click -> it.waitAfterMs ?: 0L
                     else -> 0L
                 }
-            } ?: 0L
+                },
+            )
             if (maxWaitAfter > 0L) {
                 delay(maxWaitAfter)
             }

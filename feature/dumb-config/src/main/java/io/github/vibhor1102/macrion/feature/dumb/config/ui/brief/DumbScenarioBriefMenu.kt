@@ -135,23 +135,21 @@ class DumbScenarioBriefMenu(
             details = details,
             orientation = orientation,
             onClick = onClick,
-            onSubActionClick = { subIndex ->
-                val action = details.action
-                if (action is DumbAction.DumbSplitAction) {
-                    showDumbSubActionEditionUiFlow(action, subIndex)
-                }
-            },
             combinableActions = combinableActions,
+            onCombineWithNewClick = {
+                val split = viewModel.combineWithNewClick(details.action)
+                if (split != null) showCombinationEditor(split, setOf(details.action.id))
+            },
             onCombineWithNewSwipe = {
                 val split = viewModel.combineWithNewSwipe(details.action)
                 if (split != null) {
-                    showDumbActionEditionUiFlow(split)
+                    showCombinationEditor(split, setOf(details.action.id))
                 }
             },
             onCombineWithAction = { otherAction ->
                 val split = viewModel.combineActions(details.action, otherAction)
                 if (split != null) {
-                    showDumbActionEditionUiFlow(split)
+                    showCombinationEditor(split, setOf(details.action.id, otherAction.id))
                 }
             },
             onUnsplit = {
@@ -336,6 +334,17 @@ class DumbScenarioBriefMenu(
             listener = createCopyActionUiFlowListener,
         )
 
+    private fun showCombinationEditor(
+        split: DumbAction.DumbSplitAction,
+        sourceIds: Set<io.github.vibhor1102.macrion.core.base.identifier.Identifier>,
+    ) {
+        overlayManager.startDumbActionEditionUiFlow(context, split, DumbActionUiFlowListener(
+            onDumbActionSaved = { viewModel.saveCombination(it as DumbAction.DumbSplitAction, sourceIds) },
+            onDumbActionDeleted = {},
+            onDumbActionCreationCancelled = {},
+        ))
+    }
+
     private fun showDumbActionEditionUiFlow(action: DumbAction): Unit =
         overlayManager.startDumbActionEditionUiFlow(
             context = context,
@@ -343,34 +352,5 @@ class DumbScenarioBriefMenu(
             listener = updateActionUiFlowListener,
         )
 
-    private fun showDumbSubActionEditionUiFlow(parent: DumbAction.DumbSplitAction, subIndex: Int) {
-        val subAction = parent.subActions.getOrNull(subIndex) ?: return
-        overlayManager.startDumbActionEditionUiFlow(
-            context = context,
-            dumbAction = subAction,
-            listener = DumbActionUiFlowListener(
-                onDumbActionSaved = { updatedSubAction ->
-                    val updatedSubActions = parent.subActions.toMutableList()
-                    if (subIndex in updatedSubActions.indices) {
-                        updatedSubActions[subIndex] = updatedSubAction
-                        val updatedParent = parent.copy(subActions = updatedSubActions)
-                        viewModel.updateDumbAction(updatedParent)
-                    }
-                },
-                onDumbActionDeleted = {
-                    if (parent.subActions.size > 2) {
-                        val updatedSubActions = parent.subActions.toMutableList()
-                        if (subIndex in updatedSubActions.indices) {
-                            updatedSubActions.removeAt(subIndex)
-                            val updatedParent = parent.copy(subActions = updatedSubActions)
-                            viewModel.updateDumbAction(updatedParent)
-                        }
-                    } else {
-                        viewModel.deleteDumbAction(parent)
-                    }
-                },
-                onDumbActionCreationCancelled = {},
-            ),
-        )
-    }
+
 }

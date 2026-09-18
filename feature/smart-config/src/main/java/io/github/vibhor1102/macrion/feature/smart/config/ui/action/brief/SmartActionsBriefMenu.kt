@@ -124,13 +124,11 @@ class SmartActionsBriefMenu(initialItemIndex: Int) : ItemBriefMenu(
             details = uiAction,
             orientation = orientation,
             onClick = onClick,
-            onSubActionClick = { subIndex ->
-                val action = uiAction.action
-                if (action is io.github.vibhor1102.macrion.core.domain.model.action.SplitAction) {
-                    showSubActionConfigDialog(viewModel, action, subIndex)
-                }
-            },
             combinableActions = combinableActions,
+            onCombineWithNewClick = {
+                val split = viewModel.combineWithNewClick(uiAction.action)
+                if (split != null) showActionConfigDialog(split)
+            },
             onCombineWithNewSwipe = {
                 val split = viewModel.combineWithNewSwipe(uiAction.action)
                 if (split != null) {

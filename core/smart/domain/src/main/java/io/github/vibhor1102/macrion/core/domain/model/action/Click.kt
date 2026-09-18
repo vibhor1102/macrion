@@ -16,6 +16,7 @@
  */
 package io.github.vibhor1102.macrion.core.domain.model.action
 
+import io.github.vibhor1102.macrion.core.base.gesture.isTouchTimingValid
 import android.graphics.Point
 import io.github.vibhor1102.macrion.core.base.identifier.Identifier
 import io.github.vibhor1102.macrion.core.database.entity.ClickPositionType
@@ -65,7 +66,7 @@ data class Click(
     }
 
     override fun isComplete(): Boolean =
-        super.isComplete() && pressDuration != null && isPositionValid()
+        super.isComplete() && isTouchTimingValid(pressDuration, waitBeforeMs, waitAfterMs) && isPositionValid()
 
     override fun hashCodeNoIds(): Int =
         name.hashCode() + pressDuration.hashCode() + positionType.hashCode() + position.hashCode() +

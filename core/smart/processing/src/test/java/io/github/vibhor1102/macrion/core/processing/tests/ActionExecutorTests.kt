@@ -372,4 +372,25 @@ class ActionExecutorTests {
         verify(mockAndroidExecutor, times(1)).dispatchGesture(gestureCaptor.capture())
         assertEquals(2, gestureCaptor.firstValue.strokeCount)
     }
+    @Test
+    fun splitWaitAfterStartsAtItsOwnFingerRelease() = runTest {
+        val click = getNewDefaultClickUserPos(1, duration = 100).copy(waitAfterMs = 1200)
+        val swipe = getNewDefaultSwipe(2).copy(swipeDuration = 800, waitBeforeMs = 200)
+        val split = SplitAction(Identifier(databaseId = 10), TEST_EVENT_ID, "Combined", 0, listOf(click, swipe))
+        val gesture = argumentCaptor<GestureDescription>()
+        actionExecutor.executeActions(getNewDefaultEvent(actions = listOf(split)))
+        verify(mockAndroidExecutor).dispatchGesture(gesture.capture())
+        assertEquals(200L, gesture.firstValue.getStroke(1).startTime)
+        // Dispatch is mocked; only the 300ms tail beyond the last finger is delayed here.
+        assertEquals(300L, currentTime)
+    }
+
+    @Test
+    fun splitRejectsInvalidChildrenInsteadOfExecutingPartialGesture() = runTest {
+        val split = SplitAction(Identifier(databaseId = 10), TEST_EVENT_ID, "Combined", 0,
+            listOf(getNewDefaultSwipe(1), getNewDefaultSwipe(2).copy(from = null)))
+        actionExecutor.executeActions(getNewDefaultEvent(actions = listOf(split)))
+        verify(mockAndroidExecutor, never()).dispatchGesture(anyNotNull())
+    }
+
 }

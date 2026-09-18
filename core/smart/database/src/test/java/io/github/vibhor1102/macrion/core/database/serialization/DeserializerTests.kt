@@ -90,6 +90,22 @@ class DeserializerTests {
     }
 
     @Test
+    fun recentBackupsKeepSplitChildrenAndOptionalDelays() {
+        val split = CompleteActionEntity(
+            action = ActionEntity(10, 1, 0, "Zoom", ActionType.SPLIT_ACTION),
+            splitItems = listOf(SplitActionItemEntity(id = 1, actionId = 10, duration = 500,
+                fromX = 10, fromY = 20, toX = 30, toY = 40, startOffset = 150, waitAfterMs = 250)),
+        )
+        val expected = DEFAULT_COMPLETE_SCENARIO.copy(events = listOf(
+            DEFAULT_COMPLETE_SCENARIO.events[0].copy(actions = listOf(split)),
+        ))
+        for (version in 31..DATABASE_VERSION) {
+            assertEquals(expected, DeserializerFactory.create(version)
+                ?.deserializeCompleteScenario(expected.encodeToJsonObject()))
+        }
+    }
+
+    @Test
     fun deserialization_sameVersion() {
         // Given
         val jsonScenario = DEFAULT_COMPLETE_SCENARIO.encodeToJsonObject()

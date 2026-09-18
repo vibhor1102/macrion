@@ -198,7 +198,7 @@ private fun CompleteActionEntity.toDomainSplitAction(cleanIds: Boolean = false) 
             ActionType.SWIPE -> Swipe(
                 id = Identifier(id = item.id, asTemporary = cleanIds),
                 eventId = Identifier(id = action.eventId, asTemporary = cleanIds),
-                name = "Swipe ${item.priority + 1}",
+                name = item.name ?: "Swipe ${item.priority + 1}",
                 priority = item.priority,
                 swipeDuration = item.duration,
                 from = getPositionIfValid(item.fromX, item.fromY),
@@ -209,10 +209,12 @@ private fun CompleteActionEntity.toDomainSplitAction(cleanIds: Boolean = false) 
             ActionType.CLICK -> Click(
                 id = Identifier(id = item.id, asTemporary = cleanIds),
                 eventId = Identifier(id = action.eventId, asTemporary = cleanIds),
-                name = "Click ${item.priority + 1}",
+                name = item.name ?: "Click ${item.priority + 1}",
                 priority = item.priority,
                 pressDuration = item.duration ?: 50L,
-                positionType = Click.PositionType.USER_SELECTED,
+                positionType = item.clickPositionType?.let { Click.PositionType.valueOf(it.name) } ?: Click.PositionType.USER_SELECTED,
+                clickOnConditionId = item.clickOnConditionId?.let { Identifier(id = it, asTemporary = cleanIds) },
+                clickOffset = getPositionIfValid(item.clickOffsetX, item.clickOffsetY),
                 position = getPositionIfValid(item.fromX, item.fromY),
                 waitBeforeMs = item.startOffset.takeIf { it > 0 },
                 waitAfterMs = item.waitAfterMs,
@@ -220,7 +222,7 @@ private fun CompleteActionEntity.toDomainSplitAction(cleanIds: Boolean = false) 
             else -> Swipe(
                 id = Identifier(id = item.id, asTemporary = cleanIds),
                 eventId = Identifier(id = action.eventId, asTemporary = cleanIds),
-                name = "Swipe ${item.priority + 1}",
+                name = item.name ?: "Swipe ${item.priority + 1}",
                 priority = item.priority,
                 swipeDuration = item.duration,
                 from = getPositionIfValid(item.fromX, item.fromY),

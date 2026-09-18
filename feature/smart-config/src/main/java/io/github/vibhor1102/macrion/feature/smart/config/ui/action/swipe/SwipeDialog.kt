@@ -29,6 +29,7 @@ import kotlinx.coroutines.launch
 
 class SwipeDialog(
     private val listener: OnActionConfigCompleteListener,
+    private val canDelete: Boolean = true,
 ) : OverlayDialog(R.style.ScenarioConfigTheme) {
 
     override fun tutorialMonitoringTag(): String = MonitoredOverlayType.SWIPE.name
@@ -56,6 +57,7 @@ class SwipeDialog(
         val state by viewModel.uiState.collectAsStateWithLifecycle()
         val ui = state ?: return
         MacrionPositionGestureEditor(
+            deleteEnabled = canDelete,
             title = context.getString(R.string.dialog_title_swipe),
             name = ui.name.orEmpty(),
             duration = ui.swipeDuration.orEmpty(),
@@ -73,8 +75,8 @@ class SwipeDialog(
             onNameChanged = viewModel::setName,
             onDurationChanged = { viewModel.setSwipeDuration(it.toLongOrNull()) },
             onPositionClicked = ::showPositionSelector,
-            onWaitBeforeChanged = { viewModel.setWaitBeforeMs(it.toLongOrNull()) },
-            onWaitAfterChanged = { viewModel.setWaitAfterMs(it.toLongOrNull()) },
+            onWaitBeforeChanged = { viewModel.setWaitBeforeMs(it.takeIf { it.isNotBlank() }?.let { it.toLongOrNull() ?: -1L }) },
+            onWaitAfterChanged = { viewModel.setWaitAfterMs(it.takeIf { it.isNotBlank() }?.let { it.toLongOrNull() ?: -1L }) },
             onDismiss = ::back,
             onDelete = ::onDeleteButtonClicked,
             onSave = ::onSaveButtonClicked,

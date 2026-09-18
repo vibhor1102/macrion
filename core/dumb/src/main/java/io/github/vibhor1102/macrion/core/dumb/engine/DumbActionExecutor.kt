@@ -17,6 +17,8 @@
 package io.github.vibhor1102.macrion.core.dumb.engine
 
 import android.accessibilityservice.GestureDescription
+import io.github.vibhor1102.macrion.core.base.gesture.combinedTouchTailDelay
+import io.github.vibhor1102.macrion.core.common.actions.gesture.addStroke
 import android.graphics.Path
 import android.util.Log
 
@@ -42,7 +44,9 @@ class DumbActionExecutor @Inject constructor(
     private val androidExecutor: AndroidActionExecutor,
 ) {
 
-    private val random: Random = Random(System.currentTimeMillis())
+    private val randomSource = Random(System.currentTimeMillis())
+    private val random: Random?
+        get() = randomSource.takeIf { randomize }
     private var randomize: Boolean = false
 
     private var unblockWorkaroundEnabled: Boolean = false
@@ -107,6 +111,7 @@ class DumbActionExecutor @Inject constructor(
     }
 
     private suspend fun executeDumbSplitAction(splitAction: DumbAction.DumbSplitAction) {
+        if (!splitAction.isValid()) return
         splitAction.waitBeforeMs?.takeIf { it > 0 }?.let { delay(it) }
         val builder = GestureDescription.Builder()
         for (sub in splitAction.subActions) {
@@ -129,12 +134,22 @@ class DumbActionExecutor @Inject constructor(
                 else -> continue
             }
             builder.addStroke(
-                GestureDescription.StrokeDescription(path, startOffset, duration)
+                path = path, startTime = startOffset, durationMs = duration, random = random
             )
         }
 
         val gesture = builder.build()
-        executeRepeatableGesture(gesture, splitAction)
+        val tailDelay = combinedTouchTailDelay(
+            (0 until gesture.strokeCount).map { gesture.getStroke(it).let { stroke -> stroke.startTime + stroke.duration } },
+            splitAction.subActions.map {
+                when (it) {
+                    is DumbAction.DumbClick -> it.waitAfterMs ?: 0L
+                    is DumbAction.DumbSwipe -> it.waitAfterMs ?: 0L
+                    else -> 0L
+                }
+            },
+        )
+        executeRepeatableGesture(gesture, splitAction, tailDelay)
         splitAction.waitAfterMs?.takeIf { it > 0 }?.let { delay(it) }
     }
 
@@ -142,11 +157,12 @@ class DumbActionExecutor @Inject constructor(
         delay(dumbPause.pauseDurationMs.getPauseDurationMs(random))
     }
 
-    private suspend fun executeRepeatableGesture(gesture: GestureDescription, repeatable: Repeatable) {
+    private suspend fun executeRepeatableGesture(gesture: GestureDescription, repeatable: Repeatable, tailDelay: Long = 0L) {
         repeatable.repeat {
             withContext(Dispatchers.Main) {
                 androidExecutor.dispatchGesture(gesture)
             }
+            if (tailDelay > 0L) delay(tailDelay)
         }
     }
 }

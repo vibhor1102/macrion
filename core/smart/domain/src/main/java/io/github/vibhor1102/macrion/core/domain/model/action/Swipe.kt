@@ -16,6 +16,7 @@
  */
 package io.github.vibhor1102.macrion.core.domain.model.action
 
+import io.github.vibhor1102.macrion.core.base.gesture.isTouchTimingValid
 import android.graphics.Point
 import io.github.vibhor1102.macrion.core.base.identifier.Identifier
 
@@ -42,7 +43,7 @@ data class Swipe(
 ) : Action() {
 
     override fun isComplete(): Boolean =
-        super.isComplete() && swipeDuration != null && from != null&& to != null
+        super.isComplete() && isTouchTimingValid(swipeDuration, waitBeforeMs, waitAfterMs) && from != null&& to != null
 
     override fun hashCodeNoIds(): Int =
         name.hashCode() + swipeDuration.hashCode() + from.hashCode() + to.hashCode() +

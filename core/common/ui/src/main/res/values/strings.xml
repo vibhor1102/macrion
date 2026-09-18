@@ -133,4 +133,6 @@
 
     <string name="content_desc_tuck_toolbar">Tuck toolbar to screen edge</string>
     <string name="content_desc_expand_toolbar">Expand toolbar</string>
+    <string name="combined_gesture_configured">Configured touches</string>
+    <string name="combined_gesture_duration">Touch timeline</string>
 </resources>

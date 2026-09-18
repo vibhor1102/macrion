@@ -1,0 +1,385 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 5,
+    "identityHash": "0929ce4c7fe1bdea6f31ad8e9dade697",
+    "entities": [
+      {
+        "tableName": "dumb_scenario_table",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `repeat_count` INTEGER NOT NULL, `is_repeat_infinite` INTEGER NOT NULL, `max_duration_minutes` INTEGER NOT NULL, `is_duration_infinite` INTEGER NOT NULL, `randomize` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "repeatCount",
+            "columnName": "repeat_count",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isRepeatInfinite",
+            "columnName": "is_repeat_infinite",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "maxDurationMin",
+            "columnName": "max_duration_minutes",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isDurationInfinite",
+            "columnName": "is_duration_infinite",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "randomize",
+            "columnName": "randomize",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "dumb_action_table",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `dumb_scenario_id` INTEGER NOT NULL, `priority` INTEGER NOT NULL, `name` TEXT NOT NULL, `type` TEXT NOT NULL, `repeat_count` INTEGER, `is_repeat_infinite` INTEGER, `repeat_delay` INTEGER, `press_duration` INTEGER, `x` INTEGER, `y` INTEGER, `swipe_duration` INTEGER, `fromX` INTEGER, `fromY` INTEGER, `toX` INTEGER, `toY` INTEGER, `pause_duration` INTEGER, `wait_before_ms` INTEGER, `wait_after_ms` INTEGER, FOREIGN KEY(`dumb_scenario_id`) REFERENCES `dumb_scenario_table`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "dumbScenarioId",
+            "columnName": "dumb_scenario_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "priority",
+            "columnName": "priority",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "type",
+            "columnName": "type",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "repeatCount",
+            "columnName": "repeat_count",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "isRepeatInfinite",
+            "columnName": "is_repeat_infinite",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "repeatDelay",
+            "columnName": "repeat_delay",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "pressDuration",
+            "columnName": "press_duration",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "x",
+            "columnName": "x",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "y",
+            "columnName": "y",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "swipeDuration",
+            "columnName": "swipe_duration",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "fromX",
+            "columnName": "fromX",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "fromY",
+            "columnName": "fromY",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "toX",
+            "columnName": "toX",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "toY",
+            "columnName": "toY",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "pauseDuration",
+            "columnName": "pause_duration",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "waitBeforeMs",
+            "columnName": "wait_before_ms",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "waitAfterMs",
+            "columnName": "wait_after_ms",
+            "affinity": "INTEGER"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_dumb_action_table_dumb_scenario_id",
+            "unique": false,
+            "columnNames": [
+              "dumb_scenario_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_dumb_action_table_dumb_scenario_id` ON `${TABLE_NAME}` (`dumb_scenario_id`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "dumb_scenario_table",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "dumb_scenario_id"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "dumb_scenario_stats_table",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `dumb_scenario_id` INTEGER NOT NULL, `last_start_timestamp_ms` INTEGER NOT NULL, `start_count` INTEGER NOT NULL, FOREIGN KEY(`dumb_scenario_id`) REFERENCES `dumb_scenario_table`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "scenarioId",
+            "columnName": "dumb_scenario_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastStartTimestampMs",
+            "columnName": "last_start_timestamp_ms",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "startCount",
+            "columnName": "start_count",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_dumb_scenario_stats_table_dumb_scenario_id",
+            "unique": false,
+            "columnNames": [
+              "dumb_scenario_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_dumb_scenario_stats_table_dumb_scenario_id` ON `${TABLE_NAME}` (`dumb_scenario_id`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "dumb_scenario_table",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "dumb_scenario_id"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "dumb_split_action_item_table",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `action_id` INTEGER NOT NULL, `name` TEXT, `repeat_count` INTEGER NOT NULL DEFAULT 1, `is_repeat_infinite` INTEGER NOT NULL DEFAULT 0, `repeat_delay_ms` INTEGER NOT NULL DEFAULT 0, `priority` INTEGER NOT NULL, `type` TEXT NOT NULL, `from_x` INTEGER, `from_y` INTEGER, `to_x` INTEGER, `to_y` INTEGER, `duration` INTEGER, `start_offset` INTEGER NOT NULL, `wait_after_ms` INTEGER, FOREIGN KEY(`action_id`) REFERENCES `dumb_action_table`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "actionId",
+            "columnName": "action_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "repeatCount",
+            "columnName": "repeat_count",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "1"
+          },
+          {
+            "fieldPath": "isRepeatInfinite",
+            "columnName": "is_repeat_infinite",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "repeatDelayMs",
+            "columnName": "repeat_delay_ms",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "priority",
+            "columnName": "priority",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "type",
+            "columnName": "type",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fromX",
+            "columnName": "from_x",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "fromY",
+            "columnName": "from_y",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "toX",
+            "columnName": "to_x",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "toY",
+            "columnName": "to_y",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "duration",
+            "columnName": "duration",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "startOffset",
+            "columnName": "start_offset",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "waitAfterMs",
+            "columnName": "wait_after_ms",
+            "affinity": "INTEGER"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_dumb_split_action_item_table_action_id",
+            "unique": false,
+            "columnNames": [
+              "action_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_dumb_split_action_item_table_action_id` ON `${TABLE_NAME}` (`action_id`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "dumb_action_table",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "action_id"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '0929ce4c7fe1bdea6f31ad8e9dade697')"
+    ]
+  }
+}

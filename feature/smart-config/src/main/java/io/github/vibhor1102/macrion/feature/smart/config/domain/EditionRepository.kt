@@ -221,11 +221,13 @@ class EditionRepository @Inject constructor(
         }
     fun combineActions(actionA: Action, actionB: Action): SplitAction? =
         scenarioEditor.currentEventEditor.value?.actionsEditor?.combineActions(
-            actionA, actionB, editedItemsBuilder.actionsIdCreator.generateNewIdentifier()
+            actionA, actionB, editedItemsBuilder.actionsIdCreator.generateNewIdentifier(),
+            editedItemsBuilder.actionsIdCreator::generateNewIdentifier
         )
     fun combineActionWithNew(action: Action, newSubAction: Action): SplitAction? =
         scenarioEditor.currentEventEditor.value?.actionsEditor?.combineActionWithNew(
-            action, newSubAction, editedItemsBuilder.actionsIdCreator.generateNewIdentifier()
+            action, newSubAction, editedItemsBuilder.actionsIdCreator.generateNewIdentifier(),
+            editedItemsBuilder.actionsIdCreator::generateNewIdentifier
         )
 
 

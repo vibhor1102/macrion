@@ -27,6 +27,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import io.github.vibhor1102.macrion.core.base.identifier.Identifier
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
@@ -139,6 +140,7 @@ class DumbEditionRepository @Inject constructor(
     fun deleteDumbAction(dumbAction: DumbAction) {
         val editedScenario = _editedDumbScenario.value ?: return
         val deleteIndex = editedScenario.dumbActions.indexOfFirst { it.id == dumbAction.id }
+        if (deleteIndex < 0) return
 
         Log.d(TAG, "Delete dumb action from edited scenario $dumbAction at $deleteIndex")
         _editedDumbScenario.value = editedScenario.copy(
@@ -199,29 +201,41 @@ class DumbEditionRepository @Inject constructor(
         updateDumbActions(currentActions)
     }
 
+    /** Apply a combination only after its parent editor is saved. */
+    fun saveCombination(split: DumbAction.DumbSplitAction, sourceIds: Set<Identifier>) {
+        val actions = _editedDumbScenario.value?.dumbActions ?: return
+        val index = actions.indexOfFirst { it.id in sourceIds }
+        if (index < 0 || !split.isValid()) return
+        val updated = actions.filterNot { it.id in sourceIds }.toMutableList()
+        updated.add(index, split)
+        updateDumbActions(updated)
+    }
+
     fun combineActions(actionA: DumbAction, actionB: DumbAction): DumbAction.DumbSplitAction? {
         val editedScenario = _editedDumbScenario.value ?: return null
         val currentList = editedScenario.dumbActions.toMutableList()
         val idxA = currentList.indexOfFirst { it.id == actionA.id }
         val idxB = currentList.indexOfFirst { it.id == actionB.id }
-        if (idxA == -1 || idxB == -1) return null
+        if (idxA == -1 || idxB == -1 || idxA == idxB) return null
+        val children = listOf(minOf(idxA, idxB), maxOf(idxA, idxB)).map { currentList[it] }.flatMap { it.touchActions() }
+        if (children.size !in 2..10) return null
 
         val insertIndex = minOf(idxA, idxB)
-        currentList.removeAll { it.id == actionA.id || it.id == actionB.id }
 
+        val existingParent = (actionA as? DumbAction.DumbSplitAction) ?: (actionB as? DumbAction.DumbSplitAction)
         val splitAction = DumbAction.DumbSplitAction(
             id = dumbActionBuilder.generateNewIdentifier(),
             scenarioId = editedScenario.id,
-            name = "Zoom",
+            name = existingParent?.name ?: "Zoom",
+            repeatCount = existingParent?.repeatCount ?: 1,
+            isRepeatInfinite = existingParent?.isRepeatInfinite ?: false,
+            repeatDelayMs = existingParent?.repeatDelayMs ?: 0L,
+            waitBeforeMs = existingParent?.waitBeforeMs,
+            waitAfterMs = existingParent?.waitAfterMs,
             priority = insertIndex,
-            subActions = listOf(
-                actionA.copyWithNewPriority(0),
-                actionB.copyWithNewPriority(1),
-            ),
+            subActions = children.mapIndexed { index, child -> dumbActionBuilder.createNewDumbActionFrom(child).copyWithNewPriority(index) },
         )
 
-        currentList.add(insertIndex, splitAction)
-        updateDumbActions(currentList)
         return splitAction
     }
 
@@ -230,21 +244,30 @@ class DumbEditionRepository @Inject constructor(
         val currentList = editedScenario.dumbActions.toMutableList()
         val idx = currentList.indexOfFirst { it.id == action.id }
         if (idx == -1) return null
+        val children = currentList[idx].touchActions() + newSubAction.touchActions()
+        if (children.size !in 2..10) return null
 
+        val existingParent = action as? DumbAction.DumbSplitAction
         val splitAction = DumbAction.DumbSplitAction(
             id = dumbActionBuilder.generateNewIdentifier(),
             scenarioId = editedScenario.id,
-            name = "Zoom",
+            name = existingParent?.name ?: "Zoom",
+            repeatCount = existingParent?.repeatCount ?: 1,
+            isRepeatInfinite = existingParent?.isRepeatInfinite ?: false,
+            repeatDelayMs = existingParent?.repeatDelayMs ?: 0L,
+            waitBeforeMs = existingParent?.waitBeforeMs,
+            waitAfterMs = existingParent?.waitAfterMs,
             priority = action.priority,
-            subActions = listOf(
-                action.copyWithNewPriority(0),
-                newSubAction.copyWithNewPriority(1),
-            ),
+            subActions = children.mapIndexed { index, child -> dumbActionBuilder.createNewDumbActionFrom(child).copyWithNewPriority(index) },
         )
 
-        currentList[idx] = splitAction
-        updateDumbActions(currentList)
         return splitAction
+    }
+
+    private fun DumbAction.touchActions(): List<DumbAction> = when (this) {
+        is DumbAction.DumbClick, is DumbAction.DumbSwipe -> listOf(this)
+        is DumbAction.DumbSplitAction -> subActions
+        else -> emptyList()
     }
 
     private fun DumbAction.copyWithNewPriority(priority: Int): DumbAction =

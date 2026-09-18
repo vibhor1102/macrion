@@ -223,6 +223,7 @@ internal fun Action.toSplitItemEntity(actionDbId: Long, itemPriority: Int): Spli
             id = id.databaseId,
             actionId = actionDbId,
             priority = itemPriority,
+            name = name,
             type = ActionType.SWIPE,
             fromX = from?.x,
             fromY = from?.y,
@@ -236,7 +237,12 @@ internal fun Action.toSplitItemEntity(actionDbId: Long, itemPriority: Int): Spli
             id = id.databaseId,
             actionId = actionDbId,
             priority = itemPriority,
+            name = name,
             type = ActionType.CLICK,
+            clickPositionType = positionType.toEntity(),
+            clickOnConditionId = clickOnConditionId?.databaseId,
+            clickOffsetX = clickOffset?.x,
+            clickOffsetY = clickOffset?.y,
             fromX = position?.x,
             fromY = position?.y,
             duration = pressDuration,
@@ -247,6 +253,7 @@ internal fun Action.toSplitItemEntity(actionDbId: Long, itemPriority: Int): Spli
             id = id.databaseId,
             actionId = actionDbId,
             priority = itemPriority,
+            name = name,
             type = ActionType.SWIPE,
         )
     }

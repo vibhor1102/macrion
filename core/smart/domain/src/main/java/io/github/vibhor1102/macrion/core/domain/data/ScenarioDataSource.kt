@@ -499,7 +499,9 @@ internal class ScenarioDataSource @Inject constructor(
             newItems = newSubActions,
             mappingClosure = { item ->
                 val priority = newSubActions.indexOf(item)
-                item.toSplitItemEntity(actionDbId, priority)
+                item.toSplitItemEntity(actionDbId, priority).apply {
+                    clickOnConditionId = scenarioUpdateState.getClickOnConditionDatabaseId(item)
+                }
             }
         )
         Log.d(TAG, "SplitActionItem updater $updater")

@@ -17,6 +17,7 @@
 package io.github.vibhor1102.macrion.core.dumb.domain.model
 
 import android.graphics.Point
+import io.github.vibhor1102.macrion.core.base.gesture.*
 import io.github.vibhor1102.macrion.core.base.interfaces.Identifiable
 import io.github.vibhor1102.macrion.core.base.identifier.Identifier
 
@@ -57,7 +58,7 @@ sealed class DumbAction : Identifiable {
     ) : DumbAction(), RepeatableWithDelay {
 
         override fun isValid(): Boolean =
-            name.isNotBlank() && pressDurationMs > 0 && isRepeatCountValid() && isRepeatDelayValid()
+            name.isNotBlank() && isTouchTimingValid(pressDurationMs, waitBeforeMs, waitAfterMs) && position.x >= 0 && position.y >= 0 && isRepeatCountValid() && isRepeatDelayValid()
     }
 
     data class DumbSwipe(
@@ -75,7 +76,7 @@ sealed class DumbAction : Identifiable {
         val waitAfterMs: Long? = null,
     ) : DumbAction(), RepeatableWithDelay {
         override fun isValid(): Boolean =
-            name.isNotBlank() && swipeDurationMs > 0 && isRepeatCountValid() && isRepeatDelayValid()
+            name.isNotBlank() && isTouchTimingValid(swipeDurationMs, waitBeforeMs, waitAfterMs) && fromPosition.x >= 0 && fromPosition.y >= 0 && toPosition.x >= 0 && toPosition.y >= 0 && isRepeatCountValid() && isRepeatDelayValid()
     }
 
     data class DumbSplitAction(
@@ -92,7 +93,13 @@ sealed class DumbAction : Identifiable {
     ) : DumbAction(), RepeatableWithDelay {
 
         override fun isValid(): Boolean =
-            name.isNotBlank() && subActions.size >= 2 && subActions.all { it.isValid() } && isRepeatCountValid() && isRepeatDelayValid()
+            name.isNotBlank() && subActions.size in 2..MAX_TOUCH_STROKES && subActions.all {
+                it.isValid() && when (it) {
+                    is DumbClick -> isCombinedTouchTimingValid(it.pressDurationMs, it.waitBeforeMs, it.waitAfterMs)
+                    is DumbSwipe -> isCombinedTouchTimingValid(it.swipeDurationMs, it.waitBeforeMs, it.waitAfterMs)
+                    else -> false
+                }
+            } && (waitBeforeMs ?: 0L) in 0..MAX_TOUCH_DURATION_MS && (waitAfterMs ?: 0L) in 0..MAX_TOUCH_DURATION_MS && isRepeatCountValid() && isRepeatDelayValid()
     }
 
     data class DumbPause(

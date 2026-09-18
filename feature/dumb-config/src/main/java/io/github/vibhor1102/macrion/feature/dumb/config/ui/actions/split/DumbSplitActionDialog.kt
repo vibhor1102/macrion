@@ -56,6 +56,8 @@ class DumbSplitActionDialog(
     private val onConfigureSubAction: ((parent: DumbAction.DumbSplitAction, subIndex: Int) -> Unit)? = null,
 ) : OverlayDialog(R.style.AppTheme) {
 
+    private var showDiscardConfirmation by mutableStateOf(false)
+
     private val viewModel: DumbSplitActionViewModel by viewModels(
         entryPoint = DumbConfigViewModelsEntryPoint::class.java,
         creator = { dumbSplitActionViewModel() },
@@ -73,6 +75,19 @@ class DumbSplitActionDialog(
     private fun Content() {
         val state by viewModel.uiState.collectAsStateWithLifecycle()
         val ui = state ?: return
+        if (showDiscardConfirmation) {
+            AlertDialog(
+                onDismissRequest = { showDiscardConfirmation = false },
+                title = { Text(stringResource(R.string.split_discard_title)) },
+                text = { Text(stringResource(R.string.split_discard_message)) },
+                confirmButton = { TextButton(onClick = { showDiscardConfirmation = false; dismissDraft() }) {
+                    Text(stringResource(R.string.split_discard_confirm))
+                } },
+                dismissButton = { TextButton(onClick = { showDiscardConfirmation = false }) {
+                    Text(stringResource(R.string.split_keep_editing))
+                } },
+            )
+        }
         var name by rememberSaveable { mutableStateOf(ui.name) }
         var count by rememberSaveable { mutableStateOf(ui.repeatCount) }
         var delay by rememberSaveable { mutableStateOf(ui.repeatDelay) }
@@ -164,14 +179,15 @@ class DumbSplitActionDialog(
                             waitAfter = waitAfter,
                             onWaitBeforeChanged = {
                                 waitBefore = it
-                                viewModel.setWaitBeforeMs(it.toLongOrNull())
+                                viewModel.setWaitBeforeMs(it.takeIf { it.isNotBlank() }?.let { it.toLongOrNull() ?: -1L })
                             },
                             onWaitAfterChanged = {
                                 waitAfter = it
-                                viewModel.setWaitAfterMs(it.toLongOrNull())
+                                viewModel.setWaitAfterMs(it.takeIf { it.isNotBlank() }?.let { it.toLongOrNull() ?: -1L })
                             },
                         )
 
+                        Text(stringResource(R.string.split_repeat_help), style = MaterialTheme.typography.bodySmall)
                         Text(
                             text = "${stringResource(R.string.split_action_touch_actions_header)} (${ui.subActions.size})",
                             style = MaterialTheme.typography.titleMedium,
@@ -179,6 +195,16 @@ class DumbSplitActionDialog(
                             modifier = Modifier.padding(top = 4.dp),
                         )
 
+                        io.github.vibhor1102.macrion.core.ui.compose.CombinedGestureSummary(
+                            configuredCount = ui.subActions.count { it.isComplete },
+                            touchCount = ui.subActions.size,
+                            durationMs = ui.durationMs,
+                        )
+                        Text(
+                            text = stringResource(R.string.split_action_timing_help),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
                         ui.subActions.forEach { subItem ->
                             SubActionCard(
                                 item = subItem,
@@ -204,6 +230,7 @@ class DumbSplitActionDialog(
                         ) {
                             OutlinedButton(
                                 onClick = viewModel::addSwipe,
+                                enabled = ui.subActions.size < 10,
                                 modifier = Modifier.weight(1f),
                             ) {
                                 Icon(
@@ -216,6 +243,7 @@ class DumbSplitActionDialog(
                             }
                             OutlinedButton(
                                 onClick = viewModel::addClick,
+                                enabled = ui.subActions.size < 10,
                                 modifier = Modifier.weight(1f),
                             ) {
                                 Icon(
@@ -229,6 +257,7 @@ class DumbSplitActionDialog(
                         }
 
                         TextButton(
+                            enabled = ui.canUnsplit && ui.canBeSaved,
                             onClick = ::onUnsplitDialog,
                             modifier = Modifier.align(Alignment.CenterHorizontally),
                         ) {
@@ -352,7 +381,7 @@ class DumbSplitActionDialog(
                 if (canDelete) {
                     IconButton(
                         onClick = onDelete,
-                        modifier = Modifier.size(32.dp),
+                        modifier = Modifier.size(48.dp),
                     ) {
                         Icon(
                             painter = painterResource(UiR.drawable.ic_delete),
@@ -383,6 +412,8 @@ class DumbSplitActionDialog(
                         onConfirmClicked = { updated -> viewModel.updateSubAction(subIndex, updated) },
                         onDeleteClicked = { if (canDelete) viewModel.removeSubAction(subIndex) },
                         onDismissClicked = {},
+                        isCombinedChild = true,
+                        canDelete = canDelete,
                     ),
                     hideCurrent = true,
                 )
@@ -395,6 +426,8 @@ class DumbSplitActionDialog(
                         onConfirmClicked = { updated -> viewModel.updateSubAction(subIndex, updated) },
                         onDeleteClicked = { if (canDelete) viewModel.removeSubAction(subIndex) },
                         onDismissClicked = {},
+                        isCombinedChild = true,
+                        canDelete = canDelete,
                     ),
                     hideCurrent = true,
                 )
@@ -403,29 +436,36 @@ class DumbSplitActionDialog(
         }
     }
 
-    private fun onDismissDialog() {
-        onDismissClicked()
-        back()
+    override fun back() {
+        if (viewModel.hasUnsavedModifications()) showDiscardConfirmation = true
+        else dismissDraft()
     }
+
+    private fun dismissDraft() {
+        onDismissClicked()
+        super.back()
+    }
+
+    private fun onDismissDialog() = back()
 
     private fun onSaveDialog() {
         viewModel.getEditedDumbSplit()?.let {
             onConfirmClicked(it)
-            back()
+            super.back()
         }
     }
 
     private fun onDeleteDialog() {
         viewModel.getEditedDumbSplit()?.let {
             onDeleteClicked(it)
-            back()
+            super.back()
         }
     }
 
     private fun onUnsplitDialog() {
         viewModel.getEditedDumbSplit()?.let {
             onUnsplitClicked?.invoke(it)
-            back()
+            super.back()
         }
     }
 }
