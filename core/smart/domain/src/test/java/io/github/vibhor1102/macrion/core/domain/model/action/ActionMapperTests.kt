@@ -224,4 +224,20 @@ class ActionMapperTests {
             ActionTestsData.getNewCaptureScreenshotEntity(eventId = ActionTestsData.ACTION_EVENT_ID).toDomain(),
         )
     }
+
+    @Test
+    fun splitAction_toEntity() {
+        assertEquals(
+            ActionTestsData.getNewSplitActionEntity(eventId = ActionTestsData.ACTION_EVENT_ID).action,
+            ActionTestsData.getNewSplitAction(eventId = ActionTestsData.ACTION_EVENT_ID).toEntity(),
+        )
+    }
+
+    @Test
+    fun splitAction_toDomain() {
+        assertEquals(
+            ActionTestsData.getNewSplitAction(eventId = ActionTestsData.ACTION_EVENT_ID),
+            ActionTestsData.getNewSplitActionEntity(eventId = ActionTestsData.ACTION_EVENT_ID).toDomain(),
+        )
+    }
 }

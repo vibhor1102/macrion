@@ -62,6 +62,12 @@ sealed class ActionTypeChoice(
         R.string.item_swipe_desc,
         getSwipeIconRes(),
     )
+    /** Zoom In / Out Action choice. */
+    data object Zoom : ActionTypeChoice(
+        R.string.item_zoom_title,
+        R.string.item_zoom_desc,
+        io.github.vibhor1102.macrion.core.ui.R.drawable.ic_pinch,
+    )
     /** Pause Action choice. */
     data object Pause : ActionTypeChoice(
         R.string.item_pause_title,

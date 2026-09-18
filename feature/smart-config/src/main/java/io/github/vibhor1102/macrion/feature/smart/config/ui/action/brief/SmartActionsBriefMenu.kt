@@ -116,7 +116,18 @@ class SmartActionsBriefMenu(initialItemIndex: Int) : ItemBriefMenu(
 
     @androidx.compose.runtime.Composable
     override fun ItemBriefContent(item: ItemBrief, orientation: Int, onClick: () -> Unit) {
-        SmartActionBriefItem(item.data as UiAction, orientation, onClick)
+        val uiAction = item.data as UiAction
+        SmartActionBriefItem(
+            details = uiAction,
+            orientation = orientation,
+            onClick = onClick,
+            onSubActionClick = { subIndex ->
+                val action = uiAction.action
+                if (action is io.github.vibhor1102.macrion.core.domain.model.action.SplitAction) {
+                    showSubActionConfigDialog(viewModel, action, subIndex)
+                }
+            },
+        )
     }
 
     @Composable

@@ -118,7 +118,7 @@ internal open class ListEditor<Item , Parent>(
     }
 
     /** Update/Insert a new item to the list. */
-    fun upsertEditedItem() {
+    open fun upsertEditedItem() {
         val newItem = _editedItem.value ?: return
         val newItems = _editedList.value?.toMutableList() ?: return
         val itemIndex = newItems.indexOfItem(newItem)

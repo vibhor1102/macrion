@@ -35,6 +35,7 @@ import io.github.vibhor1102.macrion.core.domain.model.action.SetText
 import io.github.vibhor1102.macrion.core.domain.model.action.Swipe
 import io.github.vibhor1102.macrion.core.domain.model.action.SystemAction
 import io.github.vibhor1102.macrion.core.domain.model.action.ToggleEvent
+import io.github.vibhor1102.macrion.core.domain.model.action.SplitAction
 import io.github.vibhor1102.macrion.core.domain.model.condition.Condition
 import io.github.vibhor1102.macrion.core.domain.model.event.ScreenEvent
 import io.github.vibhor1102.macrion.core.domain.model.event.TriggerEvent
@@ -230,5 +231,6 @@ class DebugReportTimelineViewModel @Inject constructor(
             is CaptureScreenshot -> R.drawable.ic_action_screenshot
             is SetText -> R.drawable.ic_action_set_text
             is SystemAction -> R.drawable.ic_action_system
+            is SplitAction -> R.drawable.ic_pinch
         }
 }

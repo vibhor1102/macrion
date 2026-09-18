@@ -196,10 +196,15 @@ data class CompleteActionEntity(
         parentColumn = "id",
         entityColumn = "action_id"
     )
-    val intentExtras: List<IntentExtraEntity>,
+    val intentExtras: List<IntentExtraEntity> = emptyList(),
     @Relation(
         parentColumn = "id",
         entityColumn = "action_id"
     )
-    val eventsToggle: List<EventToggleEntity>,
+    val eventsToggle: List<EventToggleEntity> = emptyList(),
+    @Relation(
+        parentColumn = "id",
+        entityColumn = "action_id"
+    )
+    val splitItems: List<SplitActionItemEntity> = emptyList(),
 )

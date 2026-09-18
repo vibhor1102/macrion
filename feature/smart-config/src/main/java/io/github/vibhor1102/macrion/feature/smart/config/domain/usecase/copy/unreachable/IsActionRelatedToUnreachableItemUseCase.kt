@@ -35,6 +35,7 @@ import io.github.vibhor1102.macrion.core.domain.model.counter.CounterOperationVa
 import io.github.vibhor1102.macrion.core.domain.model.event.Event
 import io.github.vibhor1102.macrion.feature.smart.config.domain.EditionRepository
 import io.github.vibhor1102.macrion.core.domain.model.action.ExternalAction
+import io.github.vibhor1102.macrion.core.domain.model.action.SplitAction
 
 import javax.inject.Inject
 
@@ -64,6 +65,7 @@ class IsActionRelatedToUnreachableItemUseCase @Inject constructor(
             is ExternalAction,
             is Intent,
             is SystemAction -> false
+            is SplitAction -> action.subActions.any { invoke(it, eventsToCopy) }
         }
     }
 

@@ -84,6 +84,10 @@
     <string name="item_swipe_desc">Swipe from a position on the screen to another</string>
     <string name="item_swipe_details">During %1$s</string>
 
+    <string name="item_zoom_title">Zoom In / Out</string>
+    <string name="item_zoom_desc">Simulate a two-finger pinch or spread gesture</string>
+    <string name="item_zoom_details">Two simultaneous swipes</string>
+
     <string name="item_pause_title">Wait</string>
     <string name="item_pause_desc">Pause the detection execution</string>
     <string name="item_pause_details">During %1$s</string>

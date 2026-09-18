@@ -62,3 +62,8 @@ data class TextConditionDescription(
 data class DefaultDescription(
     val icon: Drawable? = null,
 ) : ItemBriefDescription
+
+data class SplitDescription(
+    val subDescriptions: List<ItemBriefDescription> = emptyList(),
+) : ItemBriefDescription
+

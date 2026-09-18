@@ -27,10 +27,12 @@ import androidx.room.Update
 import io.github.vibhor1102.macrion.core.database.ACTION_TABLE
 import io.github.vibhor1102.macrion.core.database.EVENT_TOGGLE_TABLE
 import io.github.vibhor1102.macrion.core.database.INTENT_EXTRA_TABLE
+import io.github.vibhor1102.macrion.core.database.SPLIT_ACTION_ITEM_TABLE
 import io.github.vibhor1102.macrion.core.database.entity.ActionEntity
 import io.github.vibhor1102.macrion.core.database.entity.CompleteActionEntity
 import io.github.vibhor1102.macrion.core.database.entity.EventToggleEntity
 import io.github.vibhor1102.macrion.core.database.entity.IntentExtraEntity
+import io.github.vibhor1102.macrion.core.database.entity.SplitActionItemEntity
 
 import kotlinx.coroutines.flow.Flow
 
@@ -140,4 +142,34 @@ abstract class ActionDao {
      */
     @Delete
     abstract suspend fun deleteEventToggles(eventToggles: List<EventToggleEntity>)
+
+    /**
+     * Get the list of split action items for a given action.
+     *
+     * @param actionId the identifier of the action to get the split action items from.
+     * @return the list of split action items for the action.
+     */
+    @Query("SELECT * FROM $SPLIT_ACTION_ITEM_TABLE WHERE action_id=:actionId ORDER BY priority, id")
+    abstract suspend fun getSplitActionItems(actionId: Long): List<SplitActionItemEntity>
+
+    /**
+     * Add a list of split action items to the database.
+     * @param splitItems the split items to be added.
+     */
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    abstract suspend fun addSplitActionItems(splitItems: List<SplitActionItemEntity>): List<Long>
+
+    /**
+     * Update a list of split action items in the database.
+     * @param splitItems the split items to be updated.
+     */
+    @Update
+    abstract suspend fun updateSplitActionItems(splitItems: List<SplitActionItemEntity>)
+
+    /**
+     * Delete a list of split action items in the database.
+     * @param splitItems the split items to be removed.
+     */
+    @Delete
+    abstract suspend fun deleteSplitActionItems(splitItems: List<SplitActionItemEntity>)
 }

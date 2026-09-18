@@ -55,13 +55,12 @@ private fun Path.lineTo(position: Point, random: Random?) {
     )
 }
 
-fun GestureDescription.Builder.buildSingleStroke(
+fun GestureDescription.Builder.addStroke(
     path: Path,
     durationMs: Long,
     startTime: Long = 0,
     random: Random?,
-): GestureDescription {
-
+): GestureDescription.Builder {
     val actualDurationMs = random
         ?.nextLongInOffset(durationMs, RANDOMIZATION_DURATION_MAX_OFFSET_MS)
         ?: durationMs
@@ -80,6 +79,16 @@ fun GestureDescription.Builder.buildSingleStroke(
         throw IllegalArgumentException("Invalid gesture; Duration=$durationMs", ex)
     }
 
+    return this
+}
+
+fun GestureDescription.Builder.buildSingleStroke(
+    path: Path,
+    durationMs: Long,
+    startTime: Long = 0,
+    random: Random?,
+): GestureDescription {
+    addStroke(path, durationMs, startTime, random)
     return build()
 }
 

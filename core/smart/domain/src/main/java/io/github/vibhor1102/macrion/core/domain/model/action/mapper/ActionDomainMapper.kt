@@ -25,6 +25,7 @@ import io.github.vibhor1102.macrion.core.domain.model.action.toggleevent.toDomai
 import io.github.vibhor1102.macrion.core.domain.model.action.ExternalAction
 import io.github.vibhor1102.macrion.core.domain.model.action.PlaySound
 import io.github.vibhor1102.macrion.core.domain.model.action.CaptureScreenshot
+import io.github.vibhor1102.macrion.core.domain.model.action.SplitAction
 
 /** Convert an Action entity into a Domain Action. */
 internal fun CompleteActionEntity.toDomain(cleanIds: Boolean = false): Action = when (action.type) {
@@ -40,6 +41,7 @@ internal fun CompleteActionEntity.toDomain(cleanIds: Boolean = false): Action = 
     ActionType.TEXT -> toDomainSetText(cleanIds)
     ActionType.PLAY_SOUND -> toDomainPlaySound(cleanIds)
     ActionType.CAPTURE_SCREENSHOT -> toDomainCaptureScreenshot(cleanIds)
+    ActionType.SPLIT_ACTION -> toDomainSplitAction(cleanIds)
 }
 
 private fun CompleteActionEntity.toDomainClick(cleanIds: Boolean = false) = Click(
@@ -181,3 +183,41 @@ private fun String?.toComponentName(): ComponentName? = this?.let {
 
 private fun getPositionIfValid(x: Int?, y: Int?): Point? =
     if (x != null && y != null) Point(x, y) else null
+
+private fun CompleteActionEntity.toDomainSplitAction(cleanIds: Boolean = false) = SplitAction(
+    id = Identifier(id = action.id, asTemporary = cleanIds),
+    eventId = Identifier(id = action.eventId, asTemporary = cleanIds),
+    name = action.name,
+    priority = action.priority,
+    subActions = splitItems.sortedBy { it.priority }.map { item ->
+        when (item.type) {
+            ActionType.SWIPE -> Swipe(
+                id = Identifier(id = item.id, asTemporary = cleanIds),
+                eventId = Identifier(id = action.eventId, asTemporary = cleanIds),
+                name = "Swipe ${item.priority + 1}",
+                priority = item.priority,
+                swipeDuration = item.duration,
+                from = getPositionIfValid(item.fromX, item.fromY),
+                to = getPositionIfValid(item.toX, item.toY),
+            )
+            ActionType.CLICK -> Click(
+                id = Identifier(id = item.id, asTemporary = cleanIds),
+                eventId = Identifier(id = action.eventId, asTemporary = cleanIds),
+                name = "Click ${item.priority + 1}",
+                priority = item.priority,
+                pressDuration = item.duration ?: 50L,
+                positionType = Click.PositionType.USER_SELECTED,
+                position = getPositionIfValid(item.fromX, item.fromY),
+            )
+            else -> Swipe(
+                id = Identifier(id = item.id, asTemporary = cleanIds),
+                eventId = Identifier(id = action.eventId, asTemporary = cleanIds),
+                name = "Swipe ${item.priority + 1}",
+                priority = item.priority,
+                swipeDuration = item.duration,
+                from = getPositionIfValid(item.fromX, item.fromY),
+                to = getPositionIfValid(item.toX, item.toY),
+            )
+        }
+    }
+)

@@ -20,19 +20,20 @@ package io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.action
 import android.content.Context
 import androidx.annotation.DrawableRes
 import io.github.vibhor1102.macrion.core.domain.model.action.Action
+import io.github.vibhor1102.macrion.core.domain.model.action.CaptureScreenshot
 import io.github.vibhor1102.macrion.core.domain.model.action.ChangeCounter
 import io.github.vibhor1102.macrion.core.domain.model.action.Click
+import io.github.vibhor1102.macrion.core.domain.model.action.ExternalAction
 import io.github.vibhor1102.macrion.core.domain.model.action.Intent
 import io.github.vibhor1102.macrion.core.domain.model.action.Notification
 import io.github.vibhor1102.macrion.core.domain.model.action.Pause
+import io.github.vibhor1102.macrion.core.domain.model.action.PlaySound
 import io.github.vibhor1102.macrion.core.domain.model.action.SetText
+import io.github.vibhor1102.macrion.core.domain.model.action.SplitAction
 import io.github.vibhor1102.macrion.core.domain.model.action.Swipe
 import io.github.vibhor1102.macrion.core.domain.model.action.SystemAction
 import io.github.vibhor1102.macrion.core.domain.model.action.ToggleEvent
 import io.github.vibhor1102.macrion.core.domain.model.event.Event
-import io.github.vibhor1102.macrion.core.domain.model.action.ExternalAction
-import io.github.vibhor1102.macrion.core.domain.model.action.PlaySound
-import io.github.vibhor1102.macrion.core.domain.model.action.CaptureScreenshot
 
 data class UiAction(
     @param:DrawableRes val icon: Int,
@@ -40,6 +41,7 @@ data class UiAction(
     val description: String,
     val action: Action,
     val haveError: Boolean,
+    val subUiActions: List<UiAction> = emptyList(),
 )
 
 internal fun Action.toUiAction(context: Context, parent: Event? = null, inError: Boolean = !isComplete()): UiAction =
@@ -49,12 +51,18 @@ internal fun Action.toUiAction(context: Context, parent: Event? = null, inError:
         icon = getIconRes(),
         description = getActionDescription(context, parent, inError),
         haveError = inError,
+        subUiActions = if (this is SplitAction) {
+            subActions.map { it.toUiAction(context, parent, !it.isComplete()) }
+        } else {
+            emptyList()
+        },
     )
 
 @DrawableRes
 internal fun Action.getIconRes(): Int = when (this) {
     is Click -> getClickIconRes()
     is Swipe -> getSwipeIconRes()
+    is SplitAction -> getSplitActionIconRes()
     is Pause -> getPauseIconRes()
     is Intent -> getIntentIconRes()
     is ToggleEvent -> getToggleEventIconRes()
@@ -70,6 +78,7 @@ internal fun Action.getIconRes(): Int = when (this) {
 internal fun Action.getActionDescription(context: Context, parent: Event?, inError: Boolean): String = when (this) {
     is Click -> getDescription(context, parent, inError)
     is Swipe -> getDescription(context, inError)
+    is SplitAction -> getDescription(context, inError)
     is Pause -> getDescription(context, inError)
     is Intent -> getDescription(context, inError)
     is ToggleEvent -> getDescription(context, inError)

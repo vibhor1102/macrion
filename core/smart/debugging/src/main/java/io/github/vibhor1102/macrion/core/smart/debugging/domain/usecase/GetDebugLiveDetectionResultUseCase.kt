@@ -32,6 +32,7 @@ import io.github.vibhor1102.macrion.core.domain.model.action.ToggleEvent
 import io.github.vibhor1102.macrion.core.smart.debugging.domain.DebuggingRepository
 import io.github.vibhor1102.macrion.core.smart.debugging.domain.model.live.DebugLiveEventOccurrence
 import io.github.vibhor1102.macrion.core.domain.model.action.ExternalAction
+import io.github.vibhor1102.macrion.core.domain.model.action.SplitAction
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -84,6 +85,14 @@ class GetDebugLiveDetectionResultUseCase @Inject constructor(
                 is Click -> action.pressDuration ?: 0
                 is Swipe -> action.swipeDuration ?: 0
                 is Pause -> action.pauseDuration ?: 0
+                is SplitAction -> action.subActions.maxOfOrNull { sub ->
+                    when (sub) {
+                        is Swipe -> sub.swipeDuration ?: 0L
+                        is Click -> sub.pressDuration ?: 0L
+                        is Pause -> sub.pauseDuration ?: 0L
+                        else -> 0L
+                    }
+                } ?: 0L
                 is CaptureScreenshot,
                 is ChangeCounter,
                 is ExternalAction,

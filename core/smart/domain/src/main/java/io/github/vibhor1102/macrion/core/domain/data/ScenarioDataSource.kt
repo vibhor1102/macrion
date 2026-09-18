@@ -36,13 +36,16 @@ import io.github.vibhor1102.macrion.core.database.entity.EventToggleEntity
 import io.github.vibhor1102.macrion.core.database.entity.IntentExtraEntity
 import io.github.vibhor1102.macrion.core.database.entity.ScenarioStatsEntity
 import io.github.vibhor1102.macrion.core.database.entity.ScenarioWithEvents
+import io.github.vibhor1102.macrion.core.database.entity.SplitActionItemEntity
 import io.github.vibhor1102.macrion.core.domain.model.action.Action
 import io.github.vibhor1102.macrion.core.domain.model.action.Intent
+import io.github.vibhor1102.macrion.core.domain.model.action.SplitAction
 import io.github.vibhor1102.macrion.core.domain.model.action.ToggleEvent
 import io.github.vibhor1102.macrion.core.domain.model.action.toggleevent.EventToggle
 import io.github.vibhor1102.macrion.core.domain.model.action.intent.IntentExtra
 import io.github.vibhor1102.macrion.core.domain.model.action.intent.toEntity
 import io.github.vibhor1102.macrion.core.domain.model.action.mapper.toEntity
+import io.github.vibhor1102.macrion.core.domain.model.action.mapper.toSplitItemEntity
 import io.github.vibhor1102.macrion.core.domain.model.action.toggleevent.toEntity
 import io.github.vibhor1102.macrion.core.domain.model.condition.Condition
 import io.github.vibhor1102.macrion.core.domain.model.condition.ScreenCondition
@@ -429,6 +432,13 @@ internal class ScenarioDataSource @Inject constructor(
                     )
                 }
 
+                is SplitAction -> {
+                    updateSplitActionItems(
+                        actionDbId = scenarioUpdateState.getActionDbId(action.id),
+                        newSubActions = action.subActions,
+                    )
+                }
+
                 else -> Unit
             }
         }
@@ -477,6 +487,28 @@ internal class ScenarioDataSource @Inject constructor(
                 addList = actionDao::addEventToggles,
                 updateList = actionDao::updateEventToggles,
                 removeList = actionDao::deleteEventToggles,
+            )
+        }
+    }
+
+    private suspend fun updateSplitActionItems(actionDbId: Long, newSubActions: List<Action>) {
+        val updater = DatabaseListUpdater<Action, SplitActionItemEntity>()
+
+        updater.refreshUpdateValues(
+            currentEntities = database.actionDao().getSplitActionItems(actionDbId),
+            newItems = newSubActions,
+            mappingClosure = { item ->
+                val priority = newSubActions.indexOf(item)
+                item.toSplitItemEntity(actionDbId, priority)
+            }
+        )
+        Log.d(TAG, "SplitActionItem updater $updater")
+
+        database.actionDao().let { actionDao ->
+            updater.executeUpdate(
+                addList = actionDao::addSplitActionItems,
+                updateList = actionDao::updateSplitActionItems,
+                removeList = actionDao::deleteSplitActionItems,
             )
         }
     }

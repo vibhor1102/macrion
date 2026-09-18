@@ -59,6 +59,9 @@ import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 
 
+import io.github.vibhor1102.macrion.core.domain.model.action.SplitAction
+import io.github.vibhor1102.macrion.feature.smart.config.ui.action.brief.showSubActionConfigDialog
+
 class SmartActionsLegacyDialog : OverlayDialog(R.style.ScenarioConfigTheme) {
 
     override fun tutorialMonitoringTag(): String = MonitoredOverlayType.SMART_ACTIONS_LEGACY.name
@@ -77,13 +80,19 @@ class SmartActionsLegacyDialog : OverlayDialog(R.style.ScenarioConfigTheme) {
         }
     }
 
-private fun onCreateButtonClicked() {
+    private fun onCreateButtonClicked() {
         overlayManager.navigateTo(
             context = context,
             newOverlay = ActionTypeSelectionDialog(
                 choices = viewModel.actionTypeChoices.value,
                 onChoiceSelectedListener = { choiceClicked ->
-                    showActionConfigDialog(viewModel, viewModel.createAction(context, choiceClicked))
+                    val action = viewModel.createAction(context, choiceClicked)
+                    if (action is SplitAction) {
+                        viewModel.startActionEdition(action)
+                        viewModel.upsertEditedAction()
+                        return@ActionTypeSelectionDialog
+                    }
+                    showActionConfigDialog(viewModel, action)
                 },
             ),
         )
@@ -93,8 +102,17 @@ private fun onCreateButtonClicked() {
         showActionCopyDialog(viewModel)
     }
 
+    private fun onSubActionClicked(parent: SplitAction, subIndex: Int) {
+        debounceUserInteraction { showSubActionConfigDialog(viewModel, parent, subIndex) }
+    }
+
     private fun onActionClicked(item: ItemBrief) {
-        debounceUserInteraction { showActionConfigDialog(viewModel, (item.data as UiAction).action) }
+        val action = (item.data as UiAction).action
+        if (action is SplitAction) {
+            onSubActionClicked(action, 0)
+        } else {
+            debounceUserInteraction { showActionConfigDialog(viewModel, action) }
+        }
     }
 
     @Composable private fun Content() {
@@ -150,6 +168,12 @@ private fun onCreateButtonClicked() {
                                             dragGestureDetector = io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.common.DualDragGestureDetector,
                                         ),
                                         onClick = { onActionClicked(item) },
+                                        onSubActionClick = { subIndex ->
+                                            val action = (item.data as UiAction).action
+                                            if (action is SplitAction) {
+                                                onSubActionClicked(action, subIndex)
+                                            }
+                                        },
                                     )
                                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                                 }
@@ -177,8 +201,10 @@ private fun ActionRow(
     isBeingDragged: Boolean,
     reorderHandleModifier: Modifier,
     onClick: () -> Unit,
+    onSubActionClick: (Int) -> Unit = {},
 ) {
     val details = item.data as UiAction
+    val isSplit = details.subUiActions.isNotEmpty()
     val rowBackground by animateColorAsState(
         if (isBeingDragged) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f) else Color.Transparent,
         label = "action_row_drag_bg",
@@ -188,7 +214,7 @@ private fun ActionRow(
             .fillMaxWidth()
             .height(80.dp)
             .background(rowBackground)
-            .clickable(onClick = onClick)
+            .then(if (!isSplit) Modifier.clickable(onClick = onClick) else Modifier)
             .padding(start = 8.dp, end = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -222,13 +248,60 @@ private fun ActionRow(
                 .then(reorderHandleModifier),
             contentAlignment = Alignment.Center,
         ) { Icon(painterResource(UiR.drawable.ic_drag_indicator), null, Modifier.size(24.dp), tint = animatedHandleTint) }
-        Column(Modifier.weight(1f).padding(start = 8.dp, end = 12.dp)) {
-            Text(details.name, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            Text(details.description, style = MaterialTheme.typography.bodySmall, fontStyle = FontStyle.Italic, maxLines = 1, overflow = TextOverflow.Ellipsis)
-        }
-        Box(Modifier.size(32.dp)) {
-            Icon(painterResource(details.icon), null, Modifier.matchParentSize())
-            if (details.haveError) Box(Modifier.align(Alignment.TopEnd).size(6.dp).background(MaterialTheme.colorScheme.error, CircleShape))
+
+        if (isSplit) {
+            val sub1 = details.subUiActions[0]
+            val sub2 = details.subUiActions.getOrElse(1) { details.subUiActions[0] }
+
+            Row(
+                Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .clickable { onSubActionClick(0) }
+                    .padding(start = 8.dp, end = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(Modifier.weight(1f).padding(end = 4.dp)) {
+                    Text(sub1.name, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(sub1.description, style = MaterialTheme.typography.bodySmall, fontStyle = FontStyle.Italic, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                }
+                Box(Modifier.size(24.dp)) {
+                    Icon(painterResource(sub1.icon), null, Modifier.matchParentSize())
+                    if (sub1.haveError) Box(Modifier.align(Alignment.TopEnd).size(6.dp).background(MaterialTheme.colorScheme.error, CircleShape))
+                }
+            }
+
+            VerticalDivider(
+                Modifier.fillMaxHeight().padding(vertical = 12.dp),
+                color = MaterialTheme.colorScheme.outlineVariant,
+            )
+
+            Row(
+                Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .clickable { onSubActionClick(1) }
+                    .padding(start = 4.dp, end = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(Modifier.weight(1f).padding(end = 4.dp)) {
+                    Text(sub2.name, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(sub2.description, style = MaterialTheme.typography.bodySmall, fontStyle = FontStyle.Italic, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                }
+                Box(Modifier.size(24.dp)) {
+                    Icon(painterResource(sub2.icon), null, Modifier.matchParentSize())
+                    if (sub2.haveError) Box(Modifier.align(Alignment.TopEnd).size(6.dp).background(MaterialTheme.colorScheme.error, CircleShape))
+                }
+            }
+        } else {
+            Column(Modifier.weight(1f).padding(start = 8.dp, end = 12.dp)) {
+                Text(details.name, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(details.description, style = MaterialTheme.typography.bodySmall, fontStyle = FontStyle.Italic, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            }
+            Box(Modifier.size(32.dp)) {
+                Icon(painterResource(details.icon), null, Modifier.matchParentSize())
+                if (details.haveError) Box(Modifier.align(Alignment.TopEnd).size(6.dp).background(MaterialTheme.colorScheme.error, CircleShape))
+            }
         }
     }
 }

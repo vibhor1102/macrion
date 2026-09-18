@@ -33,6 +33,7 @@ import io.github.vibhor1102.macrion.core.domain.model.event.Event
 import io.github.vibhor1102.macrion.feature.smart.config.domain.EditionRepository
 import io.github.vibhor1102.macrion.feature.smart.config.domain.usecase.counter.model.CounterReference
 import io.github.vibhor1102.macrion.core.domain.model.action.ExternalAction
+import io.github.vibhor1102.macrion.core.domain.model.action.SplitAction
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -73,6 +74,7 @@ class GetCounterWriteReferencesUseCase @Inject constructor(
                     is Pause,
                     is SystemAction,
                     is Swipe,
+                    is SplitAction,
                     is ToggleEvent -> Unit
                 }
             }

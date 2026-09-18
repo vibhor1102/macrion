@@ -60,6 +60,8 @@ enum class ActionType {
     PLAY_SOUND,
     /** Capture a full-screen screenshot and save to storage. */
     CAPTURE_SCREENSHOT,
+    /** Execute multiple sub-actions simultaneously (e.g. dual-swipe zoom). */
+    SPLIT_ACTION,
 }
 
 

@@ -29,6 +29,7 @@ import android.util.Log
 import io.github.vibhor1102.macrion.core.base.workarounds.UnblockGestureScheduler
 import io.github.vibhor1102.macrion.core.base.workarounds.buildUnblockGesture
 import io.github.vibhor1102.macrion.core.common.actions.AndroidActionExecutor
+import io.github.vibhor1102.macrion.core.common.actions.gesture.addStroke
 import io.github.vibhor1102.macrion.core.common.actions.gesture.buildSingleStroke
 import io.github.vibhor1102.macrion.core.common.actions.gesture.line
 import io.github.vibhor1102.macrion.core.common.actions.gesture.moveTo
@@ -54,6 +55,7 @@ import io.github.vibhor1102.macrion.core.processing.data.processor.state.Process
 import io.github.vibhor1102.macrion.core.domain.model.action.ExternalAction
 import io.github.vibhor1102.macrion.core.domain.model.action.PlaySound
 import io.github.vibhor1102.macrion.core.domain.model.action.CaptureScreenshot
+import io.github.vibhor1102.macrion.core.domain.model.action.SplitAction
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -111,6 +113,7 @@ internal class ActionExecutor(
                 is SetText -> CrashDiagnostics.Event.SET_TEXT
                 is PlaySound -> CrashDiagnostics.Event.PLAY_SOUND
                 is CaptureScreenshot -> CrashDiagnostics.Event.CAPTURE_SCREENSHOT
+                is SplitAction -> CrashDiagnostics.Event.SPLIT_ACTION
             })
             try {
                 when (action) {
@@ -125,6 +128,7 @@ internal class ActionExecutor(
                     is SystemAction -> executeSystemAction(action)
                     is SetText -> executeSetText(action)
                     is PlaySound -> executePlaySound(action)
+                    is SplitAction -> executeSplitAction(action)
                     is CaptureScreenshot -> {
                         val allowed = executeCaptureScreenshot(action)
                         if (!allowed) {
@@ -204,6 +208,54 @@ internal class ActionExecutor(
 
         withContext(Dispatchers.Main) {
             androidExecutor.dispatchGesture(swipeGesture)
+        }
+    }
+
+    /**
+     * Execute the provided split action simultaneously.
+     * @param splitAction the split action containing sub-actions to execute in one gesture.
+     */
+    private suspend fun executeSplitAction(splitAction: SplitAction) {
+        if (splitAction.subActions.isEmpty()) return
+
+        val builder = GestureDescription.Builder()
+        var hasValidStroke = false
+
+        for (subAction in splitAction.subActions) {
+            when (subAction) {
+                is Swipe -> {
+                    if (subAction.from != null && subAction.to != null && subAction.swipeDuration != null) {
+                        val path = Path().apply { line(subAction.from, subAction.to, random) }
+                        builder.addStroke(
+                            path = path,
+                            durationMs = subAction.swipeDuration!!,
+                            startTime = 0L,
+                            random = random,
+                        )
+                        hasValidStroke = true
+                    }
+                }
+                is Click -> {
+                    if (subAction.position != null && subAction.pressDuration != null) {
+                        val path = Path().apply { moveTo(subAction.position!!, random) }
+                        builder.addStroke(
+                            path = path,
+                            durationMs = subAction.pressDuration!!,
+                            startTime = 0L,
+                            random = random,
+                        )
+                        hasValidStroke = true
+                    }
+                }
+                else -> Unit
+            }
+        }
+
+        if (hasValidStroke) {
+            val gesture = builder.build()
+            withContext(Dispatchers.Main) {
+                androidExecutor.dispatchGesture(gesture)
+            }
         }
     }
 

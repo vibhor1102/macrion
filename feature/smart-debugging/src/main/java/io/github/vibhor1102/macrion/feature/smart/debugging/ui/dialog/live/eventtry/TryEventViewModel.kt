@@ -37,6 +37,7 @@ import io.github.vibhor1102.macrion.core.domain.model.action.SetText
 import io.github.vibhor1102.macrion.core.domain.model.action.Swipe
 import io.github.vibhor1102.macrion.core.domain.model.action.SystemAction
 import io.github.vibhor1102.macrion.core.domain.model.action.ToggleEvent
+import io.github.vibhor1102.macrion.core.domain.model.action.SplitAction
 import io.github.vibhor1102.macrion.core.domain.model.event.Event
 import io.github.vibhor1102.macrion.core.domain.model.event.ScreenEvent
 import io.github.vibhor1102.macrion.core.domain.model.event.TriggerEvent
@@ -149,6 +150,7 @@ private fun Action.getDebugIcon(): Int =
         is Swipe -> R.drawable.ic_swipe
         is SystemAction -> R.drawable.ic_action_system
         is ToggleEvent -> R.drawable.ic_toggle_event
+        is SplitAction -> R.drawable.ic_pinch
     }
 
 private fun Event.getConditionOperatorText(context: Context): String =

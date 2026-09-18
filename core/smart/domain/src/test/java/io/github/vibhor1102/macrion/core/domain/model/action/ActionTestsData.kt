@@ -500,6 +500,76 @@ internal object ActionTestsData {
         eventId: Long,
     ) = CaptureScreenshot(id.asIdentifier(), eventId.asIdentifier(), name, priority, screenshotFolderUri, screenshotFolderName)
 
+    /* ------- Split Action Data ------- */
+
+    private const val SPLIT_ACTION_ID = 88L
+    private const val SPLIT_ACTION_NAME = "Zoom"
+
+    fun getNewSplitActionEntity(
+        id: Long = SPLIT_ACTION_ID,
+        name: String = SPLIT_ACTION_NAME,
+        priority: Int = 0,
+        eventId: Long,
+        splitItems: List<io.github.vibhor1102.macrion.core.database.entity.SplitActionItemEntity> = listOf(
+            io.github.vibhor1102.macrion.core.database.entity.SplitActionItemEntity(
+                id = 1L,
+                actionId = id,
+                priority = 0,
+                type = ActionType.SWIPE,
+                fromX = 100,
+                fromY = 200,
+                toX = 300,
+                toY = 400,
+                duration = 350L,
+            ),
+            io.github.vibhor1102.macrion.core.database.entity.SplitActionItemEntity(
+                id = 2L,
+                actionId = id,
+                priority = 1,
+                type = ActionType.SWIPE,
+                fromX = 500,
+                fromY = 600,
+                toX = 700,
+                toY = 800,
+                duration = 350L,
+            ),
+        ),
+    ) = CompleteActionEntity(
+        action = ActionEntity(
+            id, eventId, priority, name, ActionType.SPLIT_ACTION,
+        ),
+        splitItems = splitItems,
+        intentExtras = emptyList(),
+        eventsToggle = emptyList(),
+    )
+
+    fun getNewSplitAction(
+        id: Long = SPLIT_ACTION_ID,
+        name: String? = SPLIT_ACTION_NAME,
+        priority: Int = 0,
+        eventId: Long,
+        subActions: List<Action> = listOf(
+            Swipe(
+                id = 1L.asIdentifier(),
+                eventId = eventId.asIdentifier(),
+                name = "Swipe 1",
+                priority = 0,
+                from = Point(100, 200),
+                to = Point(300, 400),
+                swipeDuration = 350L,
+            ),
+            Swipe(
+                id = 2L.asIdentifier(),
+                eventId = eventId.asIdentifier(),
+                name = "Swipe 2",
+                priority = 1,
+                from = Point(500, 600),
+                to = Point(700, 800),
+                swipeDuration = 350L,
+            ),
+        ),
+    ) = SplitAction(id.asIdentifier(), eventId.asIdentifier(), name, priority, subActions)
+
     fun getNewEventToggleExtra(
         id: Long = EVENT_TOGGLE_ID,
         actionId: Long = EVENT_TOGGLE_ACTION_ID,

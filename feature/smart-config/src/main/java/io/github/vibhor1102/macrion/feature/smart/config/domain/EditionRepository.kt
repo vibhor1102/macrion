@@ -23,6 +23,7 @@ import android.util.Log
 import io.github.vibhor1102.macrion.core.bitmaps.BitmapRepository
 import io.github.vibhor1102.macrion.core.domain.IRepository
 import io.github.vibhor1102.macrion.core.domain.model.action.Action
+import io.github.vibhor1102.macrion.core.domain.model.action.SplitAction
 import io.github.vibhor1102.macrion.core.domain.model.action.intent.IntentExtra
 import io.github.vibhor1102.macrion.core.domain.model.condition.Condition
 import io.github.vibhor1102.macrion.core.domain.model.condition.ScreenCondition
@@ -200,6 +201,8 @@ class EditionRepository @Inject constructor(
 
     fun startActionEdition(action: Action) =
         scenarioEditor.currentEventEditor.value?.actionsEditor?.startItemEdition(action)
+    fun startSubActionEdition(parent: SplitAction, subIndex: Int) =
+        scenarioEditor.currentEventEditor.value?.actionsEditor?.startSubActionEdition(parent, subIndex)
     fun updateEditedAction(action: Action) =
         scenarioEditor.currentEventEditor.value?.actionsEditor?.updateEditedItem(action)
     fun upsertEditedAction() =

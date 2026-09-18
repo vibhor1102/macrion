@@ -56,6 +56,7 @@ import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.DefaultDes
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.ImageConditionBriefRenderingType
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.ImageConditionDescription
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.PauseDescription
+import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.SplitDescription
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.SwipeDescription
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.TextConditionDescription
 
@@ -84,11 +85,17 @@ fun ItemBriefCanvas(
 ) {
     val clickScale = remember { Animatable(1f) }
     LaunchedEffect(description, animate) {
-        if (!animate || description !is ClickDescription) {
+        val clickDescList = when (description) {
+            is ClickDescription -> listOf(description)
+            is SplitDescription -> description.subDescriptions.filterIsInstance<ClickDescription>()
+            else -> emptyList()
+        }
+        if (!animate || clickDescList.isEmpty()) {
             clickScale.snapTo(1f)
             return@LaunchedEffect
         }
-        val pressDurationMs = max(description.pressDurationMs, 1L)
+        val maxPressDuration = clickDescList.maxOfOrNull { it.pressDurationMs } ?: 1L
+        val pressDurationMs = max(maxPressDuration, 1L)
         while (isActive) {
             clickScale.snapTo(1f)
             delay(250)
@@ -113,11 +120,18 @@ fun ItemBriefCanvas(
 
     val swipeProgress = remember { Animatable(0f) }
     LaunchedEffect(description, animate) {
-        if (!animate || description !is SwipeDescription || description.from == null || description.to == null) {
+        val swipeDescList = when (description) {
+            is SwipeDescription -> listOf(description)
+            is SplitDescription -> description.subDescriptions.filterIsInstance<SwipeDescription>()
+            else -> emptyList()
+        }.filter { it.from != null && it.to != null }
+
+        if (!animate || swipeDescList.isEmpty()) {
             swipeProgress.snapTo(0f)
             return@LaunchedEffect
         }
-        val animDurationMs = max(description.swipeDurationMs, 250L).toInt()
+        val maxDuration = swipeDescList.maxOfOrNull { it.swipeDurationMs } ?: 250L
+        val animDurationMs = max(maxDuration, 250L).toInt()
         while (isActive) {
             swipeProgress.snapTo(0f)
             delay(250)
@@ -177,6 +191,37 @@ fun ItemBriefCanvas(
                 innerColor = innerColor,
                 backgroundColor = backgroundColor,
             )
+
+            is SplitDescription -> {
+                description.subDescriptions.forEach { subDesc ->
+                    when (subDesc) {
+                        is SwipeDescription -> drawSwipeIndicator(
+                            description = subDesc,
+                            progress = if (animate) swipeProgress.value else 0f,
+                            outerRadiusPx = outerRadiusPx,
+                            innerRadiusPx = innerRadiusPx,
+                            thicknessPx = thicknessPx,
+                            primaryColor = primaryColor,
+                            secondaryColor = secondaryColor,
+                            innerColor = innerColor,
+                            backgroundColor = backgroundColor,
+                        )
+
+                        is ClickDescription -> drawClickIndicator(
+                            description = subDesc,
+                            scale = if (animate) clickScale.value else 1f,
+                            outerRadiusPx = outerRadiusPx,
+                            innerRadiusPx = innerRadiusPx,
+                            thicknessPx = thicknessPx,
+                            primaryColor = primaryColor,
+                            innerColor = innerColor,
+                            backgroundColor = backgroundColor,
+                        )
+
+                        else -> Unit
+                    }
+                }
+            }
 
             is PauseDescription -> drawPauseIndicator(
                 rotationDegrees = if (animate) pauseRotation.value else 0f,

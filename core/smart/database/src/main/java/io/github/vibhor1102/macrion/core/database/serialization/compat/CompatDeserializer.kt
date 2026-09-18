@@ -493,6 +493,7 @@ internal open class CompatDeserializer : Deserializer {
             ActionType.TEXT -> deserializeActionSetText(jsonAction)
             ActionType.PLAY_SOUND -> deserializeActionPlaySound(jsonAction)
             ActionType.CAPTURE_SCREENSHOT -> deserializeActionCaptureScreenshot(jsonAction)
+            ActionType.SPLIT_ACTION -> deserializeActionSplit(jsonAction)
             null -> null
         }
 
@@ -751,6 +752,20 @@ internal open class CompatDeserializer : Deserializer {
             type = ActionType.CAPTURE_SCREENSHOT,
             screenshotFolderUri = jsonCaptureScreenshot.getString("screenshotFolderUri"),
             screenshotFolderName = jsonCaptureScreenshot.getString("screenshotFolderName"),
+        )
+    }
+
+    @VisibleForTesting(otherwise = VisibleForTesting.PROTECTED)
+    open fun deserializeActionSplit(jsonSplit: JsonObject): ActionEntity? {
+        val id = jsonSplit.getLong("id", true) ?: return null
+        val eventId = jsonSplit.getLong("eventId", true) ?: return null
+
+        return ActionEntity(
+            id = id,
+            eventId = eventId,
+            name = jsonSplit.getString("name") ?: "",
+            priority = jsonSplit.getInt("priority")?.coerceAtLeast(0) ?: 0,
+            type = ActionType.SPLIT_ACTION,
         )
     }
 

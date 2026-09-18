@@ -42,6 +42,7 @@ import io.github.vibhor1102.macrion.core.processing.data.processor.state.Process
 import io.github.vibhor1102.macrion.core.processing.utils.anyNotNull
 import io.github.vibhor1102.macrion.core.processing.domain.model.ProcessedConditionResult
 import io.github.vibhor1102.macrion.core.domain.model.action.ExternalAction
+import io.github.vibhor1102.macrion.core.domain.model.action.SplitAction
 
 import kotlinx.coroutines.*
 import kotlinx.coroutines.test.*
@@ -348,5 +349,27 @@ class ActionExecutorTests {
 
             assertTrue("Action execution have not completed yet", isCompleted)
         }.join()
+    }
+
+    @Test
+    fun execute_oneSplitAction() = runTest {
+        val swipe1 = getNewDefaultSwipe(1)
+        val swipe2 = getNewDefaultSwipe(2)
+        val splitAction = SplitAction(
+            id = Identifier(databaseId = 10L),
+            eventId = TEST_EVENT_ID,
+            name = "Zoom",
+            priority = 0,
+            subActions = listOf(swipe1, swipe2),
+        )
+        val gestureCaptor = argumentCaptor<GestureDescription>()
+
+        actionExecutor.executeActions(
+            event = getNewDefaultEvent(actions = listOf(splitAction)),
+            results = ConditionsResults(),
+        )
+
+        verify(mockAndroidExecutor, times(1)).dispatchGesture(gestureCaptor.capture())
+        assertEquals(2, gestureCaptor.firstValue.strokeCount)
     }
 }

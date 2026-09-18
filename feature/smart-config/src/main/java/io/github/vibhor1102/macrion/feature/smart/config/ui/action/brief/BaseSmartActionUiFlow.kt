@@ -52,10 +52,13 @@ import io.github.vibhor1102.macrion.core.domain.model.action.ExternalAction
 import io.github.vibhor1102.macrion.feature.smart.config.ui.action.external.ExternalActionDialog
 
 
+import io.github.vibhor1102.macrion.core.domain.model.action.SplitAction
+
 internal interface ActionConfigurator {
     fun getActionTypeChoices(): List<ActionTypeChoice>
     fun createAction(context: Context, choice: ActionTypeChoice): Action
     fun startActionEdition(action: Action)
+    fun startSubActionEdition(parent: SplitAction, subIndex: Int)
     fun upsertEditedAction()
     fun removeEditedAction()
     fun dismissEditedAction()
@@ -72,7 +75,14 @@ internal fun BaseOverlay.showActionTypeSelectionDialog(configurator: ActionConfi
                     return@ActionTypeSelectionDialog
                 }
 
-                showActionConfigDialog(configurator, configurator.createAction(context, choiceClicked))
+                val action = configurator.createAction(context, choiceClicked)
+                if (action is SplitAction) {
+                    configurator.startActionEdition(action)
+                    configurator.upsertEditedAction()
+                    return@ActionTypeSelectionDialog
+                }
+
+                showActionConfigDialog(configurator, action)
             },
         ),
     )
@@ -90,7 +100,54 @@ internal fun BaseOverlay.showActionCopyDialog(configurator: ActionConfigurator) 
     )
 }
 
+internal fun BaseOverlay.showSubActionConfigDialog(
+    configurator: ActionConfigurator,
+    parent: SplitAction,
+    subIndex: Int,
+) {
+    val subAction = parent.subActions.getOrNull(subIndex) ?: return
+    configurator.startSubActionEdition(parent, subIndex)
+
+    val actionConfigDialogListener = object : OnActionConfigCompleteListener {
+        override fun onConfirmClicked() { configurator.upsertEditedAction() }
+        override fun onDeleteClicked() { configurator.removeEditedAction() }
+        override fun onDismissClicked() { configurator.dismissEditedAction() }
+    }
+
+    val overlay = when (subAction) {
+        is Click -> ClickDialog(actionConfigDialogListener)
+        is Swipe -> SwipeDialog(actionConfigDialogListener)
+        is Pause -> PauseDialog(actionConfigDialogListener)
+        is Intent -> IntentDialog(actionConfigDialogListener)
+        is SystemAction -> SystemActionDialog(actionConfigDialogListener)
+        is ToggleEvent -> ToggleEventDialog(actionConfigDialogListener)
+        is ChangeCounter -> ChangeCounterDialog(actionConfigDialogListener)
+        is ExternalAction -> ExternalActionDialog(actionConfigDialogListener)
+        is SetText -> SetTextDialog(actionConfigDialogListener)
+        is PlaySound -> PlaySoundDialog(actionConfigDialogListener)
+        is CaptureScreenshot -> CaptureScreenshotDialog(actionConfigDialogListener)
+        is Notification -> {
+            if (PermissionPostNotification().checkIfGranted(context)) NotificationDialog(actionConfigDialogListener)
+            else newNotificationPermissionStarterOverlay(context)
+        }
+        is SplitAction -> return
+    }
+
+    overlayManager.navigateTo(
+        context = context,
+        newOverlay = overlay,
+        hideCurrent = true,
+    )
+}
+
 internal fun BaseOverlay.showActionConfigDialog(configurator: ActionConfigurator, action: Action) {
+    if (action is SplitAction) {
+        if (action.subActions.isNotEmpty()) {
+            showSubActionConfigDialog(configurator, action, 0)
+        }
+        return
+    }
+
     configurator.startActionEdition(action)
 
     val actionConfigDialogListener: OnActionConfigCompleteListener by lazy {
@@ -117,8 +174,8 @@ internal fun BaseOverlay.showActionConfigDialog(configurator: ActionConfigurator
             if (PermissionPostNotification().checkIfGranted(context)) NotificationDialog(actionConfigDialogListener)
             else newNotificationPermissionStarterOverlay(context)
         }
+        is SplitAction -> return
     }
-
 
     overlayManager.navigateTo(
         context = context,

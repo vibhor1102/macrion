@@ -23,6 +23,7 @@ import io.github.vibhor1102.macrion.core.domain.model.action.Intent
 import io.github.vibhor1102.macrion.core.domain.model.action.ToggleEvent
 import io.github.vibhor1102.macrion.core.domain.model.action.toggleevent.EventToggle
 import io.github.vibhor1102.macrion.core.domain.model.action.intent.IntentExtra
+import io.github.vibhor1102.macrion.core.domain.model.action.SplitAction
 import io.github.vibhor1102.macrion.core.domain.model.event.ScreenEvent
 import io.github.vibhor1102.macrion.core.domain.model.event.TriggerEvent
 import io.github.vibhor1102.macrion.feature.smart.config.data.base.ListEditor
@@ -33,6 +34,9 @@ internal class ActionsEditor<Parent>(
     onListUpdated: (List<Action>) -> Unit,
     parentItem: StateFlow<Parent?>,
 ): ListEditor<Action, Parent>(onListUpdated, parentItem = parentItem) {
+
+    private var parentSplitAction: SplitAction? = null
+    private var editedSubActionIndex: Int = -1
 
     val intentExtraEditor: ListEditor<IntentExtra<out Any>, Action> = ListEditor(
         onListUpdated = ::onEditedActionIntentExtraUpdated,
@@ -46,7 +50,19 @@ internal class ActionsEditor<Parent>(
         parentItem = editedItem,
     )
 
+    fun startSubActionEdition(parent: SplitAction, subIndex: Int) {
+        val currentList = editedList.value ?: return
+        val currentParent = currentList.find { it.id == parent.id } as? SplitAction ?: parent
+        val subAction = currentParent.subActions.getOrNull(subIndex) ?: return
+
+        parentSplitAction = currentParent
+        editedSubActionIndex = subIndex
+        super.startItemEdition(subAction)
+    }
+
     override fun startItemEdition(item: Action) {
+        parentSplitAction = null
+        editedSubActionIndex = -1
         val currentList = editedList.value ?: return
         val currentItem = currentList.find { it.id == item.id } ?: item
         super.startItemEdition(currentItem)
@@ -59,23 +75,78 @@ internal class ActionsEditor<Parent>(
     }
 
     override fun stopItemEdition() {
+        parentSplitAction = null
+        editedSubActionIndex = -1
         intentExtraEditor.stopEdition()
         super.stopItemEdition()
     }
 
-    override fun itemCanBeSaved(item: Action?, parent: Parent?): Boolean =
-        if (item is Click) {
-            when (parent) {
-                is TriggerEvent ->
-                    item.isComplete() && item.positionType != Click.PositionType.ON_DETECTED_CONDITION
-
-                is ScreenEvent ->
-                    if (item.isComplete()) !(parent.conditionOperator == AND && !item.isClickOnConditionValid())
-                    else false
-
-                else -> item.isComplete()
+    override fun upsertEditedItem() {
+        val parent = parentSplitAction
+        val subIndex = editedSubActionIndex
+        if (parent != null && subIndex >= 0) {
+            val updatedSubAction = editedItem.value ?: return
+            val updatedSubActions = parent.subActions.toMutableList()
+            if (subIndex in updatedSubActions.indices) {
+                updatedSubActions[subIndex] = updatedSubAction
             }
-        } else item?.isComplete() ?: false
+            val updatedParent = parent.copy(subActions = updatedSubActions)
+            parentSplitAction = null
+            editedSubActionIndex = -1
+
+            val currentList = editedList.value?.toMutableList() ?: return
+            val parentIndex = currentList.indexOfAction(updatedParent)
+            if (parentIndex != -1) {
+                currentList[parentIndex] = updatedParent
+            } else {
+                currentList.add(updatedParent)
+            }
+            updateList(currentList)
+            stopItemEdition()
+        } else {
+            super.upsertEditedItem()
+        }
+    }
+
+    override fun deleteEditedItem() {
+        val parent = parentSplitAction
+        if (parent != null) {
+            parentSplitAction = null
+            editedSubActionIndex = -1
+            val currentList = editedList.value?.toMutableList() ?: return
+            val parentIndex = currentList.indexOfAction(parent)
+            if (parentIndex != -1) {
+                currentList.removeAt(parentIndex)
+                updateList(currentList)
+            }
+            stopItemEdition()
+        } else {
+            super.deleteEditedItem()
+        }
+    }
+
+    override fun itemCanBeSaved(item: Action?, parent: Parent?): Boolean =
+        when (item) {
+            is Click -> {
+                when (parent) {
+                    is TriggerEvent ->
+                        item.isComplete() && item.positionType != Click.PositionType.ON_DETECTED_CONDITION
+
+                    is ScreenEvent ->
+                        if (item.isComplete()) !(parent.conditionOperator == AND && !item.isClickOnConditionValid())
+                        else false
+
+                    else -> item.isComplete()
+                }
+            }
+            is SplitAction -> item.isComplete() && item.subActions.all { itemCanBeSaved(it, parent) }
+            else -> item?.isComplete() ?: false
+        }
+
+    private fun List<Action>.indexOfAction(action: Action): Int {
+        if (action.id != null) return indexOfFirst { it.id == action.id }
+        return indexOfFirst { it.name == action.name }
+    }
 
     private fun onEditedActionIntentExtraUpdated(extras: List<IntentExtra<out Any>>) {
         val action = editedItem.value

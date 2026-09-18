@@ -31,9 +31,11 @@ import io.github.vibhor1102.macrion.core.domain.model.action.SetText
 import io.github.vibhor1102.macrion.core.domain.model.action.Swipe
 import io.github.vibhor1102.macrion.core.domain.model.action.SystemAction
 import io.github.vibhor1102.macrion.core.domain.model.action.ToggleEvent
-import io.github.vibhor1102.macrion.core.domain.model.action.ExternalAction
 import io.github.vibhor1102.macrion.core.domain.model.action.PlaySound
 import io.github.vibhor1102.macrion.core.domain.model.action.CaptureScreenshot
+import io.github.vibhor1102.macrion.core.domain.model.action.ExternalAction
+import io.github.vibhor1102.macrion.core.domain.model.action.SplitAction
+import io.github.vibhor1102.macrion.core.database.entity.SplitActionItemEntity
 
 
 internal fun Action.toEntity(): ActionEntity {
@@ -52,6 +54,7 @@ internal fun Action.toEntity(): ActionEntity {
         is SetText -> toSetTextEntity()
         is PlaySound -> toPlaySoundEntity()
         is CaptureScreenshot -> toCaptureScreenshotEntity()
+        is SplitAction -> toSplitActionEntity()
     }
 }
 
@@ -200,3 +203,42 @@ private fun CaptureScreenshot.toCaptureScreenshotEntity(): ActionEntity =
         screenshotFolderUri = screenshotFolderUri,
         screenshotFolderName = screenshotFolderName,
     )
+
+private fun SplitAction.toSplitActionEntity(): ActionEntity =
+    ActionEntity(
+        id = id.databaseId,
+        eventId = eventId.databaseId,
+        priority = priority,
+        name = name!!.trim(),
+        type = ActionType.SPLIT_ACTION,
+    )
+
+internal fun Action.toSplitItemEntity(actionDbId: Long, itemPriority: Int): SplitActionItemEntity =
+    when (this) {
+        is Swipe -> SplitActionItemEntity(
+            id = id.databaseId,
+            actionId = actionDbId,
+            priority = itemPriority,
+            type = ActionType.SWIPE,
+            fromX = from?.x,
+            fromY = from?.y,
+            toX = to?.x,
+            toY = to?.y,
+            duration = swipeDuration,
+        )
+        is Click -> SplitActionItemEntity(
+            id = id.databaseId,
+            actionId = actionDbId,
+            priority = itemPriority,
+            type = ActionType.CLICK,
+            fromX = position?.x,
+            fromY = position?.y,
+            duration = pressDuration,
+        )
+        else -> SplitActionItemEntity(
+            id = id.databaseId,
+            actionId = actionDbId,
+            priority = itemPriority,
+            type = ActionType.SWIPE,
+        )
+    }

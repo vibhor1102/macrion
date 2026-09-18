@@ -37,6 +37,7 @@ import io.github.vibhor1102.macrion.core.domain.model.counter.Counter
 import io.github.vibhor1102.macrion.core.domain.model.counter.CounterOperationValue
 import io.github.vibhor1102.macrion.feature.smart.config.domain.EditionRepository
 import io.github.vibhor1102.macrion.core.domain.model.action.ExternalAction
+import io.github.vibhor1102.macrion.core.domain.model.action.SplitAction
 import javax.inject.Inject
 
 class ReplaceCounterUseCase @Inject constructor(
@@ -134,6 +135,7 @@ class ReplaceCounterUseCase @Inject constructor(
             is CaptureScreenshot,
             is SystemAction,
             is Swipe,
+            is SplitAction,
             is ToggleEvent -> Unit
         }
     }

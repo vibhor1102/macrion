@@ -28,10 +28,12 @@ import androidx.lifecycle.viewModelScope
 
 import io.github.vibhor1102.macrion.core.bitmaps.BitmapRepository
 import io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.brief.ItemBrief
+import io.github.vibhor1102.macrion.core.display.config.DisplayConfigManager
 import io.github.vibhor1102.macrion.core.domain.ext.getConditionBitmap
 import io.github.vibhor1102.macrion.core.domain.model.action.Action
 import io.github.vibhor1102.macrion.core.domain.model.action.Click
 import io.github.vibhor1102.macrion.core.domain.model.action.Pause
+import io.github.vibhor1102.macrion.core.domain.model.action.SplitAction
 import io.github.vibhor1102.macrion.core.domain.model.action.Swipe
 import io.github.vibhor1102.macrion.core.domain.model.condition.ScreenCondition
 import io.github.vibhor1102.macrion.core.domain.model.event.Event
@@ -45,6 +47,7 @@ import io.github.vibhor1102.macrion.core.ui.views.itembrief.ItemBriefDescription
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.ClickDescription
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.DefaultDescription
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.PauseDescription
+import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.SplitDescription
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.SwipeDescription
 import io.github.vibhor1102.macrion.feature.smart.config.R
 import io.github.vibhor1102.macrion.feature.smart.config.domain.EditionRepository
@@ -82,6 +85,7 @@ class SmartActionsBriefViewModel @Inject constructor(
     private val smartProcessingRepository: SmartProcessingRepository,
     tutorialRepository: TutorialRepository,
     settingsRepository: SettingsRepository,
+    private val displayConfigManager: DisplayConfigManager,
 ) : ViewModel(), ActionConfigurator {
 
     private val isLegacyUiEnabled: Flow<Boolean> = settingsRepository.isLegacyActionUiEnabledFlow
@@ -127,6 +131,7 @@ class SmartActionsBriefViewModel @Inject constructor(
                 if (!legacyEnabled && canCopy) add(ActionTypeChoice.Copy)
                 add(ActionTypeChoice.Click)
                 add(ActionTypeChoice.Swipe)
+                add(ActionTypeChoice.Zoom)
                 add(ActionTypeChoice.Pause)
                 add(ActionTypeChoice.SetText)
                 add(ActionTypeChoice.System)
@@ -174,6 +179,13 @@ class SmartActionsBriefViewModel @Inject constructor(
     override fun createAction(context: Context, choice: ActionTypeChoice): Action = when (choice) {
         ActionTypeChoice.Click -> editionRepository.editedItemsBuilder.createNewClick(context)
         ActionTypeChoice.Swipe -> editionRepository.editedItemsBuilder.createNewSwipe(context)
+        ActionTypeChoice.Zoom -> {
+            val width = displayConfigManager.displayConfig.sizePx.x.takeIf { it > 0 }
+                ?: context.resources.displayMetrics.widthPixels
+            val height = displayConfigManager.displayConfig.sizePx.y.takeIf { it > 0 }
+                ?: context.resources.displayMetrics.heightPixels
+            editionRepository.editedItemsBuilder.createNewZoomInOut(context, width, height)
+        }
         ActionTypeChoice.Pause -> editionRepository.editedItemsBuilder.createNewPause(context)
         ActionTypeChoice.Intent -> editionRepository.editedItemsBuilder.createNewIntent(context)
         ActionTypeChoice.ToggleEvent -> editionRepository.editedItemsBuilder.createNewToggleEvent(context)
@@ -189,6 +201,10 @@ class SmartActionsBriefViewModel @Inject constructor(
 
     override fun startActionEdition(action: Action) {
         editionRepository.startActionEdition(action)
+    }
+
+    override fun startSubActionEdition(parent: SplitAction, subIndex: Int) {
+        editionRepository.startSubActionEdition(parent, subIndex)
     }
 
     override fun upsertEditedAction() {
@@ -290,6 +306,10 @@ class SmartActionsBriefViewModel @Inject constructor(
 
         is Pause -> PauseDescription(
             pauseDurationMs = pauseDuration ?: 1,
+        )
+
+        is SplitAction -> SplitDescription(
+            subDescriptions = subActions.map { it.toActionDescription(context) }
         )
 
         else -> DefaultDescription(
