@@ -53,6 +53,24 @@ jobs:
       with:
         ref: ${{ steps.release.outputs.tag }}
 
+    # The stable tag is immutable. Load only the reviewed compatibility patch from
+    # the workflow revision, without including unreleased product changes.
+    - name: Checkout obfuscation compatibility fixes
+      if: steps.release.outputs.tag == 'v0.5.0'
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        ref: ${{ github.workflow_sha }}
+        path: .nightly-tools
+        sparse-checkout: .github/obfuscation
+        persist-credentials: false
+
+    - name: Apply v0.5.0 obfuscation compatibility fixes
+      if: steps.release.outputs.tag == 'v0.5.0'
+      shell: bash
+      run: |
+        git apply --check .nightly-tools/.github/obfuscation/v0.5.0.patch
+        git apply .nightly-tools/.github/obfuscation/v0.5.0.patch
+
     - name: Set up JDK 25 and restore Gradle cache
       uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c # v6.0.0
       with:
@@ -153,6 +171,13 @@ jobs:
 
         These APKs use a randomized Android application identity, so they install alongside the standard Macrion release instead of updating it.
         EOF
+
+        if [ "$source_tag" = 'v0.5.0' ]; then
+          cat >> obfuscation-release-notes.md <<EOF
+
+        This build includes the v0.5.0 obfuscation compatibility patch from workflow commit \`${{ github.workflow_sha }}\`: Compose activity compatibility and corrected home/tutorial activity targets.
+        EOF
+        fi
 
         gh release create "$tag" \
           --title 'Latest obfuscated Macrion APKs' \

@@ -45,7 +45,6 @@ import io.github.vibhor1102.macrion.feature.revenue.IRevenueRepository
 import io.github.vibhor1102.macrion.feature.revenue.UserBillingState
 import io.github.vibhor1102.macrion.core.domain.IRepository
 import io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.switcher.ScenarioSwitchDialog
-import io.github.vibhor1102.macrion.scenarios.ScenarioActivity
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -278,7 +277,8 @@ class LocalService(
         serviceScope.launch {
             scenarioChangeMutex.withLock {
                 stopAndWait()
-                context.startActivity(Intent(context, ScenarioActivity::class.java).apply {
+                context.startActivity(Intent().apply {
+                    component = appComponentsProvider.scenarioActivityComponentName
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
                 })
             }

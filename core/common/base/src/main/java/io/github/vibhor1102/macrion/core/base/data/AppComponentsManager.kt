@@ -17,6 +17,8 @@
 package io.github.vibhor1102.macrion.core.base.data
 
 import android.content.ComponentName
+import android.content.Context
+import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -31,7 +33,9 @@ interface AppComponentsProvider {
 
 
 @Singleton
-class AppComponentsManager @Inject constructor() : AppComponentsProvider {
+class AppComponentsManager @Inject constructor(
+    @ApplicationContext private val context: Context,
+) : AppComponentsProvider {
 
     private lateinit var _originalAppId: String
     override val originalAppId: String
@@ -47,7 +51,7 @@ class AppComponentsManager @Inject constructor() : AppComponentsProvider {
 
     override val tutorialActivityComponentName: ComponentName
         get() = ComponentName(
-            "io.github.vibhor1102.macrion",
+            context.packageName,
             "io.github.vibhor1102.macrion.feature.tutorial.ui.TutorialActivity",
         )
 
