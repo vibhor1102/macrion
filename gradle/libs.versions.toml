@@ -6,13 +6,13 @@ androidMinSdk = "24"
 androidNdk = "28.2.13676358"
 
 # Build script
-androidGradlePlugin = "9.4.0"
+androidGradlePlugin = "9.4.1"
 googleProtobufGradlePlugin = "0.10.0"
 java = "21"
-kotlin = "2.4.10"
+kotlin = "2.4.20"
 kotlinxCoroutines = "1.11.0"
 reorderable = "3.1.0"
-ksp = "2.3.11"
+ksp = "2.3.12"
 
 # Androidx
 androidxAnnotation = "1.10.0"
@@ -20,10 +20,10 @@ androidxActivity = "1.13.0"
 androidxCoreKtx = "1.19.0"
 androidxDatastore = "1.2.1"
 androidxLifecycle = "2.10.0"
-androidxRoom = "2.8.4"
+androidxRoom = "2.8.5"
 androidxSplashScreen = "1.2.0"
 androidxVectorDrawable = "1.2.0"
-androidxComposeBom = "2026.08.00"
+androidxComposeBom = "2026.09.00"
 
 kotlinSerializationJson = "1.11.0"
 openCv = "4.12.0"
@@ -39,7 +39,7 @@ junit = "4.13.2"
 mockitoCore = "5.23.0"
 mockitoKotlin = "6.3.0"
 mockk = "1.14.11"
-robolectric = "4.16.1"
+robolectric = "4.17"
 espressoCore = "3.7.0"
 
 
