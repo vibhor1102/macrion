@@ -17,11 +17,11 @@
     "stress": "node test/stress.mjs"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "5.20260908.1",
+    "@cloudflare/workers-types": "5.20260914.1",
     "esbuild": "0.28.2",
     "miniflare": "5.20260908.0-alpha",
     "typescript": "7.0.2",
-    "wrangler": "4.130.0"
+    "wrangler": "4.131.1"
   },
   "overrides": {
     "sharp": "0.35.4"
