@@ -25,8 +25,10 @@ import androidx.lifecycle.viewModelScope
 
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.TutorialRepository
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.Tip
+import io.github.vibhor1102.macrion.core.base.identifier.Identifier
 import io.github.vibhor1102.macrion.core.processing.domain.SmartProcessingRepository
 import io.github.vibhor1102.macrion.core.processing.domain.model.DetectionState
+import io.github.vibhor1102.macrion.core.processing.domain.model.DetectionPhase
 import io.github.vibhor1102.macrion.core.smart.debugging.domain.DebuggingRepository
 import io.github.vibhor1102.macrion.feature.revenue.IRevenueRepository
 import io.github.vibhor1102.macrion.feature.revenue.UserBillingState
@@ -73,6 +75,10 @@ class MainMenuModel @Inject constructor(
         )
 
     private var paywallResultJob: Job? = null
+    private var paywallRequestId = 0L
+    private var paywallPending = false
+    private var startContext: Context? = null
+    private var startScenarioId: Identifier? = null
 
     /** Tells if the paywall is currently displayed. */
     val paywallIsVisible: Flow<Boolean> =
@@ -95,6 +101,40 @@ class MainMenuModel @Inject constructor(
     val isMediaProjectionStarted: StateFlow<Boolean> = smartProcessingRepository.detectionState
         .map { it == DetectionState.RECORDING || it == DetectionState.DETECTING }
         .stateIn(viewModelScope, SharingStarted.Eagerly, true)
+
+    private val enginePhase: StateFlow<DetectionPhase> = smartProcessingRepository.detectionPhase
+        .stateIn(viewModelScope, SharingStarted.Eagerly, when {
+            smartProcessingRepository.isRunning() -> DetectionPhase.DETECTING
+            smartProcessingRepository.isScreenRecordActive() -> DetectionPhase.RECORDING
+            else -> DetectionPhase.INACTIVE
+        })
+
+    private val detectionIntent = DetectionIntentCoordinator(
+        scope = viewModelScope,
+        phases = enginePhase,
+        stopSequence = smartProcessingRepository.detectionStopSequence,
+        initiallyRunning = smartProcessingRepository.isRunning(),
+        start = {
+            val context = startContext
+            if (context == null || startScenarioId == null ||
+                smartProcessingRepository.getScenarioId() != startScenarioId) false
+            else smartProcessingRepository.startDetection(
+                context = context,
+                liveDebugging = debuggingRepository.isDebugViewEnabled(),
+                generateReport = debuggingRepository.isDebugReportEnabled(),
+            )
+        },
+        stop = smartProcessingRepository::stopDetection,
+        onStarted = { smartProcessingRepository.scheduleAutoStop(revenueRepository.consumeTrial()) },
+    )
+
+    /** The latest button choice, independent of detector setup and cleanup. */
+    val requestedDetectionRunning: StateFlow<Boolean> = detectionIntent.requestedRunning
+
+    val toolbarDetectionState: Flow<UiState> = combine(requestedDetectionRunning, enginePhase) { requested, phase ->
+        if (requested || phase == DetectionPhase.STARTING || phase == DetectionPhase.DETECTING ||
+            phase == DetectionPhase.STOPPING) UiState.Detecting else UiState.Idle
+    }.distinctUntilChanged()
 
     val isTutorial: Boolean
         get() = tutorialRepository.isTutorialStarted()
@@ -120,7 +160,7 @@ class MainMenuModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, true)
 
     /** Tells if the scenario can be started. Edited scenario must be synchronized and engine should allow it. */
-    val isStartButtonEnabled: Flow<Boolean> = combine(
+    private val canStartNormally: Flow<Boolean> = combine(
         smartProcessingRepository.canStartDetection,
         editionRepository.isEditionSynchronized,
         isMediaProjectionStarted,
@@ -128,6 +168,13 @@ class MainMenuModel @Inject constructor(
     ) { canStartDetection, isSynchronized, isProjectionStarted, state ->
         canUsePlayPauseButton(state, canStartDetection, isSynchronized, isProjectionStarted)
     }
+
+    val isStartButtonEnabled: Flow<Boolean> = combine(
+        canStartNormally, requestedDetectionRunning, enginePhase,
+    ) { canStart, requested, phase ->
+        canStart || requested || phase == DetectionPhase.STARTING ||
+            phase == DetectionPhase.DETECTING || phase == DetectionPhase.STOPPING
+    }.distinctUntilChanged()
 
     /** Tells if the detector can't work due to a native library load error. */
     val nativeLibError: Flow<Boolean> = smartProcessingRepository.detectionState
@@ -148,21 +195,29 @@ class MainMenuModel @Inject constructor(
 
     /** Start/Stop the detection. */
     fun toggleDetection(context: Context) {
-        when (detectionState.value) {
-            UiState.Detecting -> stopDetection()
-            UiState.Idle -> {
-                if (shouldStartPaywall()) startPaywall(context)
-                else startDetection(context)
-            }
+        if (requestedDetectionRunning.value || paywallPending) {
+            stopDetection()
+        } else if (shouldStartPaywall()) {
+            startPaywall(context)
+        } else {
+            requestStart(context)
         }
+    }
+
+    /** A second button tap may request Play while the previous Pause is still cleaning up. */
+    fun pauseIfRequested(): Boolean {
+        if (!requestedDetectionRunning.value && !paywallPending) return false
+        return stopDetection()
     }
 
     /** Stop the detection. Returns true if it was started, false if not. */
     fun stopDetection(): Boolean {
-        if (detectionState.value !is UiState.Detecting) return false
-
-        smartProcessingRepository.stopDetection()
-        return true
+        val wasPending = paywallPending
+        paywallRequestId++
+        paywallPending = false
+        paywallResultJob?.cancel()
+        paywallResultJob = null
+        return detectionIntent.requestStop() || wasPending
     }
 
     private fun shouldStartPaywall(): Boolean =
@@ -170,28 +225,28 @@ class MainMenuModel @Inject constructor(
                 !tutorialRepository.isTutorialStarted()
 
     private fun startPaywall(context: Context) {
+        paywallPending = true
+        val requestId = ++paywallRequestId
         revenueRepository.startPaywallUiFlow(context)
 
+        var sawPaywall = false
         paywallResultJob = combine(revenueRepository.isBillingFlowInProgress, revenueRepository.userBillingState) { inProgress, state ->
-            if (inProgress) return@combine
+            if (inProgress) sawPaywall = true
+            if (inProgress || !sawPaywall || requestId != paywallRequestId) return@combine
 
             Log.d(TAG, "onPaywall finished")
 
-            if (!state.isAdRequested()) startDetection(context)
+            paywallPending = false
+            if (!state.isAdRequested()) requestStart(context)
             paywallResultJob?.cancel()
             paywallResultJob = null
         }.launchIn(viewModelScope)
     }
 
-    private fun startDetection(context: Context) {
-        viewModelScope.launch {
-            smartProcessingRepository.startDetection(
-                context = context,
-                autoStopDuration = revenueRepository.consumeTrial(),
-                liveDebugging = debuggingRepository.isDebugViewEnabled(),
-                generateReport = debuggingRepository.isDebugReportEnabled(),
-            )
-        }
+    private fun requestStart(context: Context) {
+        startContext = context
+        startScenarioId = smartProcessingRepository.getScenarioId()
+        detectionIntent.toggle()
     }
 
     fun startScenarioEdition(onEditionStarted: () -> Unit) {

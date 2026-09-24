@@ -51,15 +51,19 @@ import io.github.vibhor1102.macrion.core.processing.domain.DebugReportTimingList
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -129,6 +133,9 @@ class DetectorEngine @Inject constructor(
     private var minProcessingDurationNs: Long = DEFAULT_MIN_PROCESSING_DURATION_NS
     /** Report timing receiver for the current detection session, or null when report generation is disabled. */
     private var activeDebugReportTimingListener: DebugReportTimingListener? = null
+    private var debugSessionStarted = false
+    private val _detectionStopSequence = MutableStateFlow(0L)
+    internal val detectionStopSequence: StateFlow<Long> = _detectionStopSequence
     /** Monotonic origin shared by all timestamps in the current generated report. */
     private var debugReportSessionStartNs: Long? = null
     /** True only for the user-configured rate limit; the unlimited-mode safety delay is not reported as limiter time. */
@@ -209,32 +216,39 @@ class DetectorEngine @Inject constructor(
         liveDebugging: Boolean,
         generateReport: Boolean,
         imageDetectorFactory: () -> ImageDetector? = NativeDetector::newInstance,
-    ) {
+    ): Boolean {
         if (_state.value != DetectorState.RECORDING) {
             Log.w(TAG, "startDetection: Screen record is not started.")
-            return
+            return false
         }
 
         val detector = imageDetectorFactory()
         if (detector == null) {
             Log.e(TAG, "startDetection: native library not found.")
             _state.value = DetectorState.ERROR_NATIVE_DETECTOR_LIB_NOT_FOUND
-            return
+            return false
         }
 
-        _state.value = DetectorState.TRANSITIONING
+        if (!_state.compareAndSet(DetectorState.RECORDING, DetectorState.STARTING_DETECTION)) {
+            detector.close()
+            return false
+        }
+        // Make a pause before the queued setup job runs release this detector too.
+        imageDetector = detector
 
         Log.i(TAG, "startDetection")
 
         processingScope?.launchProcessingJob {
             // Setup native detector
-            imageDetector = detector
             detector.init()
+            currentCoroutineContext().ensureActive()
 
             // Setup text detection models if needed
             val requiredAlphabets = screenEvents.getAllOCRAlphabets()
             if (requiredAlphabets.isNotEmpty()) {
                 if (!detector.loadOcrModels(requiredAlphabets)) {
+                    detector.close()
+                    imageDetector = null
                     _state.value = DetectorState.ERROR_OCR_MODEL_NOT_FOUND
                     return@launchProcessingJob
                 }
@@ -250,6 +264,7 @@ class DetectorEngine @Inject constructor(
                     screenEvents = screenEvents,
                 )
             )
+            currentCoroutineContext().ensureActive()
 
             // Compute minimal processing duration
             val frameLimit = scenario.computeRate
@@ -273,6 +288,7 @@ class DetectorEngine @Inject constructor(
                     generateReport = generateReport,
                     conditions = screenEvents.flatMap { it.conditions } + triggerEvents.flatMap { it.conditions },
                 )
+                debugSessionStarted = true
             }
             activeDebugReportTimingListener = debugReportTimingListener.takeIf { generateReport }
 
@@ -297,10 +313,13 @@ class DetectorEngine @Inject constructor(
                 debugReportTimingListener = activeDebugReportTimingListener,
                 reportSessionStartNs = debugReportSessionStartNs,
             )
+            currentCoroutineContext().ensureActive()
             scenarioProcessor?.onScenarioStart(context)
 
+            currentCoroutineContext().ensureActive()
             processScreenImages()
         }
+        return true
     }
 
     /**
@@ -344,11 +363,16 @@ class DetectorEngine @Inject constructor(
      * release the [DetectorEngine] resources.
      */
     internal fun stopDetection() {
-        if (_state.value != DetectorState.DETECTING) {
-            Log.w(TAG, "stopDetection: detection is not started.")
-            return
+        while (true) {
+            val previous = _state.value
+            if (previous != DetectorState.DETECTING && previous != DetectorState.STARTING_DETECTION) {
+                Log.w(TAG, "stopDetection: detection is not started.")
+                return
+            }
+            if (processingShutdownJob?.isActive == true) return
+            if (_state.compareAndSet(previous, DetectorState.STOPPING_DETECTION)) break
         }
-        _state.value = DetectorState.TRANSITIONING
+        _detectionStopSequence.update { it + 1 }
 
         processingShutdownJob = processingScope?.launch {
             Log.i(TAG, "stopDetection")
@@ -364,7 +388,8 @@ class DetectorEngine @Inject constructor(
                     (SystemClock.elapsedRealtimeNanos() - sessionStartNs).coerceAtLeast(0L)
                 } ?: 0L,
             )
-            debuggingListener.onSessionEnded()
+            if (debugSessionStarted) debuggingListener.onSessionEnded()
+            debugSessionStarted = false
             activeDebugReportTimingListener = null
             debugReportSessionStartNs = null
 
@@ -375,7 +400,7 @@ class DetectorEngine @Inject constructor(
             // scaled frame.
             bitmapRepository.clearCache()
 
-            _state.emit(DetectorState.RECORDING)
+            if (_state.value == DetectorState.STOPPING_DETECTION) _state.emit(DetectorState.RECORDING)
             processingShutdownJob = null
             minProcessingDurationNs  = DEFAULT_MIN_PROCESSING_DURATION_NS
             isExecutionLimiterEnabled = false
@@ -390,7 +415,7 @@ class DetectorEngine @Inject constructor(
      */
     internal fun stopScreenRecord() {
         if (_state.value == DetectorState.CREATED) return
-        if (_state.value == DetectorState.DETECTING) stopDetection()
+        if (_state.value == DetectorState.DETECTING || _state.value == DetectorState.STARTING_DETECTION) stopDetection()
         stopRecording()
     }
 
@@ -411,6 +436,8 @@ class DetectorEngine @Inject constructor(
             imageDetector = null
             scenarioProcessor?.onScenarioEnd()
             scenarioProcessor = null
+            if (debugSessionStarted) debuggingListener.onSessionEnded()
+            debugSessionStarted = false
             activeDebugReportTimingListener = null
             debugReportSessionStartNs = null
             scalingManager.stopScaling()
@@ -427,7 +454,10 @@ class DetectorEngine @Inject constructor(
 
     /** Process the latest images provided by the [DisplayRecorder]. */
     private suspend fun processScreenImages() {
-        _state.emit(DetectorState.DETECTING)
+        currentCoroutineContext().ensureActive()
+        if (_state.value == DetectorState.STARTING_DETECTION &&
+            !_state.compareAndSet(DetectorState.STARTING_DETECTION, DetectorState.DETECTING)) return
+        if (_state.value != DetectorState.DETECTING) return
 
         var processingDurationNs: Long
         while (processingJob?.isActive == true && !orientationChangeRequested) {
@@ -466,8 +496,18 @@ class DetectorEngine @Inject constructor(
     private fun CoroutineScope.launchProcessingJob(block: suspend CoroutineScope.() -> Unit) {
         processingJob = launch(
             start = CoroutineStart.LAZY,
-            block = block,
-        )
+        ) {
+            try {
+                block()
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                Log.e(TAG, "Detection failed", error)
+                if (_state.value == DetectorState.STARTING_DETECTION || _state.value == DetectorState.DETECTING) {
+                    stopDetection()
+                }
+            }
+        }
         processingJob?.start()
     }
 
@@ -526,6 +566,10 @@ internal enum class DetectorState {
      * During this state, all call to the engine will be ignored.
      */
     TRANSITIONING,
+    /** Detector setup is running and may be canceled by a pause request. */
+    STARTING_DETECTION,
+    /** Detector cleanup must finish before another start. */
+    STOPPING_DETECTION,
     /** The screen is being recorded. */
     RECORDING,
     /** The screen is being recorded and the detection is running. */

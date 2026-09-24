@@ -36,6 +36,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
@@ -198,6 +199,8 @@ private class TestProcessingRepository(initialScenarioId: Identifier) : SmartPro
     override val scenarioId: StateFlow<Identifier?> = scenarioIdValue
     override val canStartDetection: Flow<Boolean> = emptyFlow()
     override val detectionState: Flow<DetectionState> = detectionStateValue
+    override val detectionPhase = flowOf(io.github.vibhor1102.macrion.core.processing.domain.model.DetectionPhase.RECORDING)
+    override val detectionStopSequence = MutableStateFlow(0L)
 
     override fun getScenarioId() = scenarioIdValue.value
     override fun isRunning() = detectionStateValue.value == DetectionState.DETECTING
@@ -211,7 +214,8 @@ private class TestProcessingRepository(initialScenarioId: Identifier) : SmartPro
     }
     override fun setProjectionErrorHandler(handler: () -> Unit) = Unit
     override fun startScreenRecord(resultCode: Int, data: Intent) { startScreenRecordCalls++ }
-    override suspend fun startDetection(context: Context, liveDebugging: Boolean, generateReport: Boolean, autoStopDuration: Duration?) = Unit
+    override suspend fun startDetection(context: Context, liveDebugging: Boolean, generateReport: Boolean, autoStopDuration: Duration?) = true
+    override fun scheduleAutoStop(duration: Duration?) = Unit
     override fun stopDetection() = Unit
     override fun stopScreenRecord() { stopScreenRecordCalls++ }
     override suspend fun tryEvent(context: Context, scenario: Scenario, event: ScreenEvent) = Unit
