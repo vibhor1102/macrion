@@ -190,7 +190,7 @@ internal class ActionsEditor<Parent>(
         val splitAction = SplitAction(
             id = newId,
             eventId = actionA.eventId,
-            name = (actionA as? SplitAction)?.name ?: (actionB as? SplitAction)?.name ?: "Zoom",
+            name = (actionA as? SplitAction)?.name ?: (actionB as? SplitAction)?.name ?: "Simultaneous click/swipe",
             priority = insertIndex,
             subActions = children.mapIndexed { index, child -> child.copyBase(id = childId(), priority = index) },
         )
@@ -210,7 +210,7 @@ internal class ActionsEditor<Parent>(
         val splitAction = SplitAction(
             id = newId,
             eventId = action.eventId,
-            name = (action as? SplitAction)?.name ?: "Zoom",
+            name = (action as? SplitAction)?.name ?: "Simultaneous click/swipe",
             priority = action.priority,
             subActions = children.mapIndexed { index, child -> child.copyBase(id = childId(), priority = index) },
         )

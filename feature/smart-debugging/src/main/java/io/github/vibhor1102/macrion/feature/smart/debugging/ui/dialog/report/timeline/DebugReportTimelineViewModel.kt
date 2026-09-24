@@ -231,6 +231,6 @@ class DebugReportTimelineViewModel @Inject constructor(
             is CaptureScreenshot -> R.drawable.ic_action_screenshot
             is SetText -> R.drawable.ic_action_set_text
             is SystemAction -> R.drawable.ic_action_system
-            is SplitAction -> R.drawable.ic_pinch
+            is SplitAction -> io.github.vibhor1102.macrion.core.ui.R.drawable.ic_simultaneous_touch
         }
 }

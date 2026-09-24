@@ -57,7 +57,7 @@ fun DumbAction.toDumbActionDetails(
 
 private fun DumbAction.DumbSplitAction.toSplitDetails(context: Context, withPositions: Boolean, inError: Boolean): DumbActionDetails =
     DumbActionDetails(
-        icon = io.github.vibhor1102.macrion.core.ui.R.drawable.ic_pinch,
+        icon = io.github.vibhor1102.macrion.core.ui.R.drawable.ic_simultaneous_touch,
         name = name,
         detailsText = when {
             inError -> context.getString(R.string.item_error_action_invalid_generic)

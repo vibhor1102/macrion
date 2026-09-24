@@ -357,7 +357,13 @@ class SmartActionsBriefViewModel @Inject constructor(
         )
 
         is SplitAction -> SplitDescription(
-            subDescriptions = subActions.map { it.toActionDescription(context) }
+            subDescriptions = subActions.map { child ->
+                when (val desc = child.toActionDescription(context)) {
+                    is SwipeDescription -> desc.copy(startOffsetMs = (child as Swipe).waitBeforeMs ?: 0L)
+                    is ClickDescription -> desc.copy(startOffsetMs = (child as Click).waitBeforeMs ?: 0L)
+                    else -> desc
+                }
+            }
         )
 
         else -> DefaultDescription(

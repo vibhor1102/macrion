@@ -271,7 +271,13 @@ class DumbScenarioBriefViewModel @Inject constructor(
             )
 
             is DumbAction.DumbSplitAction -> SplitDescription(
-                subDescriptions = subActions.map { it.toBriefDescription() }
+                subDescriptions = subActions.map { child ->
+                    when (val desc = child.toBriefDescription()) {
+                        is SwipeDescription -> desc.copy(startOffsetMs = (child as DumbAction.DumbSwipe).waitBeforeMs ?: 0L)
+                        is ClickDescription -> desc.copy(startOffsetMs = (child as DumbAction.DumbClick).waitBeforeMs ?: 0L)
+                        else -> desc
+                    }
+                }
             )
         }
 }

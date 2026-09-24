@@ -150,7 +150,7 @@ private fun Action.getDebugIcon(): Int =
         is Swipe -> R.drawable.ic_swipe
         is SystemAction -> R.drawable.ic_action_system
         is ToggleEvent -> R.drawable.ic_toggle_event
-        is SplitAction -> R.drawable.ic_pinch
+        is SplitAction -> io.github.vibhor1102.macrion.core.ui.R.drawable.ic_simultaneous_touch
     }
 
 private fun Event.getConditionOperatorText(context: Context): String =

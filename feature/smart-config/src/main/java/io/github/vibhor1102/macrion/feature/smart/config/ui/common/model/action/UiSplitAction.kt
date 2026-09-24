@@ -24,7 +24,7 @@ import io.github.vibhor1102.macrion.core.ui.R as UiR
 
 @DrawableRes
 internal fun getSplitActionIconRes(): Int =
-    UiR.drawable.ic_pinch
+    UiR.drawable.ic_simultaneous_touch
 
 internal fun SplitAction.getDescription(context: Context, inError: Boolean): String = when {
     inError -> context.getString(R.string.item_error_action_invalid_generic)

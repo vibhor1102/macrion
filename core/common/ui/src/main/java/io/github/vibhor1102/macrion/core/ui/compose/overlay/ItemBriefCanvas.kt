@@ -87,7 +87,6 @@ fun ItemBriefCanvas(
     LaunchedEffect(description, animate) {
         val clickDescList = when (description) {
             is ClickDescription -> listOf(description)
-            is SplitDescription -> description.subDescriptions.filterIsInstance<ClickDescription>()
             else -> emptyList()
         }
         if (!animate || clickDescList.isEmpty()) {
@@ -122,7 +121,6 @@ fun ItemBriefCanvas(
     LaunchedEffect(description, animate) {
         val swipeDescList = when (description) {
             is SwipeDescription -> listOf(description)
-            is SplitDescription -> description.subDescriptions.filterIsInstance<SwipeDescription>()
             else -> emptyList()
         }.filter { it.from != null && it.to != null }
 
@@ -142,6 +140,29 @@ fun ItemBriefCanvas(
                     easing = LinearEasing,
                 ),
             )
+            delay(500)
+        }
+    }
+
+    val simultaneousTime = remember { Animatable(-1f) }
+    LaunchedEffect(description, animate) {
+        val children = (description as? SplitDescription)?.subDescriptions.orEmpty()
+        val endTime = children.maxOfOrNull { child ->
+            when (child) {
+                is SwipeDescription -> child.startOffsetMs + child.swipeDurationMs
+                is ClickDescription -> child.startOffsetMs + child.pressDurationMs
+                else -> 0L
+            }
+        } ?: 0L
+        if (!animate || endTime <= 0L) {
+            simultaneousTime.snapTo(-1f)
+            return@LaunchedEffect
+        }
+        while (isActive) {
+            simultaneousTime.snapTo(-1f)
+            delay(250)
+            simultaneousTime.snapTo(0f)
+            simultaneousTime.animateTo(endTime.toFloat(), tween(endTime.coerceAtMost(Int.MAX_VALUE.toLong()).toInt(), easing = LinearEasing))
             delay(500)
         }
     }
@@ -182,7 +203,7 @@ fun ItemBriefCanvas(
 
             is SwipeDescription -> drawSwipeIndicator(
                 description = description,
-                progress = if (animate) swipeProgress.value else 0f,
+                progress = if (animate) swipeProgress.value else null,
                 outerRadiusPx = outerRadiusPx,
                 innerRadiusPx = innerRadiusPx,
                 thicknessPx = thicknessPx,
@@ -197,7 +218,7 @@ fun ItemBriefCanvas(
                     when (subDesc) {
                         is SwipeDescription -> drawSwipeIndicator(
                             description = subDesc,
-                            progress = if (animate) swipeProgress.value else 0f,
+                            progress = if (animate) childProgress(simultaneousTime.value, subDesc.startOffsetMs, subDesc.swipeDurationMs) else null,
                             outerRadiusPx = outerRadiusPx,
                             innerRadiusPx = innerRadiusPx,
                             thicknessPx = thicknessPx,
@@ -209,7 +230,7 @@ fun ItemBriefCanvas(
 
                         is ClickDescription -> drawClickIndicator(
                             description = subDesc,
-                            scale = if (animate) clickScale.value else 1f,
+                            scale = if (animate && childProgress(simultaneousTime.value, subDesc.startOffsetMs, subDesc.pressDurationMs) != null) 0.75f else 1f,
                             outerRadiusPx = outerRadiusPx,
                             innerRadiusPx = innerRadiusPx,
                             thicknessPx = thicknessPx,
@@ -263,6 +284,11 @@ fun ItemBriefCanvas(
             null -> Unit
         }
     }
+}
+
+private fun childProgress(timeMs: Float, startMs: Long, durationMs: Long): Float? {
+    if (durationMs <= 0L || timeMs < startMs || timeMs >= startMs + durationMs) return null
+    return ((timeMs - startMs) / durationMs).coerceIn(0f, 1f)
 }
 
 private fun DrawScope.drawClickIndicator(
@@ -322,7 +348,7 @@ private fun DrawScope.drawClickIndicator(
 
 private fun DrawScope.drawSwipeIndicator(
     description: SwipeDescription,
-    progress: Float,
+    progress: Float?,
     outerRadiusPx: Float,
     innerRadiusPx: Float,
     thicknessPx: Float,
@@ -395,7 +421,7 @@ private fun DrawScope.drawSwipeIndicator(
         val dx = to.x - from.x
         val dy = to.y - from.y
         val mag = hypot(dx, dy)
-        if (mag > 0f) {
+        if (mag > 0f && progress != null) {
             val animX = from.x + (dx / mag) * (mag * progress)
             val animY = from.y + (dy / mag) * (mag * progress)
             val animPos = Offset(animX, animY)
