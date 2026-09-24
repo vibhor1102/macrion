@@ -258,7 +258,6 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
                         else -> LazyColumn(
                             modifier = Modifier.fillMaxSize(),
                             state = lazyListState,
-                            contentPadding = PaddingValues(bottom = 152.dp),
                         ) {
                             itemsIndexed(
                                 items = itemsToDisplay,
