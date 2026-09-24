@@ -51,7 +51,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.ViewCompositionStrategy
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -229,38 +228,6 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
                             collapsedFolders = allFolderNames.toSet()
                         }
                     }
-                }
-            }
-
-            DisposableEffect(allFolderNames, collapsedFolders) {
-                if (allFolderNames.isNotEmpty()) {
-                    val anyExpanded = allFolderNames.any { it !in collapsedFolders }
-                    dialogController.topBarBinding.extraAction = {
-                        IconButton(
-                            onClick = {
-                                collapsedFolders = if (anyExpanded) {
-                                    allFolderNames.toSet()
-                                } else {
-                                    emptySet()
-                                }
-                            },
-                        ) {
-                            Icon(
-                                painter = painterResource(
-                                    if (anyExpanded) UiR.drawable.ic_unfold_less else UiR.drawable.ic_unfold_more
-                                ),
-                                contentDescription = stringResource(
-                                    if (anyExpanded) R.string.folder_collapse_all else R.string.folder_expand_all
-                                ),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                    }
-                } else {
-                    dialogController.topBarBinding.extraAction = null
-                }
-                onDispose {
-                    dialogController.topBarBinding.extraAction = null
                 }
             }
 

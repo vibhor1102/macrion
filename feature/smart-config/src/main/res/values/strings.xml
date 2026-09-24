@@ -661,7 +661,6 @@
     <string name="folder_delete_all_events">Delete events</string>
     <string name="folder_name_hint">Folder name</string>
     <string name="folder_collapse_all">Collapse all</string>
-    <string name="folder_expand_all">Expand all</string>
     <string name="folder_reorder_disabled_hint">Collapse all folders to reorder</string>
     <string name="generic_cancel">Cancel</string>
     <string name="generic_create">Create</string>
