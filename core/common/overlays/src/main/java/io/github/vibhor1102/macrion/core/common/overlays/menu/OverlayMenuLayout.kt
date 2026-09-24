@@ -31,7 +31,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -61,7 +60,6 @@ import androidx.compose.ui.viewinterop.AndroidView
 import dagger.hilt.EntryPoints
 import io.github.vibhor1102.macrion.core.common.overlays.R
 import io.github.vibhor1102.macrion.core.common.overlays.di.OverlaysEntryPoint
-import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import kotlinx.coroutines.flow.flowOf
 
 data class OverlayMenuButton(
@@ -74,19 +72,12 @@ data class OverlayMenuButton(
 @SuppressLint("ViewConstructor")
 class OverlayMenuButtonView(context: Context, icon: Int) : FrameLayout(context) {
     private var iconResource by mutableIntStateOf(icon)
-    internal var composeSelected by mutableStateOf(false)
-        private set
     internal var composeVisibility by mutableIntStateOf(View.VISIBLE)
         private set
     internal var composeAlpha by mutableFloatStateOf(1f)
         private set
 
     fun setImageResource(@DrawableRes resource: Int) { iconResource = resource }
-
-    override fun setSelected(selected: Boolean) {
-        super.setSelected(selected)
-        composeSelected = selected
-    }
 
     internal val currentIconResource: Int get() = iconResource
 
@@ -309,7 +300,12 @@ fun createOverlayMenuLayout(
                                                         if (buttonContent != null) {
                                                             buttonContent(buttons[index])
                                                         } else {
-                                                            OverlayMenuButtonIcon(button)
+                                                            Icon(
+                                                                painterResource(button.currentIconResource),
+                                                                null,
+                                                                Modifier.size(40.dp),
+                                                                tint = colorResource(R.color.overlayMenuButtons),
+                                                            )
                                                         }
                                                     }
                                                     AndroidView(factory = { button }, modifier = Modifier.fillMaxSize())
@@ -319,7 +315,12 @@ fun createOverlayMenuLayout(
                                                     }
                                                 } else {
                                                     Box(Modifier.fillMaxSize().alpha(button.composeAlpha), contentAlignment = Alignment.Center) {
-                                                        OverlayMenuButtonIcon(button)
+                                                        Icon(
+                                                            painterResource(button.currentIconResource),
+                                                            null,
+                                                            Modifier.size(40.dp),
+                                                            tint = colorResource(R.color.overlayMenuButtons),
+                                                        )
                                                     }
                                                 }
                                             }
@@ -349,32 +350,6 @@ fun createOverlayMenuLayout(
         ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT,
     ))
     return root
-}
-
-@Composable
-private fun OverlayMenuButtonIcon(button: OverlayMenuButtonView) {
-    if (button.composeSelected) {
-        MacrionTheme {
-            Box(
-                Modifier.size(40.dp).background(MaterialTheme.colorScheme.primaryContainer, MaterialTheme.shapes.medium),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    painter = painterResource(button.currentIconResource),
-                    contentDescription = null,
-                    modifier = Modifier.size(32.dp),
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                )
-            }
-        }
-    } else {
-        Icon(
-            painter = painterResource(button.currentIconResource),
-            contentDescription = null,
-            modifier = Modifier.size(40.dp),
-            tint = colorResource(R.color.overlayMenuButtons),
-        )
-    }
 }
 
 private val OverlayMenuResizeEasing = Easing { fraction ->

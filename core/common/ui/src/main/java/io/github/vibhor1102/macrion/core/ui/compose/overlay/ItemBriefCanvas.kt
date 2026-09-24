@@ -35,6 +35,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathFillType
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -252,14 +253,14 @@ fun ItemBriefCanvas(
                     drawNumberedActionPreview(
                         preview, false, false, clickScale.value, swipeProgress.value, simultaneousTime.value,
                         outerRadiusPx, innerRadiusPx, thicknessPx, primaryColor, secondaryColor, innerColor, backgroundColor,
-                        labelOffsetFor = { position -> (labelOffsetSteps[preview.order to position] ?: 0f) * 11.dp.toPx() },
+                        labelOffsetFor = { position -> (labelOffsetSteps[preview.order to position] ?: 0f) * 24.dp.toPx() },
                     )
                 }
                 description.previews.firstOrNull { it.order == description.focusedOrder }?.let { preview ->
                     drawNumberedActionPreview(
                         preview, true, animate, clickScale.value, swipeProgress.value, simultaneousTime.value,
                         outerRadiusPx, innerRadiusPx, thicknessPx, primaryColor, secondaryColor, innerColor, backgroundColor,
-                        labelOffsetFor = { position -> (labelOffsetSteps[preview.order to position] ?: 0f) * 11.dp.toPx() },
+                        labelOffsetFor = { position -> (labelOffsetSteps[preview.order to position] ?: 0f) * 24.dp.toPx() },
                     )
                 }
             }
@@ -497,14 +498,14 @@ private fun DrawScope.drawClickIndicator(
 
     val animatedRadius = outerRadiusPx * scale
 
-    // Radial gradient glow
+    // Keep the glow's drawing area fixed so the shrinking ring cannot clip its gradient.
     drawCircle(
         brush = Brush.radialGradient(
             colors = listOf(backgroundColor, Color.Transparent),
             center = pos,
             radius = outerRadiusPx * 1.75f,
         ),
-        radius = animatedRadius * 2f,
+        radius = outerRadiusPx * 2f,
         center = pos,
     )
 
@@ -523,7 +524,9 @@ private fun DrawScope.drawClickIndicator(
         center = pos,
         style = Fill,
     )
-    number?.let { drawActionNumber(it, pos, animatedRadius, isFocused, labelOffsetFor(pos)) }
+    number?.let {
+        drawActionNumber(it, pos, animatedRadius, isFocused, labelOffsetFor(pos), innerColor, backgroundColor.copy(alpha = 1f))
+    }
 }
 
 private fun DrawScope.drawSwipeIndicator(
@@ -624,29 +627,49 @@ private fun DrawScope.drawSwipeIndicator(
         }
     }
     number?.let { order ->
-        from?.let { drawActionNumber(order, it, outerRadiusPx, isFocused, labelOffsetFor(it)) }
-        to?.let { drawActionNumber(order, it, outerRadiusPx, isFocused, labelOffsetFor(it)) }
+        from?.let { drawActionNumber(order, it, outerRadiusPx, isFocused, labelOffsetFor(it), innerColor, backgroundColor.copy(alpha = 1f)) }
+        to?.let { drawActionNumber(order, it, outerRadiusPx, isFocused, labelOffsetFor(it), innerColor, backgroundColor.copy(alpha = 1f)) }
     }
 }
 
-private fun DrawScope.drawActionNumber(order: Int, center: Offset, ringRadius: Float, isFocused: Boolean, offsetX: Float) {
+private fun DrawScope.drawActionNumber(
+    order: Int,
+    center: Offset,
+    ringRadius: Float,
+    isFocused: Boolean,
+    offsetX: Float,
+    fillColor: Color,
+    inkColor: Color,
+) {
+    val badgeRadius = 11.dp.toPx()
+    val badgeCenter = Offset(
+        x = (center.x + offsetX).coerceIn(badgeRadius, (size.width - badgeRadius).coerceAtLeast(badgeRadius)),
+        y = (if (center.y - ringRadius - badgeRadius >= 0f) center.y - ringRadius else center.y + ringRadius)
+            .coerceIn(badgeRadius, (size.height - badgeRadius).coerceAtLeast(badgeRadius)),
+    )
+    // The opaque badge masks the ring's top arc, so the number reads as part of the handle.
+    drawCircle(color = fillColor, radius = badgeRadius, center = badgeCenter)
+    drawCircle(
+        color = inkColor,
+        radius = badgeRadius,
+        center = badgeCenter,
+        style = Stroke(width = if (isFocused) 2.dp.toPx() else 1.5.dp.toPx()),
+    )
+
     val text = order.toString()
-    val labelY = center.y - ringRadius * 0.6f
     val textPaint = AndroidPaint(AndroidPaint.ANTI_ALIAS_FLAG).apply {
         textAlign = AndroidPaint.Align.CENTER
         typeface = Typeface.create("sans-serif-medium", if (isFocused) Typeface.BOLD else Typeface.NORMAL)
-        textSize = 12.sp.toPx().coerceAtMost(ringRadius * 0.65f)
+        textSize = 15.sp.toPx().coerceAtMost(badgeRadius * 1.4f)
+        val availableWidth = badgeRadius * 2f - 5.dp.toPx()
+        val measuredWidth = measureText(text)
+        if (measuredWidth > availableWidth) textSize *= availableWidth / measuredWidth
+        style = AndroidPaint.Style.FILL
+        color = inkColor.toArgb()
     }
     drawIntoCanvas { canvas ->
-        val nativeCanvas = canvas.nativeCanvas
-        textPaint.style = AndroidPaint.Style.STROKE
-        textPaint.strokeWidth = 2.dp.toPx()
-        textPaint.strokeJoin = AndroidPaint.Join.ROUND
-        textPaint.color = AndroidColor.BLACK
-        nativeCanvas.drawText(text, center.x + offsetX, labelY, textPaint)
-        textPaint.style = AndroidPaint.Style.FILL
-        textPaint.color = AndroidColor.WHITE
-        nativeCanvas.drawText(text, center.x + offsetX, labelY, textPaint)
+        val baseline = badgeCenter.y - (textPaint.ascent() + textPaint.descent()) / 2f
+        canvas.nativeCanvas.drawText(text, badgeCenter.x, baseline, textPaint)
     }
 }
 

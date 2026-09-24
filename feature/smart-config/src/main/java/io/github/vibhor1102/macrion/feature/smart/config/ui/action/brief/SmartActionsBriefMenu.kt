@@ -17,10 +17,10 @@
 package io.github.vibhor1102.macrion.feature.smart.config.ui.action.brief
 
 import io.github.vibhor1102.macrion.core.common.overlays.menu.findOverlayView
+import io.github.vibhor1102.macrion.core.common.overlays.menu.OverlayMenuButtonView
 
 import android.view.KeyEvent
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.ViewCompat
 import androidx.lifecycle.Lifecycle
@@ -347,8 +347,9 @@ class SmartActionsBriefMenu(initialItemIndex: Int) : ItemBriefMenu(
 
     private fun updatePreviewMode(showAll: Boolean) {
         if (!this::menuView.isInitialized) return
-        val button = menuView.findOverlayView<View>(R.id.btn_show_all_action_previews)
+        val button = menuView.findOverlayView<OverlayMenuButtonView>(R.id.btn_show_all_action_previews)
         button.isSelected = showAll
+        button.setImageResource(if (showAll) R.drawable.ic_action_preview_all else R.drawable.ic_action_preview_current)
         ViewCompat.setStateDescription(button, context.getString(
             if (showAll) R.string.action_previews_all_on else R.string.action_previews_all_off,
         ))

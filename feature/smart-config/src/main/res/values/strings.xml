@@ -17,8 +17,8 @@
 -->
 <resources>
     <string name="content_desc_show_all_action_previews">Show all action previews</string>
-    <string name="action_previews_all_on">On</string>
-    <string name="action_previews_all_off">Off</string>
+    <string name="action_previews_all_on">All actions</string>
+    <string name="action_previews_all_off">Current action only</string>
     <string name="content_desc_open_home">Stop scenario and open Macrion home</string>
 
     <!-- Generic =================================================================================================== -->
