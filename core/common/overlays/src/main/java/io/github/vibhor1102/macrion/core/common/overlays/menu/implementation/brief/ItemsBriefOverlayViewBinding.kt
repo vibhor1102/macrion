@@ -220,6 +220,13 @@ class ItemsBriefOverlayViewBinding private constructor(
         requestedBriefItemIndex.intValue = focusedIndex
     }
 
+    private fun handleFocusedItemChanged(index: Int) {
+        // The pager is removed when the panel auto-hides. Keep its next initial page in sync
+        // with the card the user actually reached before that happens.
+        requestedBriefItemIndex.intValue = index
+        onFocusedItemChanged(index)
+    }
+
     fun updateDisplayConfig(newConfig: DisplayConfig) {
         orientation = newConfig.orientation
         displayConfig = newConfig
@@ -406,7 +413,7 @@ class ItemsBriefOverlayViewBinding private constructor(
                         emptyTextRes = emptyText.intValue,
                         itemContent = itemContent,
                         onItemClicked = onItemClicked,
-                        onFocusedItemChanged = onFocusedItemChanged,
+                        onFocusedItemChanged = ::handleFocusedItemChanged,
                         firstItemModifier = firstItemModifier(),
                         onInteraction = ::showOrResetPanelTimer,
                         onDeleteAnimationChanged = { isDeleteAnimating.value = it },
@@ -461,7 +468,7 @@ class ItemsBriefOverlayViewBinding private constructor(
                         emptyTextRes = emptyText.intValue,
                         itemContent = itemContent,
                         onItemClicked = onItemClicked,
-                        onFocusedItemChanged = onFocusedItemChanged,
+                        onFocusedItemChanged = ::handleFocusedItemChanged,
                         firstItemModifier = firstItemModifier(),
                         onInteraction = ::showOrResetPanelTimer,
                         onDeleteAnimationChanged = { isDeleteAnimating.value = it },
@@ -865,6 +872,5 @@ private const val EXPRESSIVE_SNAP_STIFFNESS = 380f
 
 private fun Identifier.toBundleKey(): String =
     if (tempId != null) "temp_$tempId" else "db_$databaseId"
-
 
 
