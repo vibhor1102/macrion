@@ -13,6 +13,7 @@ import android.graphics.Color as AndroidColor
 import android.graphics.Paint as AndroidPaint
 import android.graphics.PointF
 import android.graphics.Rect as AndroidRect
+import android.graphics.Typeface
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
@@ -46,15 +47,18 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
 import io.github.vibhor1102.macrion.core.display.config.DisplayConfig
 import io.github.vibhor1102.macrion.core.ui.R
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.ItemBriefDescription
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.ClickDescription
+import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.ActionCarouselDescription
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.ColorConditionDescription
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.DefaultDescription
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.ImageConditionBriefRenderingType
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.ImageConditionDescription
+import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.NumberedActionPreview
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.PauseDescription
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.SplitDescription
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.SwipeDescription
@@ -83,10 +87,23 @@ fun ItemBriefCanvas(
     innerRadiusPx: Float = with(LocalDensity.current) { dimensionResource(R.dimen.overlay_click_selector_inner_radius).toPx() },
     cornerRadiusPx: Float = with(LocalDensity.current) { 2.dp.toPx() },
 ) {
+    val carouselDescription = description as? ActionCarouselDescription
+    val labelOffsetSteps = remember(carouselDescription) {
+        carouselDescription?.let(::calculateLabelOffsetSteps).orEmpty()
+    }
+    val animationDescription = carouselDescription?.let { carousel ->
+        val focusedPreview = carousel.previews.firstOrNull { it.order == carousel.focusedOrder }?.description
+        val fallbackSplit = carousel.focusedFallback as? SplitDescription
+        if (focusedPreview is SplitDescription && fallbackSplit != null) {
+            SplitDescription(focusedPreview.subDescriptions + fallbackSplit.subDescriptions)
+        } else {
+            focusedPreview ?: carousel.focusedFallback
+        }
+    } ?: description
     val clickScale = remember { Animatable(1f) }
-    LaunchedEffect(description, animate) {
-        val clickDescList = when (description) {
-            is ClickDescription -> listOf(description)
+    LaunchedEffect(animationDescription, animate) {
+        val clickDescList = when (animationDescription) {
+            is ClickDescription -> listOf(animationDescription)
             else -> emptyList()
         }
         if (!animate || clickDescList.isEmpty()) {
@@ -118,9 +135,9 @@ fun ItemBriefCanvas(
     }
 
     val swipeProgress = remember { Animatable(0f) }
-    LaunchedEffect(description, animate) {
-        val swipeDescList = when (description) {
-            is SwipeDescription -> listOf(description)
+    LaunchedEffect(animationDescription, animate) {
+        val swipeDescList = when (animationDescription) {
+            is SwipeDescription -> listOf(animationDescription)
             else -> emptyList()
         }.filter { it.from != null && it.to != null }
 
@@ -145,8 +162,8 @@ fun ItemBriefCanvas(
     }
 
     val simultaneousTime = remember { Animatable(-1f) }
-    LaunchedEffect(description, animate) {
-        val children = (description as? SplitDescription)?.subDescriptions.orEmpty()
+    LaunchedEffect(animationDescription, animate) {
+        val children = (animationDescription as? SplitDescription)?.subDescriptions.orEmpty()
         val endTime = children.maxOfOrNull { child ->
             when (child) {
                 is SwipeDescription -> child.startOffsetMs + child.swipeDurationMs
@@ -168,12 +185,12 @@ fun ItemBriefCanvas(
     }
 
     val pauseRotation = remember { Animatable(0f) }
-    LaunchedEffect(description, animate) {
-        if (!animate || description !is PauseDescription) {
+    LaunchedEffect(animationDescription, animate) {
+        if (!animate || animationDescription !is PauseDescription) {
             pauseRotation.snapTo(0f)
             return@LaunchedEffect
         }
-        val animDurationMs = max(description.pauseDurationMs, 500L).toInt()
+        val animDurationMs = max(animationDescription.pauseDurationMs, 500L).toInt()
         while (isActive) {
             pauseRotation.snapTo(0f)
             delay(250)
@@ -190,6 +207,63 @@ fun ItemBriefCanvas(
 
     Canvas(modifier = modifier.fillMaxSize()) {
         when (description) {
+            is ActionCarouselDescription -> {
+                when (val fallback = description.focusedFallback) {
+                    is ClickDescription -> drawClickIndicator(
+                        description = fallback,
+                        scale = if (animate) clickScale.value else 1f,
+                        outerRadiusPx = outerRadiusPx,
+                        innerRadiusPx = innerRadiusPx,
+                        thicknessPx = thicknessPx,
+                        primaryColor = primaryColor,
+                        innerColor = innerColor,
+                        backgroundColor = backgroundColor,
+                        number = description.focusedOrder,
+                    )
+                    is PauseDescription -> drawPauseIndicator(
+                        rotationDegrees = if (animate) pauseRotation.value else 0f,
+                        outerRadiusPx = outerRadiusPx,
+                        thicknessPx = thicknessPx,
+                        primaryColor = primaryColor,
+                        innerColor = innerColor,
+                        backgroundColor = backgroundColor,
+                    )
+                    is DefaultDescription -> drawDefaultIndicator(
+                        description = fallback,
+                        outerRadiusPx = outerRadiusPx,
+                        backgroundColor = backgroundColor,
+                    )
+                    is SplitDescription -> fallback.subDescriptions.forEach { child ->
+                        if (child is ClickDescription) drawClickIndicator(
+                            description = child,
+                            scale = if (animate && childProgress(simultaneousTime.value, child.startOffsetMs, child.pressDurationMs) != null) 0.75f else 1f,
+                            outerRadiusPx = outerRadiusPx,
+                            innerRadiusPx = innerRadiusPx,
+                            thicknessPx = thicknessPx,
+                            primaryColor = primaryColor,
+                            innerColor = innerColor,
+                            backgroundColor = backgroundColor,
+                            number = description.focusedOrder,
+                        )
+                    }
+                    else -> Unit
+                }
+                description.previews.filter { it.order != description.focusedOrder }.forEach { preview ->
+                    drawNumberedActionPreview(
+                        preview, false, false, clickScale.value, swipeProgress.value, simultaneousTime.value,
+                        outerRadiusPx, innerRadiusPx, thicknessPx, primaryColor, secondaryColor, innerColor, backgroundColor,
+                        labelOffsetFor = { position -> (labelOffsetSteps[preview.order to position] ?: 0f) * 11.dp.toPx() },
+                    )
+                }
+                description.previews.firstOrNull { it.order == description.focusedOrder }?.let { preview ->
+                    drawNumberedActionPreview(
+                        preview, true, animate, clickScale.value, swipeProgress.value, simultaneousTime.value,
+                        outerRadiusPx, innerRadiusPx, thicknessPx, primaryColor, secondaryColor, innerColor, backgroundColor,
+                        labelOffsetFor = { position -> (labelOffsetSteps[preview.order to position] ?: 0f) * 11.dp.toPx() },
+                    )
+                }
+            }
+
             is ClickDescription -> drawClickIndicator(
                 description = description,
                 scale = if (animate) clickScale.value else 1f,
@@ -291,6 +365,108 @@ private fun childProgress(timeMs: Float, startMs: Long, durationMs: Long): Float
     return ((timeMs - startMs) / durationMs).coerceIn(0f, 1f)
 }
 
+/** Spread only labels at identical targets; the rings and precision dots stay on their exact coordinates. */
+private fun calculateLabelOffsetSteps(description: ActionCarouselDescription): Map<Pair<Int, Offset>, Float> {
+    val markers = description.previews.flatMap { preview ->
+        preview.description.markerPositions().map { preview.order to it }
+    }.distinct()
+    return markers.groupBy { it.second }.values.flatMap { atPosition ->
+        atPosition.mapIndexed { index, marker ->
+            marker to (index - (atPosition.size - 1) / 2f)
+        }
+    }.toMap()
+}
+
+private fun ItemBriefDescription.markerPositions(): List<Offset> = when (this) {
+    is ClickDescription -> position?.let { listOf(Offset(it.x, it.y)) }.orEmpty()
+    is SwipeDescription -> listOfNotNull(from, to).map { Offset(it.x, it.y) }
+    is SplitDescription -> subDescriptions.flatMap { it.markerPositions() }
+    else -> emptyList()
+}
+
+private fun DrawScope.drawNumberedActionPreview(
+    preview: NumberedActionPreview,
+    isFocused: Boolean,
+    animate: Boolean,
+    clickScale: Float,
+    swipeProgress: Float,
+    simultaneousTime: Float,
+    outerRadiusPx: Float,
+    innerRadiusPx: Float,
+    thicknessPx: Float,
+    primaryColor: Color,
+    secondaryColor: Color,
+    innerColor: Color,
+    backgroundColor: Color,
+    labelOffsetFor: (Offset) -> Float,
+) {
+    val ringColor = if (isFocused) primaryColor else primaryColor.copy(alpha = 0.7f)
+    val ringThickness = if (isFocused) thicknessPx else thicknessPx * 0.65f
+    val hazeColor = if (isFocused) backgroundColor else backgroundColor.copy(alpha = backgroundColor.alpha * 0.6f)
+    when (val action = preview.description) {
+        is ClickDescription -> drawClickIndicator(
+            description = action,
+            scale = if (animate) clickScale else 1f,
+            outerRadiusPx = outerRadiusPx,
+            innerRadiusPx = innerRadiusPx,
+            thicknessPx = ringThickness,
+            primaryColor = ringColor,
+            innerColor = innerColor,
+            backgroundColor = hazeColor,
+            number = preview.order,
+            isFocused = isFocused,
+            labelOffsetFor = labelOffsetFor,
+        )
+        is SwipeDescription -> drawSwipeIndicator(
+            description = action,
+            progress = if (animate) swipeProgress else null,
+            outerRadiusPx = outerRadiusPx,
+            innerRadiusPx = innerRadiusPx,
+            thicknessPx = ringThickness,
+            primaryColor = ringColor,
+            secondaryColor = if (isFocused) secondaryColor else secondaryColor.copy(alpha = 0.7f),
+            innerColor = innerColor,
+            backgroundColor = hazeColor,
+            number = preview.order,
+            isFocused = isFocused,
+            labelOffsetFor = labelOffsetFor,
+        )
+        is SplitDescription -> action.subDescriptions.forEach { child ->
+            when (child) {
+                is ClickDescription -> drawClickIndicator(
+                    description = child,
+                    scale = if (animate && childProgress(simultaneousTime, child.startOffsetMs, child.pressDurationMs) != null) 0.75f else 1f,
+                    outerRadiusPx = outerRadiusPx,
+                    innerRadiusPx = innerRadiusPx,
+                    thicknessPx = ringThickness,
+                    primaryColor = ringColor,
+                    innerColor = innerColor,
+                    backgroundColor = hazeColor,
+                    number = preview.order,
+                    isFocused = isFocused,
+                    labelOffsetFor = labelOffsetFor,
+                )
+                is SwipeDescription -> drawSwipeIndicator(
+                    description = child,
+                    progress = if (animate) childProgress(simultaneousTime, child.startOffsetMs, child.swipeDurationMs) else null,
+                    outerRadiusPx = outerRadiusPx,
+                    innerRadiusPx = innerRadiusPx,
+                    thicknessPx = ringThickness,
+                    primaryColor = ringColor,
+                    secondaryColor = if (isFocused) secondaryColor else secondaryColor.copy(alpha = 0.7f),
+                    innerColor = innerColor,
+                    backgroundColor = hazeColor,
+                    number = preview.order,
+                    isFocused = isFocused,
+                    labelOffsetFor = labelOffsetFor,
+                )
+                else -> Unit
+            }
+        }
+        else -> Unit
+    }
+}
+
 private fun DrawScope.drawClickIndicator(
     description: ClickDescription,
     scale: Float,
@@ -300,6 +476,9 @@ private fun DrawScope.drawClickIndicator(
     primaryColor: Color,
     innerColor: Color,
     backgroundColor: Color,
+    number: Int? = null,
+    isFocused: Boolean = true,
+    labelOffsetFor: (Offset) -> Float = { 0f },
 ) {
     val bitmap = description.imageConditionBitmap
     val pos = if (bitmap != null) {
@@ -344,6 +523,7 @@ private fun DrawScope.drawClickIndicator(
         center = pos,
         style = Fill,
     )
+    number?.let { drawActionNumber(it, pos, animatedRadius, isFocused, labelOffsetFor(pos)) }
 }
 
 private fun DrawScope.drawSwipeIndicator(
@@ -356,6 +536,9 @@ private fun DrawScope.drawSwipeIndicator(
     secondaryColor: Color,
     innerColor: Color,
     backgroundColor: Color,
+    number: Int? = null,
+    isFocused: Boolean = true,
+    labelOffsetFor: (Offset) -> Float = { 0f },
 ) {
     val from = description.from?.let { Offset(it.x, it.y) }
     val to = description.to?.let { Offset(it.x, it.y) }
@@ -412,7 +595,7 @@ private fun DrawScope.drawSwipeIndicator(
 
     if (from != null && to != null) {
         drawLine(
-            color = innerColor,
+            color = if (isFocused) innerColor else innerColor.copy(alpha = 0.7f),
             start = from,
             end = to,
             strokeWidth = innerRadiusPx / 2f,
@@ -439,6 +622,31 @@ private fun DrawScope.drawSwipeIndicator(
                 style = Stroke(width = innerRadiusPx * 0.75f),
             )
         }
+    }
+    number?.let { order ->
+        from?.let { drawActionNumber(order, it, outerRadiusPx, isFocused, labelOffsetFor(it)) }
+        to?.let { drawActionNumber(order, it, outerRadiusPx, isFocused, labelOffsetFor(it)) }
+    }
+}
+
+private fun DrawScope.drawActionNumber(order: Int, center: Offset, ringRadius: Float, isFocused: Boolean, offsetX: Float) {
+    val text = order.toString()
+    val labelY = center.y - ringRadius * 0.6f
+    val textPaint = AndroidPaint(AndroidPaint.ANTI_ALIAS_FLAG).apply {
+        textAlign = AndroidPaint.Align.CENTER
+        typeface = Typeface.create("sans-serif-medium", if (isFocused) Typeface.BOLD else Typeface.NORMAL)
+        textSize = 12.sp.toPx().coerceAtMost(ringRadius * 0.65f)
+    }
+    drawIntoCanvas { canvas ->
+        val nativeCanvas = canvas.nativeCanvas
+        textPaint.style = AndroidPaint.Style.STROKE
+        textPaint.strokeWidth = 2.dp.toPx()
+        textPaint.strokeJoin = AndroidPaint.Join.ROUND
+        textPaint.color = AndroidColor.BLACK
+        nativeCanvas.drawText(text, center.x + offsetX, labelY, textPaint)
+        textPaint.style = AndroidPaint.Style.FILL
+        textPaint.color = AndroidColor.WHITE
+        nativeCanvas.drawText(text, center.x + offsetX, labelY, textPaint)
     }
 }
 

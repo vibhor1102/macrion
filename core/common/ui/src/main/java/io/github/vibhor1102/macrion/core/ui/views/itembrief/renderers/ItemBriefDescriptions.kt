@@ -69,3 +69,14 @@ data class SplitDescription(
     val subDescriptions: List<ItemBriefDescription> = emptyList(),
 ) : ItemBriefDescription
 
+/** Screen positions belonging to cards in an action carousel. [order] is the card's 1-based index. */
+data class NumberedActionPreview(
+    val order: Int,
+    val description: ItemBriefDescription,
+)
+
+data class ActionCarouselDescription(
+    val previews: List<NumberedActionPreview>,
+    val focusedOrder: Int,
+    val focusedFallback: ItemBriefDescription? = null,
+) : ItemBriefDescription

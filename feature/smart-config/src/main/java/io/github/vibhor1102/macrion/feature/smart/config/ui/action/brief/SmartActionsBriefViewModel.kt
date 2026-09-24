@@ -43,8 +43,10 @@ import io.github.vibhor1102.macrion.core.common.tutorial.domain.TutorialReposito
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.state.TutorialState
 import io.github.vibhor1102.macrion.core.ui.utils.createColorIndicatorDrawable
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.ItemBriefDescription
+import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.ActionCarouselDescription
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.ClickDescription
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.DefaultDescription
+import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.NumberedActionPreview
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.PauseDescription
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.SplitDescription
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.SwipeDescription
@@ -65,8 +67,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
@@ -90,7 +92,11 @@ class SmartActionsBriefViewModel @Inject constructor(
     private val editedEvent: Flow<Event> = editionRepository.editionState.editedEventState.mapNotNull { it.value }
 
     private val briefVisualizationState: MutableStateFlow<BriefVisualizationState> =
-        MutableStateFlow(BriefVisualizationState(0, false))
+        MutableStateFlow(BriefVisualizationState(0, false, true))
+
+    val showAllActionPreviews: StateFlow<Boolean> = briefVisualizationState
+        .map { it.showAllPreviews }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, true)
 
     val isGestureCaptureStarted: StateFlow<Boolean> = briefVisualizationState
         .map { it.gestureCaptureStarted }
@@ -117,17 +123,49 @@ class SmartActionsBriefViewModel @Inject constructor(
     val isTestingAction: Flow<Boolean> = smartProcessingRepository.detectionState
         .map { state -> state == DetectionState.DETECTING }
 
-    private val focusedAction: Flow<Pair<Action?, Boolean>> =
-        combine(briefVisualizationState, editedActions) { visualizationState, actions ->
-            val filterUpdates = visualizationState.gestureCaptureStarted
-            val actionList = actions.value ?: return@combine null to filterUpdates
-            if (visualizationState.focusedIndex !in actionList.indices) return@combine null to filterUpdates
-            actionList[visualizationState.focusedIndex] to filterUpdates
+    val actionVisualization: Flow<ItemBriefDescription?> =
+        combine(briefVisualizationState, editedActions) { state, actions ->
+            if (state.gestureCaptureStarted) null else state to actions.value.orEmpty()
         }
-
-    val actionVisualization: Flow<ItemBriefDescription?> = focusedAction
-        .filter { !it.second }
-        .map { (action, _) -> action?.toActionDescription(context) }
+            .filterNotNull()
+            .map { (state, actions) ->
+                val focusedOrder = state.focusedIndex + 1
+                if (state.showAllPreviews) {
+                    val focusedAction = actions.getOrNull(state.focusedIndex)
+                    val focusedSpatial = focusedAction?.toSpatialDescription()
+                    val focusedFallback = when {
+                        focusedAction == null -> null
+                        focusedSpatial == null -> focusedAction.toActionDescription(context)
+                        focusedAction is SplitAction && focusedAction.subActions.any {
+                            it is Click && it.positionType == Click.PositionType.ON_DETECTED_CONDITION
+                        } -> {
+                            val fullSplit = focusedAction.toActionDescription(context) as SplitDescription
+                            fullSplit.subDescriptions.filterIsInstance<ClickDescription>()
+                                .filter { it.position == null && it.imageConditionBitmap != null }
+                                .takeIf { it.isNotEmpty() }?.let(::SplitDescription)
+                        }
+                        else -> null
+                    }
+                    ActionCarouselDescription(
+                        previews = actions.mapIndexedNotNull { index, action ->
+                            val spatial = if (index == state.focusedIndex) focusedSpatial else action.toSpatialDescription()
+                            spatial?.let { NumberedActionPreview(index + 1, it) }
+                        },
+                        focusedOrder = focusedOrder,
+                        focusedFallback = focusedFallback,
+                    )
+                } else {
+                    val focusedAction = actions.getOrNull(state.focusedIndex) ?: return@map null
+                    val focusedDescription = focusedAction.toActionDescription(context)
+                    when (focusedDescription) {
+                        is ClickDescription, is SwipeDescription, is SplitDescription -> ActionCarouselDescription(
+                            previews = listOf(NumberedActionPreview(focusedOrder, focusedDescription)),
+                            focusedOrder = focusedOrder,
+                        )
+                        else -> focusedDescription
+                    }
+                }
+            }
 
     val canCopyActions: Flow<Boolean> = isActionCopyAvailableUseCase()
 
@@ -160,6 +198,7 @@ class SmartActionsBriefViewModel @Inject constructor(
     }
 
     fun endGestureCaptureState(context: Context, gesture: ItemBriefDescription) {
+        briefVisualizationState.value = briefVisualizationState.value.copy(gestureCaptureStarted = false)
         val action = gesture.toAction(context) ?: return
         editionRepository.apply {
             startActionEdition(action)
@@ -173,10 +212,14 @@ class SmartActionsBriefViewModel @Inject constructor(
     }
 
     fun setFocusedActionIndex(index: Int) {
-        briefVisualizationState.value = BriefVisualizationState(
+        briefVisualizationState.value = briefVisualizationState.value.copy(
             focusedIndex = index,
             gestureCaptureStarted = false,
         )
+    }
+
+    fun setShowAllActionPreviews(showAll: Boolean) {
+        briefVisualizationState.value = briefVisualizationState.value.copy(showAllPreviews = showAll)
     }
 
     override fun getActionTypeChoices(): List<ActionTypeChoice> =
@@ -371,6 +414,24 @@ class SmartActionsBriefViewModel @Inject constructor(
         )
     }
 
+    /** Only fixed screen positions belong in the combined overlay. Condition-target clicks have no fixed point. */
+    private fun Action.toSpatialDescription(): ItemBriefDescription? = when (this) {
+        is Click -> position?.let { ClickDescription(position = it.toPointF(), pressDurationMs = pressDuration ?: 1L) }
+        is Swipe -> if (from != null || to != null) SwipeDescription(
+            from = from?.toPointF(),
+            to = to?.toPointF(),
+            swipeDurationMs = swipeDuration ?: 1L,
+        ) else null
+        is SplitAction -> subActions.mapNotNull { child ->
+            when (val description = child.toSpatialDescription()) {
+                is ClickDescription -> description.copy(startOffsetMs = (child as Click).waitBeforeMs ?: 0L)
+                is SwipeDescription -> description.copy(startOffsetMs = (child as Swipe).waitBeforeMs ?: 0L)
+                else -> null
+            }
+        }.takeIf { it.isNotEmpty() }?.let(::SplitDescription)
+        else -> null
+    }
+
     private suspend fun Click.findClickOnConditionBitmap(context: Context): Bitmap? {
         if (positionType != Click.PositionType.ON_DETECTED_CONDITION) return null
 
@@ -390,4 +451,5 @@ class SmartActionsBriefViewModel @Inject constructor(
 private data class BriefVisualizationState(
     val focusedIndex: Int,
     val gestureCaptureStarted: Boolean,
+    val showAllPreviews: Boolean,
 )
