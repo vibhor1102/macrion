@@ -240,7 +240,7 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
                 dialogController.topBarBinding.extraAction = {
                     IconButton(onClick = { showNewFolderDialog = true }) {
                         Icon(
-                            painter = painterResource(UiR.drawable.ic_folder),
+                            painter = painterResource(UiR.drawable.ic_create_new_folder),
                             contentDescription = stringResource(R.string.folder_action_new),
                         )
                     }

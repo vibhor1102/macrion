@@ -57,7 +57,7 @@ class FloatingActionButtonsView(val context: Context) {
     private val primaryDescription = mutableStateOf<CharSequence?>(null)
     private val primaryIcon = mutableIntStateOf(R.drawable.ic_add)
     private val secondaryIcon = mutableIntStateOf(R.drawable.ic_copy)
-    private val tertiaryIcon = mutableIntStateOf(R.drawable.ic_folder)
+    private val tertiaryIcon = mutableIntStateOf(R.drawable.ic_create_new_folder)
     private val tertiaryDescription = mutableStateOf<CharSequence?>(null)
     private val badgeText = mutableStateOf<String?>(null)
     private val secondaryVisible = mutableStateOf(false)
