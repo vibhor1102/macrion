@@ -649,7 +649,6 @@
     <string name="scenario_switcher_switching">Switching to %1$s</string>
 
     <!-- Folders -->
-    <string name="folder_field_label">Folder (optional)</string>
     <string name="folder_ungrouped_label">Ungrouped</string>
     <string name="folder_action_new">New folder</string>
     <string name="folder_action_create_event">Create event</string>

@@ -56,7 +56,6 @@ import io.github.vibhor1102.macrion.core.ui.compose.OverlayDialogShape
 import io.github.vibhor1102.macrion.core.ui.compose.macrionDoneKeyboardActions
 import io.github.vibhor1102.macrion.core.ui.compose.macrionDoneKeyboardOptions
 import io.github.vibhor1102.macrion.feature.smart.config.R
-import io.github.vibhor1102.macrion.core.ui.R as UiR
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
 import io.github.vibhor1102.macrion.feature.smart.config.ui.action.brief.SmartActionsBriefMenu
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.compose.LocalMonitoredViewsManager
@@ -98,7 +97,6 @@ class EventDialog(private val onConfigComplete: () -> Unit, private val onDelete
                         .padding(horizontal = 16.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         MacrionTextField(name, { name = it; viewModel.setEventName(it) }, context.getString(R.string.generic_name),
                             isError = ui.nameError, maxLength = context.resources.getInteger(R.integer.name_max_length))
-                        if (ui is EventDialogUiState.ScreenEvent) FolderField(ui)
                         ConditionsCard(ui)
                         ActionsCard(ui.actionsItems)
                         StateCard(ui)
@@ -278,78 +276,6 @@ class EventDialog(private val onConfigComplete: () -> Unit, private val onDelete
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) })
             ExposedDropdownMenu(expanded, { expanded = false }) { units.forEach { item -> DropdownMenuItem({ Text(stringResource(item.title)) },
                 { viewModel.setCooldownTimeUnit(item); expanded = false }) } }
-        }
-    }
-
-    @OptIn(ExperimentalMaterial3Api::class)
-    @Composable
-    private fun FolderField(ui: EventDialogUiState.ScreenEvent) {
-        val existingFolders = remember { viewModel.getExistingFolders() }
-        var folderText by rememberSaveable { mutableStateOf(ui.folder.orEmpty()) }
-        var expanded by remember { mutableStateOf(false) }
-
-        LaunchedEffect(ui.folder) {
-            if (folderText != ui.folder.orEmpty()) folderText = ui.folder.orEmpty()
-        }
-
-        ExposedDropdownMenuBox(
-            expanded = expanded,
-            onExpandedChange = { expanded = it },
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            OutlinedTextField(
-                value = folderText,
-                onValueChange = {
-                    folderText = it
-                    viewModel.setEventFolder(it)
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryEditable),
-                label = { Text(context.getString(R.string.folder_field_label)) },
-                leadingIcon = {
-                    Icon(
-                        painter = painterResource(UiR.drawable.ic_folder),
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp),
-                        tint = MaterialTheme.colorScheme.primary,
-                    )
-                },
-                trailingIcon = {
-                    if (existingFolders.isNotEmpty()) {
-                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
-                    }
-                },
-                singleLine = true,
-                keyboardOptions = macrionDoneKeyboardOptions(),
-                keyboardActions = macrionDoneKeyboardActions(),
-            )
-
-            if (existingFolders.isNotEmpty()) {
-                ExposedDropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false },
-                ) {
-                    DropdownMenuItem(
-                        text = { Text(context.getString(R.string.folder_ungrouped_label)) },
-                        onClick = {
-                            folderText = ""
-                            viewModel.setEventFolder(null)
-                            expanded = false
-                        },
-                    )
-                    existingFolders.forEach { folderName ->
-                        DropdownMenuItem(
-                            text = { Text(folderName) },
-                            onClick = {
-                                folderText = folderName
-                                viewModel.setEventFolder(folderName)
-                                expanded = false
-                            },
-                        )
-                    }
-                }
-            }
         }
     }
 

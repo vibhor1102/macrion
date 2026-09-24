@@ -43,7 +43,6 @@ sealed class EventDialogUiState {
         val cooldownValue: String,
         val cooldownUnit: TimeUnitDropDownItem,
         val imageConditionsItems: List<UiScreenCondition>,
-        val folder: String? = null,
     ) : EventDialogUiState()
 
     data class TriggerEvent(
