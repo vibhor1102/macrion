@@ -224,10 +224,10 @@ fun ItemBriefCanvas(
                             clickScale.value, simultaneousTime.value, outerRadiusPx, labelAngles))
                     }
                 }.distinctBy { it.order to it.center }
-                // Leave a real transparent gap in every ring and path underneath each number.
+                // Clip inside each badge's white stroke so crossing rings and paths join it.
                 val badgeCutouts = Path().apply {
                     badges.forEach { badge ->
-                        val cutoutRadius = 13.dp.toPx()
+                        val cutoutRadius = 11.dp.toPx() - numberBadgeStrokeWidth(badge.isFocused) / 2f - 0.5.dp.toPx()
                         addOval(Rect(
                             badge.center.x - cutoutRadius, badge.center.y - cutoutRadius,
                             badge.center.x + cutoutRadius, badge.center.y + cutoutRadius,
@@ -637,6 +637,9 @@ private fun DrawScope.drawSwipeIndicator(
 
 private data class ActionNumberBadge(val order: Int, val center: Offset, val isFocused: Boolean)
 
+private fun DrawScope.numberBadgeStrokeWidth(isFocused: Boolean): Float =
+    (if (isFocused) 2.dp else 1.5.dp).toPx()
+
 private fun DrawScope.actionNumberBadges(
     description: ItemBriefDescription,
     order: Int,
@@ -682,7 +685,7 @@ private fun DrawScope.drawActionNumber(badge: ActionNumberBadge, badgeColor: Col
         color = badgeColor,
         radius = badgeRadius,
         center = badge.center,
-        style = Stroke(width = if (badge.isFocused) 2.dp.toPx() else 1.5.dp.toPx()),
+        style = Stroke(width = numberBadgeStrokeWidth(badge.isFocused)),
     )
 
     val text = badge.order.toString()
