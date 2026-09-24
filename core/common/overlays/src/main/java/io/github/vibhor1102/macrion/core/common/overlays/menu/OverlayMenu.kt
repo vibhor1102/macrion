@@ -313,6 +313,7 @@ abstract class OverlayMenu(
                     hideOverlayButton = view
                     setOverlayViewVisibility(isUserOverlayVisible)
                     view.setOnClickListener {
+                        if (lifecycle.currentState != Lifecycle.State.RESUMED) return@setOnClickListener
                         onUserInteraction()
                         onToggleOverlayVisibilityClicked()
                     }
@@ -325,7 +326,9 @@ abstract class OverlayMenu(
                     if (shouldDebounceMenuItemClick(view.id)) {
                         view.setDebouncedOnClickListener(onClick)
                     } else {
-                        view.setOnClickListener { clickedView -> onClick(clickedView) }
+                        view.setOnClickListener { clickedView ->
+                            if (lifecycle.currentState == Lifecycle.State.RESUMED) onClick(clickedView)
+                        }
                     }
                 }
             }

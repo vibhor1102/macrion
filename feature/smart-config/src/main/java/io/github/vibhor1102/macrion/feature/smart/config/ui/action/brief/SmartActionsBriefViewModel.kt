@@ -61,6 +61,7 @@ import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.action.
 
 import dagger.hilt.android.qualifiers.ApplicationContext
 
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -70,6 +71,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -124,12 +126,13 @@ class SmartActionsBriefViewModel @Inject constructor(
     val isTestingAction: Flow<Boolean> = smartProcessingRepository.detectionState
         .map { state -> state == DetectionState.DETECTING }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     val actionVisualization: Flow<ItemBriefDescription?> =
         combine(briefVisualizationState, editedActions) { state, actions ->
             if (state.gestureCaptureStarted) null else state to actions.value.orEmpty()
         }
             .filterNotNull()
-            .map { (state, actions) ->
+            .mapLatest { (state, actions) ->
                 val focusedOrder = state.focusedIndex + 1
                 if (state.showAllPreviews) {
                     val focusedAction = actions.getOrNull(state.focusedIndex)
@@ -156,7 +159,7 @@ class SmartActionsBriefViewModel @Inject constructor(
                         focusedFallback = focusedFallback,
                     )
                 } else {
-                    val focusedAction = actions.getOrNull(state.focusedIndex) ?: return@map null
+                    val focusedAction = actions.getOrNull(state.focusedIndex) ?: return@mapLatest null
                     val focusedDescription = focusedAction.toActionDescription(context)
                     when (focusedDescription) {
                         is ClickDescription, is SwipeDescription, is SplitDescription -> ActionCarouselDescription(
