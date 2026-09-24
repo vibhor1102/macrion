@@ -51,6 +51,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -58,9 +59,6 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.navbar.NavBarDialogContent
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.navbar.viewModels
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredViewType
@@ -100,23 +98,15 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
         }
     }
 
-    override fun onViewCreated() {
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                launch { viewModel.copyButtonIsVisible.collect(::updateCopyButtonVisibility) }
-            }
-        }
+    override fun onViewCreated() = Unit
+
+    override fun onStart() {
+        dialogController.floatingActionButtons.setSecondaryVisible(false)
     }
 
     override fun onPrimaryFloatingActionButtonClicked() {
         debounceUserInteraction {
             showEventConfigDialog(viewModel.createNewEvent(context))
-        }
-    }
-
-    override fun onSecondaryFloatingActionButtonClicked() {
-        debounceUserInteraction {
-            showEventCopyDialog()
         }
     }
 
@@ -131,6 +121,7 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
     @Composable private fun Content() {
         CompositionLocalProvider(LocalMonitoredViewsManager provides viewModel.monitoredViewsManager) {
             val draft by viewModel.listState.collectAsStateWithLifecycle(null)
+            val canCopyEvent by viewModel.copyButtonIsVisible.collectAsStateWithLifecycle(false)
             val sourceItems = draft?.events
             val folders = draft?.folders.orEmpty()
             var dragActive by remember { mutableStateOf(false) }
@@ -232,15 +223,15 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
             }
 
             DisposableEffect(Unit) {
-                dialogController.floatingActionButtons.setTertiary(
-                    icon = UiR.drawable.ic_folder,
-                    visible = true,
-                    description = context.getString(R.string.folder_action_new),
-                ) {
-                    showNewFolderDialog = true
+                dialogController.topBarBinding.extraAction = {
+                    ScreenEventsMenu(
+                        canCopyEvent = canCopyEvent,
+                        onCopyEvent = { debounceUserInteraction(::showEventCopyDialog) },
+                        onNewFolder = { showNewFolderDialog = true },
+                    )
                 }
                 onDispose {
-                    dialogController.floatingActionButtons.setTertiaryVisible(false)
+                    dialogController.topBarBinding.extraAction = null
                 }
             }
 
@@ -249,7 +240,11 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
                     when {
                         sourceItems == null -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
                         sourceItems?.isEmpty() == true && folders.isEmpty() -> EmptyState(R.string.message_empty_screen_event_title, R.string.message_empty_screen_event_desc)
-                        else -> LazyColumn(Modifier.fillMaxSize(), state = lazyListState) {
+                        else -> LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            state = lazyListState,
+                            contentPadding = PaddingValues(bottom = 96.dp),
+                        ) {
                             itemsIndexed(
                                 items = itemsToDisplay,
                                 key = { _, item -> item.key },
@@ -496,6 +491,53 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
         }
     }
 
+    @Composable
+    private fun ScreenEventsMenu(
+        canCopyEvent: Boolean,
+        onCopyEvent: () -> Unit,
+        onNewFolder: () -> Unit,
+    ) {
+        var expanded by remember { mutableStateOf(false) }
+
+        Box {
+            IconButton(onClick = { expanded = true }) {
+                Icon(
+                    painter = painterResource(UiR.drawable.ic_more),
+                    contentDescription = stringResource(R.string.screen_events_menu_options),
+                )
+            }
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+                shape = MaterialTheme.shapes.large,
+                containerColor = MaterialTheme.colorScheme.surfaceContainer,
+            ) {
+                if (canCopyEvent) {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.screen_events_action_copy)) },
+                        onClick = {
+                            expanded = false
+                            onCopyEvent()
+                        },
+                        leadingIcon = {
+                            Icon(painterResource(UiR.drawable.ic_copy), contentDescription = null)
+                        },
+                    )
+                }
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.folder_action_new)) },
+                    onClick = {
+                        expanded = false
+                        onNewFolder()
+                    },
+                    leadingIcon = {
+                        Icon(painterResource(UiR.drawable.ic_folder), contentDescription = null)
+                    },
+                )
+            }
+        }
+    }
+
 
     @Composable
     private fun androidx.compose.foundation.lazy.LazyItemScope.ImageEventListItem(
@@ -571,6 +613,7 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
                     handleInteractionSource = handleInteractionSource,
                     accessibilityActions = accessibilityActions,
                     isInFolder = isInFolder,
+                    alignDetailsToEnd = true,
                 )
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             }
@@ -689,10 +732,6 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
                 }
             }
         }
-    }
-
-    private fun updateCopyButtonVisibility(isVisible: Boolean) {
-        dialogController.floatingActionButtons.setSecondaryVisible(isVisible)
     }
 
     /** Opens the dialog allowing the user to copy an event. */

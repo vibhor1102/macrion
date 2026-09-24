@@ -67,6 +67,7 @@ internal fun EventListRow(
     dragFolderFeedback: String? = null,
     accessibilityActions: List<CustomAccessibilityAction> = emptyList(),
     isInFolder: Boolean = false,
+    alignDetailsToEnd: Boolean = false,
 ) {
     val rowBackground by animateColorAsState(
         if (isBeingDragged) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f)
@@ -110,7 +111,7 @@ internal fun EventListRow(
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 maxLines = 1,
-                overflow = TextOverflow.Clip,
+                overflow = TextOverflow.Ellipsis,
             )
             if (isBeingDragged) {
                 Row(
@@ -162,17 +163,19 @@ internal fun EventListRow(
                         tint = null,
                         modifier = Modifier.weight(1f),
                     )
+                    if (alignDetailsToEnd) Spacer(Modifier.width(16.dp))
                     EventDetail(
                         iconRes = R.drawable.ic_click,
                         text = actionsCount,
                         tint = if (actionsInError) MaterialTheme.colorScheme.error else null,
-                        modifier = Modifier.weight(1f),
+                        modifier = if (alignDetailsToEnd) Modifier else Modifier.weight(1f),
                     )
+                    if (alignDetailsToEnd) Spacer(Modifier.width(16.dp))
                     EventDetail(
                         iconRes = conditionIconRes,
                         text = conditionsCount,
                         tint = null,
-                        modifier = Modifier.weight(1f),
+                        modifier = if (alignDetailsToEnd) Modifier else Modifier.weight(1f),
                     )
                 }
             }
@@ -234,6 +237,6 @@ private fun EventDetail(
             modifier = Modifier.size(16.dp),
             tint = resolvedTint,
         )
-        Text(text = text, color = resolvedTint, fontSize = 14.sp, maxLines = 1)
+        Text(text = text, color = resolvedTint, fontSize = 14.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
 }
