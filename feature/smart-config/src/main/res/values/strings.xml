@@ -650,8 +650,6 @@
 
     <!-- Folders -->
     <string name="folder_ungrouped_label">Ungrouped</string>
-    <string name="screen_events_menu_options">Screen event options</string>
-    <string name="screen_events_action_copy">Copy event</string>
     <string name="folder_action_new">New folder</string>
     <string name="folder_action_create_event">Create event</string>
     <string name="folder_action_rename">Rename folder</string>
