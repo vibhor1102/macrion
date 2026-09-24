@@ -224,10 +224,11 @@ fun ItemBriefCanvas(
                             clickScale.value, simultaneousTime.value, outerRadiusPx, labelAngles))
                     }
                 }.distinctBy { it.order to it.center }
-                // Clip inside each badge's white stroke so crossing rings and paths join it.
+                // End crossing geometry at the badge stroke's centerline. The stroke covers
+                // that join, while its inner half keeps paths out of the transparent center.
                 val badgeCutouts = Path().apply {
                     badges.forEach { badge ->
-                        val cutoutRadius = 11.dp.toPx() - numberBadgeStrokeWidth(badge.isFocused) / 2f - 0.5.dp.toPx()
+                        val cutoutRadius = actionNumberBadgeRadius.toPx()
                         addOval(Rect(
                             badge.center.x - cutoutRadius, badge.center.y - cutoutRadius,
                             badge.center.x + cutoutRadius, badge.center.y + cutoutRadius,
@@ -637,6 +638,8 @@ private fun DrawScope.drawSwipeIndicator(
 
 private data class ActionNumberBadge(val order: Int, val center: Offset, val isFocused: Boolean)
 
+private val actionNumberBadgeRadius = 11.dp
+
 private fun DrawScope.numberBadgeStrokeWidth(isFocused: Boolean): Float =
     (if (isFocused) 2.dp else 1.5.dp).toPx()
 
@@ -651,7 +654,7 @@ private fun DrawScope.actionNumberBadges(
     labelAngles: Map<Pair<Int, Offset>, Float>,
 ): List<ActionNumberBadge> {
     fun badgeAt(target: Offset, radius: Float): ActionNumberBadge {
-        val badgeRadius = 11.dp.toPx()
+        val badgeRadius = actionNumberBadgeRadius.toPx()
         val angle = Math.toRadians((labelAngles[order to target] ?: 0f).toDouble())
         val ringX = target.x + radius * sin(angle).toFloat()
         val topY = target.y - radius * cos(angle).toFloat()
@@ -680,7 +683,7 @@ private fun DrawScope.actionNumberBadges(
 }
 
 private fun DrawScope.drawActionNumber(badge: ActionNumberBadge, badgeColor: Color) {
-    val badgeRadius = 11.dp.toPx()
+    val badgeRadius = actionNumberBadgeRadius.toPx()
     drawCircle(
         color = badgeColor,
         radius = badgeRadius,
