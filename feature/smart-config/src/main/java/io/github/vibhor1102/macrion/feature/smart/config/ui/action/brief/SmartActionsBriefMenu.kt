@@ -194,9 +194,12 @@ class SmartActionsBriefMenu(initialItemIndex: Int) : ItemBriefMenu(
             R.id.btn_back -> onBackClicked()
             R.id.btn_record -> onRecordClicked()
             R.id.btn_add_other -> showNewActionDialog()
-            R.id.btn_show_all_action_previews -> viewModel.setShowAllActionPreviews(!viewModel.showAllActionPreviews.value)
+            R.id.btn_show_all_action_previews -> viewModel.toggleShowAllActionPreviews()
         }
     }
+
+    override fun shouldDebounceMenuItemClick(viewId: Int): Boolean =
+        viewId != R.id.btn_show_all_action_previews
 
     override fun onScreenOverlayVisibilityChanged(isVisible: Boolean) {
         super.onScreenOverlayVisibilityChanged(isVisible)

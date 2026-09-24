@@ -317,9 +317,16 @@ abstract class OverlayMenu(
                         onToggleOverlayVisibilityClicked()
                     }
                 }
-                else -> view.setDebouncedOnClickListener { v ->
-                    onUserInteraction()
-                    onMenuItemClicked(v.id)
+                else -> {
+                    val onClick: (View) -> Unit = { clickedView ->
+                        onUserInteraction()
+                        onMenuItemClicked(clickedView.id)
+                    }
+                    if (shouldDebounceMenuItemClick(view.id)) {
+                        view.setDebouncedOnClickListener(onClick)
+                    } else {
+                        view.setOnClickListener { clickedView -> onClick(clickedView) }
+                    }
                 }
             }
         }
@@ -559,6 +566,9 @@ abstract class OverlayMenu(
      * @param viewId the pressed view identifier.
      */
     protected open fun onMenuItemClicked(@IdRes viewId: Int): Unit = Unit
+
+    /** Immediate, reversible toolbar toggles can opt out of the shared 500 ms action guard. */
+    protected open fun shouldDebounceMenuItemClick(@IdRes viewId: Int): Boolean = true
 
     /**
      * Called when the visibility of the screen overlay have changed.

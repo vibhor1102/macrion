@@ -72,6 +72,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 import java.util.Collections
@@ -218,8 +219,10 @@ class SmartActionsBriefViewModel @Inject constructor(
         )
     }
 
-    fun setShowAllActionPreviews(showAll: Boolean) {
-        briefVisualizationState.value = briefVisualizationState.value.copy(showAllPreviews = showAll)
+    fun toggleShowAllActionPreviews() {
+        briefVisualizationState.update { state ->
+            state.copy(showAllPreviews = !state.showAllPreviews)
+        }
     }
 
     override fun getActionTypeChoices(): List<ActionTypeChoice> =
