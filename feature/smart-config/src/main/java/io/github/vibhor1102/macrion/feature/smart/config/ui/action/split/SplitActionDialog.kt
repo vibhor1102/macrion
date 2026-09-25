@@ -4,28 +4,35 @@ package io.github.vibhor1102.macrion.feature.smart.config.ui.action.split
 import android.app.Dialog
 import android.util.Log
 import android.view.ViewGroup
+import android.view.WindowManager
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -50,13 +57,12 @@ import io.github.vibhor1102.macrion.core.domain.model.event.ScreenEvent
 import io.github.vibhor1102.macrion.core.ui.R as UiR
 import io.github.vibhor1102.macrion.core.ui.compose.ActionDelaysCard
 import io.github.vibhor1102.macrion.core.ui.compose.ExistingActionPicker
-import io.github.vibhor1102.macrion.core.ui.compose.MacrionDialogSurface
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTextField
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
+import io.github.vibhor1102.macrion.core.ui.compose.MultiTouchEditorFrame
 import io.github.vibhor1102.macrion.core.ui.compose.MultiTouchWorkspace
 import io.github.vibhor1102.macrion.core.ui.compose.MultiTouchWorkspaceItem
 import io.github.vibhor1102.macrion.core.ui.compose.NumericField
-import io.github.vibhor1102.macrion.core.ui.compose.OverlayDialogShape
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.ClickDescription
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.SwipeDescription
 import io.github.vibhor1102.macrion.feature.smart.config.R
@@ -88,6 +94,10 @@ class SplitActionDialog(
     }
 
     override fun onDialogCreated(dialog: Dialog) {
+        dialog.window?.setLayout(
+            WindowManager.LayoutParams.MATCH_PARENT,
+            WindowManager.LayoutParams.MATCH_PARENT,
+        )
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.isEditingAction.collect { isEditing ->
@@ -110,78 +120,75 @@ class SplitActionDialog(
             ui.subActions.size + ((it as? SplitAction)?.subActions?.size ?: 1) <= 10
         }
         if (showingExistingPicker) {
-            ExistingActionPicker(existing.toPickerOptions(context), onBack = { showingExistingPicker = false }) { other ->
-                val source = viewModel.getEditedSplit() ?: return@ExistingActionPicker
-                combinationOptions?.onExisting?.invoke(source, other)
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
+                ExistingActionPicker(existing.toPickerOptions(context), onBack = { showingExistingPicker = false }) { other ->
+                    val source = viewModel.getEditedSplit() ?: return@ExistingActionPicker
+                    combinationOptions?.onExisting?.invoke(source, other)
+                }
             }
             return
         }
-        val maxHeight = minOf(700.dp, (LocalConfiguration.current.screenHeightDp - 16).dp)
-
-        Surface(
-            shape = OverlayDialogShape,
-            modifier = Modifier.fillMaxWidth().heightIn(max = maxHeight),
-            color = MaterialTheme.colorScheme.surface,
-            contentColor = MaterialTheme.colorScheme.onSurface,
-        ) {
-            MacrionDialogSurface {
-                Column(Modifier.fillMaxWidth()) {
-                    TopBar(
-                        title = if (showingName) stringResource(R.string.split_action_rename)
-                            else ui.name.ifBlank { stringResource(R.string.dialog_title_split_action) },
-                        saveEnabled = ui.canBeSaved,
-                        onDismiss = { if (showingName) showingName = false else back() },
-                        onDelete = ::onDeleteClicked,
-                        onSave = ::onSaveClicked,
-                        headerActions = {
-                            if (!showingName) SmartActionHeaderMenu(
-                                showNewOptions = false,
-                                canAdd = false,
-                                canCombineExisting = existing.isNotEmpty(),
-                                canUnsplit = ui.canUnsplit && ui.canBeSaved,
-                                onRename = { showingName = true },
-                                onExisting = { showingExistingPicker = true },
-                                onUnsplit = ::onUnsplitClicked,
-                            )
-                        },
+        MultiTouchEditorFrame(expanded = !showingName) {
+            TopBar(
+                title = if (showingName) stringResource(R.string.split_action_rename)
+                    else ui.name.ifBlank { stringResource(R.string.dialog_title_split_action) },
+                saveEnabled = ui.canBeSaved,
+                onDismiss = { if (showingName) showingName = false else back() },
+                onDelete = ::onDeleteClicked,
+                onSave = ::onSaveClicked,
+                headerActions = {
+                    if (!showingName) SmartActionHeaderMenu(
+                        showNewOptions = false,
+                        canAdd = false,
+                        canCombineExisting = existing.isNotEmpty(),
+                        canUnsplit = ui.canUnsplit && ui.canBeSaved,
+                        onRename = { showingName = true },
+                        onExisting = { showingExistingPicker = true },
+                        onUnsplit = ::onUnsplitClicked,
                     )
-                    if (showingName) {
-                        Column(Modifier.fillMaxWidth().padding(16.dp)) {
-                            MacrionTextField(
-                                value = ui.name,
-                                onValueChange = viewModel::setName,
-                                label = stringResource(R.string.generic_name),
-                                isError = ui.nameError,
-                                maxLength = context.resources.getInteger(R.integer.name_max_length),
-                            )
-                        }
-                    } else {
-                        if (ui.nameError) TextButton(onClick = { showingName = true }) {
-                            Icon(painterResource(UiR.drawable.ic_warning), null, Modifier.size(18.dp))
-                            Spacer(Modifier.width(8.dp))
-                            Text(stringResource(R.string.split_action_name_required))
-                        }
-                        workspaceState.SaveableStateProvider("touch-workspace") {
-                            MultiTouchWorkspace(
-                                items = ui.subActions.map { item ->
-                                    val type = when (item.action) {
-                                        is Click -> stringResource(R.string.item_click_title)
-                                        is Swipe -> stringResource(R.string.item_swipe_title)
-                                        else -> item.name
-                                    }
-                                    MultiTouchWorkspaceItem(item.action.id.toString(), type, item.icon, item.isComplete)
-                                },
-                                canDeleteChild = ui.canDeleteSubAction,
-                                addClickLabel = stringResource(R.string.split_action_add_click),
-                                addSwipeLabel = stringResource(R.string.split_action_add_swipe),
-                                onAddClick = viewModel::addClick,
-                                onAddSwipe = viewModel::addSwipe,
-                                onDeleteChild = viewModel::removeSubActionByKey,
-                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
-                            ) { index ->
-                                SmartChildEditor(ui, ui.subActions[index])
+                },
+            )
+            if (showingName) {
+                Column(Modifier.fillMaxWidth().padding(16.dp)) {
+                    MacrionTextField(
+                        value = ui.name,
+                        onValueChange = viewModel::setName,
+                        label = stringResource(R.string.generic_name),
+                        isError = ui.nameError,
+                        maxLength = context.resources.getInteger(R.integer.name_max_length),
+                    )
+                }
+            } else {
+                if (ui.nameError) TextButton(onClick = { showingName = true }) {
+                    Icon(painterResource(UiR.drawable.ic_warning), null, Modifier.size(18.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text(stringResource(R.string.split_action_name_required))
+                }
+                workspaceState.SaveableStateProvider("touch-workspace") {
+                    MultiTouchWorkspace(
+                        items = ui.subActions.map { item ->
+                            val type = when (item.action) {
+                                is Click -> stringResource(R.string.item_click_title)
+                                is Swipe -> stringResource(R.string.item_swipe_title)
+                                else -> item.name
                             }
-                        }
+                            val name = when (val action = item.action) {
+                                is Click -> action.name.orEmpty()
+                                is Swipe -> action.name.orEmpty()
+                                else -> item.name
+                            }
+                            MultiTouchWorkspaceItem(item.action.id.toString(), name, type,
+                                item.icon, item.isComplete)
+                        },
+                        canDeleteChild = ui.canDeleteSubAction,
+                        addClickLabel = stringResource(R.string.split_action_add_click),
+                        addSwipeLabel = stringResource(R.string.split_action_add_swipe),
+                        onAddClick = viewModel::addClick,
+                        onAddSwipe = viewModel::addSwipe,
+                        onDeleteChild = viewModel::removeSubActionByKey,
+                        modifier = Modifier.weight(1f).padding(horizontal = 12.dp, vertical = 4.dp),
+                    ) { index, renaming ->
+                        SmartChildEditor(ui, ui.subActions[index], renaming)
                     }
                 }
             }
@@ -189,22 +196,32 @@ class SplitActionDialog(
     }
 
     @Composable
-    private fun SmartChildEditor(ui: SplitActionUiState, item: SubActionItemUiState) {
+    private fun SmartChildEditor(ui: SplitActionUiState, item: SubActionItemUiState, renaming: Boolean) {
         val nameLabel = stringResource(R.string.generic_name)
         val maxNameLength = context.resources.getInteger(R.integer.name_max_length)
         val key = item.action.id.toString()
+        val nameFocus = remember(key) { FocusRequester() }
+        var keepNameField by rememberSaveable(key) { mutableStateOf(when (val action = item.action) {
+            is Click -> action.name.isNullOrBlank()
+            is Swipe -> action.name.isNullOrBlank()
+            else -> false
+        }) }
+        LaunchedEffect(renaming) { if (renaming) nameFocus.requestFocus() }
         when (val action = item.action) {
             is Swipe -> Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 val from = action.from
                 val to = action.to
-                MacrionTextField(action.name.orEmpty(),
-                    { name -> viewModel.updateSubAction(key) { (it as Swipe).copy(name = name) } },
-                    nameLabel, isError = action.name.isNullOrBlank(), maxLength = maxNameLength)
-                NumericField(action.swipeDuration?.toString().orEmpty(),
-                    stringResource(R.string.input_field_label_swipe_duration),
-                    action.swipeDuration?.let { it <= 0 } ?: true,
-                    { input -> if (input.isBlank() || input.toLongOrNull()?.let { it <= GESTURE_DURATION_MAX_VALUE } == true)
-                        viewModel.updateSubAction(key) { (it as Swipe).copy(swipeDuration = input.toLongOrNull()) } })
+                if (renaming || keepNameField || action.name.isNullOrBlank()) {
+                    MacrionTextField(action.name.orEmpty(),
+                        { name ->
+                            if (name.isBlank()) keepNameField = true
+                            viewModel.updateSubAction(key) { (it as Swipe).copy(name = name) }
+                        },
+                        nameLabel, modifier = Modifier.focusRequester(nameFocus).onFocusChanged {
+                            if (!it.isFocused && !action.name.isNullOrBlank()) keepNameField = false
+                        },
+                        isError = action.name.isNullOrBlank(), maxLength = maxNameLength)
+                }
                 PositionCard(
                     title = stringResource(R.string.field_swipe_positions_title),
                     description = if (from != null && to != null)
@@ -213,18 +230,31 @@ class SplitActionDialog(
                     isError = from == null || to == null,
                     onClick = { showSwipePositionSelector(item.index) },
                 )
+                NumericField(action.swipeDuration?.toString().orEmpty(),
+                    stringResource(R.string.input_field_label_swipe_duration),
+                    action.swipeDuration?.let { it <= 0 } ?: true,
+                    { input -> if (input.isBlank() || input.toLongOrNull()?.let { it <= GESTURE_DURATION_MAX_VALUE } == true)
+                        viewModel.updateSubAction(key) { (it as Swipe).copy(swipeDuration = input.toLongOrNull()) } })
                 ChildDelays(item.index, key, action.waitBeforeMs, action.waitAfterMs)
             }
             is Click -> Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                MacrionTextField(action.name.orEmpty(),
-                    { name -> viewModel.updateSubAction(key) { (it as Click).copy(name = name) } },
-                    nameLabel, isError = action.name.isNullOrBlank(), maxLength = maxNameLength)
+                if (renaming || keepNameField || action.name.isNullOrBlank()) {
+                    MacrionTextField(action.name.orEmpty(),
+                        { name ->
+                            if (name.isBlank()) keepNameField = true
+                            viewModel.updateSubAction(key) { (it as Click).copy(name = name) }
+                        },
+                        nameLabel, modifier = Modifier.focusRequester(nameFocus).onFocusChanged {
+                            if (!it.isFocused && !action.name.isNullOrBlank()) keepNameField = false
+                        },
+                        isError = action.name.isNullOrBlank(), maxLength = maxNameLength)
+                }
+                ClickTarget(ui, item.index, key, action)
                 NumericField(action.pressDuration?.toString().orEmpty(),
                     stringResource(R.string.input_field_label_click_press_duration),
                     action.pressDuration?.let { it <= 0 } ?: true,
                     { input -> if (input.isBlank() || input.toLongOrNull()?.let { it <= GESTURE_DURATION_MAX_VALUE } == true)
                         viewModel.updateSubAction(key) { (it as Click).copy(pressDuration = input.toLongOrNull()) } })
-                ClickTarget(ui, item.index, key, action)
                 ChildDelays(item.index, key, action.waitBeforeMs, action.waitAfterMs)
             }
             else -> TextButton(onClick = {
