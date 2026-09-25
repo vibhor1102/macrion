@@ -50,6 +50,7 @@ class PositionSelectorMenu(
     private var isRecordingSwipe = false
     private var isDraggingSwipe = false
     private var multiTouchWarningShown = false
+    private var isFinishingSelection = false
 
     private var confirmListener: (() -> Unit)? = null
     private var cancelListener: (() -> Unit)? = null
@@ -99,6 +100,7 @@ class PositionSelectorMenu(
     }
 
     override fun onMenuItemClicked(viewId: Int) {
+        if (isFinishingSelection) return
         when (viewId) {
             R.id.btn_confirm -> confirmListener?.invoke()
             R.id.btn_record_swipe -> startSwipeRecording()
@@ -219,11 +221,11 @@ class PositionSelectorMenu(
 
     private fun onSwipeGestureRecorded(gesture: RecordedGesture?, isFinished: Boolean) {
         val swipe = currentDescription as? SwipeDescription ?: return
-        if (!isRecordingSwipe) return
+        if (!isRecordingSwipe || isFinishingSelection) return
         when (gesture) {
             is RecordedGesture.Swipe -> {
                 val preview = swipe.copy(from = gesture.from.clampToDisplay(), to = gesture.to.clampToDisplay())
-                if (isFinished) stopSwipeRecording(preview)
+                if (isFinished) onPositionSelectionCompleted(preview)
                 else selectorViews.setDescription(preview)
             }
             is RecordedGesture.Click -> {
@@ -255,6 +257,8 @@ class PositionSelectorMenu(
     }
 
     private fun onPositionSelectionCompleted(description: ItemBriefDescription) {
+        if (isFinishingSelection) return
+        isFinishingSelection = true
         back()
         onConfirm(description)
     }
