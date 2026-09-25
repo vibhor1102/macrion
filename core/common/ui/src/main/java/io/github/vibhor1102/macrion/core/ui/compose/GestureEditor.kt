@@ -2,6 +2,12 @@
 package io.github.vibhor1102.macrion.core.ui.compose
 
 import androidx.annotation.DrawableRes
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
@@ -16,6 +22,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -148,7 +155,6 @@ fun ColumnScope.PositionGestureFields(
     PositionCard(positionTitle, positionDescription, positionError, onPositionClicked)
     ActionDelaysCard(waitBefore, waitAfter, onWaitBeforeChanged, onWaitAfterChanged,
         maxWaitBeforeMs = maxWaitBeforeMs)
-    Spacer(Modifier.height(24.dp))
 }
 
 @Composable
@@ -185,7 +191,6 @@ fun ColumnScope.GestureFields(
     PositionCard(positionTitle, positionDescription, positionError, onPositionClicked)
     ActionDelaysCard(waitBefore, waitAfter, onWaitBeforeChanged, onWaitAfterChanged,
         maxWaitBeforeMs = maxWaitBeforeMs)
-    Spacer(Modifier.height(24.dp))
 }
 
 @Composable
@@ -261,7 +266,11 @@ fun ActionDelaysCard(
     var afterEdited by rememberSaveable { mutableStateOf(false) }
     var beforeField by remember { mutableStateOf(TextFieldValue(beforeText)) }
     var afterField by remember { mutableStateOf(TextFieldValue(afterText)) }
-    val fieldsRequester = remember { BringIntoViewRequester() }
+    val bottomRequester = remember { BringIntoViewRequester() }
+    val fieldsVisibility = remember { MutableTransitionState(expanded) }
+    var scrollCheckpoint by remember { mutableIntStateOf(0) }
+    val scrollStep = with(LocalDensity.current) { 32.dp.roundToPx() }
+    fieldsVisibility.targetState = expanded
 
     LaunchedEffect(waitBefore) {
         if (!beforeEdited) {
@@ -275,10 +284,10 @@ fun ActionDelaysCard(
             afterField = TextFieldValue(waitAfter)
         }
     }
-    LaunchedEffect(expanded) {
+    LaunchedEffect(expanded, fieldsVisibility.isIdle, scrollCheckpoint) {
         if (expanded) {
             withFrameNanos { }
-            fieldsRequester.bringIntoView()
+            bottomRequester.bringIntoView()
         }
     }
     val beforeError = beforeText.isNotBlank() && beforeText.toLongOrNull()?.let {
@@ -287,105 +296,132 @@ fun ActionDelaysCard(
     val afterError = afterText.isNotBlank() && afterText.toLongOrNull()?.let { it >= 0L } != true
     val hasError = beforeError || afterError
     val expandedState = stringResource(if (expanded) R.string.field_delays_expanded else R.string.field_delays_collapsed)
+    val collapsedSummary = when {
+        hasError -> stringResource(R.string.field_delays_check_values)
+        beforeText.isNotBlank() || afterText.isNotBlank() -> buildString {
+            if (beforeText.isNotBlank()) append(context.getString(R.string.field_wait_before_summary, beforeText))
+            if (beforeText.isNotBlank() && afterText.isNotBlank()) append(" • ")
+            if (afterText.isNotBlank()) append(context.getString(R.string.field_wait_after_summary, afterText))
+        }
+        else -> null
+    }
 
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-        ),
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp)
+    Column(modifier.fillMaxWidth()) {
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+            ),
         ) {
-            Row(
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .heightIn(min = 48.dp)
-                    .clickable(role = Role.Button) { expanded = !expanded }
-                    .semantics { stateDescription = expandedState },
-                verticalAlignment = Alignment.CenterVertically,
+                    .padding(horizontal = 16.dp, vertical = 12.dp)
             ) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_duration),
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp),
-                    tint = MaterialTheme.colorScheme.primary,
-                )
-                Spacer(Modifier.width(12.dp))
-                Column(Modifier.weight(1f)) {
-                    Text(
-                        text = stringResource(R.string.field_delays_title),
-                        style = MaterialTheme.typography.bodyLarge,
-                    )
-                    if (!expanded && hasError) {
-                        Text(
-                            text = stringResource(R.string.field_delays_check_values),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.error,
-                        )
-                    } else if (!expanded && (beforeText.isNotBlank() || afterText.isNotBlank())) {
-                        val summary = buildString {
-                            if (beforeText.isNotBlank()) append(context.getString(R.string.field_wait_before_summary, beforeText))
-                            if (beforeText.isNotBlank() && afterText.isNotBlank()) append(" • ")
-                            if (afterText.isNotBlank()) append(context.getString(R.string.field_wait_after_summary, afterText))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 48.dp)
+                        .clickable(role = Role.Button) {
+                            expanded = !expanded
+                            if (expanded) scrollCheckpoint = 0
                         }
-                        Text(
-                            text = summary,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                }
-                Icon(
-                    painter = painterResource(if (expanded) R.drawable.ic_chevron_up else R.drawable.ic_chevron_down),
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp),
-                )
-            }
-
-            if (expanded) {
-                BoxWithConstraints(
-                    modifier = Modifier.padding(top = 12.dp)
-                        .bringIntoViewRequester(fieldsRequester),
+                        .semantics { stateDescription = expandedState },
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    val before: @Composable (Modifier) -> Unit = { fieldModifier ->
-                        DelayNumberField(beforeField, stringResource(R.string.field_wait_before_title),
-                            maxWaitBeforeMs, beforeError, fieldModifier) { input ->
-                            beforeField = input
-                            beforeEdited = true
-                            if (input.text != beforeText) {
-                                beforeText = input.text
-                                onWaitBeforeChanged(input.text)
-                            }
+                    Icon(
+                        painter = painterResource(R.drawable.ic_duration),
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp),
+                        tint = MaterialTheme.colorScheme.primary,
+                    )
+                    Spacer(Modifier.width(12.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text(
+                            text = stringResource(R.string.field_delays_title),
+                            style = MaterialTheme.typography.bodyLarge,
+                        )
+                        AnimatedVisibility(
+                            visible = !expanded && collapsedSummary != null,
+                            enter = expandVertically(
+                                animationSpec = spring(dampingRatio = 0.85f, stiffness = Spring.StiffnessMedium),
+                                expandFrom = Alignment.Top,
+                            ),
+                            exit = shrinkVertically(
+                                animationSpec = spring(dampingRatio = 0.85f, stiffness = Spring.StiffnessMedium),
+                                shrinkTowards = Alignment.Top,
+                            ),
+                        ) {
+                            Text(
+                                text = collapsedSummary.orEmpty(),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = if (hasError) MaterialTheme.colorScheme.error
+                                    else MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
                         }
                     }
-                    val after: @Composable (Modifier) -> Unit = { fieldModifier ->
-                        DelayNumberField(afterField, stringResource(R.string.field_wait_after_title),
-                            null, afterError, fieldModifier) { input ->
-                            afterField = input
-                            afterEdited = true
-                            if (input.text != afterText) {
-                                afterText = input.text
-                                onWaitAfterChanged(input.text)
+                    Icon(
+                        painter = painterResource(if (expanded) R.drawable.ic_chevron_up else R.drawable.ic_chevron_down),
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp),
+                    )
+                }
+
+                AnimatedVisibility(
+                    visibleState = fieldsVisibility,
+                    modifier = Modifier.onSizeChanged { size ->
+                        if (expanded && !fieldsVisibility.isIdle && size.height >= scrollCheckpoint + scrollStep) {
+                            scrollCheckpoint = size.height
+                        }
+                    },
+                    enter = expandVertically(
+                        animationSpec = spring(dampingRatio = 0.85f, stiffness = Spring.StiffnessMedium),
+                        expandFrom = Alignment.Top,
+                    ),
+                    exit = shrinkVertically(
+                        animationSpec = spring(dampingRatio = 0.85f, stiffness = Spring.StiffnessMedium),
+                        shrinkTowards = Alignment.Top,
+                    ),
+                ) {
+                    BoxWithConstraints(Modifier.padding(top = 12.dp)) {
+                        val before: @Composable (Modifier) -> Unit = { fieldModifier ->
+                            DelayNumberField(beforeField, stringResource(R.string.field_wait_before_title),
+                                maxWaitBeforeMs, beforeError, fieldModifier) { input ->
+                                beforeField = input
+                                beforeEdited = true
+                                if (input.text != beforeText) {
+                                    beforeText = input.text
+                                    onWaitBeforeChanged(input.text)
+                                }
                             }
                         }
-                    }
-                    if (maxWidth >= 280.dp * LocalDensity.current.fontScale) {
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            before(Modifier.weight(1f))
-                            after(Modifier.weight(1f))
+                        val after: @Composable (Modifier) -> Unit = { fieldModifier ->
+                            DelayNumberField(afterField, stringResource(R.string.field_wait_after_title),
+                                null, afterError, fieldModifier) { input ->
+                                afterField = input
+                                afterEdited = true
+                                if (input.text != afterText) {
+                                    afterText = input.text
+                                    onWaitAfterChanged(input.text)
+                                }
+                            }
                         }
-                    } else {
-                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            before(Modifier.fillMaxWidth())
-                            after(Modifier.fillMaxWidth())
+                        if (maxWidth >= 280.dp * LocalDensity.current.fontScale) {
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                before(Modifier.weight(1f))
+                                after(Modifier.weight(1f))
+                            }
+                        } else {
+                            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                before(Modifier.fillMaxWidth())
+                                after(Modifier.fillMaxWidth())
+                            }
                         }
                     }
                 }
             }
         }
+        Spacer(Modifier.height(24.dp).bringIntoViewRequester(bottomRequester))
     }
 }
 

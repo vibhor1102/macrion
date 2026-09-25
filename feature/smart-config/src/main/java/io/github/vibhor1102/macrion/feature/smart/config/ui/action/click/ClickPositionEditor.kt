@@ -122,5 +122,4 @@ fun ColumnScope.ClickFields(
     io.github.vibhor1102.macrion.core.ui.compose.ActionDelaysCard(
         waitBefore, waitAfter, onWaitBeforeChanged, onWaitAfterChanged,
         maxWaitBeforeMs = maxWaitBeforeMs)
-    Spacer(Modifier.height(24.dp))
 }
