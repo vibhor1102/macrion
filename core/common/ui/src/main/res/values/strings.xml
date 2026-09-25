@@ -144,13 +144,9 @@
     <string name="multi_touch_brief_touch">Touch</string>
     <string name="multi_touch_brief_needs_setup">Needs setup</string>
     <string name="multi_touch_brief_no_touches">No touches configured</string>
-    <plurals name="multi_touch_brief_touch_count">
-        <item quantity="one">%d touch</item>
-        <item quantity="other">%d touches</item>
-    </plurals>
-    <plurals name="multi_touch_brief_tap_count">
-        <item quantity="one">%d tap</item>
-        <item quantity="other">%d taps</item>
+    <plurals name="multi_touch_brief_click_count">
+        <item quantity="one">%d click</item>
+        <item quantity="other">%d clicks</item>
     </plurals>
     <plurals name="multi_touch_brief_swipe_count">
         <item quantity="one">%d swipe</item>

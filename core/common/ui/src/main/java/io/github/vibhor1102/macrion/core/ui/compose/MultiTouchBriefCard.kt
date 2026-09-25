@@ -112,14 +112,13 @@ fun MultiTouchBriefCard(
             val paneHeight = if (portrait) maxHeight else maxHeight / 2
             val paneWidthPx = with(density) { paneWidth.toPx() }
             val paneHeightPx = with(density) { paneHeight.toPx() }
-            val titleWidthPx = with(density) {
+            val textWidthPx = with(density) {
                 paneWidthPx - (if (portrait) {
-                    16.dp.toPx() + 32.dp.toPx() + 6.dp.toPx() + 2.dp.toPx()
+                    16.dp.toPx() + 32.dp.toPx() + 8.dp.toPx() + 2.dp.toPx()
                 } else {
                     16.dp.toPx()
                 })
             }
-            val detailWidthPx = with(density) { paneWidthPx - 16.dp.toPx() }
             val canSplit = children.size == 2 &&
                 children.all { it.kind != MultiTouchKind.OTHER } &&
                 (!needsSetup || children.any { it.needsSetup }) &&
@@ -127,19 +126,21 @@ fun MultiTouchBriefCard(
                 childLabels.all { (title, detail) ->
                     val titleLayout = textMeasurer.measure(
                         AnnotatedString(title), style = titleStyle,
-                        constraints = Constraints(maxWidth = titleWidthPx.roundToInt().coerceAtLeast(1)),
+                        constraints = Constraints(maxWidth = textWidthPx.roundToInt().coerceAtLeast(1)),
                         maxLines = if (portrait) 1 else 2,
                         softWrap = !portrait, overflow = TextOverflow.Ellipsis,
                     )
                     val detailLayout = textMeasurer.measure(
                         AnnotatedString(detail), style = detailStyle,
-                        constraints = Constraints(maxWidth = detailWidthPx.roundToInt().coerceAtLeast(1)),
+                        constraints = Constraints(maxWidth = textWidthPx.roundToInt().coerceAtLeast(1)),
                         maxLines = 1, softWrap = false, overflow = TextOverflow.Ellipsis,
                     )
                     val requiredHeightPx = with(density) {
                         if (portrait) {
-                            8.dp.toPx() + maxOf(32.dp.toPx(), titleLayout.size.height.toFloat()) +
-                                4.dp.toPx() + detailLayout.size.height
+                            8.dp.toPx() + maxOf(
+                                32.dp.toPx(),
+                                titleLayout.size.height + 4.dp.toPx() + detailLayout.size.height,
+                            )
                         } else {
                             16.dp.toPx() + 32.dp.toPx() + 8.dp.toPx() +
                                 titleLayout.size.height + 4.dp.toPx() + detailLayout.size.height
@@ -171,24 +172,22 @@ fun MultiTouchBriefCard(
                 }
             } else {
                 val count = children.size
-                val touchCount = pluralStringResource(R.plurals.multi_touch_brief_touch_count, count, count)
                 val invalidCount = children.count { it.needsSetup }
                 val hasProblem = invalidCount > 0 || needsSetup
+                val clicks = children.count { it.kind == MultiTouchKind.TAP }
+                val swipes = children.count { it.kind == MultiTouchKind.SWIPE }
+                val types = buildList {
+                    if (clicks > 0) add(pluralStringResource(R.plurals.multi_touch_brief_click_count, clicks, clicks))
+                    if (swipes > 0) add(pluralStringResource(R.plurals.multi_touch_brief_swipe_count, swipes, swipes))
+                }.joinToString(", ")
                 val summary = when {
                     count == 0 -> emptyLabel
                     hasProblem -> {
                         val problemCount = invalidCount.coerceAtLeast(1)
-                        "$touchCount · ${pluralStringResource(R.plurals.multi_touch_brief_setup_count, problemCount, problemCount)}"
+                        val setup = pluralStringResource(R.plurals.multi_touch_brief_setup_count, problemCount, problemCount)
+                        if (types.isEmpty()) setup else "$types · $setup"
                     }
-                    else -> {
-                        val swipes = children.count { it.kind == MultiTouchKind.SWIPE }
-                        val taps = children.count { it.kind == MultiTouchKind.TAP }
-                        val types = buildList {
-                            if (swipes > 0) add(pluralStringResource(R.plurals.multi_touch_brief_swipe_count, swipes, swipes))
-                            if (taps > 0) add(pluralStringResource(R.plurals.multi_touch_brief_tap_count, taps, taps))
-                        }.joinToString(", ")
-                        if (types.isEmpty()) touchCount else "$touchCount · $types"
-                    }
+                    else -> types.ifEmpty { setupLabel }
                 }
                 SummarySection(parentName, summary, icon, portrait, hasProblem, titleStyle, detailStyle)
             }
@@ -211,11 +210,16 @@ private fun TouchSection(
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
                 Icon(painterResource(child.icon), contentDescription = null,
                     modifier = Modifier.size(32.dp), tint = MaterialTheme.colorScheme.onSurface)
-                Spacer(Modifier.width(6.dp))
-                Text(label.title, style = titleStyle, color = MaterialTheme.colorScheme.onSurface,
-                    maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Spacer(Modifier.width(8.dp))
+                Column(verticalArrangement = Arrangement.Center) {
+                    Text(label.title, style = titleStyle, color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Spacer(Modifier.height(4.dp))
+                    Text(label.detail, style = detailStyle,
+                        color = if (child.needsSetup) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1, overflow = TextOverflow.Ellipsis)
+                }
             }
-            Spacer(Modifier.height(4.dp))
         } else {
             Icon(painterResource(child.icon), contentDescription = null,
                 modifier = Modifier.size(32.dp), tint = MaterialTheme.colorScheme.onSurface)
@@ -223,10 +227,10 @@ private fun TouchSection(
             Text(label.title, style = titleStyle, color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 2, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center)
             Spacer(Modifier.height(4.dp))
+            Text(label.detail, style = detailStyle, textAlign = TextAlign.Center,
+                color = if (child.needsSetup) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
-        Text(label.detail, style = detailStyle, textAlign = TextAlign.Center,
-            color = if (child.needsSetup) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
-            maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
 }
 
