@@ -27,7 +27,7 @@ import kotlinx.coroutines.delay
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import io.github.vibhor1102.macrion.core.base.identifier.Identifier
@@ -69,6 +69,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.res.colorResource
@@ -78,6 +79,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.sp
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -167,7 +169,12 @@ class ItemsBriefOverlayViewBinding private constructor(
 
     companion object {
 
-        private const val PANEL_EXIT_DURATION_MS = 600
+        // A critically damped spatial spring keeps the panel from rebounding into the screen.
+        // Its stiffness settles this edge exit in roughly the previous 600 ms window.
+        private val PANEL_EXIT_SPRING = spring<IntOffset>(
+            dampingRatio = Spring.DampingRatioNoBouncy,
+            stiffness = 260f,
+        )
         private const val INSTRUCTIONS_HIDE_DELAY_MS = 3_000L
 
         fun inflate(
@@ -324,6 +331,9 @@ class ItemsBriefOverlayViewBinding private constructor(
             }
         }
         val isPortrait = orientation == Configuration.ORIENTATION_PORTRAIT
+        val panelExitDistancePx = with(LocalDensity.current) {
+            ((if (isPortrait) PORTRAIT_FADE_HEIGHT else LANDSCAPE_FADE_WIDTH) + 2.dp).roundToPx()
+        }
         Box(
             Modifier.fillMaxSize().pointerInput(Unit) {
                 awaitEachGesture {
@@ -362,14 +372,14 @@ class ItemsBriefOverlayViewBinding private constructor(
                 enter = if (isPortrait) slideInVertically { it } + fadeIn() else slideInHorizontally { -it } + fadeIn(),
                 exit = if (isPortrait) {
                     slideOutVertically(
-                        animationSpec = tween(PANEL_EXIT_DURATION_MS, easing = FastOutSlowInEasing),
-                        targetOffsetY = { (it * 0.12f).roundToInt() },
-                    ) + fadeOut(animationSpec = tween(PANEL_EXIT_DURATION_MS, easing = LinearEasing))
+                        animationSpec = PANEL_EXIT_SPRING,
+                        targetOffsetY = { panelExitDistancePx },
+                    )
                 } else {
                     slideOutHorizontally(
-                        animationSpec = tween(PANEL_EXIT_DURATION_MS, easing = FastOutSlowInEasing),
-                        targetOffsetX = { -(it * 0.12f).roundToInt() },
-                    ) + fadeOut(animationSpec = tween(PANEL_EXIT_DURATION_MS, easing = LinearEasing))
+                        animationSpec = PANEL_EXIT_SPRING,
+                        targetOffsetX = { -panelExitDistancePx },
+                    )
                 },
             ) {
                 if (isPortrait) PortraitBriefPanel() else LandscapeBriefPanel()
