@@ -13,6 +13,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.graphics.PointF
+import io.github.vibhor1102.macrion.core.base.gesture.SwipePoint
 
 import io.github.vibhor1102.macrion.core.common.overlays.R
 import io.github.vibhor1102.macrion.core.common.overlays.menu.OverlayMenu
@@ -39,6 +40,7 @@ class PositionSelectorMenu(
     private val itemBriefDescription: ItemBriefDescription,
     private val onConfirm: (ItemBriefDescription) -> Unit,
     private val onDismiss: (() -> Unit)? = null,
+    private val useRecordedSwipeDuration: Boolean = false,
 ) : OverlayMenu(recreateOverlayViewOnRotation = true) {
 
     /** The view binding for the position selector. */
@@ -162,8 +164,14 @@ class PositionSelectorMenu(
             val current = currentDescription as? SwipeDescription
             if (current != null) {
                 updateSwipeDescription(when (handle) {
-                    SwipeHandle.START -> current.copy(from = position)
-                    SwipeHandle.END -> current.copy(to = position)
+                    SwipeHandle.START -> current.copy(
+                        from = position,
+                        path = current.path?.moveNode(0, SwipePoint(position)),
+                    )
+                    SwipeHandle.END -> current.copy(
+                        to = position,
+                        path = current.path?.let { it.moveNode(it.nodes.lastIndex, SwipePoint(position)) },
+                    )
                 })
             }
         }
@@ -171,8 +179,14 @@ class PositionSelectorMenu(
             val current = currentDescription as? SwipeDescription
             if (current != null) {
                 updateSwipeDescription(when (handle) {
-                    SwipeHandle.START -> current.copy(from = original)
-                    SwipeHandle.END -> current.copy(to = original)
+                    SwipeHandle.START -> current.copy(
+                        from = original,
+                        path = current.path?.moveNode(0, SwipePoint(original)),
+                    )
+                    SwipeHandle.END -> current.copy(
+                        to = original,
+                        path = current.path?.let { it.moveNode(it.nodes.lastIndex, SwipePoint(original)) },
+                    )
                 })
             }
             selectorViews.showInstruction(R.string.swipe_position_multi_touch)
@@ -224,7 +238,12 @@ class PositionSelectorMenu(
         if (!isRecordingSwipe || isFinishingSelection) return
         when (gesture) {
             is RecordedGesture.Swipe -> {
-                val preview = swipe.copy(from = gesture.from.clampToDisplay(), to = gesture.to.clampToDisplay())
+                val preview = swipe.copy(
+                    from = gesture.from.clampToDisplay(),
+                    to = gesture.to.clampToDisplay(),
+                    swipeDurationMs = if (useRecordedSwipeDuration) gesture.durationMs else swipe.swipeDurationMs,
+                    path = gesture.path,
+                )
                 if (isFinished) onPositionSelectionCompleted(preview)
                 else selectorViews.setDescription(preview)
             }

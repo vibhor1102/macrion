@@ -98,9 +98,10 @@ class DumbScenarioDataSource @Inject constructor(
                 }
             )
 
-            scenarioWithActions.dumbActionsWithSubActions.forEachIndexed { index, actionWithSub ->
+            val newActionIdsByOriginalId = scenarioWithActions.dumbActions.map { it.id }.zip(actionIds).toMap()
+            scenarioWithActions.dumbActionsWithSubActions.forEach { actionWithSub ->
                 if (actionWithSub.splitItems.isNotEmpty()) {
-                    val newActionId = actionIds.getOrNull(index) ?: return@forEachIndexed
+                    val newActionId = newActionIdsByOriginalId[actionWithSub.action.id] ?: return@forEach
                     dumbScenarioDao.addSplitActionItems(
                         actionWithSub.splitItems.map { item ->
                             item.copy(id = DATABASE_ID_INSERTION, actionId = newActionId)

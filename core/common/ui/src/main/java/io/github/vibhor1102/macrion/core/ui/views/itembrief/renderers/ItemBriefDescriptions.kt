@@ -13,6 +13,7 @@ import android.graphics.Bitmap
 import android.graphics.PointF
 import android.graphics.Rect
 import android.graphics.drawable.Drawable
+import io.github.vibhor1102.macrion.core.base.gesture.SwipePath
 import androidx.annotation.ColorInt
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.ItemBriefDescription
 
@@ -32,6 +33,7 @@ data class SwipeDescription(
     val from: PointF? = null,
     val to: PointF? = null,
     val startOffsetMs: Long = 0L,
+    val path: SwipePath? = null,
 ) : ItemBriefDescription
 
 data class PauseDescription(

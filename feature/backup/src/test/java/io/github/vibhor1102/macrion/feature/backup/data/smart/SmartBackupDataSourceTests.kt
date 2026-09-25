@@ -18,6 +18,9 @@ package io.github.vibhor1102.macrion.feature.backup.data.smart
 
 import android.os.Build
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import io.github.vibhor1102.macrion.core.base.gesture.SwipeNode
+import io.github.vibhor1102.macrion.core.base.gesture.SwipePath
+import io.github.vibhor1102.macrion.core.base.gesture.SwipePoint
 import io.github.vibhor1102.macrion.core.database.DATABASE_VERSION
 import io.github.vibhor1102.macrion.core.database.entity.ActionEntity
 import io.github.vibhor1102.macrion.core.database.entity.ActionType
@@ -31,6 +34,7 @@ import io.github.vibhor1102.macrion.core.database.entity.EventEntity
 import io.github.vibhor1102.macrion.core.database.entity.EventType
 import io.github.vibhor1102.macrion.core.database.entity.ScenarioEntity
 import io.github.vibhor1102.macrion.feature.backup.data.base.BackupArchiveFormat
+import io.github.vibhor1102.macrion.feature.backup.data.base.MACRION_FORMAT_NAME
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import org.junit.Assert.assertEquals
@@ -43,6 +47,43 @@ import org.robolectric.annotation.Config
 @RunWith(AndroidJUnit4::class)
 @Config(sdk = [Build.VERSION_CODES.Q])
 class SmartBackupDataSourceTests {
+
+    @Test
+    fun nativeBackupRetainsCurvedSwipeGeometry() {
+        val path = SwipePath(listOf(
+            SwipeNode(SwipePoint(10f, 20f), controlOut = SwipePoint(20f, 20f)),
+            SwipeNode(SwipePoint(50f, 60f), controlIn = SwipePoint(40f, 60f)),
+        ))
+        val source = ScenarioBackup(
+            format = MACRION_FORMAT_NAME,
+            version = DATABASE_VERSION,
+            screenWidth = 1080,
+            screenHeight = 2400,
+            scenario = CompleteScenario(
+                scenario = ScenarioEntity(1, "Scenario", 600, 0.0, false),
+                counters = emptyList(),
+                events = listOf(CompleteEventEntity(
+                    event = EventEntity(1, 1, "Event", 1, 0, true, EventType.TRIGGER_EVENT),
+                    conditions = emptyList(),
+                    actions = listOf(CompleteActionEntity(
+                        action = ActionEntity(
+                            id = 1, eventId = 1, name = "Swipe", type = ActionType.SWIPE,
+                            fromX = 10, fromY = 20, toX = 50, toY = 60, swipeDuration = 500,
+                            swipePath = path,
+                        ),
+                        intentExtras = emptyList(), eventsToggle = emptyList(),
+                    )),
+                )),
+            ),
+        )
+        val bytes = ByteArrayOutputStream().also { ScenarioSerializer().serialize(source, it) }.toByteArray()
+
+        val restored = ScenarioSerializer().deserialize(
+            ByteArrayInputStream(bytes), BackupArchiveFormat.MACRION_NATIVE,
+        )!!
+
+        assertEquals(path, restored.scenario.events.single().actions.single().action.swipePath)
+    }
 
     @Test
     fun deserialize_normalizesNamesAndCounterReferences_withoutTrimmingPayload() {

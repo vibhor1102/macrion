@@ -88,6 +88,7 @@ private fun Swipe.toSwipeEntity(): ActionEntity =
         fromY = from?.y,
         toX = to?.x,
         toY = to?.y,
+        swipePath = path,
         waitBeforeMs = waitBeforeMs,
         waitAfterMs = waitAfterMs,
     )
@@ -229,6 +230,7 @@ internal fun Action.toSplitItemEntity(actionDbId: Long, itemPriority: Int): Spli
             fromY = from?.y,
             toX = to?.x,
             toY = to?.y,
+            swipePath = path,
             duration = swipeDuration,
             startOffset = waitBeforeMs ?: 0L,
             waitAfterMs = waitAfterMs,

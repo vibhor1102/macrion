@@ -1,5 +1,8 @@
 package io.github.vibhor1102.macrion.feature.backup.data
 
+import io.github.vibhor1102.macrion.core.base.gesture.SwipePath
+import io.github.vibhor1102.macrion.core.base.gesture.SwipePoint
+import io.github.vibhor1102.macrion.core.base.gesture.SwipeNode
 import io.github.vibhor1102.macrion.feature.backup.data.base.BackupArchiveFormat
 import io.github.vibhor1102.macrion.core.database.entity.ActionEntity
 import io.github.vibhor1102.macrion.core.database.entity.ActionType
@@ -14,6 +17,12 @@ import io.github.vibhor1102.macrion.core.database.entity.EventToggleEntity
 import io.github.vibhor1102.macrion.core.database.entity.EventToggleType
 import io.github.vibhor1102.macrion.core.database.entity.EventType
 import io.github.vibhor1102.macrion.core.database.entity.ScenarioEntity
+import io.github.vibhor1102.macrion.core.dumb.data.database.DumbActionEntity
+import io.github.vibhor1102.macrion.core.dumb.data.database.DumbActionType
+import io.github.vibhor1102.macrion.core.dumb.data.database.DumbActionWithSubActions
+import io.github.vibhor1102.macrion.core.dumb.data.database.DumbScenarioEntity
+import io.github.vibhor1102.macrion.core.dumb.data.database.DumbScenarioWithActions
+import io.github.vibhor1102.macrion.core.dumb.data.database.DumbSplitActionItemEntity
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotSame
@@ -88,6 +97,72 @@ class KlickrCompatibilityProjectorTests {
         )
         assertEquals(1, projection.losses.single().componentCount)
         assertEquals(KlickrCompatibilityLossReason.UNSUPPORTED_COMPONENT, projection.losses.single().reason)
+    }
+
+    @Test
+    fun curvedSwipeIsExcludedFromKlickrProjectionButRetainedInOriginal() {
+        val curvedPath = SwipePath(listOf(
+            SwipeNode(SwipePoint(0f, 0f)),
+            SwipeNode(SwipePoint(40f, 30f)),
+            SwipeNode(SwipePoint(80f, 0f)),
+        ))
+        val event = completeEvent(ActionType.PAUSE, ActionType.SWIPE)
+        val swipe = event.actions[1]
+        val original = completeScenario(event.copy(actions = listOf(
+            event.actions[0], swipe.copy(action = swipe.action.copy(swipePath = curvedPath)),
+        )))
+
+        val projection = KlickrCompatibilityProjector.projectSmartScenario(original)
+
+        assertEquals(listOf(ActionType.PAUSE), projection.value!!.events.single().actions.map { it.action.type })
+        assertEquals(curvedPath, original.events.single().actions[1].action.swipePath)
+        assertEquals(KlickrCompatibilityLossReason.CURVED_SWIPE, projection.losses.single().reason)
+        assertEquals(1, projection.losses.single().componentCount)
+    }
+
+    @Test
+    fun dumbProjectionRemovesMultiTouchAndItsNativeOnlyChildrenWithoutMutatingSource() {
+        val parent = DumbActionEntity(1, 1, name = "Multi-touch", type = DumbActionType.SPLIT_ACTION)
+        val pause = DumbActionEntity(2, 1, name = "Pause", type = DumbActionType.PAUSE, pauseDuration = 100)
+        val original = DumbScenarioWithActions(
+            scenario = DumbScenarioEntity(1, "Scenario", 1, false, 1, true, false),
+            dumbActions = listOf(parent, pause),
+            stats = null,
+            dumbActionsWithSubActions = listOf(DumbActionWithSubActions(
+                parent, listOf(DumbSplitActionItemEntity(id = 3, actionId = 1)),
+            )),
+        )
+
+        val projected = KlickrCompatibilityProjector.projectDumbScenario(original).value!!
+
+        assertEquals(listOf(DumbActionType.PAUSE), projected.dumbActions.map { it.type })
+        assertTrue(projected.dumbActionsWithSubActions.isEmpty())
+        assertEquals(1, original.dumbActionsWithSubActions.single().splitItems.size)
+    }
+
+    @Test
+    fun dumbCurvedSwipeIsOmittedAndReported() {
+        val path = SwipePath(listOf(
+            SwipeNode(SwipePoint(0f, 0f)),
+            SwipeNode(SwipePoint(40f, 30f)),
+            SwipeNode(SwipePoint(80f, 0f)),
+        ))
+        val swipe = DumbActionEntity(
+            1, 1, name = "Swipe", type = DumbActionType.SWIPE,
+            fromX = 0, fromY = 0, toX = 80, toY = 0, swipeDuration = 500, swipePath = path,
+        )
+        val pause = DumbActionEntity(2, 1, name = "Pause", type = DumbActionType.PAUSE, pauseDuration = 100)
+        val original = DumbScenarioWithActions(
+            scenario = DumbScenarioEntity(1, "Scenario", 1, false, 1, true, false),
+            dumbActions = listOf(swipe, pause),
+            stats = null,
+        )
+
+        val projection = KlickrCompatibilityProjector.projectDumbScenario(original)
+
+        assertEquals(listOf(DumbActionType.PAUSE), projection.value!!.dumbActions.map { it.type })
+        assertEquals(path, original.dumbActions.first().swipePath)
+        assertEquals(KlickrCompatibilityLossReason.CURVED_SWIPE, projection.losses.single().reason)
     }
 
     @Test

@@ -71,12 +71,15 @@ sealed class DumbAction : Identifiable {
         override val repeatDelayMs: Long,
         val fromPosition: Point,
         val toPosition: Point,
+        val path: SwipePath? = null,
         val swipeDurationMs: Long,
         val waitBeforeMs: Long? = null,
         val waitAfterMs: Long? = null,
     ) : DumbAction(), RepeatableWithDelay {
         override fun isValid(): Boolean =
-            name.isNotBlank() && isTouchTimingValid(swipeDurationMs, waitBeforeMs, waitAfterMs) && fromPosition.x >= 0 && fromPosition.y >= 0 && toPosition.x >= 0 && toPosition.y >= 0 && isRepeatCountValid() && isRepeatDelayValid()
+            name.isNotBlank() && isTouchTimingValid(swipeDurationMs, waitBeforeMs, waitAfterMs) && fromPosition.x >= 0 && fromPosition.y >= 0 && toPosition.x >= 0 && toPosition.y >= 0 &&
+                (path == null || (path.isValid() && path.start.toPoint() == fromPosition && path.end.toPoint() == toPosition)) &&
+                isRepeatCountValid() && isRepeatDelayValid()
     }
 
     data class DumbSplitAction(

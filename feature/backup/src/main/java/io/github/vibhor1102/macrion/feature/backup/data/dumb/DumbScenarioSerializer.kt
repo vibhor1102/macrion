@@ -93,7 +93,7 @@ internal class DumbScenarioSerializer : ScenarioBackupSerializer<DumbScenarioBac
                 Log.w(TAG, "Can't deserialize dumb scenario, invalid version.")
                 null
             }
-            version == DUMB_DATABASE_VERSION -> {
+            version in 5..DUMB_DATABASE_VERSION -> {
                 Log.d(TAG, "Current version, use standard serialization.")
                 Json.decodeFromJsonElement<DumbScenarioBackup>(jsonBackup).dumbScenario
             }

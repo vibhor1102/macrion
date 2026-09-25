@@ -31,6 +31,7 @@ internal val CURRENT_KLICKR_COMPATIBILITY_PROFILE = KlickrCompatibilityProfile(
 
 internal enum class KlickrCompatibilityLossReason {
     UNSUPPORTED_COMPONENT,
+    CURVED_SWIPE,
     BROKEN_REFERENCE,
     MEANINGLESS_EVENT,
     MEANINGLESS_SCENARIO,
@@ -58,6 +59,8 @@ internal data class BackupExportPlan(
     val excludedScenarioCount: Int = 0,
 ) {
     val omittedComponentCount: Int = losses.sumOf(KlickrCompatibilityLoss::componentCount)
+    val omittedCurvedSwipeCount: Int = losses.filter { it.reason == KlickrCompatibilityLossReason.CURVED_SWIPE }
+        .sumOf(KlickrCompatibilityLoss::componentCount)
 }
 
 /**
@@ -90,13 +93,25 @@ internal object KlickrCompatibilityProjector {
 
         // Pass 1: Filter out action types unsupported by the target Klick'r profile
         var currentEvents = detached.events.map { event ->
+            val curvedSwipeCount = event.actions.count { action ->
+                action.action.type == ActionType.SWIPE && action.action.swipePath?.isCurved == true
+            }
+            if (curvedSwipeCount > 0) losses += KlickrCompatibilityLoss(
+                reason = KlickrCompatibilityLossReason.CURVED_SWIPE,
+                componentCount = curvedSwipeCount,
+                scenarioId = detached.scenario.id,
+            )
             val compatibleActions = event.actions.filterNot { action ->
                 action.action.type == ActionType.EXTERNAL_ACTION ||
                     action.action.type == ActionType.PLAY_SOUND ||
                     action.action.type == ActionType.CAPTURE_SCREENSHOT ||
-                    action.action.type == ActionType.SPLIT_ACTION
+                    action.action.type == ActionType.SPLIT_ACTION ||
+                    (action.action.type == ActionType.SWIPE && action.action.swipePath?.isCurved == true)
+            }.map { action ->
+                if (action.action.type == ActionType.SWIPE) action.copy(action = action.action.copy(swipePath = null))
+                else action
             }
-            val removedActionCount = event.actions.size - compatibleActions.size
+            val removedActionCount = event.actions.size - compatibleActions.size - curvedSwipeCount
             if (removedActionCount > 0) {
                 losses += KlickrCompatibilityLoss(
                     reason = KlickrCompatibilityLossReason.UNSUPPORTED_COMPONENT,
@@ -254,8 +269,20 @@ internal object KlickrCompatibilityProjector {
     fun projectDumbScenario(scenario: DumbScenarioWithActions): KlickrCompatibilityProjection<DumbScenarioWithActions> {
         val detached = scenario.detachedCopy()
         val losses = mutableListOf<KlickrCompatibilityLoss>()
-        val compatibleActions = detached.dumbActions.filterNot { it.type == io.github.vibhor1102.macrion.core.dumb.data.database.DumbActionType.SPLIT_ACTION }
-        val removed = detached.dumbActions.size - compatibleActions.size
+        val curvedSwipeCount = detached.dumbActions.count { action ->
+            action.type == io.github.vibhor1102.macrion.core.dumb.data.database.DumbActionType.SWIPE &&
+                action.swipePath?.isCurved == true
+        }
+        if (curvedSwipeCount > 0) losses += KlickrCompatibilityLoss(
+            reason = KlickrCompatibilityLossReason.CURVED_SWIPE,
+            componentCount = curvedSwipeCount,
+            scenarioId = detached.scenario.id,
+        )
+        val compatibleActions = detached.dumbActions.filterNot {
+            it.type == io.github.vibhor1102.macrion.core.dumb.data.database.DumbActionType.SPLIT_ACTION ||
+                (it.type == io.github.vibhor1102.macrion.core.dumb.data.database.DumbActionType.SWIPE && it.swipePath?.isCurved == true)
+        }.map { it.copy(swipePath = null) }
+        val removed = detached.dumbActions.size - compatibleActions.size - curvedSwipeCount
         if (removed > 0) {
             losses += KlickrCompatibilityLoss(
                 reason = KlickrCompatibilityLossReason.UNSUPPORTED_COMPONENT,
@@ -263,8 +290,16 @@ internal object KlickrCompatibilityProjector {
                 scenarioId = detached.scenario.id,
             )
         }
+        if (compatibleActions.isEmpty()) {
+            losses += KlickrCompatibilityLoss(
+                reason = KlickrCompatibilityLossReason.MEANINGLESS_SCENARIO,
+                componentCount = 1,
+                scenarioId = detached.scenario.id,
+            )
+            return KlickrCompatibilityProjection(value = null, losses = losses)
+        }
         return KlickrCompatibilityProjection(
-            value = detached.copy(dumbActions = compatibleActions),
+            value = detached.copy(dumbActions = compatibleActions, dumbActionsWithSubActions = emptyList()),
             losses = losses,
         )
     }
@@ -292,4 +327,7 @@ private fun DumbScenarioWithActions.detachedCopy(): DumbScenarioWithActions = co
     scenario = scenario.copy(),
     dumbActions = dumbActions.map { it.copy() },
     stats = stats?.copy(),
+    dumbActionsWithSubActions = dumbActionsWithSubActions.map { action ->
+        action.copy(action = action.action.copy(), splitItems = action.splitItems.map { it.copy() })
+    },
 )

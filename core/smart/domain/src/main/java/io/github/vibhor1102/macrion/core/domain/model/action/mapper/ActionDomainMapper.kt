@@ -68,6 +68,7 @@ private fun CompleteActionEntity.toDomainSwipe(cleanIds: Boolean = false) = Swip
     swipeDuration = action.swipeDuration!!,
     from = getPositionIfValid(action.fromX, action.fromY),
     to = getPositionIfValid(action.toX, action.toY),
+    path = action.swipePath,
     waitBeforeMs = action.waitBeforeMs,
     waitAfterMs = action.waitAfterMs,
 )
@@ -203,6 +204,7 @@ private fun CompleteActionEntity.toDomainSplitAction(cleanIds: Boolean = false) 
                 swipeDuration = item.duration,
                 from = getPositionIfValid(item.fromX, item.fromY),
                 to = getPositionIfValid(item.toX, item.toY),
+                path = item.swipePath,
                 waitBeforeMs = item.startOffset.takeIf { it > 0 },
                 waitAfterMs = item.waitAfterMs,
             )
@@ -227,6 +229,7 @@ private fun CompleteActionEntity.toDomainSplitAction(cleanIds: Boolean = false) 
                 swipeDuration = item.duration,
                 from = getPositionIfValid(item.fromX, item.fromY),
                 to = getPositionIfValid(item.toX, item.toY),
+                path = item.swipePath,
                 waitBeforeMs = item.startOffset.takeIf { it > 0 },
                 waitAfterMs = item.waitAfterMs,
             )

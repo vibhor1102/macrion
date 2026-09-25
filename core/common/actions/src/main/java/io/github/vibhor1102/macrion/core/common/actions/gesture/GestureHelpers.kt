@@ -23,6 +23,7 @@ import io.github.vibhor1102.macrion.core.base.extensions.nextIntInOffset
 import io.github.vibhor1102.macrion.core.base.extensions.nextLongInOffset
 import io.github.vibhor1102.macrion.core.base.extensions.safeLineTo
 import io.github.vibhor1102.macrion.core.base.extensions.safeMoveTo
+import io.github.vibhor1102.macrion.core.base.gesture.SwipePath
 import io.github.vibhor1102.macrion.core.common.actions.utils.MAXIMUM_STROKE_DURATION_MS
 import io.github.vibhor1102.macrion.core.common.actions.utils.MINIMUM_STROKE_DURATION_MS
 import io.github.vibhor1102.macrion.core.common.actions.utils.RANDOMIZATION_DURATION_MAX_OFFSET_MS
@@ -30,6 +31,17 @@ import io.github.vibhor1102.macrion.core.common.actions.utils.RANDOMIZATION_POSI
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.random.Random
+
+/** Randomize a curved swipe as one shape, rather than distorting each of its nodes. */
+fun SwipePath.toGesturePath(random: Random?): Path {
+    if (random == null) return toAndroidPath()
+    val allPoints = nodes.flatMap { listOfNotNull(it.position, it.controlIn, it.controlOut) }
+    val offsetX = random.nextInt(-RANDOMIZATION_POSITION_MAX_OFFSET_PX, RANDOMIZATION_POSITION_MAX_OFFSET_PX + 1)
+        .toFloat().coerceAtLeast(-allPoints.minOf { it.x })
+    val offsetY = random.nextInt(-RANDOMIZATION_POSITION_MAX_OFFSET_PX, RANDOMIZATION_POSITION_MAX_OFFSET_PX + 1)
+        .toFloat().coerceAtLeast(-allPoints.minOf { it.y })
+    return toAndroidPath(offsetX, offsetY)
+}
 
 
 fun Path.moveTo(position: Point, random: Random?) {

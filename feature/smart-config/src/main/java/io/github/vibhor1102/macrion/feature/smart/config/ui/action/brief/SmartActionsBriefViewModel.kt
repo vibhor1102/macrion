@@ -370,6 +370,7 @@ class SmartActionsBriefViewModel @Inject constructor(
                 .copy(
                     from = from?.toPoint(),
                     to = to?.toPoint(),
+                    path = path,
                     swipeDuration = swipeDurationMs,
                 )
 
@@ -388,6 +389,7 @@ class SmartActionsBriefViewModel @Inject constructor(
                             .copy(
                                 from = desc.from?.toPoint(),
                                 to = desc.to?.toPoint(),
+                                path = desc.path,
                                 swipeDuration = desc.swipeDurationMs,
                                 waitBeforeMs = desc.startOffsetMs,
                                 priority = index,
@@ -418,6 +420,7 @@ class SmartActionsBriefViewModel @Inject constructor(
         is Swipe -> SwipeDescription(
             from = from?.toPointF(),
             to = to?.toPointF(),
+            path = path,
             swipeDurationMs = swipeDuration ?: 1,
         )
 
@@ -449,6 +452,7 @@ class SmartActionsBriefViewModel @Inject constructor(
         is Swipe -> if (from != null || to != null) SwipeDescription(
             from = from?.toPointF(),
             to = to?.toPointF(),
+            path = path,
             swipeDurationMs = swipeDuration ?: 1L,
         ) else null
         is SplitAction -> subActions.mapNotNull { child ->

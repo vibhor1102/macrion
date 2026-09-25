@@ -18,8 +18,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.unit.dp
+import io.github.vibhor1102.macrion.core.base.gesture.SwipePoint
+import io.github.vibhor1102.macrion.core.base.gesture.fitSwipePath
 
 import io.github.vibhor1102.macrion.core.display.config.DisplayConfig
 import io.github.vibhor1102.macrion.core.ui.R
@@ -38,6 +42,8 @@ private data class PointerTrack(
     val downTime: Long,
     var current: PointF,
     var lastUptime: Long,
+    val points: MutableList<SwipePoint> = mutableListOf(SwipePoint(origin)),
+    var traveledDistance: Float = 0f,
     var isUp: Boolean = false,
 )
 
@@ -54,6 +60,7 @@ fun GestureRecordOverlay(
     borderColor: Color = colorResource(R.color.overlayGestureRecorder),
     borderThicknessPx: Float = dimensionResource(R.dimen.overlay_gesture_recorder_thickness).value,
 ) {
+    val fittingTolerancePx = with(LocalDensity.current) { 4.dp.toPx() }
     Canvas(
         modifier = modifier
             .fillMaxSize()
@@ -63,7 +70,10 @@ fun GestureRecordOverlay(
                     val down = awaitFirstDown(requireUnconsumed = false)
                     val sessionStartTime = down.uptimeMillis
                     val tracks = mutableMapOf<PointerId, PointerTrack>()
-                    val firstOrigin = PointF(down.position.x, down.position.y)
+                    val width = displayConfig.sizePx.x.toFloat()
+                    val height = displayConfig.sizePx.y.toFloat()
+                    fun clamped(x: Float, y: Float) = PointF(x.coerceIn(0f, width), y.coerceIn(0f, height))
+                    val firstOrigin = clamped(down.position.x, down.position.y)
                     tracks[down.id] = PointerTrack(
                         id = down.id,
                         origin = firstOrigin,
@@ -79,13 +89,17 @@ fun GestureRecordOverlay(
                         for (change in event.changes) {
                             val track = tracks[change.id]
                             if (track != null && !track.isUp) {
-                                track.current = PointF(change.position.x, change.position.y)
+                                val next = clamped(change.position.x, change.position.y)
+                                val moved = hypot(track.current.x - next.x, track.current.y - next.y)
+                                track.traveledDistance += moved
+                                if (moved >= 1f || !change.pressed) track.points.add(SwipePoint(next))
+                                track.current = next
                                 track.lastUptime = change.uptimeMillis
                                 if (!change.pressed) {
                                     track.isUp = true
                                 }
                             } else if (track == null && change.pressed && tracks.size < MAX_RECORDING_POINTERS) {
-                                val origin = PointF(change.position.x, change.position.y)
+                                val origin = clamped(change.position.x, change.position.y)
                                 tracks[change.id] = PointerTrack(
                                     id = change.id,
                                     origin = origin,
@@ -105,12 +119,14 @@ fun GestureRecordOverlay(
                         val allPointersUp = !event.changes.any { it.pressed }
 
                         val subGestures = tracks.values.map { t ->
-                            val dist = hypot(t.origin.x - t.current.x, t.origin.y - t.current.y)
                             val dur = (t.lastUptime - t.downTime).coerceAtLeast(1L)
-                            if (dist <= swipeMinDistancePx) {
+                            if (t.traveledDistance <= swipeMinDistancePx) {
                                 RecordedGesture.Click(t.origin, dur, t.downTime - sessionStartTime)
                             } else {
-                                RecordedGesture.Swipe(t.origin, t.current, dur, t.downTime - sessionStartTime)
+                                RecordedGesture.Swipe(
+                                    t.origin, t.current, dur, t.downTime - sessionStartTime,
+                                    path = if (allPointersUp) fitSwipePath(t.points, fittingTolerancePx) else null,
+                                )
                             }
                         }
 

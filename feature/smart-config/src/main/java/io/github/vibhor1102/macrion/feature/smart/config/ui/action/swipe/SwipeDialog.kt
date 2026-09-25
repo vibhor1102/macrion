@@ -147,10 +147,11 @@ class SwipeDialog(
                         from = swipe.from?.toPointF(),
                         to = swipe.to?.toPointF(),
                         swipeDurationMs = swipe.swipeDuration ?: 250L,
+                        path = swipe.path,
                     ),
                     onConfirm = { description ->
                         (description as SwipeDescription).let {
-                            viewModel.setPositions(it.from!!.toPoint(), it.to!!.toPoint())
+                            viewModel.setPositions(it.from!!.toPoint(), it.to!!.toPoint(), it.path)
                         }
                     },
                 ),

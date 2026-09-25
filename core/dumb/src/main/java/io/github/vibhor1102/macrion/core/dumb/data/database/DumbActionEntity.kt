@@ -22,6 +22,9 @@ import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import androidx.room.TypeConverter
+import androidx.room.TypeConverters
+import io.github.vibhor1102.macrion.core.base.gesture.SwipePath
+import io.github.vibhor1102.macrion.core.base.gesture.SwipePathRoomConverter
 import io.github.vibhor1102.macrion.core.base.interfaces.EntityWithId
 import kotlinx.serialization.Serializable
 
@@ -41,6 +44,7 @@ import kotlinx.serialization.Serializable
     ]
 )
 @Serializable
+@TypeConverters(SwipePathRoomConverter::class)
 data class DumbActionEntity(
     @PrimaryKey(autoGenerate = true) override var id: Long,
     @ColumnInfo(name = "dumb_scenario_id") var dumbScenarioId: Long,
@@ -64,6 +68,7 @@ data class DumbActionEntity(
     @ColumnInfo(name = "fromY") val fromY: Int? = null,
     @ColumnInfo(name = "toX") val toX: Int? = null,
     @ColumnInfo(name = "toY") val toY: Int? = null,
+    @ColumnInfo(name = "swipe_path") val swipePath: SwipePath? = null,
 
     // ActionType.PAUSE
     @ColumnInfo(name = "pause_duration") val pauseDuration: Long? = null,
@@ -76,6 +81,7 @@ data class DumbActionEntity(
 /**
  * Entity embedding a dumb action and its split action strokes.
  */
+@Serializable
 data class DumbActionWithSubActions(
     @androidx.room.Embedded val action: DumbActionEntity,
     @androidx.room.Relation(

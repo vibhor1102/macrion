@@ -365,11 +365,11 @@ class DumbSplitActionDialog(
         val swipe = viewModel.getEditedDumbSplit()?.subActions?.getOrNull(index) as? DumbAction.DumbSwipe ?: return
         overlayManager.navigateTo(context, PositionSelectorMenu(
             itemBriefDescription = SwipeDescription(swipe.swipeDurationMs,
-                swipe.fromPosition.toEditionPosition(), swipe.toPosition.toEditionPosition()),
+                swipe.fromPosition.toEditionPosition(), swipe.toPosition.toEditionPosition(), path = swipe.path),
             onConfirm = { description -> (description as? SwipeDescription)?.let { selected ->
                 val from = selected.from?.toPoint() ?: return@let
                 val to = selected.to?.toPoint() ?: return@let
-                viewModel.updateSubAction(index) { (it as DumbAction.DumbSwipe).copy(fromPosition = from, toPosition = to) }
+                viewModel.updateSubAction(index) { (it as DumbAction.DumbSwipe).copy(fromPosition = from, toPosition = to, path = selected.path) }
             } },
         ), hideCurrent = true)
     }

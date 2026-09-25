@@ -18,6 +18,8 @@
 package io.github.vibhor1102.macrion.core.database.entity
 
 import androidx.room.*
+import io.github.vibhor1102.macrion.core.base.gesture.SwipePath
+import io.github.vibhor1102.macrion.core.base.gesture.SwipePathRoomConverter
 
 import io.github.vibhor1102.macrion.core.base.interfaces.EntityWithId
 import io.github.vibhor1102.macrion.core.database.ACTION_TABLE
@@ -115,6 +117,7 @@ import kotlinx.serialization.Serializable
         ),
     ]
 )
+@TypeConverters(SwipePathRoomConverter::class)
 @Serializable
 data class ActionEntity(
     @PrimaryKey(autoGenerate = true) override var id: Long,
@@ -138,6 +141,7 @@ data class ActionEntity(
     @ColumnInfo(name = "toX") val toX: Int? = null,
     @ColumnInfo(name = "toY") val toY: Int? = null,
     @ColumnInfo(name = "swipeDuration") val swipeDuration: Long? = null,
+    @ColumnInfo(name = "swipe_path") val swipePath: SwipePath? = null,
 
     // ActionType.PAUSE
     @ColumnInfo(name = "pauseDuration") val pauseDuration: Long? = null,

@@ -28,6 +28,7 @@ import io.github.vibhor1102.macrion.core.common.actions.AndroidActionExecutor
 import io.github.vibhor1102.macrion.core.common.actions.gesture.buildSingleStroke
 import io.github.vibhor1102.macrion.core.common.actions.gesture.line
 import io.github.vibhor1102.macrion.core.common.actions.gesture.moveTo
+import io.github.vibhor1102.macrion.core.common.actions.gesture.toGesturePath
 import io.github.vibhor1102.macrion.core.common.actions.utils.getPauseDurationMs
 import io.github.vibhor1102.macrion.core.dumb.domain.model.DumbAction
 import io.github.vibhor1102.macrion.core.dumb.domain.model.Repeatable
@@ -95,12 +96,8 @@ class DumbActionExecutor @Inject constructor(
     private suspend fun executeDumbSwipe(dumbSwipe: DumbAction.DumbSwipe) {
         dumbSwipe.waitBeforeMs?.takeIf { it > 0 }?.let { delay(it) }
         val swipeGesture = GestureDescription.Builder().buildSingleStroke(
-            path = Path().apply {
-                line(
-                    from = dumbSwipe.fromPosition,
-                    to = dumbSwipe.toPosition,
-                    random = random,
-                )
+            path = dumbSwipe.path?.toGesturePath(random) ?: Path().apply {
+                line(from = dumbSwipe.fromPosition, to = dumbSwipe.toPosition, random = random)
             },
             durationMs = dumbSwipe.swipeDurationMs,
             random = random,
@@ -128,7 +125,9 @@ class DumbActionExecutor @Inject constructor(
                     duration = sub.pressDurationMs
                 }
                 is DumbAction.DumbSwipe -> {
-                    path.line(from = sub.fromPosition, to = sub.toPosition, random = random)
+                    path.addPath(sub.path?.toGesturePath(random) ?: Path().apply {
+                        line(from = sub.fromPosition, to = sub.toPosition, random = random)
+                    })
                     duration = sub.swipeDurationMs
                 }
                 else -> continue

@@ -36,4 +36,20 @@ class CombinedActionMigrationTest {
             }
         }
     }
+
+    @Test fun existingSwipeRowsGainEmptyPathWithoutChangingPositions() {
+        val path = ApplicationProvider.getApplicationContext<Context>().getDatabasePath("dumb-swipe-path-migration").path
+        helper.createDatabase(path, 5).use { db ->
+            db.execSQL("INSERT INTO dumb_scenario_table (id, name, repeat_count, is_repeat_infinite, max_duration_minutes, is_duration_infinite, randomize) VALUES (1, 'Scenario', 1, 0, 1, 1, 0)")
+            db.execSQL("INSERT INTO dumb_action_table (id, dumb_scenario_id, name, type, priority, fromX, fromY, toX, toY) VALUES (1, 1, 'Swipe', 'SWIPE', 0, 10, 20, 30, 40)")
+        }
+        helper.runMigrationsAndValidate(path, 6, true).use { db ->
+            db.query("SELECT fromX, toY, swipe_path FROM dumb_action_table WHERE id = 1").use { cursor ->
+                assertTrue(cursor.moveToFirst())
+                assertEquals(10, cursor.getInt(0))
+                assertEquals(40, cursor.getInt(1))
+                assertTrue(cursor.isNull(2))
+            }
+        }
+    }
 }

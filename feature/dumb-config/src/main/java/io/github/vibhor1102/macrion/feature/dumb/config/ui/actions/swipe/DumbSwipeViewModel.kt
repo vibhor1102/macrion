@@ -18,6 +18,7 @@ package io.github.vibhor1102.macrion.feature.dumb.config.ui.actions.swipe
 
 import android.content.Context
 import android.graphics.Point
+import io.github.vibhor1102.macrion.core.base.gesture.SwipePath
 
 import androidx.core.content.edit
 import androidx.lifecycle.ViewModel
@@ -141,9 +142,9 @@ class DumbSwipeViewModel @Inject constructor(
         _editedDumbSwipe.value = _editedDumbSwipe.value?.copy(repeatDelayMs = delayMs)
     }
 
-    fun setPositions(from: Point?, to: Point?) {
+    fun setPositions(from: Point?, to: Point?, path: SwipePath? = null) {
         if (from == null || to == null) return
-        _editedDumbSwipe.value = _editedDumbSwipe.value?.copy(fromPosition = from, toPosition = to)
+        _editedDumbSwipe.value = _editedDumbSwipe.value?.copy(fromPosition = from, toPosition = to, path = path)
     }
 
     fun saveLastConfig(context: Context) {

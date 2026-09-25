@@ -14,6 +14,7 @@ import android.graphics.Paint as AndroidPaint
 import android.graphics.PointF
 import android.graphics.Rect as AndroidRect
 import android.graphics.Typeface
+import android.graphics.PathMeasure
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
@@ -36,6 +37,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathFillType
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.asComposePath
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Fill
@@ -633,33 +635,42 @@ private fun DrawScope.drawSwipeIndicator(
     if (pass == IndicatorPass.BACKGROUND) return
 
     if (from != null && to != null) {
-        drawLine(
+        val androidPath = description.path?.toAndroidPath() ?: android.graphics.Path().apply {
+            moveTo(from.x, from.y)
+            lineTo(to.x, to.y)
+        }
+        drawPath(
+            path = androidPath.asComposePath(),
             color = if (isFocused) innerColor else innerColor.copy(alpha = INACTIVE_PREVIEW_STROKE_ALPHA),
-            start = from,
-            end = to,
-            strokeWidth = innerRadiusPx / 2f,
+            style = Stroke(width = innerRadiusPx / 2f),
         )
 
-        val dx = to.x - from.x
-        val dy = to.y - from.y
-        val mag = hypot(dx, dy)
-        if (mag > 0f && progress != null) {
-            val animX = from.x + (dx / mag) * (mag * progress)
-            val animY = from.y + (dy / mag) * (mag * progress)
-            val animPos = Offset(animX, animY)
+        if (isFocused) description.path?.nodes?.drop(1)?.dropLast(1)?.forEach { node ->
+            val center = Offset(node.position.x, node.position.y)
+            drawCircle(primaryColor.copy(alpha = 0.8f), outerRadiusPx * 0.38f, center,
+                style = Stroke(width = thicknessPx * 0.6f))
+            drawCircle(innerColor, innerRadiusPx * 0.72f, center)
+        }
 
-            drawCircle(
-                color = innerColor,
-                radius = innerRadiusPx * 2f,
-                center = animPos,
-                style = Fill,
-            )
-            drawCircle(
-                color = backgroundColor,
-                radius = innerRadiusPx * 2f,
-                center = animPos,
-                style = Stroke(width = innerRadiusPx * 0.75f),
-            )
+        if (progress != null) {
+            val measure = PathMeasure(androidPath, false)
+            val position = FloatArray(2)
+            if (measure.length > 0f && measure.getPosTan(measure.length * progress.coerceIn(0f, 1f), position, null)) {
+                val animPos = Offset(position[0], position[1])
+
+                drawCircle(
+                    color = innerColor,
+                    radius = innerRadiusPx * 2f,
+                    center = animPos,
+                    style = Fill,
+                )
+                drawCircle(
+                    color = backgroundColor,
+                    radius = innerRadiusPx * 2f,
+                    center = animPos,
+                    style = Stroke(width = innerRadiusPx * 0.75f),
+                )
+            }
         }
     }
 }

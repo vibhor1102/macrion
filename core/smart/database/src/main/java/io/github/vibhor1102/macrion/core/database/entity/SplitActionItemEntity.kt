@@ -21,6 +21,9 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import androidx.room.TypeConverters
+import io.github.vibhor1102.macrion.core.base.gesture.SwipePath
+import io.github.vibhor1102.macrion.core.base.gesture.SwipePathRoomConverter
 import io.github.vibhor1102.macrion.core.base.interfaces.EntityWithId
 import io.github.vibhor1102.macrion.core.database.SPLIT_ACTION_ITEM_TABLE
 import kotlinx.serialization.Serializable
@@ -54,6 +57,7 @@ import kotlinx.serialization.Serializable
         )
     ]
 )
+@TypeConverters(SwipePathRoomConverter::class)
 @Serializable
 data class SplitActionItemEntity(
     @PrimaryKey(autoGenerate = true) override var id: Long = 0,
@@ -70,6 +74,7 @@ data class SplitActionItemEntity(
     @ColumnInfo(name = "to_x") val toX: Int? = null,
     @ColumnInfo(name = "to_y") val toY: Int? = null,
     @ColumnInfo(name = "duration") val duration: Long? = null,
+    @ColumnInfo(name = "swipe_path") val swipePath: SwipePath? = null,
     @ColumnInfo(name = "start_offset") val startOffset: Long = 0L,
     @ColumnInfo(name = "wait_after_ms") val waitAfterMs: Long? = null,
 ) : EntityWithId

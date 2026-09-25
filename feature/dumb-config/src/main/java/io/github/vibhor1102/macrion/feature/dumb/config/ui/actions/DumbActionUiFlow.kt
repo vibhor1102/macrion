@@ -220,6 +220,7 @@ private fun OverlayManager.onDumbSwipeCreationSelected(
         context = context,
         newOverlay = PositionSelectorMenu(
             itemBriefDescription = SwipeDescription(),
+            useRecordedSwipeDuration = true,
             onConfirm = { description ->
                 (description as? SwipeDescription)?.let { swipeDesc ->
                     if (swipeDesc.from == null || swipeDesc.to == null) {
@@ -232,7 +233,7 @@ private fun OverlayManager.onDumbSwipeCreationSelected(
                         dumbSwipe = creator.createNewDumbSwipe(
                             swipeDesc.from?.toPoint()!!,
                             swipeDesc.to?.toPoint()!!,
-                        ),
+                        ).copy(path = swipeDesc.path, swipeDurationMs = swipeDesc.swipeDurationMs),
                         listener = listener,
                     )
                 }

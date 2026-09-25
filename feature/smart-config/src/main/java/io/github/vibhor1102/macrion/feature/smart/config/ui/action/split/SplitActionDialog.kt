@@ -319,11 +319,11 @@ class SplitActionDialog(
         val swipe = viewModel.getEditedSplit()?.subActions?.getOrNull(index) as? Swipe ?: return
         overlayManager.navigateTo(context, PositionSelectorMenu(
             tutorialMonitoringTag = MonitoredOverlayType.SWIPE_POSITION.name,
-            itemBriefDescription = SwipeDescription(swipe.swipeDuration ?: 1L, swipe.from?.toPointF(), swipe.to?.toPointF()),
+            itemBriefDescription = SwipeDescription(swipe.swipeDuration ?: 1L, swipe.from?.toPointF(), swipe.to?.toPointF(), path = swipe.path),
             onConfirm = { description -> (description as? SwipeDescription)?.let { selected ->
                 val from = selected.from?.toPoint() ?: return@let
                 val to = selected.to?.toPoint() ?: return@let
-                viewModel.updateSubAction(index) { (it as Swipe).copy(from = from, to = to) }
+                viewModel.updateSubAction(index) { (it as Swipe).copy(from = from, to = to, path = selected.path) }
             } },
         ), hideCurrent = true)
     }

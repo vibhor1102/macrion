@@ -21,6 +21,7 @@ import android.content.SharedPreferences
 
 import androidx.core.content.edit
 import android.graphics.Point
+import io.github.vibhor1102.macrion.core.base.gesture.SwipePath
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -103,9 +104,9 @@ class SwipeViewModel @Inject constructor(
      * @param from the new start position.
      * @param to the new end position.
      */
-    fun setPositions(from: Point, to: Point) {
+    fun setPositions(from: Point, to: Point, path: SwipePath? = null) {
         editionRepository.editionState.getEditedAction<Swipe>()?.let { swipe ->
-            editionRepository.updateEditedAction(swipe.copy(from = from, to = to))
+            editionRepository.updateEditedAction(swipe.copy(from = from, to = to, path = path))
         }
     }
 

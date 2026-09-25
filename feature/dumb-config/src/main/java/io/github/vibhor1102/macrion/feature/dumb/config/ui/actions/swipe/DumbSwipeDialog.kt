@@ -126,9 +126,10 @@ class DumbSwipeDialog(
                     swipeDurationMs = swipe.swipeDurationMs,
                     from = swipe.fromPosition.toEditionPosition(),
                     to = swipe.toPosition.toEditionPosition(),
+                    path = swipe.path,
                 ),
                 onConfirm = { description -> (description as? SwipeDescription)?.let {
-                    viewModel.setPositions(it.from?.toPoint(), it.to?.toPoint())
+                    viewModel.setPositions(it.from?.toPoint(), it.to?.toPoint(), it.path)
                 } },
             ), hideCurrent = true)
         }

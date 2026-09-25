@@ -34,6 +34,7 @@ import io.github.vibhor1102.macrion.core.common.actions.gesture.addStroke
 import io.github.vibhor1102.macrion.core.common.actions.gesture.buildSingleStroke
 import io.github.vibhor1102.macrion.core.common.actions.gesture.line
 import io.github.vibhor1102.macrion.core.common.actions.gesture.moveTo
+import io.github.vibhor1102.macrion.core.common.actions.gesture.toGesturePath
 import io.github.vibhor1102.macrion.core.common.actions.model.ActionNotificationRequest
 import io.github.vibhor1102.macrion.core.common.actions.text.findCounterReferences
 import io.github.vibhor1102.macrion.core.common.actions.text.replaceCounterReferences
@@ -208,7 +209,7 @@ internal class ActionExecutor(
         swipe.waitBeforeMs?.takeIf { it > 0 }?.let { delay(it) }
 
         val swipeGesture = GestureDescription.Builder().buildSingleStroke(
-            path = Path().apply { line(swipe.from, swipe.to, random) },
+            path = swipe.path?.toGesturePath(random) ?: Path().apply { line(swipe.from, swipe.to, random) },
             durationMs = swipe.swipeDuration!!,
             random = random,
         )
@@ -234,7 +235,8 @@ internal class ActionExecutor(
             when (subAction) {
                 is Swipe -> {
                     if (subAction.from != null && subAction.to != null && subAction.swipeDuration != null) {
-                        val path = Path().apply { line(subAction.from, subAction.to, random) }
+                        val path = subAction.path?.toGesturePath(random)
+                            ?: Path().apply { line(subAction.from, subAction.to, random) }
                         builder.addStroke(
                             path = path,
                             durationMs = subAction.swipeDuration!!,

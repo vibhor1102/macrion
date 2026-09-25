@@ -245,7 +245,7 @@ class DumbScenarioBriefViewModel @Inject constructor(
                 context = context,
                 from = from?.toPoint() ?: Point(-1, -1),
                 to = to?.toPoint() ?: Point(-1, -1),
-            ).copy(swipeDurationMs = swipeDurationMs, waitBeforeMs = startOffsetMs,
+            ).copy(swipeDurationMs = swipeDurationMs, waitBeforeMs = startOffsetMs, path = path,
                 repeatCount = 1, isRepeatInfinite = false)
 
             is SplitDescription -> {
@@ -271,6 +271,7 @@ class DumbScenarioBriefViewModel @Inject constructor(
                 from = fromPosition.toPointF(),
                 to = toPosition.toPointF(),
                 swipeDurationMs = swipeDurationMs,
+                path = path,
             )
 
             is DumbAction.DumbPause -> PauseDescription(

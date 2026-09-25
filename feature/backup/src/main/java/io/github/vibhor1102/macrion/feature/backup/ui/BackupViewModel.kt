@@ -246,7 +246,10 @@ class BackupViewModel @Inject constructor(
                 plan.profile?.displayName.orEmpty(),
                 plan.omittedComponentCount,
                 plan.excludedScenarioCount,
-            )
+            ) + if (plan.omittedCurvedSwipeCount > 0) "\n\n" + context.getString(
+                R.string.message_backup_klickr_curved_swipes_excluded,
+                plan.omittedCurvedSwipeCount,
+            ) else ""
         },
     )
 
