@@ -37,6 +37,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import io.github.vibhor1102.macrion.core.common.actions.GESTURE_DURATION_MAX_VALUE
+import io.github.vibhor1102.macrion.core.base.gesture.MAX_TOUCH_DURATION_MS
 import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayDialog
 import io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.PositionSelectorMenu
@@ -239,6 +240,7 @@ class SplitActionDialog(
                     durationError = (action.swipeDuration ?: 0L) <= 0L,
                     positionError = action.from == null || action.to == null,
                     maxNameLength = maxNameLength, waitBefore = before, waitAfter = after,
+                    maxWaitBeforeMs = (MAX_TOUCH_DURATION_MS - (action.swipeDuration ?: 0L)).coerceAtLeast(0L),
                     onNameChanged = { name -> viewModel.updateSubAction(key) { (it as Swipe).copy(name = name) } },
                     onDurationChanged = { input ->
                         if (input.isBlank() || input.toLongOrNull()?.let { it <= GESTURE_DURATION_MAX_VALUE } == true)
@@ -255,6 +257,7 @@ class SplitActionDialog(
                     durationError = (action.pressDuration ?: 0L) <= 0L,
                     positionState = item.clickPositionState, maxNameLength = maxNameLength,
                     waitBefore = before, waitAfter = after,
+                    maxWaitBeforeMs = (MAX_TOUCH_DURATION_MS - (action.pressDuration ?: 0L)).coerceAtLeast(0L),
                     onNameChanged = { name -> viewModel.updateSubAction(key) { (it as Click).copy(name = name) } },
                     onDurationChanged = { input ->
                         if (input.isBlank() || input.toLongOrNull()?.let { it <= GESTURE_DURATION_MAX_VALUE } == true)

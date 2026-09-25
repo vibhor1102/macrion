@@ -289,6 +289,7 @@ class DumbSplitActionDialog(
                 maxNameLength = context.resources.getInteger(R.integer.name_max_length),
                 infiniteRepeatIcon = R.drawable.ic_infinite, showRepetition = false,
                 waitBefore = before, waitAfter = after, positionError = positionError,
+                maxWaitBeforeMs = (io.github.vibhor1102.macrion.core.base.gesture.MAX_TOUCH_DURATION_MS - initialDuration).coerceAtLeast(0L),
                 onNameChanged = { input -> viewModel.updateSubAction(key) { child -> when (child) {
                     is DumbAction.DumbClick -> child.copy(name = input)
                     is DumbAction.DumbSwipe -> child.copy(name = input)

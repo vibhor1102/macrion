@@ -72,8 +72,15 @@
     <string name="input_field_label_swipe_duration">Swipe duration (ms)</string>
     <string name="input_field_error_required">Required</string>
     <string name="field_delays_title">Delays (Optional)</string>
-    <string name="field_wait_before_title">Wait before (ms)</string>
-    <string name="field_wait_after_title">Wait after (ms)</string>
+    <string name="field_wait_before_title">Before (ms)</string>
+    <string name="field_wait_after_title">After (ms)</string>
+    <string name="field_wait_before_summary">Before: %1$s ms</string>
+    <string name="field_wait_after_summary">After: %1$s ms</string>
+    <string name="field_delays_expanded">Expanded</string>
+    <string name="field_delays_collapsed">Collapsed</string>
+    <string name="field_delays_check_values">Check delay values</string>
+    <string name="field_delay_range_hint">0–%1$d ms; blank = none</string>
+    <string name="field_delay_range_error">Enter 0–%1$d ms</string>
 
 
     <!--

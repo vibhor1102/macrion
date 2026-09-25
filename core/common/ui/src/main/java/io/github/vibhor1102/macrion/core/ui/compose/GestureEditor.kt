@@ -2,7 +2,6 @@
 package io.github.vibhor1102.macrion.core.ui.compose
 
 import androidx.annotation.DrawableRes
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
@@ -10,6 +9,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -18,8 +19,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
+import io.github.vibhor1102.macrion.core.base.gesture.MAX_TOUCH_DURATION_MS
 import io.github.vibhor1102.macrion.core.ui.R
 
 @Composable
@@ -39,6 +47,7 @@ fun MacrionPositionGestureEditor(
     deleteEnabled: Boolean = true,
     waitBefore: String = "",
     waitAfter: String = "",
+    maxWaitBeforeMs: Long = MAX_TOUCH_DURATION_MS,
     onNameChanged: (String) -> Unit,
     onDurationChanged: (String) -> Unit,
     onPositionClicked: () -> Unit,
@@ -67,7 +76,7 @@ fun MacrionPositionGestureEditor(
                     PositionGestureFields(name, duration, positionTitle, positionDescription,
                         nameLabel, durationLabel, nameError, durationError, positionError, maxNameLength,
                         waitBefore, waitAfter, onNameChanged, onDurationChanged, onPositionClicked,
-                        onWaitBeforeChanged, onWaitAfterChanged)
+                        onWaitBeforeChanged, onWaitAfterChanged, maxWaitBeforeMs)
                 }
             }
         }
@@ -83,6 +92,7 @@ fun MacrionGestureEditor(
     saveEnabled: Boolean, maxNameLength: Int, @DrawableRes infiniteRepeatIcon: Int,
     deleteEnabled: Boolean = true,
     waitBefore: String = "", waitAfter: String = "",
+    maxWaitBeforeMs: Long = MAX_TOUCH_DURATION_MS,
     showRepetition: Boolean = true,
     onNameChanged: (String) -> Unit,
     onDurationChanged: (String) -> Unit, onRepeatCountChanged: (String) -> Unit,
@@ -117,7 +127,8 @@ fun MacrionGestureEditor(
                         onInfiniteRepeatChanged = onInfiniteRepeatChanged,
                         onPositionClicked = onPositionClicked,
                         onWaitBeforeChanged = onWaitBeforeChanged,
-                        onWaitAfterChanged = onWaitAfterChanged)
+                        onWaitAfterChanged = onWaitAfterChanged,
+                        maxWaitBeforeMs = maxWaitBeforeMs)
                 }
             }
         }
@@ -132,11 +143,13 @@ fun ColumnScope.PositionGestureFields(
     onNameChanged: (String) -> Unit, onDurationChanged: (String) -> Unit,
     onPositionClicked: () -> Unit, onWaitBeforeChanged: (String) -> Unit = {},
     onWaitAfterChanged: (String) -> Unit = {},
+    maxWaitBeforeMs: Long = MAX_TOUCH_DURATION_MS,
 ) {
     MacrionTextField(name, onNameChanged, nameLabel, isError = nameError, maxLength = maxNameLength)
     NumericField(duration, durationLabel, durationError, onDurationChanged)
     PositionCard(positionTitle, positionDescription, positionError, onPositionClicked)
-    ActionDelaysCard(waitBefore, waitAfter, onWaitBeforeChanged, onWaitAfterChanged)
+    ActionDelaysCard(waitBefore, waitAfter, onWaitBeforeChanged, onWaitAfterChanged,
+        maxWaitBeforeMs = maxWaitBeforeMs)
     Spacer(Modifier.height(8.dp))
 }
 
@@ -152,6 +165,7 @@ fun ColumnScope.GestureFields(
     onRepeatCountChanged: (String) -> Unit, onRepeatDelayChanged: (String) -> Unit,
     onInfiniteRepeatChanged: () -> Unit, onPositionClicked: () -> Unit,
     onWaitBeforeChanged: (String) -> Unit = {}, onWaitAfterChanged: (String) -> Unit = {},
+    maxWaitBeforeMs: Long = MAX_TOUCH_DURATION_MS,
 ) {
     MacrionTextField(name, onNameChanged, nameLabel, isError = nameError, maxLength = maxNameLength)
     NumericField(duration, durationLabel, durationError, onDurationChanged)
@@ -171,7 +185,8 @@ fun ColumnScope.GestureFields(
         NumericField(repeatDelay, repeatDelayLabel, repeatDelayError, onRepeatDelayChanged)
     }
     PositionCard(positionTitle, positionDescription, positionError, onPositionClicked)
-    ActionDelaysCard(waitBefore, waitAfter, onWaitBeforeChanged, onWaitAfterChanged)
+    ActionDelaysCard(waitBefore, waitAfter, onWaitBeforeChanged, onWaitAfterChanged,
+        maxWaitBeforeMs = maxWaitBeforeMs)
     Spacer(Modifier.height(8.dp))
 }
 
@@ -238,8 +253,46 @@ fun ActionDelaysCard(
     onWaitBeforeChanged: (String) -> Unit,
     onWaitAfterChanged: (String) -> Unit,
     modifier: Modifier = Modifier,
+    maxWaitBeforeMs: Long = MAX_TOUCH_DURATION_MS,
 ) {
+    val context = LocalContext.current
     var expanded by rememberSaveable { mutableStateOf(false) }
+    var beforeText by rememberSaveable { mutableStateOf(waitBefore) }
+    var afterText by rememberSaveable { mutableStateOf(waitAfter) }
+    var beforeEdited by rememberSaveable { mutableStateOf(false) }
+    var afterEdited by rememberSaveable { mutableStateOf(false) }
+    var beforeField by remember { mutableStateOf(TextFieldValue(beforeText)) }
+    var afterField by remember { mutableStateOf(TextFieldValue(afterText)) }
+    val fieldsRequester = remember { BringIntoViewRequester() }
+    var fieldsHeight by remember { mutableIntStateOf(0) }
+    var scrollRequested by remember { mutableStateOf(false) }
+
+    LaunchedEffect(waitBefore) {
+        if (!beforeEdited) {
+            beforeText = waitBefore
+            beforeField = TextFieldValue(waitBefore)
+        }
+    }
+    LaunchedEffect(waitAfter) {
+        if (!afterEdited) {
+            afterText = waitAfter
+            afterField = TextFieldValue(waitAfter)
+        }
+    }
+    LaunchedEffect(expanded, fieldsHeight) {
+        if (expanded && fieldsHeight > 0 && !scrollRequested) {
+            fieldsRequester.bringIntoView()
+            scrollRequested = true
+        }
+    }
+    val beforeError = beforeText.isNotBlank() && beforeText.toLongOrNull()?.let {
+        it in 0..maxWaitBeforeMs
+    } != true
+    val afterError = afterText.isNotBlank() && afterText.toLongOrNull()?.let {
+        it in 0..MAX_TOUCH_DURATION_MS
+    } != true
+    val hasError = beforeError || afterError
+    val expandedState = stringResource(if (expanded) R.string.field_delays_expanded else R.string.field_delays_collapsed)
 
     Card(
         modifier = modifier.fillMaxWidth(),
@@ -255,7 +308,15 @@ fun ActionDelaysCard(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { expanded = !expanded },
+                    .heightIn(min = 48.dp)
+                    .clickable(role = Role.Button) {
+                        expanded = !expanded
+                        if (expanded) {
+                            fieldsHeight = 0
+                            scrollRequested = false
+                        }
+                    }
+                    .semantics { stateDescription = expandedState },
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Icon(
@@ -270,11 +331,17 @@ fun ActionDelaysCard(
                         text = stringResource(R.string.field_delays_title),
                         style = MaterialTheme.typography.bodyLarge,
                     )
-                    if (!expanded && (waitBefore.isNotBlank() || waitAfter.isNotBlank())) {
+                    if (!expanded && hasError) {
+                        Text(
+                            text = stringResource(R.string.field_delays_check_values),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error,
+                        )
+                    } else if (!expanded && (beforeText.isNotBlank() || afterText.isNotBlank())) {
                         val summary = buildString {
-                            if (waitBefore.isNotBlank()) append("Before: ${waitBefore}ms")
-                            if (waitBefore.isNotBlank() && waitAfter.isNotBlank()) append(" • ")
-                            if (waitAfter.isNotBlank()) append("After: ${waitAfter}ms")
+                            if (beforeText.isNotBlank()) append(context.getString(R.string.field_wait_before_summary, beforeText))
+                            if (beforeText.isNotBlank() && afterText.isNotBlank()) append(" • ")
+                            if (afterText.isNotBlank()) append(context.getString(R.string.field_wait_after_summary, afterText))
                         }
                         Text(
                             text = summary,
@@ -283,34 +350,80 @@ fun ActionDelaysCard(
                         )
                     }
                 }
-                IconButton(onClick = { expanded = !expanded }) {
-                    Icon(
-                        painter = painterResource(if (expanded) R.drawable.ic_chevron_up else R.drawable.ic_chevron_down),
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp),
-                    )
-                }
+                Icon(
+                    painter = painterResource(if (expanded) R.drawable.ic_chevron_up else R.drawable.ic_chevron_down),
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp),
+                )
             }
 
-            AnimatedVisibility(visible = expanded) {
-                Column(
-                    modifier = Modifier.padding(top = 12.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
+            if (expanded) {
+                BoxWithConstraints(
+                    modifier = Modifier.padding(top = 12.dp)
+                        .bringIntoViewRequester(fieldsRequester)
+                        .onSizeChanged { fieldsHeight = it.height },
                 ) {
-                    NumericField(
-                        value = waitBefore,
-                        label = stringResource(R.string.field_wait_before_title),
-                        isError = waitBefore.isNotBlank() && waitBefore.toLongOrNull()?.let { it in 0..59_999L } != true,
-                        onValueChanged = onWaitBeforeChanged,
-                    )
-                    NumericField(
-                        value = waitAfter,
-                        label = stringResource(R.string.field_wait_after_title),
-                        isError = waitAfter.isNotBlank() && waitAfter.toLongOrNull()?.let { it in 0..59_999L } != true,
-                        onValueChanged = onWaitAfterChanged,
-                    )
+                    val before: @Composable (Modifier) -> Unit = { fieldModifier ->
+                        DelayNumberField(beforeField, stringResource(R.string.field_wait_before_title),
+                            maxWaitBeforeMs, beforeError, fieldModifier) { input ->
+                            beforeField = input
+                            beforeEdited = true
+                            if (input.text != beforeText) {
+                                beforeText = input.text
+                                onWaitBeforeChanged(input.text)
+                            }
+                        }
+                    }
+                    val after: @Composable (Modifier) -> Unit = { fieldModifier ->
+                        DelayNumberField(afterField, stringResource(R.string.field_wait_after_title),
+                            MAX_TOUCH_DURATION_MS, afterError, fieldModifier) { input ->
+                            afterField = input
+                            afterEdited = true
+                            if (input.text != afterText) {
+                                afterText = input.text
+                                onWaitAfterChanged(input.text)
+                            }
+                        }
+                    }
+                    if (maxWidth >= 280.dp * LocalDensity.current.fontScale) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            before(Modifier.weight(1f))
+                            after(Modifier.weight(1f))
+                        }
+                    } else {
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            before(Modifier.fillMaxWidth())
+                            after(Modifier.fillMaxWidth())
+                        }
+                    }
                 }
             }
         }
     }
+}
+
+@Composable
+private fun DelayNumberField(
+    value: TextFieldValue,
+    label: String,
+    maxValue: Long,
+    isError: Boolean,
+    modifier: Modifier,
+    onValueChanged: (TextFieldValue) -> Unit,
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = { input ->
+            if (input.text.all { it in '0'..'9' }) onValueChanged(input)
+        },
+        modifier = modifier,
+        label = { Text(label) },
+        isError = isError,
+        supportingText = {
+            Text(stringResource(if (isError) R.string.field_delay_range_error else R.string.field_delay_range_hint, maxValue))
+        },
+        singleLine = true,
+        keyboardOptions = macrionDoneKeyboardOptions(KeyboardType.Number),
+        keyboardActions = macrionDoneKeyboardActions(),
+    )
 }
