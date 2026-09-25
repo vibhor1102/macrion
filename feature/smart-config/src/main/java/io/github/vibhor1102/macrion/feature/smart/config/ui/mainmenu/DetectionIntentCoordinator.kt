@@ -28,6 +28,8 @@ internal class DetectionIntentCoordinator(
 
     private var phase: DetectionPhase? = null
     private var startJob: Job? = null
+    private var startInitiated = false
+    private var startReachedEngine = false
     private var startAccepted = false
     private var stopRequested = false
     private var acknowledgedStopSequence = stopSequence.value
@@ -49,6 +51,13 @@ internal class DetectionIntentCoordinator(
                 val previous = phase
                 phase = next
 
+                // Action/event tests and notification controls can start detection without
+                // this menu's Play button. Adopt them as soon as setup begins so reconciliation
+                // does not immediately cancel their STARTING phase.
+                if (next == DetectionPhase.STARTING && !startInitiated && !stopRequested &&
+                    !_requestedRunning.value
+                ) _requestedRunning.value = true
+
                 // An event end, auto-stop, or projection failure is authoritative. Do not
                 // restart it merely because the last button tap had requested Play.
                 if (!stopRequested && (next == DetectionPhase.STOPPING ||
@@ -59,12 +68,20 @@ internal class DetectionIntentCoordinator(
                 if (next == DetectionPhase.ERROR || next == DetectionPhase.INACTIVE ||
                     next == DetectionPhase.PROJECTION_TRANSITION) {
                     _requestedRunning.value = false
+                    startInitiated = false
+                    startReachedEngine = false
                     startAccepted = false
                     stopRequested = false
                 }
-                if (next == DetectionPhase.RECORDING) stopRequested = false
+                if (next == DetectionPhase.RECORDING) {
+                    startInitiated = false
+                    startReachedEngine = false
+                    stopRequested = false
+                }
                 if (next == DetectionPhase.DETECTING) {
                     val startedHere = startAccepted
+                    startInitiated = false
+                    startReachedEngine = false
                     startAccepted = false
                     if (!startedHere && !stopRequested && !_requestedRunning.value) {
                         // Notification and volume-key Play can start detection outside this menu.
@@ -104,6 +121,8 @@ internal class DetectionIntentCoordinator(
         }
 
         if (phase != DetectionPhase.RECORDING || startAccepted || startJob != null) return
+        startInitiated = true
+        startReachedEngine = false
         val job = scope.launch(start = CoroutineStart.LAZY) {
             val accepted = try {
                 start()
@@ -112,13 +131,23 @@ internal class DetectionIntentCoordinator(
             } catch (_: Exception) {
                 false
             }
-            if (accepted) startAccepted = true
-            else if (phase != DetectionPhase.DETECTING) _requestedRunning.value = false
+            if (accepted) {
+                startReachedEngine = true
+                startAccepted = true
+            } else if (phase != DetectionPhase.DETECTING) {
+                if (phase == DetectionPhase.RECORDING) startInitiated = false
+                _requestedRunning.value = false
+            }
         }
         startJob = job
         job.invokeOnCompletion {
             scope.launch {
-                if (startJob === job) startJob = null
+                if (startJob === job) {
+                    startJob = null
+                    // A paused start may have been accepted by the engine even if its
+                    // STARTING emission has not reached this collector yet.
+                    if (phase == DetectionPhase.RECORDING && !startReachedEngine) startInitiated = false
+                }
                 reconcile()
             }
         }

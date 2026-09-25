@@ -140,7 +140,7 @@ class LocalService(
         if (state.isStarted && !state.isSmartLoaded) loadedDumbScenarioId else null
 
     override fun isScenarioRunning(): Boolean =
-        dumbEngine.isRunning.value || smartProcessingRepository.isRunning()
+        dumbEngine.isRunning.value || smartProcessingRepository.isDetectionActive()
 
     init {
         combine(dumbEngine.isRunning, smartProcessingRepository.detectionState) { dumbIsRunning, smartState ->
@@ -384,7 +384,7 @@ class LocalService(
 
     private fun play() {
         serviceScope.launch {
-            if (state.isSmartLoaded && !smartProcessingRepository.isRunning()) {
+            if (state.isSmartLoaded && !smartProcessingRepository.isDetectionActive()) {
                 if (shouldStartPaywall()) startPaywall()
                 else startSmartScenario()
             } else if (!state.isSmartLoaded && !dumbEngine.isRunning.value) {
@@ -421,7 +421,7 @@ class LocalService(
         serviceScope.launch {
             when {
                 dumbEngine.isRunning.value -> dumbEngine.stopDumbScenario()
-                smartProcessingRepository.isRunning() -> smartProcessingRepository.stopDetection()
+                smartProcessingRepository.isDetectionActive() -> smartProcessingRepository.stopDetection()
             }
         }
     }
@@ -449,7 +449,7 @@ class LocalService(
             // scenario different from the one the user saw when they pressed Play.
             if (!smartScenarioTransitionMutex.tryLock()) return@launch
             try {
-                if (!state.isSmartLoaded || smartProcessingRepository.isRunning()) return@launch
+                if (!state.isSmartLoaded || smartProcessingRepository.isDetectionActive()) return@launch
                 if (onlyIfRootVisible &&
                     (overlayManager.isOverlayStackHidden() || overlayManager.hasOverlayAboveRoot())
                 ) return@launch

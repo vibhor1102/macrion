@@ -37,6 +37,26 @@ class DetectionIntentCoordinatorTest {
     }
 
     @Test
+    fun `late engine startup from a paused menu start is stopped`() = runTest {
+        val phases = MutableStateFlow(DetectionPhase.RECORDING)
+        var stops = 0
+        val coordinator = DetectionIntentCoordinator(backgroundScope, phases, MutableStateFlow(0L), false,
+            start = { true }, stop = { stops++; phases.value = DetectionPhase.STOPPING }, onStarted = {})
+        runCurrent()
+
+        coordinator.toggle()
+        runCurrent()
+        coordinator.toggle()
+        runCurrent()
+
+        phases.value = DetectionPhase.STARTING
+        runCurrent()
+
+        assertFalse(coordinator.requestedRunning.value)
+        assertEquals(1, stops)
+    }
+
+    @Test
     fun `play during cleanup waits then starts once`() = runTest {
         val phases = MutableStateFlow(DetectionPhase.RECORDING)
         var starts = 0
@@ -112,7 +132,7 @@ class DetectionIntentCoordinatorTest {
     }
 
     @Test
-    fun `external start updates button intent without consuming menu trial`() = runTest {
+    fun `external test setup remains running without consuming menu trial`() = runTest {
         val phases = MutableStateFlow(DetectionPhase.RECORDING)
         var stops = 0
         var trialStarts = 0
@@ -121,6 +141,12 @@ class DetectionIntentCoordinatorTest {
             onStarted = { trialStarts++ })
         runCurrent()
 
+        // Action, event, and condition tests all enter STARTING before DETECTING.
+        phases.value = DetectionPhase.STARTING
+        runCurrent()
+        assertTrue(coordinator.requestedRunning.value)
+        assertEquals(0, stops)
+
         phases.value = DetectionPhase.DETECTING
         runCurrent()
         assertTrue(coordinator.requestedRunning.value)
@@ -128,6 +154,24 @@ class DetectionIntentCoordinatorTest {
 
         coordinator.toggle()
         runCurrent()
+        assertEquals(1, stops)
+    }
+
+    @Test
+    fun `external test can be paused during setup`() = runTest {
+        val phases = MutableStateFlow(DetectionPhase.RECORDING)
+        var stops = 0
+        val coordinator = DetectionIntentCoordinator(backgroundScope, phases, MutableStateFlow(0L), false,
+            start = { true }, stop = { stops++; phases.value = DetectionPhase.STOPPING }, onStarted = {})
+        runCurrent()
+
+        phases.value = DetectionPhase.STARTING
+        runCurrent()
+        assertTrue(coordinator.requestedRunning.value)
+
+        assertTrue(coordinator.requestStop())
+        runCurrent()
+        assertFalse(coordinator.requestedRunning.value)
         assertEquals(1, stops)
     }
 

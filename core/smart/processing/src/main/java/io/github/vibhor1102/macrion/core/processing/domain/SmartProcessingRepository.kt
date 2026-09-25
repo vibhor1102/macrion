@@ -62,6 +62,9 @@ interface SmartProcessingRepository : Dumpable {
     /** @return true if the processing is currently running ([DetectionState.DETECTING]), false if not. */
     fun isRunning(): Boolean
 
+    /** @return true while detection is starting or running and can be stopped. */
+    fun isDetectionActive(): Boolean
+
     /** @return true if screen capture is currently active, whether detection is running or only loaded. */
     fun isScreenRecordActive(): Boolean
     /** True only after all detector resources have reached their initial state. */

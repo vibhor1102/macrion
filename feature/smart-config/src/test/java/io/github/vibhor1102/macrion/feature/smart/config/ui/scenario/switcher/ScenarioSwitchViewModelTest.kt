@@ -151,6 +151,7 @@ private class TestProcessingRepository(
     override val screenshotRateLimitError: Flow<Int> = emptyFlow()
     override fun getScenarioId() = scenarioId.value
     override fun isRunning() = false
+    override fun isDetectionActive() = false
     override fun isScreenRecordActive() = false
     override fun isFullyStopped() = true
     override fun setScenarioId(identifier: Identifier, markAsUsed: Boolean) = Unit

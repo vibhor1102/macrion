@@ -62,6 +62,7 @@ import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.action.
 import dagger.hilt.android.qualifiers.ApplicationContext
 
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -91,6 +92,8 @@ class SmartActionsBriefViewModel @Inject constructor(
     tutorialRepository: TutorialRepository,
     private val displayConfigManager: DisplayConfigManager,
 ) : ViewModel(), ActionConfigurator {
+
+    private var actionTestJob: Job? = null
 
     private val editedActions: Flow<EditedListState<Action>> = editionRepository.editionState.editedEventActionsState
     private val editedEvent: Flow<Event> = editionRepository.editionState.editedEventState.mapNotNull { it.value }
@@ -275,17 +278,20 @@ class SmartActionsBriefViewModel @Inject constructor(
         val actions = editionRepository.editionState.getEditedEventActions<Action>()?.toMutableList()
         if (scenario == null || actions == null || index !in actions.indices) return
 
-        viewModelScope.launch {
+        actionTestJob?.cancel()
+        actionTestJob = viewModelScope.launch {
             delay(500)
             smartProcessingRepository.tryAction(context, scenario, actions[index])
         }
     }
 
     fun stopAction(): Boolean {
-        if (!smartProcessingRepository.isRunning()) return false
-
-        smartProcessingRepository.stopDetection()
-        return true
+        val pending = actionTestJob?.isActive == true
+        actionTestJob?.cancel()
+        actionTestJob = null
+        val detecting = smartProcessingRepository.isDetectionActive()
+        if (detecting) smartProcessingRepository.stopDetection()
+        return pending || detecting
     }
 
     fun swapActions(i: Int, j: Int) {

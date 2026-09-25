@@ -171,6 +171,10 @@ internal class SmartProcessingRepositoryImpl @Inject constructor(
     override fun isRunning(): Boolean =
         detectorEngine.state.value == DetectorState.DETECTING
 
+    override fun isDetectionActive(): Boolean =
+        detectorEngine.state.value == DetectorState.STARTING_DETECTION ||
+            detectorEngine.state.value == DetectorState.DETECTING
+
     override fun isScreenRecordActive(): Boolean =
         detectorEngine.state.value == DetectorState.RECORDING ||
             detectorEngine.state.value == DetectorState.DETECTING

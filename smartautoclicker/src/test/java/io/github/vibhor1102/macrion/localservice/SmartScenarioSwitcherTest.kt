@@ -204,6 +204,7 @@ private class TestProcessingRepository(initialScenarioId: Identifier) : SmartPro
 
     override fun getScenarioId() = scenarioIdValue.value
     override fun isRunning() = detectionStateValue.value == DetectionState.DETECTING
+    override fun isDetectionActive() = isRunning()
     override fun isScreenRecordActive() = true
     override fun isFullyStopped() = detectionStateValue.value == DetectionState.INACTIVE
     override fun setScenarioId(identifier: Identifier, markAsUsed: Boolean) { scenarioIdValue.value = identifier }
