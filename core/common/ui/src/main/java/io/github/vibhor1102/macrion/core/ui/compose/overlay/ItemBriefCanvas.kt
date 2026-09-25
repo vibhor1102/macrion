@@ -430,6 +430,7 @@ private fun DrawScope.drawNumberedActionPreview(
     backgroundColor: Color,
 ) {
     val ringColor = if (isFocused) primaryColor else primaryColor.copy(alpha = INACTIVE_PREVIEW_STROKE_ALPHA)
+    val markerColor = if (isFocused) innerColor else innerColor.copy(alpha = INACTIVE_PREVIEW_STROKE_ALPHA)
     val ringThickness = if (isFocused) thicknessPx else thicknessPx * 0.65f
     val hazeColor = if (isFocused) backgroundColor else backgroundColor.copy(alpha = backgroundColor.alpha * 0.6f)
     when (val action = preview.description) {
@@ -440,7 +441,7 @@ private fun DrawScope.drawNumberedActionPreview(
             innerRadiusPx = innerRadiusPx,
             thicknessPx = ringThickness,
             primaryColor = ringColor,
-            innerColor = innerColor,
+            innerColor = markerColor,
             backgroundColor = hazeColor,
         )
         is SwipeDescription -> drawSwipeIndicator(
@@ -451,7 +452,7 @@ private fun DrawScope.drawNumberedActionPreview(
             thicknessPx = ringThickness,
             primaryColor = ringColor,
             secondaryColor = if (isFocused) secondaryColor else secondaryColor.copy(alpha = INACTIVE_PREVIEW_STROKE_ALPHA),
-            innerColor = innerColor,
+            innerColor = markerColor,
             backgroundColor = hazeColor,
             isFocused = isFocused,
         )
@@ -464,7 +465,7 @@ private fun DrawScope.drawNumberedActionPreview(
                     innerRadiusPx = innerRadiusPx,
                     thicknessPx = ringThickness,
                     primaryColor = ringColor,
-                    innerColor = innerColor,
+                    innerColor = markerColor,
                     backgroundColor = hazeColor,
                 )
                 is SwipeDescription -> drawSwipeIndicator(
@@ -475,7 +476,7 @@ private fun DrawScope.drawNumberedActionPreview(
                     thicknessPx = ringThickness,
                     primaryColor = ringColor,
                     secondaryColor = if (isFocused) secondaryColor else secondaryColor.copy(alpha = INACTIVE_PREVIEW_STROKE_ALPHA),
-                    innerColor = innerColor,
+                    innerColor = markerColor,
                     backgroundColor = hazeColor,
                     isFocused = isFocused,
                 )
