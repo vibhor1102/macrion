@@ -412,6 +412,8 @@ private fun ItemBriefDescription.markerPositions(): List<Offset> = when (this) {
     else -> emptyList()
 }
 
+private const val INACTIVE_PREVIEW_STROKE_ALPHA = 0.6f
+
 private fun DrawScope.drawNumberedActionPreview(
     preview: NumberedActionPreview,
     isFocused: Boolean,
@@ -427,7 +429,7 @@ private fun DrawScope.drawNumberedActionPreview(
     innerColor: Color,
     backgroundColor: Color,
 ) {
-    val ringColor = if (isFocused) primaryColor else primaryColor.copy(alpha = 0.7f)
+    val ringColor = if (isFocused) primaryColor else primaryColor.copy(alpha = INACTIVE_PREVIEW_STROKE_ALPHA)
     val ringThickness = if (isFocused) thicknessPx else thicknessPx * 0.65f
     val hazeColor = if (isFocused) backgroundColor else backgroundColor.copy(alpha = backgroundColor.alpha * 0.6f)
     when (val action = preview.description) {
@@ -448,7 +450,7 @@ private fun DrawScope.drawNumberedActionPreview(
             innerRadiusPx = innerRadiusPx,
             thicknessPx = ringThickness,
             primaryColor = ringColor,
-            secondaryColor = if (isFocused) secondaryColor else secondaryColor.copy(alpha = 0.7f),
+            secondaryColor = if (isFocused) secondaryColor else secondaryColor.copy(alpha = INACTIVE_PREVIEW_STROKE_ALPHA),
             innerColor = innerColor,
             backgroundColor = hazeColor,
             isFocused = isFocused,
@@ -472,7 +474,7 @@ private fun DrawScope.drawNumberedActionPreview(
                     innerRadiusPx = innerRadiusPx,
                     thicknessPx = ringThickness,
                     primaryColor = ringColor,
-                    secondaryColor = if (isFocused) secondaryColor else secondaryColor.copy(alpha = 0.7f),
+                    secondaryColor = if (isFocused) secondaryColor else secondaryColor.copy(alpha = INACTIVE_PREVIEW_STROKE_ALPHA),
                     innerColor = innerColor,
                     backgroundColor = hazeColor,
                     isFocused = isFocused,
@@ -606,7 +608,7 @@ private fun DrawScope.drawSwipeIndicator(
 
     if (from != null && to != null) {
         drawLine(
-            color = if (isFocused) innerColor else innerColor.copy(alpha = 0.7f),
+            color = if (isFocused) innerColor else innerColor.copy(alpha = INACTIVE_PREVIEW_STROKE_ALPHA),
             start = from,
             end = to,
             strokeWidth = innerRadiusPx / 2f,
