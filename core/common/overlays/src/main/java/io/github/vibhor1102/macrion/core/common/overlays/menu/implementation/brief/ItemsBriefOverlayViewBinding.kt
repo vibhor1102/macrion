@@ -27,6 +27,7 @@ import kotlinx.coroutines.delay
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import io.github.vibhor1102.macrion.core.base.identifier.Identifier
@@ -145,7 +146,6 @@ class ItemsBriefOverlayViewBinding private constructor(
     private val briefItems = mutableStateOf<List<ItemBrief>>(emptyList())
     private val requestedBriefItemIndex = mutableIntStateOf(0)
     private val isPanelVisible = mutableStateOf(false)
-    private val isPanelHideCueVisible = mutableStateOf(false)
     private val isPointerActive = mutableStateOf(false)
     private val isCarouselScrolling = mutableStateOf(false)
     val isGestureRecording = mutableStateOf(false)
@@ -167,8 +167,7 @@ class ItemsBriefOverlayViewBinding private constructor(
 
     companion object {
 
-        private const val AUTO_HIDE_CUE_MS = 750L
-        private const val PANEL_EXIT_DURATION_MS = 400
+        private const val PANEL_EXIT_DURATION_MS = 600
         private const val INSTRUCTIONS_HIDE_DELAY_MS = 3_000L
 
         fun inflate(
@@ -243,14 +242,12 @@ class ItemsBriefOverlayViewBinding private constructor(
     /** Reveal the panel and restart its idle countdown after an interaction. */
     fun showOrResetPanelTimer() {
         if (isGestureRecording.value) return
-        isPanelHideCueVisible.value = false
         isPanelVisible.value = true
         panelTimerTrigger.intValue++
     }
 
     fun hidePanel() {
         panelTimerTrigger.intValue = 0
-        isPanelHideCueVisible.value = false
         isPointerActive.value = false
         isCarouselScrolling.value = false
         isPanelVisible.value = false
@@ -266,7 +263,6 @@ class ItemsBriefOverlayViewBinding private constructor(
         isPanelAutoHideEnabled.value = enabled
         if (!enabled) {
             panelTimerTrigger.intValue = 0
-            isPanelHideCueVisible.value = false
         } else if (isPanelVisible.value) {
             showOrResetPanelTimer()
         }
@@ -318,8 +314,6 @@ class ItemsBriefOverlayViewBinding private constructor(
                 !isPointerActive.value && !isCarouselScrolling.value
             ) {
                 delay(context.recommendedPanelHideDelayMs())
-                isPanelHideCueVisible.value = true
-                delay(AUTO_HIDE_CUE_MS)
                 isPanelVisible.value = false
             }
         }
@@ -330,11 +324,6 @@ class ItemsBriefOverlayViewBinding private constructor(
             }
         }
         val isPortrait = orientation == Configuration.ORIENTATION_PORTRAIT
-        val panelAlpha by animateFloatAsState(
-            targetValue = if (isPanelHideCueVisible.value) 0.82f else 1f,
-            animationSpec = tween(durationMillis = 220),
-            label = "panelHideCueAlpha",
-        )
         Box(
             Modifier.fillMaxSize().pointerInput(Unit) {
                 awaitEachGesture {
@@ -374,15 +363,14 @@ class ItemsBriefOverlayViewBinding private constructor(
                 exit = if (isPortrait) {
                     slideOutVertically(
                         animationSpec = tween(PANEL_EXIT_DURATION_MS, easing = FastOutSlowInEasing),
-                        targetOffsetY = { (it * 0.2f).roundToInt() },
-                    ) + fadeOut(animationSpec = tween(PANEL_EXIT_DURATION_MS))
+                        targetOffsetY = { (it * 0.12f).roundToInt() },
+                    ) + fadeOut(animationSpec = tween(PANEL_EXIT_DURATION_MS, easing = LinearEasing))
                 } else {
                     slideOutHorizontally(
                         animationSpec = tween(PANEL_EXIT_DURATION_MS, easing = FastOutSlowInEasing),
-                        targetOffsetX = { -(it * 0.2f).roundToInt() },
-                    ) + fadeOut(animationSpec = tween(PANEL_EXIT_DURATION_MS))
+                        targetOffsetX = { -(it * 0.12f).roundToInt() },
+                    ) + fadeOut(animationSpec = tween(PANEL_EXIT_DURATION_MS, easing = LinearEasing))
                 },
-                modifier = Modifier.graphicsLayer { alpha = panelAlpha },
             ) {
                 if (isPortrait) PortraitBriefPanel() else LandscapeBriefPanel()
             }
