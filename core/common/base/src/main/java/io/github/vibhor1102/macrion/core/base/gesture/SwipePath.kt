@@ -7,7 +7,6 @@ import androidx.room.TypeConverter
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlin.math.hypot
-import kotlin.math.roundToInt
 
 /** Geometry of one continuous finger stroke. Timing belongs to the swipe, not its nodes. */
 @Serializable
@@ -15,7 +14,8 @@ data class SwipePoint(val x: Float, val y: Float) {
     constructor(point: Point) : this(point.x.toFloat(), point.y.toFloat())
     constructor(point: PointF) : this(point.x, point.y)
 
-    fun toPoint(): Point = Point(x.roundToInt(), y.roundToInt())
+    // Match androidx.core.graphics.toPoint(), which is used for the action endpoints.
+    fun toPoint(): Point = Point(x.toInt(), y.toInt())
     fun distanceTo(other: SwipePoint): Float = hypot(x - other.x, y - other.y)
 }
 

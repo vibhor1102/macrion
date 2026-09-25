@@ -617,7 +617,14 @@ private fun DrawScope.drawSwipeIndicator(
     if (pass == IndicatorPass.BACKGROUND) return
 
     if (from != null && to != null) {
-        val androidPath = description.path?.toAndroidPath() ?: android.graphics.Path().apply {
+        val androidPath = description.previewTrace?.takeIf { it.size >= 2 }?.let { trace ->
+            android.graphics.Path().apply {
+                moveTo(trace.first().x, trace.first().y)
+                for (index in 1 until trace.size) {
+                    lineTo(trace[index].x, trace[index].y)
+                }
+            }
+        } ?: description.path?.toAndroidPath() ?: android.graphics.Path().apply {
             moveTo(from.x, from.y)
             lineTo(to.x, to.y)
         }

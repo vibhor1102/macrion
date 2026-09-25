@@ -14,6 +14,7 @@ import android.graphics.PointF
 import android.graphics.Rect
 import android.graphics.drawable.Drawable
 import io.github.vibhor1102.macrion.core.base.gesture.SwipePath
+import io.github.vibhor1102.macrion.core.base.gesture.SwipePoint
 import androidx.annotation.ColorInt
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.ItemBriefDescription
 
@@ -34,6 +35,8 @@ data class SwipeDescription(
     val to: PointF? = null,
     val startOffsetMs: Long = 0L,
     val path: SwipePath? = null,
+    /** Transient recording preview, never persisted in an action. */
+    val previewTrace: List<SwipePoint>? = null,
 ) : ItemBriefDescription
 
 data class PauseDescription(

@@ -228,6 +228,7 @@ class PositionSelectorMenu(
                     to = gesture.to.clampToDisplay(),
                     swipeDurationMs = if (useRecordedSwipeDuration) gesture.durationMs else swipe.swipeDurationMs,
                     path = gesture.path,
+                    previewTrace = gesture.previewTrace,
                 )
                 if (isFinished) onPositionSelectionCompleted(preview)
                 else selectorViews.setDescription(preview)

@@ -126,6 +126,7 @@ fun GestureRecordOverlay(
                                 RecordedGesture.Swipe(
                                     t.origin, t.current, dur, t.downTime - sessionStartTime,
                                     path = if (allPointersUp) fitSwipePath(t.points, fittingTolerancePx) else null,
+                                    previewTrace = if (allPointersUp) null else t.points.toList(),
                                 )
                             }
                         }

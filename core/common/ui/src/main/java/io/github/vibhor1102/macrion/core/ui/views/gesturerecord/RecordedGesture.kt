@@ -18,6 +18,7 @@ package io.github.vibhor1102.macrion.core.ui.views.gesturerecord
 
 import android.graphics.PointF
 import io.github.vibhor1102.macrion.core.base.gesture.SwipePath
+import io.github.vibhor1102.macrion.core.base.gesture.SwipePoint
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.ItemBriefDescription
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.ClickDescription
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.SplitDescription
@@ -40,6 +41,8 @@ sealed class RecordedGesture {
         override val durationMs: Long,
         override val startOffsetMs: Long = 0L,
         val path: SwipePath? = null,
+        /** The live finger trace; only the fitted [path] is saved when recording ends. */
+        val previewTrace: List<SwipePoint>? = null,
     ) : RecordedGesture()
 
     data class Split(
@@ -52,7 +55,7 @@ sealed class RecordedGesture {
 fun RecordedGesture.toActionDescription(): ItemBriefDescription =
     when (this) {
         is RecordedGesture.Click -> ClickDescription(pressDurationMs = durationMs, position = position, startOffsetMs = startOffsetMs)
-        is RecordedGesture.Swipe -> SwipeDescription(swipeDurationMs = durationMs, from = from, to = to, startOffsetMs = startOffsetMs, path = path)
+        is RecordedGesture.Swipe -> SwipeDescription(swipeDurationMs = durationMs, from = from, to = to, startOffsetMs = startOffsetMs, path = path, previewTrace = previewTrace)
         is RecordedGesture.Split -> SplitDescription(
             subDescriptions = subGestures.map { it.toActionDescription() }
         )
