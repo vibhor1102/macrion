@@ -145,7 +145,9 @@
     <string name="multi_touch_rename_touch">Rename touch %1$d</string>
     <string name="multi_touch_done_renaming">Done renaming touch %1$d</string>
     <string name="multi_touch_touch_description">Touch %1$d of %2$d: %3$s</string>
-    <string name="action_editor_delete_touch">Delete touch %1$d</string>
+    <string name="action_editor_delete_this_click">Delete this click</string>
+    <string name="action_editor_delete_this_swipe">Delete this swipe</string>
+    <string name="action_editor_delete_this_action">Delete this action</string>
     <string name="action_editor_delete_multi_touch">Delete MultiTouch</string>
     <string name="action_editor_save_multi_touch">Save MultiTouch</string>
     <string name="action_editor_close_multi_touch">Close MultiTouch</string>

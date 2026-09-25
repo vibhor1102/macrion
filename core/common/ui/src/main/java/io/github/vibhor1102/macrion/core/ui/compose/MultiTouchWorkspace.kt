@@ -2,6 +2,7 @@
 package io.github.vibhor1102.macrion.core.ui.compose
 
 import android.content.res.Configuration
+import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.Arrangement
@@ -68,6 +69,7 @@ data class MultiTouchWorkspaceItem(
     val name: String,
     val typeLabel: String,
     val isComplete: Boolean,
+    @StringRes val deleteLabelRes: Int,
 )
 
 /** A bottom sheet in portrait and an editor that uses the whole available height in landscape. */
@@ -206,7 +208,7 @@ fun MultiTouchWorkspace(
                                         contentColor = MaterialTheme.colorScheme.error)) {
                                     Icon(painterResource(R.drawable.ic_delete), null, Modifier.size(18.dp))
                                     Spacer(Modifier.size(8.dp))
-                                    Text(stringResource(R.string.action_editor_delete_touch, currentSelection + 1))
+                                    Text(stringResource(item.deleteLabelRes))
                                 }
                             }
                         }

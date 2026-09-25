@@ -169,7 +169,11 @@ class DumbSplitActionDialog(
                                 else -> item.name
                             }
                             MultiTouchWorkspaceItem(item.action.id.toString(), name, type,
-                                item.isComplete)
+                                item.isComplete, when (item.action) {
+                                    is DumbAction.DumbClick -> UiR.string.action_editor_delete_this_click
+                                    is DumbAction.DumbSwipe -> UiR.string.action_editor_delete_this_swipe
+                                    else -> UiR.string.action_editor_delete_this_action
+                                })
                         },
                         canDeleteChild = ui.canDeleteSubAction,
                         addClickLabel = stringResource(R.string.split_action_add_click),
