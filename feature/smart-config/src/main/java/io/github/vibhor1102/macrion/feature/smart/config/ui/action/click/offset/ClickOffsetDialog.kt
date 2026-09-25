@@ -47,8 +47,13 @@ import io.github.vibhor1102.macrion.core.ui.compose.macrionDoneKeyboardOptions
 import io.github.vibhor1102.macrion.core.ui.R as CoreUiR
 import io.github.vibhor1102.macrion.feature.smart.config.R
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
+import io.github.vibhor1102.macrion.core.domain.model.action.Click
+import android.graphics.Point
 
-class ClickOffsetDialog : OverlayDialog(R.style.ScenarioConfigTheme) {
+class ClickOffsetDialog(
+    private val workspaceClick: Click? = null,
+    private val onWorkspaceOffsetSelected: ((Point) -> Unit)? = null,
+) : OverlayDialog(R.style.ScenarioConfigTheme) {
     override fun tutorialMonitoringTag(): String = MonitoredOverlayType.CLICK_OFFSET.name
     private val viewModel: ClickOffsetViewModel by viewModels(
         entryPoint = ScenarioConfigViewModelsEntryPoint::class.java,
@@ -56,6 +61,7 @@ class ClickOffsetDialog : OverlayDialog(R.style.ScenarioConfigTheme) {
     )
 
     override fun onCreateView(): ViewGroup = ComposeView(context).apply {
+        workspaceClick?.let(viewModel::setWorkspaceClick)
         setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
         setContent { MacrionTheme { this@ClickOffsetDialog.Content() } }
     }
@@ -93,7 +99,12 @@ class ClickOffsetDialog : OverlayDialog(R.style.ScenarioConfigTheme) {
             IconButton(onClick = ::back) { Icon(painterResource(R.drawable.ic_cancel), null) }
             Text(context.getString(R.string.field_click_offset_title), Modifier.weight(1f).padding(horizontal = 8.dp),
                 style = MaterialTheme.typography.titleLarge, maxLines = 1, overflow = TextOverflow.Clip)
-            FilledIconButton(onClick = { viewModel.saveChanges(); back() }) { Icon(painterResource(R.drawable.ic_save_filled), null) }
+            FilledIconButton(onClick = {
+                if (onWorkspaceOffsetSelected != null) {
+                    viewModel.selectedOffset()?.let(onWorkspaceOffsetSelected)
+                } else viewModel.saveChanges()
+                back()
+            }) { Icon(painterResource(R.drawable.ic_save_filled), null) }
         }
     }
 

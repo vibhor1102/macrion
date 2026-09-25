@@ -38,6 +38,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
@@ -62,9 +63,11 @@ class ClickOffsetViewModel @Inject constructor(
             .mapNotNull { it.value }
 
     /** The Action currently configured by the user. */
-    private val configuredClick = editionRepository.editionState.editedActionState
-        .mapNotNull { action -> action.value }
-        .filterIsInstance<Click>()
+    private val workspaceClick = MutableStateFlow<Click?>(null)
+    private val configuredClick = combine(
+        editionRepository.editionState.editedActionState,
+        workspaceClick,
+    ) { action, child -> child ?: (action.value as? Click) }.filterNotNull()
 
     private val conditionToShow: Flow<ScreenCondition?> =
         combine(editedEvent, editedImageConditions, configuredClick) { event, imageConditions, click ->
@@ -119,6 +122,12 @@ class ClickOffsetViewModel @Inject constructor(
         userClickOffset.value = ClickOffsetState(Point(currentOffset.x, offsetY), from)
     }
 
+    fun setWorkspaceClick(click: Click) {
+        workspaceClick.value = click
+    }
+
+    fun selectedOffset(): Point? = userClickOffset.value?.offset
+
     fun saveChanges() {
         val clickOffset = userClickOffset.value?.offset ?: return
 
@@ -129,6 +138,7 @@ class ClickOffsetViewModel @Inject constructor(
 
     private fun getCurrentOffset(): Point =
         userClickOffset.value?.offset
+            ?: workspaceClick.value?.clickOffset
             ?: editionRepository.editionState.getEditedAction<Click>()?.clickOffset
             ?: Point(0, 0)
 

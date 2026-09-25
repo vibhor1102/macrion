@@ -10,6 +10,8 @@ package io.github.vibhor1102.macrion.feature.smart.config.ui.action.split
 
 import androidx.annotation.DrawableRes
 import io.github.vibhor1102.macrion.core.domain.model.action.Action
+import io.github.vibhor1102.macrion.core.domain.model.event.Event
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.condition.UiScreenCondition
 
 data class SubActionItemUiState(
     val index: Int,
@@ -29,4 +31,6 @@ data class SplitActionUiState(
     val durationMs: Long,
     val canDeleteSubAction: Boolean,
     val canUnsplit: Boolean,
+    val event: Event?,
+    val availableConditions: List<UiScreenCondition>,
 )

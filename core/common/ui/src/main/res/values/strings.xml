@@ -133,8 +133,6 @@
 
     <string name="content_desc_tuck_toolbar">Tuck toolbar to screen edge</string>
     <string name="content_desc_expand_toolbar">Expand toolbar</string>
-    <string name="combined_gesture_configured">Configured touches</string>
-    <string name="combined_gesture_duration">Touch timeline</string>
     <string name="action_editor_more_options">More action options</string>
     <string name="action_combine_choose_existing">Choose an action</string>
     <string name="action_combine_choose_help">Choose a click, swipe, or multi-touch action to run together. The originals are replaced when you save.</string>
@@ -143,6 +141,10 @@
     <string name="multi_touch_brief_swipe">Swipe</string>
     <string name="multi_touch_brief_touch">Touch</string>
     <string name="multi_touch_brief_needs_setup">Needs setup</string>
+    <string name="action_editor_delete_touch">Delete touch %1$d</string>
+    <string name="action_editor_delete_multi_touch">Delete MultiTouch</string>
+    <string name="action_editor_save_multi_touch">Save MultiTouch</string>
+    <string name="action_editor_close_multi_touch">Close MultiTouch</string>
     <string name="multi_touch_brief_no_touches">No touches configured</string>
     <plurals name="multi_touch_brief_click_count">
         <item quantity="one">%d click</item>

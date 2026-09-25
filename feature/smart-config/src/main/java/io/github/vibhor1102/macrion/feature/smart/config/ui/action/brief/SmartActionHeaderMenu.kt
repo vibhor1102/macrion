@@ -20,12 +20,14 @@ internal fun SmartActionHeaderMenu(
     canAdd: Boolean,
     canCombineExisting: Boolean,
     canUnsplit: Boolean = false,
+    onRename: (() -> Unit)? = null,
     onNewClick: () -> Unit = {},
     onNewSwipe: () -> Unit = {},
     onExisting: () -> Unit = {},
     onUnsplit: () -> Unit = {},
 ) {
     val items = buildList {
+        onRename?.let { add(ActionEditorMenuItem(stringResource(R.string.split_action_rename), it)) }
         if (showNewOptions && canAdd) {
             add(ActionEditorMenuItem(stringResource(R.string.action_combine_with_new_click), onNewClick))
             add(ActionEditorMenuItem(stringResource(R.string.action_combine_with_new_swipe), onNewSwipe))

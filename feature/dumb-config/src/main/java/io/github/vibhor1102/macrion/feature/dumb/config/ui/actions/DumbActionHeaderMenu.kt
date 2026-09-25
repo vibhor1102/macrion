@@ -23,12 +23,14 @@ internal fun DumbActionHeaderMenu(
     canAdd: Boolean,
     canCombineExisting: Boolean,
     canUnsplit: Boolean = false,
+    onGroupSettings: (() -> Unit)? = null,
     onNewClick: () -> Unit = {},
     onNewSwipe: () -> Unit = {},
     onExisting: () -> Unit = {},
     onUnsplit: () -> Unit = {},
 ) {
     val items = buildList {
+        onGroupSettings?.let { add(ActionEditorMenuItem(stringResource(R.string.split_action_group_settings), it)) }
         if (showNewOptions && canAdd) {
             add(ActionEditorMenuItem(stringResource(R.string.action_combine_with_new_click), onNewClick))
             add(ActionEditorMenuItem(stringResource(R.string.action_combine_with_new_swipe), onNewSwipe))

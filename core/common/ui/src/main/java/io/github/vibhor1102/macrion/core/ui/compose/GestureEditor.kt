@@ -12,6 +12,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -198,7 +199,7 @@ fun ActionDelaysCard(
     onWaitAfterChanged: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    var expanded by remember { mutableStateOf(false) }
+    var expanded by rememberSaveable { mutableStateOf(false) }
 
     Card(
         modifier = modifier.fillMaxWidth(),
@@ -269,25 +270,6 @@ fun ActionDelaysCard(
                         onValueChanged = onWaitAfterChanged,
                     )
                 }
-            }
-        }
-    }
-}
-
-@Composable
-fun CombinedGestureSummary(configuredCount: Int, touchCount: Int, durationMs: Long) {
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        Card(Modifier.weight(1f)) {
-            Column(Modifier.padding(12.dp)) {
-                Text(stringResource(R.string.combined_gesture_configured), style = MaterialTheme.typography.labelMedium)
-                Text("$configuredCount / $touchCount", style = MaterialTheme.typography.titleMedium)
-            }
-        }
-        Card(Modifier.weight(1f)) {
-            Column(Modifier.padding(12.dp)) {
-                Text(stringResource(R.string.combined_gesture_duration), style = MaterialTheme.typography.labelMedium)
-                Text(if (configuredCount == touchCount) "$durationMs ms" else "—",
-                    style = MaterialTheme.typography.titleMedium)
             }
         }
     }

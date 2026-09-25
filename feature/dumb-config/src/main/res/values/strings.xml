@@ -118,11 +118,14 @@
     <string name="dialog_title_split_action">Multi-touch</string>
     <string name="split_action_touch_actions_header">Touch Strokes</string>
     <string name="split_action_add_swipe">Add Swipe</string>
-    <string name="split_action_add_click">Add Tap</string>
+    <string name="split_action_add_click">Add Click</string>
+    <string name="split_action_group_settings">MultiTouch settings</string>
+    <string name="split_action_check_group_settings">Check MultiTouch settings</string>
+    <string name="split_action_click_coordinates">At %1$d, %2$d</string>
+    <string name="split_action_swipe_coordinates">From %1$d, %2$d to %3$d, %4$d</string>
     <string name="split_action_unsplit">Unsplit</string>
     <string name="action_combine_with_new_click">Combine with new click</string>
     <string name="action_combine_with_existing">Combine with existing action…</string>
-    <string name="split_action_timing_help">Each touch starts after its Wait Before and finishes after its own Wait After. Configure every touch before saving. Up to 10 touches can run together.</string>
     <string name="combined_touch_count">%1$d touch actions</string>
     <string name="split_repeat_help">Repetition applies to the whole gesture. Each touch runs once per repetition; its individual repeat settings are restored when you Unsplit.</string>
     <string name="split_action_position_not_set">Position not set</string>

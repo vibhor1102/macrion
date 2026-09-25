@@ -9,6 +9,7 @@
 package io.github.vibhor1102.macrion.feature.dumb.config.ui.actions.split
 
 import android.content.Context
+import androidx.core.content.edit
 import android.graphics.Point
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -17,6 +18,9 @@ import io.github.vibhor1102.macrion.core.dumb.domain.model.DumbAction
 import io.github.vibhor1102.macrion.core.ui.utils.formatDuration
 import io.github.vibhor1102.macrion.feature.dumb.config.R
 import io.github.vibhor1102.macrion.feature.dumb.config.domain.DumbEditionRepository
+import io.github.vibhor1102.macrion.feature.dumb.config.data.getDumbConfigPreferences
+import io.github.vibhor1102.macrion.feature.dumb.config.data.putClickPressDurationConfig
+import io.github.vibhor1102.macrion.feature.dumb.config.data.putSwipeDurationConfig
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -46,6 +50,18 @@ class DumbSplitActionViewModel @Inject constructor(
 
     fun getEditedDumbSplit(): DumbAction.DumbSplitAction? = _editedDumbSplit.value
 
+    fun saveLastChildDurations() {
+        val children = _editedDumbSplit.value?.subActions ?: return
+        context.getDumbConfigPreferences().edit {
+            children.filterIsInstance<DumbAction.DumbClick>().lastOrNull()?.let {
+                putClickPressDurationConfig(it.pressDurationMs)
+            }
+            children.filterIsInstance<DumbAction.DumbSwipe>().lastOrNull()?.let {
+                putSwipeDurationConfig(it.swipeDurationMs)
+            }
+        }
+    }
+
     fun hasUnsavedModifications(): Boolean =
         _editedDumbSplit.value != initialSplit
 
@@ -74,9 +90,9 @@ class DumbSplitActionViewModel @Inject constructor(
         _editedDumbSplit.value = _editedDumbSplit.value?.copy(waitAfterMs = waitAfter)
     }
 
-    fun addSwipe() {
-        val current = _editedDumbSplit.value ?: return
-        if (current.subActions.size >= 10) return
+    fun addSwipe(): Int? {
+        val current = _editedDumbSplit.value ?: return null
+        if (current.subActions.size >= 10) return null
         val subIndex = current.subActions.size
         val newSwipe = dumbEditionRepository.dumbActionBuilder.createNewDumbSwipe(
             context = context,
@@ -89,11 +105,12 @@ class DumbSplitActionViewModel @Inject constructor(
         _editedDumbSplit.value = current.copy(
             subActions = current.subActions + newSwipe
         )
+        return subIndex
     }
 
-    fun addClick() {
-        val current = _editedDumbSplit.value ?: return
-        if (current.subActions.size >= 10) return
+    fun addClick(): Int? {
+        val current = _editedDumbSplit.value ?: return null
+        if (current.subActions.size >= 10) return null
         val subIndex = current.subActions.size
         val newClick = dumbEditionRepository.dumbActionBuilder.createNewDumbClick(
             context = context,
@@ -105,6 +122,7 @@ class DumbSplitActionViewModel @Inject constructor(
         _editedDumbSplit.value = current.copy(
             subActions = current.subActions + newClick
         )
+        return subIndex
     }
 
     fun removeSubAction(index: Int) {
@@ -125,6 +143,11 @@ class DumbSplitActionViewModel @Inject constructor(
         }
     }
 
+    fun removeSubActionByKey(key: String) {
+        val index = _editedDumbSplit.value?.subActions?.indexOfFirst { it.id.toString() == key } ?: return
+        if (index >= 0) removeSubAction(index)
+    }
+
     fun updateSubAction(index: Int, updated: DumbAction) {
         val current = _editedDumbSplit.value ?: return
         val list = current.subActions.toMutableList()
@@ -132,6 +155,19 @@ class DumbSplitActionViewModel @Inject constructor(
             list[index] = updated
             _editedDumbSplit.value = current.copy(subActions = list)
         }
+    }
+
+    fun updateSubAction(index: Int, change: (DumbAction) -> DumbAction) {
+        val current = _editedDumbSplit.value ?: return
+        val child = current.subActions.getOrNull(index) ?: return
+        val updated = change(child)
+        if (updated.id != child.id || updated == child) return
+        updateSubAction(index, updated)
+    }
+
+    fun updateSubAction(key: String, change: (DumbAction) -> DumbAction) {
+        val index = _editedDumbSplit.value?.subActions?.indexOfFirst { it.id.toString() == key } ?: return
+        if (index >= 0) updateSubAction(index, change)
     }
 
     private fun DumbAction.DumbSplitAction.toUiState(context: Context): DumbSplitActionUiState {
