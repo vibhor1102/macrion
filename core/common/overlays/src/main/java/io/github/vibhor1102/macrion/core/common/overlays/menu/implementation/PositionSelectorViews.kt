@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -54,10 +55,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
-import kotlin.math.hypot
 import kotlin.math.roundToInt
 
 import io.github.vibhor1102.macrion.core.common.overlays.R
+import io.github.vibhor1102.macrion.core.base.gesture.SwipePoint
 import io.github.vibhor1102.macrion.core.display.config.DisplayConfig
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.core.ui.compose.overlay.ItemBriefCanvas
@@ -66,7 +67,16 @@ import io.github.vibhor1102.macrion.core.ui.views.itembrief.ItemBriefDescription
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.SwipeDescription
 import io.github.vibhor1102.macrion.core.ui.views.gesturerecord.RecordedGesture
 
-internal enum class SwipeHandle { START, END }
+/** The nearest handle wins; a later node sits above an earlier one at equal distance. */
+internal fun findSwipeNodeAt(points: List<SwipePoint>, touch: SwipePoint, hitRadiusPx: Float): Int? =
+    points.withIndex()
+        .filter { it.value.distanceTo(touch) <= hitRadiusPx }
+        .minWithOrNull(compareBy<IndexedValue<SwipePoint>> { it.value.distanceTo(touch) }.thenByDescending { it.index })
+        ?.index
+
+internal fun SwipeDescription.dragInstruction(): Int =
+    if ((path?.nodes?.size ?: 0) > 2) R.string.swipe_position_drag_node_instruction
+    else R.string.swipe_position_drag_instruction
 
 private fun Offset.toClampedPoint(width: Float, height: Float): PointF =
     PointF(x.coerceIn(0f, width), y.coerceIn(0f, height))
@@ -78,8 +88,8 @@ internal class PositionSelectorViews(
     val root: ComposeView = ComposeView(context)
 
     var onTouchListener: ((position: PointF) -> Unit)? = null
-    var onSwipeHandleDragged: ((handle: SwipeHandle, position: PointF) -> Unit)? = null
-    var onSwipeDragCancelled: ((handle: SwipeHandle, original: PointF) -> Unit)? = null
+    var onSwipeNodeDragged: ((index: Int, position: PointF) -> Unit)? = null
+    var onSwipeDragCancelled: ((original: SwipeDescription) -> Unit)? = null
     var onSwipeDragStateChanged: ((dragging: Boolean) -> Unit)? = null
     var onSwipeMultiTouch: (() -> Unit)? = null
     var onGestureRecorded: ((gesture: RecordedGesture?, isFinished: Boolean) -> Unit)? = null
@@ -134,14 +144,12 @@ internal class PositionSelectorViews(
                                     val swipe = currentDescription as? SwipeDescription ?: return@awaitEachGesture
                                     val from = swipe.from ?: return@awaitEachGesture
                                     val to = swipe.to ?: return@awaitEachGesture
-                                    val startDistance = hypot(down.position.x - from.x, down.position.y - from.y)
-                                    val endDistance = hypot(down.position.x - to.x, down.position.y - to.y)
-                                    val handle = when {
-                                        startDistance > handleHitRadiusPx && endDistance > handleHitRadiusPx -> null
-                                        startDistance <= endDistance -> SwipeHandle.START
-                                        else -> SwipeHandle.END
-                                    }
-                                    if (handle == null) {
+                                    val points = swipe.path?.nodes?.map { it.position }
+                                        ?: listOf(SwipePoint(from), SwipePoint(to))
+                                    val nodeIndex = findSwipeNodeAt(
+                                        points, SwipePoint(down.position.x, down.position.y), handleHitRadiusPx,
+                                    )
+                                    if (nodeIndex == null) {
                                         var multiTouch = false
                                         while (true) {
                                             val event = awaitPointerEvent()
@@ -152,17 +160,17 @@ internal class PositionSelectorViews(
                                             }
                                             if (event.changes.none { it.pressed }) break
                                         }
-                                        if (!multiTouch) showInstruction(R.string.swipe_position_drag_instruction)
+                                        if (!multiTouch) showInstruction(swipe.dragInstruction())
                                         return@awaitEachGesture
                                     }
-                                    val original = if (handle == SwipeHandle.START) from else to
+                                    val original = points[nodeIndex]
                                     var dragging = false
                                     down.consume()
                                     try {
                                         while (true) {
                                             val event = awaitPointerEvent()
                                             if (event.changes.any { it.id != pointerId && it.pressed }) {
-                                                onSwipeDragCancelled?.invoke(handle, original)
+                                                onSwipeDragCancelled?.invoke(swipe)
                                                 break
                                             }
                                             val change = event.changes.firstOrNull { it.id == pointerId } ?: break
@@ -174,8 +182,8 @@ internal class PositionSelectorViews(
                                                 onSwipeDragStateChanged?.invoke(true)
                                             }
                                             if (dragging) {
-                                                onSwipeHandleDragged?.invoke(
-                                                    handle,
+                                                onSwipeNodeDragged?.invoke(
+                                                    nodeIndex,
                                                     PointF(
                                                         (original.x + delta.x).coerceIn(0f, width),
                                                         (original.y + delta.y).coerceIn(0f, height),
@@ -210,7 +218,17 @@ internal class PositionSelectorViews(
                                     maxHeightPx = constraints.maxHeight,
                                     safeInsetTopPx = displayConfig.safeInsetTopPx,
                                     coordinateStepPx = coordinateStepPx,
-                                    onMove = { point -> onSwipeHandleDragged?.invoke(SwipeHandle.START, point) },
+                                    onMove = { point -> onSwipeNodeDragged?.invoke(0, point) },
+                                )
+                            }
+                            swipe.path?.nodes?.drop(1)?.dropLast(1)?.forEachIndexed { index, node ->
+                                SwipeNodeAccessibilityTarget(
+                                    label = stringResource(R.string.swipe_position_node, index + 2),
+                                    position = PointF(node.position.x, node.position.y),
+                                    maxWidthPx = constraints.maxWidth,
+                                    maxHeightPx = constraints.maxHeight,
+                                    coordinateStepPx = coordinateStepPx,
+                                    onMove = { point -> onSwipeNodeDragged?.invoke(index + 1, point) },
                                 )
                             }
                             swipe.to?.let { position ->
@@ -222,7 +240,7 @@ internal class PositionSelectorViews(
                                     maxHeightPx = constraints.maxHeight,
                                     safeInsetTopPx = displayConfig.safeInsetTopPx,
                                     coordinateStepPx = coordinateStepPx,
-                                    onMove = { point -> onSwipeHandleDragged?.invoke(SwipeHandle.END, point) },
+                                    onMove = { point -> onSwipeNodeDragged?.invoke(swipe.path?.nodes?.lastIndex ?: 1, point) },
                                 )
                             }
                         }
@@ -251,6 +269,44 @@ internal class PositionSelectorViews(
                 }
             }
         }
+    }
+
+    @Composable
+    private fun SwipeNodeAccessibilityTarget(
+        label: String,
+        position: PointF,
+        maxWidthPx: Int,
+        maxHeightPx: Int,
+        coordinateStepPx: Float,
+        onMove: (PointF) -> Unit,
+    ) {
+        val targetSizePx = with(LocalDensity.current) { 48.dp.toPx() }
+        val x = (position.x - targetSizePx / 2f).coerceIn(0f, (maxWidthPx - targetSizePx).coerceAtLeast(0f))
+        val y = (position.y - targetSizePx / 2f).coerceIn(0f, (maxHeightPx - targetSizePx).coerceAtLeast(0f))
+        val moveLeftLabel = stringResource(R.string.swipe_position_move_left, label)
+        val moveRightLabel = stringResource(R.string.swipe_position_move_right, label)
+        val moveUpLabel = stringResource(R.string.swipe_position_move_up, label)
+        val moveDownLabel = stringResource(R.string.swipe_position_move_down, label)
+        fun move(dx: Float, dy: Float): Boolean {
+            onMove(PointF(
+                (position.x + dx).coerceIn(0f, maxWidthPx.toFloat()),
+                (position.y + dy).coerceIn(0f, maxHeightPx.toFloat()),
+            ))
+            return true
+        }
+        Box(Modifier
+            .offset { IntOffset(x.roundToInt(), y.roundToInt()) }
+            .size(48.dp)
+            .semantics {
+                contentDescription = "$label, ${position.x.roundToInt()}, ${position.y.roundToInt()}"
+                customActions = listOf(
+                    CustomAccessibilityAction(moveLeftLabel) { move(-coordinateStepPx, 0f) },
+                    CustomAccessibilityAction(moveRightLabel) { move(coordinateStepPx, 0f) },
+                    CustomAccessibilityAction(moveUpLabel) { move(0f, -coordinateStepPx) },
+                    CustomAccessibilityAction(moveDownLabel) { move(0f, coordinateStepPx) },
+                )
+            },
+        )
     }
 
     @Composable

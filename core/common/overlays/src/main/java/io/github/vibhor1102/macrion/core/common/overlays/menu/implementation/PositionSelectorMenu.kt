@@ -157,38 +157,23 @@ class PositionSelectorMenu(
         currentDescription = description
         selectorViews.showSwipeEditor(true)
         if (!isRecordingSwipe) {
-            selectorViews.setInstruction(R.string.swipe_position_drag_instruction)
+            selectorViews.setInstruction(description.dragInstruction())
             selectorViews.setDescription(description)
         }
-        selectorViews.onSwipeHandleDragged = { handle, position ->
+        selectorViews.onSwipeNodeDragged = { index, position ->
             val current = currentDescription as? SwipeDescription
             if (current != null) {
-                updateSwipeDescription(when (handle) {
-                    SwipeHandle.START -> current.copy(
-                        from = position,
-                        path = current.path?.moveNode(0, SwipePoint(position)),
-                    )
-                    SwipeHandle.END -> current.copy(
-                        to = position,
-                        path = current.path?.let { it.moveNode(it.nodes.lastIndex, SwipePoint(position)) },
-                    )
-                })
+                val path = current.path
+                val lastIndex = path?.nodes?.lastIndex ?: 1
+                if (index in 0..lastIndex) updateSwipeDescription(current.copy(
+                    from = if (index == 0) position else current.from,
+                    to = if (index == lastIndex) position else current.to,
+                    path = path?.moveNode(index, SwipePoint(position)),
+                ))
             }
         }
-        selectorViews.onSwipeDragCancelled = { handle, original ->
-            val current = currentDescription as? SwipeDescription
-            if (current != null) {
-                updateSwipeDescription(when (handle) {
-                    SwipeHandle.START -> current.copy(
-                        from = original,
-                        path = current.path?.moveNode(0, SwipePoint(original)),
-                    )
-                    SwipeHandle.END -> current.copy(
-                        to = original,
-                        path = current.path?.let { it.moveNode(it.nodes.lastIndex, SwipePoint(original)) },
-                    )
-                })
-            }
+        selectorViews.onSwipeDragCancelled = { original ->
+            updateSwipeDescription(original)
             selectorViews.showInstruction(R.string.swipe_position_multi_touch)
         }
         selectorViews.onSwipeMultiTouch = {

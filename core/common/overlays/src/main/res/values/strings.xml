@@ -26,12 +26,14 @@
     <string name="overlay_instructions_gesture_record">Recording gesture…</string>
     <string name="swipe_position_record">Record gesture</string>
     <string name="swipe_position_drag_instruction">Drag Start or End to adjust the swipe</string>
+    <string name="swipe_position_drag_node_instruction">Drag any handle to adjust the swipe</string>
     <string name="swipe_position_record_instruction">Draw one swipe to set both positions</string>
     <string name="swipe_position_short_gesture">Draw a swipe to set both positions</string>
     <string name="swipe_position_multi_touch">A swipe uses one finger. Create a Multi-touch action for multiple fingers.</string>
     <string name="swipe_position_record_failed">Couldn’t record the swipe. Try again.</string>
     <string name="swipe_position_start">Start</string>
     <string name="swipe_position_end">End</string>
+    <string name="swipe_position_node">Point %1$d</string>
     <string name="swipe_position_move_left">Move %1$s left</string>
     <string name="swipe_position_move_right">Move %1$s right</string>
     <string name="swipe_position_move_up">Move %1$s up</string>

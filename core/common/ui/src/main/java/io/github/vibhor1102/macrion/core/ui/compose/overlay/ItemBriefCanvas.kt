@@ -421,12 +421,15 @@ private fun calculateLabelAngles(description: ActionCarouselDescription): Map<Pa
 
 private fun ItemBriefDescription.markerPositions(): List<Offset> = when (this) {
     is ClickDescription -> position?.let { listOf(Offset(it.x, it.y)) }.orEmpty()
-    is SwipeDescription -> listOfNotNull(from, to).map { Offset(it.x, it.y) }
+    is SwipeDescription -> numberBadgeTargets().map { Offset(it.x, it.y) }
     is SplitDescription -> subDescriptions.flatMap { it.markerPositions() }
     else -> emptyList()
 }
 
 private const val INACTIVE_PREVIEW_STROKE_ALPHA = 0.6f
+private fun SwipeDescription.numberBadgeTargets(): List<PointF> =
+    if (path?.isCurved == true) listOfNotNull(from) else listOfNotNull(from, to)
+
 private enum class IndicatorPass { ALL, BACKGROUND, FOREGROUND }
 
 private fun DrawScope.drawNumberedActionPreview(
@@ -581,6 +584,9 @@ private fun DrawScope.drawSwipeIndicator(
 ) {
     val from = description.from?.let { Offset(it.x, it.y) }
     val to = description.to?.let { Offset(it.x, it.y) }
+    val curved = description.path?.isCurved == true
+    val endRingRadius = if (curved) outerRadiusPx * 0.55f else outerRadiusPx
+    val endDotRadius = if (curved) innerRadiusPx * 0.72f else innerRadiusPx
 
     if (from == null && to == null) return
 
@@ -594,18 +600,6 @@ private fun DrawScope.drawSwipeIndicator(
             radius = outerRadiusPx * 2f,
             center = p,
         )
-        if (pass != IndicatorPass.BACKGROUND) drawCircle(
-            color = primaryColor,
-            radius = outerRadiusPx,
-            center = p,
-            style = Stroke(width = thicknessPx),
-        )
-        if (pass != IndicatorPass.BACKGROUND) drawCircle(
-            color = innerColor,
-            radius = innerRadiusPx,
-            center = p,
-            style = Fill,
-        )
     }
 
     to?.let { p ->
@@ -613,22 +607,10 @@ private fun DrawScope.drawSwipeIndicator(
             brush = Brush.radialGradient(
                 colors = listOf(backgroundColor, Color.Transparent),
                 center = p,
-                radius = outerRadiusPx * 1.75f,
+                radius = if (curved) outerRadiusPx * 1.25f else outerRadiusPx * 1.75f,
             ),
             radius = outerRadiusPx * 2f,
             center = p,
-        )
-        if (pass != IndicatorPass.BACKGROUND) drawCircle(
-            color = secondaryColor,
-            radius = outerRadiusPx,
-            center = p,
-            style = Stroke(width = thicknessPx),
-        )
-        if (pass != IndicatorPass.BACKGROUND) drawCircle(
-            color = innerColor,
-            radius = innerRadiusPx,
-            center = p,
-            style = Fill,
         )
     }
 
@@ -645,11 +627,23 @@ private fun DrawScope.drawSwipeIndicator(
             style = Stroke(width = innerRadiusPx / 2f),
         )
 
+        // Draw handles in path order so an overlapping later node is visibly on top.
+        from.let { center ->
+            drawCircle(primaryColor, outerRadiusPx, center, style = Stroke(width = thicknessPx))
+            drawCircle(innerColor, innerRadiusPx, center)
+        }
+
         if (isFocused) description.path?.nodes?.drop(1)?.dropLast(1)?.forEach { node ->
             val center = Offset(node.position.x, node.position.y)
             drawCircle(primaryColor.copy(alpha = 0.8f), outerRadiusPx * 0.38f, center,
                 style = Stroke(width = thicknessPx * 0.6f))
             drawCircle(innerColor, innerRadiusPx * 0.72f, center)
+        }
+
+        to.let { center ->
+            drawCircle(secondaryColor, endRingRadius, center,
+                style = Stroke(width = if (curved) thicknessPx * 0.7f else thicknessPx))
+            drawCircle(innerColor, endDotRadius, center)
         }
 
         if (progress != null) {
@@ -671,6 +665,16 @@ private fun DrawScope.drawSwipeIndicator(
                     style = Stroke(width = innerRadiusPx * 0.75f),
                 )
             }
+        }
+    } else {
+        from?.let { center ->
+            drawCircle(primaryColor, outerRadiusPx, center, style = Stroke(width = thicknessPx))
+            drawCircle(innerColor, innerRadiusPx, center)
+        }
+        to?.let { center ->
+            drawCircle(secondaryColor, endRingRadius, center,
+                style = Stroke(width = if (curved) thicknessPx * 0.7f else thicknessPx))
+            drawCircle(innerColor, endDotRadius, center)
         }
     }
 }
@@ -726,7 +730,7 @@ private fun DrawScope.actionNumberBadges(
                 else description.position?.let { Offset(it.x, it.y) }
             listOfNotNull(target?.let { badgeAt(it, outerRadiusPx * if (animate) clickScale else 1f) })
         }
-        is SwipeDescription -> listOfNotNull(description.from, description.to)
+        is SwipeDescription -> description.numberBadgeTargets()
             .map { badgeAt(Offset(it.x, it.y), outerRadiusPx) }
         is SplitDescription -> description.subDescriptions.flatMap { child ->
             val childScale = if (animate && child is ClickDescription &&
