@@ -18,6 +18,7 @@ package io.github.vibhor1102.macrion.core.dumb.domain.model
 
 import android.graphics.Point
 
+import io.github.vibhor1102.macrion.core.base.compat.normalizedMultiTouchName
 import io.github.vibhor1102.macrion.core.base.identifier.DATABASE_ID_INSERTION
 import io.github.vibhor1102.macrion.core.base.identifier.Identifier
 import io.github.vibhor1102.macrion.core.dumb.data.database.DumbActionEntity
@@ -33,7 +34,7 @@ internal fun DumbActionEntity.toDomain(asDomain: Boolean = false): DumbAction = 
     DumbActionType.SPLIT_ACTION -> DumbAction.DumbSplitAction(
         id = Identifier(id = id, asTemporary = asDomain),
         scenarioId = Identifier(id = dumbScenarioId, asTemporary = asDomain),
-        name = name.trim(),
+        name = name.trim().normalizedMultiTouchName(),
         priority = priority,
         repeatCount = repeatCount ?: 1,
         isRepeatInfinite = isRepeatInfinite ?: false,
@@ -48,7 +49,7 @@ internal fun DumbActionWithSubActions.toDomain(asDomain: Boolean = false): DumbA
     DumbActionType.SPLIT_ACTION -> DumbAction.DumbSplitAction(
         id = Identifier(id = action.id, asTemporary = asDomain),
         scenarioId = Identifier(id = action.dumbScenarioId, asTemporary = asDomain),
-        name = action.name.trim(),
+        name = action.name.trim().normalizedMultiTouchName(),
         priority = action.priority,
         repeatCount = action.repeatCount ?: 1,
         isRepeatInfinite = action.isRepeatInfinite ?: false,

@@ -3,6 +3,9 @@ package io.github.vibhor1102.macrion.core.dumb.domain.model
 import android.graphics.Point
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.github.vibhor1102.macrion.core.base.identifier.Identifier
+import io.github.vibhor1102.macrion.core.dumb.data.database.DumbActionEntity
+import io.github.vibhor1102.macrion.core.dumb.data.database.DumbActionType
+import io.github.vibhor1102.macrion.core.dumb.data.database.DumbActionWithSubActions
 import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -28,5 +31,16 @@ class CombinedActionPersistenceTest {
         assertTrue(parent.isValid())
         assertFalse(parent.copy(subActions = List(11) { click() }).isValid())
         assertFalse(parent.copy(subActions = listOf(parent, click())).isValid())
+    }
+
+    @Test fun savedMultiTouchDefaultsUseCurrentLabel() {
+        listOf("Simultaneous click/swipe", "Simultaneous Touch").forEach { oldName ->
+            val saved = DumbActionEntity(10, 2, name = oldName, type = DumbActionType.SPLIT_ACTION)
+            assertEquals("Multi-touch", (saved.toDomain() as DumbAction.DumbSplitAction).name)
+            assertEquals("Multi-touch", (DumbActionWithSubActions(saved).toDomain() as DumbAction.DumbSplitAction).name)
+            assertEquals(oldName, saved.name)
+        }
+        val custom = DumbActionEntity(10, 2, name = "Custom gesture", type = DumbActionType.SPLIT_ACTION)
+        assertEquals("Custom gesture", (DumbActionWithSubActions(custom).toDomain() as DumbAction.DumbSplitAction).name)
     }
 }
