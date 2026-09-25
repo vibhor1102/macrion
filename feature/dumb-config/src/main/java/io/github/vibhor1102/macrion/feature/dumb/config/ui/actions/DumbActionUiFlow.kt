@@ -103,6 +103,8 @@ internal fun OverlayManager.startDumbSplitActionEditionUiFlow(
             onDeleteClicked = listener.onDumbActionDeleted,
             onDismissClicked = listener.onDumbActionCreationCancelled,
             onUnsplitClicked = listener.onDumbActionUnsplit,
+            combinationOptions = listener.combinationOptionsFor?.invoke(dumbSplitAction),
+            closeSourceEditorOnSave = listener.closeSourceEditorOnSave,
         ),
         hideCurrent = true,
     )
@@ -127,6 +129,7 @@ private fun OverlayManager.startDumbClickEditionUiFlow(
             onConfirmClicked = listener.onDumbActionSaved,
             onDeleteClicked = listener.onDumbActionDeleted,
             onDismissClicked = listener.onDumbActionCreationCancelled,
+            combinationOptions = listener.combinationOptionsFor?.invoke(dumbClick),
         ),
         hideCurrent = true,
     )
@@ -200,6 +203,7 @@ private fun OverlayManager.startDumbSwipeEditionFlow(
             onConfirmClicked = listener.onDumbActionSaved,
             onDeleteClicked = listener.onDumbActionDeleted,
             onDismissClicked = listener.onDumbActionCreationCancelled,
+            combinationOptions = listener.combinationOptionsFor?.invoke(dumbSwipe),
         ),
         hideCurrent = true,
     )
@@ -265,6 +269,8 @@ internal class DumbActionUiFlowListener(
     val onDumbActionDeleted: (dumbAction: DumbAction) -> Unit,
     val onDumbActionCreationCancelled: () -> Unit,
     val onDumbActionUnsplit: ((DumbAction.DumbSplitAction) -> Unit)? = null,
+    val combinationOptionsFor: ((DumbAction) -> DumbCombinationOptions?)? = null,
+    val closeSourceEditorOnSave: Boolean = false,
 )
 
 internal class DumbActionCreator(

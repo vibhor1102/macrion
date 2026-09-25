@@ -15,10 +15,14 @@ import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayDialog
 import io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.PositionSelectorMenu
 import io.github.vibhor1102.macrion.core.dumb.domain.model.DumbAction
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionGestureEditor
+import io.github.vibhor1102.macrion.core.ui.compose.ExistingActionPicker
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.SwipeDescription
 import io.github.vibhor1102.macrion.feature.dumb.config.R
 import io.github.vibhor1102.macrion.feature.dumb.config.di.DumbConfigViewModelsEntryPoint
+import io.github.vibhor1102.macrion.feature.dumb.config.ui.actions.DumbCombinationOptions
+import io.github.vibhor1102.macrion.feature.dumb.config.ui.actions.DumbActionHeaderMenu
+import io.github.vibhor1102.macrion.feature.dumb.config.ui.actions.toPickerOptions
 
 class DumbSwipeDialog(
     private val dumbSwipe: DumbAction.DumbSwipe,
@@ -27,7 +31,9 @@ class DumbSwipeDialog(
     private val onDismissClicked: () -> Unit,
     private val isCombinedChild: Boolean = false,
     private val canDelete: Boolean = true,
+    private val combinationOptions: DumbCombinationOptions? = null,
 ) : OverlayDialog(R.style.AppTheme) {
+    private var showingExistingPicker by mutableStateOf(false)
     private val viewModel: DumbSwipeViewModel by viewModels(
         entryPoint = DumbConfigViewModelsEntryPoint::class.java,
         creator = { dumbSwipeViewModel() },
@@ -42,6 +48,14 @@ class DumbSwipeDialog(
     }
 
 @Composable private fun Content() {
+        if (showingExistingPicker) {
+            ExistingActionPicker(combinationOptions?.existingActions.orEmpty().toPickerOptions(),
+                onBack = { showingExistingPicker = false }) { other ->
+                val source = viewModel.getEditedDumbSwipe() ?: return@ExistingActionPicker
+                combinationOptions?.onExisting?.invoke(source, other)
+            }
+            return
+        }
         val initialName by viewModel.name.collectAsStateWithLifecycle(initialValue = null)
         val initialDuration by viewModel.swipeDuration.collectAsStateWithLifecycle(initialValue = null)
         val initialCount by viewModel.repeatCount.collectAsStateWithLifecycle(initialValue = null)
@@ -61,6 +75,16 @@ class DumbSwipeDialog(
         LaunchedEffect(initialWaitBefore) { initialWaitBefore?.let { waitBefore = it } }
         LaunchedEffect(initialWaitAfter) { initialWaitAfter?.let { waitAfter = it } }
         MacrionGestureEditor(
+            headerActions = combinationOptions?.let { options ->
+                { DumbActionHeaderMenu(
+                    showNewOptions = true,
+                    canAdd = true,
+                    canCombineExisting = options.existingActions.isNotEmpty(),
+                    onNewClick = { viewModel.getEditedDumbSwipe()?.let(options.onNewClick) },
+                    onNewSwipe = { viewModel.getEditedDumbSwipe()?.let(options.onNewSwipe) },
+                    onExisting = { showingExistingPicker = true },
+                ) }
+            },
             deleteEnabled = canDelete,
             title = context.getString(R.string.item_title_dumb_swipe), name = name, duration = duration,
             repeatCount = count, repeatDelay = delay,
@@ -108,6 +132,10 @@ class DumbSwipeDialog(
                 } },
             ), hideCurrent = true)
         }
+    }
+
+    override fun back() {
+        if (showingExistingPicker) showingExistingPicker = false else super.back()
     }
 
     private fun Point.toEditionPosition(): PointF? = if (x < 0 || y < 0) null else toPointF()

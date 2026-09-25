@@ -130,34 +130,10 @@ class SmartActionsBriefMenu(initialItemIndex: Int) : ItemBriefMenu(
     @androidx.compose.runtime.Composable
     override fun ItemBriefContent(item: ItemBrief, orientation: Int, onClick: () -> Unit) {
         val uiAction = item.data as UiAction
-        val combinableActions by viewModel.combinableUiActions.collectAsState(emptyList())
         SmartActionBriefItem(
             details = uiAction,
             orientation = orientation,
             onClick = onClick,
-            combinableActions = combinableActions,
-            onCombineWithNewClick = {
-                val split = viewModel.combineWithNewClick(uiAction.action)
-                if (split != null) showActionConfigDialog(split)
-            },
-            onCombineWithNewSwipe = {
-                val split = viewModel.combineWithNewSwipe(uiAction.action)
-                if (split != null) {
-                    showActionConfigDialog(split)
-                }
-            },
-            onCombineWithAction = { otherAction ->
-                val split = viewModel.combineActions(uiAction.action, otherAction)
-                if (split != null) {
-                    showActionConfigDialog(split)
-                }
-            },
-            onUnsplit = {
-                val action = uiAction.action
-                if (action is io.github.vibhor1102.macrion.core.domain.model.action.SplitAction) {
-                    viewModel.unsplitAction(action)
-                }
-            },
         )
     }
 

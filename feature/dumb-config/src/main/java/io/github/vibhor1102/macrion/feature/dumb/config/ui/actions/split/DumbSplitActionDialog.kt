@@ -42,10 +42,14 @@ import io.github.vibhor1102.macrion.core.ui.compose.MacrionTextField
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.core.ui.compose.NumericField
 import io.github.vibhor1102.macrion.core.ui.compose.OverlayDialogShape
+import io.github.vibhor1102.macrion.core.ui.compose.ExistingActionPicker
 import io.github.vibhor1102.macrion.feature.dumb.config.R
 import io.github.vibhor1102.macrion.feature.dumb.config.di.DumbConfigViewModelsEntryPoint
 import io.github.vibhor1102.macrion.feature.dumb.config.ui.actions.click.DumbClickDialog
 import io.github.vibhor1102.macrion.feature.dumb.config.ui.actions.swipe.DumbSwipeDialog
+import io.github.vibhor1102.macrion.feature.dumb.config.ui.actions.DumbCombinationOptions
+import io.github.vibhor1102.macrion.feature.dumb.config.ui.actions.DumbActionHeaderMenu
+import io.github.vibhor1102.macrion.feature.dumb.config.ui.actions.toPickerOptions
 
 class DumbSplitActionDialog(
     private val dumbSplitAction: DumbAction.DumbSplitAction,
@@ -54,9 +58,12 @@ class DumbSplitActionDialog(
     private val onDismissClicked: () -> Unit,
     private val onUnsplitClicked: ((DumbAction.DumbSplitAction) -> Unit)? = null,
     private val onConfigureSubAction: ((parent: DumbAction.DumbSplitAction, subIndex: Int) -> Unit)? = null,
+    private val combinationOptions: DumbCombinationOptions? = null,
+    private val closeSourceEditorOnSave: Boolean = false,
 ) : OverlayDialog(R.style.AppTheme) {
 
     private var showDiscardConfirmation by mutableStateOf(false)
+    private var showingExistingPicker by mutableStateOf(false)
 
     private val viewModel: DumbSplitActionViewModel by viewModels(
         entryPoint = DumbConfigViewModelsEntryPoint::class.java,
@@ -75,6 +82,16 @@ class DumbSplitActionDialog(
     private fun Content() {
         val state by viewModel.uiState.collectAsStateWithLifecycle()
         val ui = state ?: return
+        val existing = combinationOptions?.existingActions.orEmpty().filter { details ->
+            ui.subActions.size + ((details.action as? DumbAction.DumbSplitAction)?.subActions?.size ?: 1) <= 10
+        }
+        if (showingExistingPicker) {
+            ExistingActionPicker(existing.toPickerOptions(), onBack = { showingExistingPicker = false }) { other ->
+                val source = viewModel.getEditedDumbSplit() ?: return@ExistingActionPicker
+                combinationOptions?.onExisting?.invoke(source, other)
+            }
+            return
+        }
         if (showDiscardConfirmation) {
             AlertDialog(
                 onDismissRequest = { showDiscardConfirmation = false },
@@ -116,6 +133,16 @@ class DumbSplitActionDialog(
                         onDismiss = ::onDismissDialog,
                         onDelete = ::onDeleteDialog,
                         onSave = ::onSaveDialog,
+                        headerActions = {
+                            if (combinationOptions != null) DumbActionHeaderMenu(
+                                showNewOptions = false,
+                                canAdd = false,
+                                canCombineExisting = existing.isNotEmpty(),
+                                canUnsplit = ui.canUnsplit && ui.canBeSaved,
+                                onExisting = { showingExistingPicker = true },
+                                onUnsplit = ::onUnsplitDialog,
+                            )
+                        },
                     )
                     Column(
                         modifier = Modifier
@@ -256,19 +283,6 @@ class DumbSplitActionDialog(
                             }
                         }
 
-                        TextButton(
-                            enabled = ui.canUnsplit && ui.canBeSaved,
-                            onClick = ::onUnsplitDialog,
-                            modifier = Modifier.align(Alignment.CenterHorizontally),
-                        ) {
-                            Icon(
-                                painter = painterResource(UiR.drawable.ic_drag_indicator),
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp),
-                            )
-                            Spacer(Modifier.width(6.dp))
-                            Text(stringResource(R.string.split_action_unsplit))
-                        }
                     }
                 }
             }
@@ -282,6 +296,7 @@ class DumbSplitActionDialog(
         onDismiss: () -> Unit,
         onDelete: () -> Unit,
         onSave: () -> Unit,
+        headerActions: @Composable () -> Unit,
     ) {
         Row(
             modifier = Modifier
@@ -301,6 +316,7 @@ class DumbSplitActionDialog(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
+            headerActions()
             FilledTonalIconButton(onClick = onDelete) {
                 Icon(painterResource(UiR.drawable.ic_delete), null)
             }
@@ -437,6 +453,7 @@ class DumbSplitActionDialog(
     }
 
     override fun back() {
+        if (showingExistingPicker) { showingExistingPicker = false; return }
         if (viewModel.hasUnsavedModifications()) showDiscardConfirmation = true
         else dismissDraft()
     }
@@ -452,6 +469,7 @@ class DumbSplitActionDialog(
         viewModel.getEditedDumbSplit()?.let {
             onConfirmClicked(it)
             super.back()
+            if (closeSourceEditorOnSave) overlayManager.navigateUp(context)
         }
     }
 

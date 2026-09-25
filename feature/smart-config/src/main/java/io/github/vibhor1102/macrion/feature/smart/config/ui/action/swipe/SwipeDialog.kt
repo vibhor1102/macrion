@@ -5,6 +5,7 @@ import android.util.Log
 import android.view.ViewGroup
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.core.graphics.toPoint
@@ -24,13 +25,18 @@ import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.SwipeDescr
 import io.github.vibhor1102.macrion.feature.smart.config.R
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
 import io.github.vibhor1102.macrion.feature.smart.config.ui.action.OnActionConfigCompleteListener
+import io.github.vibhor1102.macrion.feature.smart.config.ui.action.brief.SmartActionHeaderMenu
+import io.github.vibhor1102.macrion.feature.smart.config.ui.action.brief.toPickerOptions
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.dialogs.showCloseWithoutSavingDialog
 import kotlinx.coroutines.launch
 
 class SwipeDialog(
     private val listener: OnActionConfigCompleteListener,
     private val canDelete: Boolean = true,
+    private val combinationOptions: io.github.vibhor1102.macrion.feature.smart.config.ui.action.brief.SmartCombinationOptions? = null,
 ) : OverlayDialog(R.style.ScenarioConfigTheme) {
+
+    private var showingExistingPicker by androidx.compose.runtime.mutableStateOf(false)
 
     override fun tutorialMonitoringTag(): String = MonitoredOverlayType.SWIPE.name
 
@@ -46,7 +52,7 @@ class SwipeDialog(
 
     override fun onDialogCreated(dialog: Dialog) {
         lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.CREATED) {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.isEditingAction.collect(::onActionEditingStateChanged)
             }
         }
@@ -56,6 +62,18 @@ class SwipeDialog(
     private fun Content() {
         val state by viewModel.uiState.collectAsStateWithLifecycle()
         val ui = state ?: return
+        if (showingExistingPicker) {
+            io.github.vibhor1102.macrion.core.ui.compose.ExistingActionPicker(
+                options = combinationOptions?.existingActions.orEmpty().toPickerOptions(context),
+                onBack = { showingExistingPicker = false },
+                onSelected = { other ->
+                    val source = viewModel.getEditedSwipe() ?: return@ExistingActionPicker
+                    showingExistingPicker = false
+                    combinationOptions?.onExisting?.invoke(source, other)
+                },
+            )
+            return
+        }
         MacrionPositionGestureEditor(
             deleteEnabled = canDelete,
             title = context.getString(R.string.dialog_title_swipe),
@@ -80,10 +98,23 @@ class SwipeDialog(
             onDismiss = ::back,
             onDelete = ::onDeleteButtonClicked,
             onSave = ::onSaveButtonClicked,
+            headerActions = combinationOptions?.let { options ->
+                {
+                    SmartActionHeaderMenu(
+                        showNewOptions = true,
+                        canAdd = true,
+                        canCombineExisting = options.existingActions.isNotEmpty(),
+                        onNewClick = { viewModel.getEditedSwipe()?.let(options.onNewClick) },
+                        onNewSwipe = { viewModel.getEditedSwipe()?.let(options.onNewSwipe) },
+                        onExisting = { showingExistingPicker = true },
+                    )
+                }
+            },
         )
     }
 
     override fun back() {
+        if (showingExistingPicker) { showingExistingPicker = false; return }
         if (viewModel.hasUnsavedModifications()) {
             context.showCloseWithoutSavingDialog {
                 listener.onDismissClicked()

@@ -41,6 +41,7 @@ internal class ActionsEditor<Parent>(
     private var editedSubActionIndex: Int = -1
     private var parentReference: Action? = null
     private var pendingCombination: Set<Identifier> = emptySet()
+    private var sourceBeforeCombination: Pair<Action, Action>? = null
 
     val intentExtraEditor: ListEditor<IntentExtra<out Any>, Action> = ListEditor(
         onListUpdated = ::onEditedActionIntentExtraUpdated,
@@ -67,6 +68,7 @@ internal class ActionsEditor<Parent>(
         // The UI opens the parent after creating a pending combination.
         if (pendingCombination.isNotEmpty() && editedItem.value?.id == item.id) return
         pendingCombination = emptySet()
+        sourceBeforeCombination = null
         parentSplitAction = null
         parentReference = null
         editedSubActionIndex = -1
@@ -91,12 +93,19 @@ internal class ActionsEditor<Parent>(
         parentReference = null
         editedSubActionIndex = -1
         pendingCombination = emptySet()
+        sourceBeforeCombination = null
         super.stopEdition()
     }
 
     override fun stopItemEdition() {
         parentSplitAction?.let {
             returnToParent(it)
+            return
+        }
+        sourceBeforeCombination?.takeIf { pendingCombination.isNotEmpty() }?.let { (reference, draft) ->
+            pendingCombination = emptySet()
+            sourceBeforeCombination = null
+            restoreItemEdition(reference, draft)
             return
         }
         pendingCombination = emptySet()
@@ -120,6 +129,7 @@ internal class ActionsEditor<Parent>(
             val updated = current.filterNot { it.id in pendingCombination }.toMutableList()
             updated.add(index, parent)
             updateList(updated)
+            sourceBeforeCombination = null
             stopItemEdition()
         } else {
             super.upsertEditedItem()
@@ -134,6 +144,10 @@ internal class ActionsEditor<Parent>(
                     .mapIndexed { index, action -> action.copyBase(priority = index) }
             } else parent.subActions
             returnToParent(parent.copy(subActions = children))
+            return
+        }
+        if (pendingCombination.isNotEmpty()) {
+            stopItemEdition()
             return
         }
         super.deleteEditedItem()
@@ -182,7 +196,10 @@ internal class ActionsEditor<Parent>(
         val idxA = currentList.indexOfFirst { it.id == actionA.id }
         val idxB = currentList.indexOfFirst { it.id == actionB.id }
         if (idxA == -1 || idxB == -1 || idxA == idxB) return null
-        val children = listOf(minOf(idxA, idxB), maxOf(idxA, idxB)).map { currentList[it] }.flatMap { it.touchActions() }
+        val children = listOf(minOf(idxA, idxB), maxOf(idxA, idxB)).map { index ->
+            val stored = currentList[index]
+            if (stored.id == actionA.id) actionA else if (stored.id == actionB.id) actionB else stored
+        }.flatMap { it.touchActions() }
         if (children.size !in 2..10) return null
 
         val insertIndex = minOf(idxA, idxB)
@@ -195,7 +212,9 @@ internal class ActionsEditor<Parent>(
             subActions = children.mapIndexed { index, child -> child.copyBase(id = childId(), priority = index) },
         )
 
+        val originalEdition = combinationSource(actionA)
         startItemEdition(splitAction)
+        sourceBeforeCombination = originalEdition
         pendingCombination = setOf(actionA.id, actionB.id)
         return splitAction
     }
@@ -204,7 +223,7 @@ internal class ActionsEditor<Parent>(
         val currentList = editedList.value?.toMutableList() ?: return null
         val idx = currentList.indexOfFirst { it.id == action.id }
         if (idx == -1) return null
-        val children = currentList[idx].touchActions() + newSubAction.touchActions()
+        val children = action.touchActions() + newSubAction.touchActions()
         if (children.size !in 2..10) return null
 
         val splitAction = SplitAction(
@@ -215,7 +234,9 @@ internal class ActionsEditor<Parent>(
             subActions = children.mapIndexed { index, child -> child.copyBase(id = childId(), priority = index) },
         )
 
+        val originalEdition = combinationSource(action)
         startItemEdition(splitAction)
+        sourceBeforeCombination = originalEdition
         pendingCombination = setOf(action.id)
         return splitAction
     }
@@ -236,6 +257,12 @@ internal class ActionsEditor<Parent>(
         is Click, is Swipe -> listOf(this)
         is SplitAction -> subActions
         else -> emptyList()
+    }
+
+    private fun combinationSource(source: Action): Pair<Action, Action>? {
+        val draft = editedItem.value?.takeIf { it.id == source.id } ?: return null
+        val reference = referenceEditedItem.value ?: return null
+        return reference to draft
     }
 
     override fun itemCanBeSaved(item: Action?, parent: Parent?): Boolean =

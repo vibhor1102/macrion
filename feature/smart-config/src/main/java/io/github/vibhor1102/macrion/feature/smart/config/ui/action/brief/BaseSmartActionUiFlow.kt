@@ -64,7 +64,19 @@ internal interface ActionConfigurator {
     fun upsertEditedAction()
     fun removeEditedAction()
     fun dismissEditedAction()
+    fun isExistingTopLevelAction(action: Action): Boolean
+    fun combinableActions(source: Action): List<Action>
+    fun combineWithNewClick(source: Action): SplitAction?
+    fun combineWithNewSwipe(source: Action): SplitAction?
+    fun combineActions(source: Action, other: Action): SplitAction?
 }
+
+class SmartCombinationOptions(
+    val existingActions: List<Action>,
+    val onNewClick: (Action) -> Unit,
+    val onNewSwipe: (Action) -> Unit,
+    val onExisting: (Action, Action) -> Unit,
+)
 
 internal fun BaseOverlay.showActionTypeSelectionDialog(configurator: ActionConfigurator) {
     overlayManager.navigateTo(
@@ -136,8 +148,26 @@ internal fun BaseOverlay.showSubActionConfigDialog(
     )
 }
 
-internal fun BaseOverlay.showActionConfigDialog(configurator: ActionConfigurator, action: Action) {
+internal fun BaseOverlay.showActionConfigDialog(
+    configurator: ActionConfigurator,
+    action: Action,
+) {
     configurator.startActionEdition(action)
+
+    val combinationOptions = if (configurator.isExistingTopLevelAction(action) &&
+        (action is Click || action is Swipe || action is SplitAction)
+    ) SmartCombinationOptions(
+        existingActions = configurator.combinableActions(action),
+        onNewClick = { source ->
+            configurator.combineWithNewClick(source)?.let { showActionConfigDialog(configurator, it) }
+        },
+        onNewSwipe = { source ->
+            configurator.combineWithNewSwipe(source)?.let { showActionConfigDialog(configurator, it) }
+        },
+        onExisting = { source, other ->
+            configurator.combineActions(source, other)?.let { showActionConfigDialog(configurator, it) }
+        },
+    ) else null
 
     val actionConfigDialogListener: OnActionConfigCompleteListener by lazy {
         object : OnActionConfigCompleteListener {
@@ -150,12 +180,13 @@ internal fun BaseOverlay.showActionConfigDialog(configurator: ActionConfigurator
     val overlay = when (action) {
         is SplitAction -> SplitActionDialog(
             listener = actionConfigDialogListener,
+            combinationOptions = combinationOptions,
             onConfigureSubAction = { parent, subIndex ->
                 showSubActionConfigDialog(configurator, parent, subIndex)
             },
         )
-        is Click -> ClickDialog(actionConfigDialogListener)
-        is Swipe -> SwipeDialog(actionConfigDialogListener)
+        is Click -> ClickDialog(actionConfigDialogListener, combinationOptions = combinationOptions)
+        is Swipe -> SwipeDialog(actionConfigDialogListener, combinationOptions = combinationOptions)
         is Pause -> PauseDialog(actionConfigDialogListener)
         is Intent -> IntentDialog(actionConfigDialogListener)
         is SystemAction -> SystemActionDialog(actionConfigDialogListener)

@@ -24,18 +24,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.painterResource
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.action.UiAction
 
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.IconButton
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
-import io.github.vibhor1102.macrion.core.domain.model.action.Action
-import io.github.vibhor1102.macrion.core.domain.model.action.Click
-import io.github.vibhor1102.macrion.core.domain.model.action.SplitAction
-import io.github.vibhor1102.macrion.core.domain.model.action.Swipe
 import io.github.vibhor1102.macrion.core.ui.R as UiR
 import io.github.vibhor1102.macrion.feature.smart.config.R
 
@@ -44,17 +33,9 @@ internal fun SmartActionBriefItem(
     details: UiAction,
     orientation: Int,
     onClick: () -> Unit,
-    combinableActions: List<UiAction> = emptyList(),
-    onCombineWithNewClick: (() -> Unit)? = null,
-    onCombineWithNewSwipe: (() -> Unit)? = null,
-    onCombineWithAction: ((Action) -> Unit)? = null,
-    onUnsplit: (() -> Unit)? = null,
 ) {
     val portrait = orientation == Configuration.ORIENTATION_PORTRAIT
     val isSplit = details.subUiActions.isNotEmpty()
-    val touchCount = details.subUiActions.size.coerceAtLeast(1)
-    val isTouchAction = details.action is Click || details.action is Swipe || details.action is SplitAction
-    var menuExpanded by remember { mutableStateOf(false) }
 
     Box(Modifier.fillMaxSize(), if (portrait) Alignment.BottomCenter else Alignment.CenterStart) {
         if (isSplit) {
@@ -71,9 +52,6 @@ internal fun SmartActionBriefItem(
                             style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
                         Text(details.subUiActions.joinToString(" · ") { it.name },
                             style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    }
-                    IconButton(onClick = { menuExpanded = true }) {
-                        Icon(painterResource(UiR.drawable.ic_more), stringResource(R.string.action_edit_gestures))
                     }
                 }
             }
@@ -92,19 +70,6 @@ internal fun SmartActionBriefItem(
                             BriefText(details.description, 14, false, 1)
                         }
                         BriefIcon(details, Modifier.padding(end = 4.dp))
-                        if (isTouchAction) {
-                            IconButton(
-                                onClick = { menuExpanded = true },
-                                modifier = Modifier.size(36.dp),
-                            ) {
-                                Icon(
-                                    painter = painterResource(UiR.drawable.ic_more),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(20.dp),
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                            }
-                        }
                     }
                 } else {
                     Box(Modifier.fillMaxSize()) {
@@ -119,75 +84,11 @@ internal fun SmartActionBriefItem(
                             Spacer(Modifier.height(8.dp))
                             BriefIcon(details)
                         }
-                        if (isTouchAction) {
-                            IconButton(
-                                onClick = { menuExpanded = true },
-                                modifier = Modifier.align(Alignment.TopEnd).size(32.dp),
-                            ) {
-                                Icon(
-                                    painter = painterResource(UiR.drawable.ic_more),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(18.dp),
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                            }
-                        }
                     }
                 }
             }
         }
 
-        DropdownMenu(
-            expanded = menuExpanded,
-            onDismissRequest = { menuExpanded = false },
-            shape = MaterialTheme.shapes.large,
-            containerColor = MaterialTheme.colorScheme.surfaceContainer,
-        ) {
-            if (isSplit) {
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.action_edit_gestures)) },
-                    onClick = {
-                        menuExpanded = false
-                        onClick()
-                    },
-                )
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.action_unsplit)) },
-                    onClick = {
-                        menuExpanded = false
-                        onUnsplit?.invoke()
-                    },
-                )
-            }
-            if (isTouchAction) {
-                DropdownMenuItem(
-                    enabled = touchCount < 10,
-                    text = { Text(stringResource(R.string.action_combine_with_new_swipe)) },
-                    onClick = {
-                        menuExpanded = false
-                        onCombineWithNewSwipe?.invoke()
-                    },
-                )
-                DropdownMenuItem(
-                    enabled = touchCount < 10,
-                    text = { Text(stringResource(R.string.action_combine_with_new_click)) },
-                    onClick = {
-                        menuExpanded = false
-                        onCombineWithNewClick?.invoke()
-                    },
-                )
-                val others = combinableActions.filter { it.action.id != details.action.id && touchCount + it.subUiActions.size.coerceAtLeast(1) <= 10 }
-                others.forEach { other ->
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.action_combine_with, other.name)) },
-                        onClick = {
-                            menuExpanded = false
-                            onCombineWithAction?.invoke(other.action)
-                        },
-                    )
-                }
-            }
-        }
     }
 }
 

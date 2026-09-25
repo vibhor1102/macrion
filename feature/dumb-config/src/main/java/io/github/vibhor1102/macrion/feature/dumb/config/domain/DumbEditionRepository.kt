@@ -217,7 +217,10 @@ class DumbEditionRepository @Inject constructor(
         val idxA = currentList.indexOfFirst { it.id == actionA.id }
         val idxB = currentList.indexOfFirst { it.id == actionB.id }
         if (idxA == -1 || idxB == -1 || idxA == idxB) return null
-        val children = listOf(minOf(idxA, idxB), maxOf(idxA, idxB)).map { currentList[it] }.flatMap { it.touchActions() }
+        val children = listOf(minOf(idxA, idxB), maxOf(idxA, idxB)).map { index ->
+            val stored = currentList[index]
+            if (stored.id == actionA.id) actionA else actionB
+        }.flatMap { it.touchActions() }
         if (children.size !in 2..10) return null
 
         val insertIndex = minOf(idxA, idxB)
@@ -244,7 +247,7 @@ class DumbEditionRepository @Inject constructor(
         val currentList = editedScenario.dumbActions.toMutableList()
         val idx = currentList.indexOfFirst { it.id == action.id }
         if (idx == -1) return null
-        val children = currentList[idx].touchActions() + newSubAction.touchActions()
+        val children = action.touchActions() + newSubAction.touchActions()
         if (children.size !in 2..10) return null
 
         val existingParent = action as? DumbAction.DumbSplitAction

@@ -39,6 +39,7 @@ import io.github.vibhor1102.macrion.feature.dumb.config.di.DumbConfigViewModelsE
 import io.github.vibhor1102.macrion.feature.dumb.config.ui.createDumbBriefOverlayToolbar
 import io.github.vibhor1102.macrion.feature.dumb.config.ui.actions.DumbActionCreator
 import io.github.vibhor1102.macrion.feature.dumb.config.ui.actions.DumbActionUiFlowListener
+import io.github.vibhor1102.macrion.feature.dumb.config.ui.actions.DumbCombinationOptions
 import io.github.vibhor1102.macrion.feature.dumb.config.ui.actions.startDumbActionCreationUiFlow
 import io.github.vibhor1102.macrion.feature.dumb.config.ui.actions.startDumbActionEditionUiFlow
 import io.github.vibhor1102.macrion.feature.dumb.config.ui.actions.copy.DumbActionDetails
@@ -121,6 +122,28 @@ class DumbScenarioBriefMenu(
             onDumbActionDeleted = viewModel::deleteDumbAction,
             onDumbActionCreationCancelled = {},
             onDumbActionUnsplit = { split -> viewModel.unsplitAction(split) },
+            combinationOptionsFor = { source ->
+                viewModel.combinableActionsFor(source)?.let { others ->
+                    DumbCombinationOptions(
+                        existingActions = others,
+                        onNewClick = { draft ->
+                            viewModel.combineWithNewClick(draft)?.let {
+                                showCombinationEditor(it, setOf(draft.id))
+                            }
+                        },
+                        onNewSwipe = { draft ->
+                            viewModel.combineWithNewSwipe(draft)?.let {
+                                showCombinationEditor(it, setOf(draft.id))
+                            }
+                        },
+                        onExisting = { draft, other ->
+                            viewModel.combineActions(draft, other)?.let {
+                                showCombinationEditor(it, setOf(draft.id, other.id))
+                            }
+                        },
+                    )
+                }
+            },
         )
 
         menuView = createDumbBriefOverlayToolbar(context)
@@ -130,34 +153,10 @@ class DumbScenarioBriefMenu(
     @androidx.compose.runtime.Composable
     override fun ItemBriefContent(item: ItemBrief, orientation: Int, onClick: () -> Unit) {
         val details = item.data as DumbActionDetails
-        val combinableActions by viewModel.combinableDumbActions.collectAsStateWithLifecycle(emptyList())
         DumbActionBriefItem(
             details = details,
             orientation = orientation,
             onClick = onClick,
-            combinableActions = combinableActions,
-            onCombineWithNewClick = {
-                val split = viewModel.combineWithNewClick(details.action)
-                if (split != null) showCombinationEditor(split, setOf(details.action.id))
-            },
-            onCombineWithNewSwipe = {
-                val split = viewModel.combineWithNewSwipe(details.action)
-                if (split != null) {
-                    showCombinationEditor(split, setOf(details.action.id))
-                }
-            },
-            onCombineWithAction = { otherAction ->
-                val split = viewModel.combineActions(details.action, otherAction)
-                if (split != null) {
-                    showCombinationEditor(split, setOf(details.action.id, otherAction.id))
-                }
-            },
-            onUnsplit = {
-                val action = details.action
-                if (action is DumbAction.DumbSplitAction) {
-                    viewModel.unsplitAction(action)
-                }
-            },
         )
     }
 
@@ -342,6 +341,7 @@ class DumbScenarioBriefMenu(
             onDumbActionSaved = { viewModel.saveCombination(it as DumbAction.DumbSplitAction, sourceIds) },
             onDumbActionDeleted = {},
             onDumbActionCreationCancelled = {},
+            closeSourceEditorOnSave = true,
         ))
     }
 

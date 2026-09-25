@@ -45,16 +45,23 @@ import io.github.vibhor1102.macrion.core.ui.compose.MacrionDialogSurface
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTextField
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.core.ui.compose.OverlayDialogShape
+import io.github.vibhor1102.macrion.core.ui.compose.ExistingActionPicker
 import io.github.vibhor1102.macrion.feature.smart.config.R
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
 import io.github.vibhor1102.macrion.feature.smart.config.ui.action.OnActionConfigCompleteListener
+import io.github.vibhor1102.macrion.feature.smart.config.ui.action.brief.SmartCombinationOptions
+import io.github.vibhor1102.macrion.feature.smart.config.ui.action.brief.SmartActionHeaderMenu
+import io.github.vibhor1102.macrion.feature.smart.config.ui.action.brief.toPickerOptions
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.dialogs.showCloseWithoutSavingDialog
 import kotlinx.coroutines.launch
 
 class SplitActionDialog(
     private val listener: OnActionConfigCompleteListener,
     private val onConfigureSubAction: ((SplitAction, Int) -> Unit)? = null,
+    private val combinationOptions: SmartCombinationOptions? = null,
 ) : OverlayDialog(R.style.ScenarioConfigTheme) {
+
+    private var showingExistingPicker by mutableStateOf(false)
 
     private val viewModel: SplitActionViewModel by viewModels(
         entryPoint = ScenarioConfigViewModelsEntryPoint::class.java,
@@ -68,7 +75,7 @@ class SplitActionDialog(
 
     override fun onDialogCreated(dialog: Dialog) {
         lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.CREATED) {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.isEditingAction.collect { isEditing ->
                     if (!isEditing) {
                         Log.i("SplitActionDialog", "Action edition stopped, closing dialog")
@@ -83,6 +90,16 @@ class SplitActionDialog(
     private fun Content() {
         val state by viewModel.uiState.collectAsStateWithLifecycle()
         val ui = state ?: return
+        val existing = combinationOptions?.existingActions.orEmpty().filter {
+            ui.subActions.size + ((it as? SplitAction)?.subActions?.size ?: 1) <= 10
+        }
+        if (showingExistingPicker) {
+            ExistingActionPicker(existing.toPickerOptions(context), onBack = { showingExistingPicker = false }) { other ->
+                val source = viewModel.getEditedSplit() ?: return@ExistingActionPicker
+                combinationOptions?.onExisting?.invoke(source, other)
+            }
+            return
+        }
         var name by rememberSaveable { mutableStateOf(ui.name) }
         LaunchedEffect(ui.name) {
             if (ui.name != name) name = ui.name
@@ -104,6 +121,16 @@ class SplitActionDialog(
                         onDismiss = ::back,
                         onDelete = ::onDeleteClicked,
                         onSave = ::onSaveClicked,
+                        headerActions = {
+                            if (combinationOptions != null) SmartActionHeaderMenu(
+                                showNewOptions = false,
+                                canAdd = false,
+                                canCombineExisting = existing.isNotEmpty(),
+                                canUnsplit = ui.canUnsplit && ui.canBeSaved,
+                                onExisting = { showingExistingPicker = true },
+                                onUnsplit = ::onUnsplitClicked,
+                            )
+                        },
                     )
                     Column(
                         modifier = Modifier
@@ -188,19 +215,6 @@ class SplitActionDialog(
                             }
                         }
 
-                        TextButton(
-                            enabled = ui.canUnsplit && ui.canBeSaved,
-                            onClick = ::onUnsplitClicked,
-                            modifier = Modifier.align(Alignment.CenterHorizontally),
-                        ) {
-                            Icon(
-                                painter = painterResource(UiR.drawable.ic_drag_indicator),
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp),
-                            )
-                            Spacer(Modifier.width(6.dp))
-                            Text(stringResource(R.string.split_action_unsplit))
-                        }
                     }
                 }
             }
@@ -214,6 +228,7 @@ class SplitActionDialog(
         onDismiss: () -> Unit,
         onDelete: () -> Unit,
         onSave: () -> Unit,
+        headerActions: @Composable () -> Unit,
     ) {
         Row(
             modifier = Modifier
@@ -233,6 +248,7 @@ class SplitActionDialog(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
+            headerActions()
             FilledTonalIconButton(onClick = onDelete) {
                 Icon(painterResource(UiR.drawable.ic_delete), null)
             }
@@ -335,6 +351,7 @@ class SplitActionDialog(
     }
 
     override fun back() {
+        if (showingExistingPicker) { showingExistingPicker = false; return }
         if (viewModel.hasUnsavedModifications()) {
             context.showCloseWithoutSavingDialog {
                 listener.onDismissClicked()

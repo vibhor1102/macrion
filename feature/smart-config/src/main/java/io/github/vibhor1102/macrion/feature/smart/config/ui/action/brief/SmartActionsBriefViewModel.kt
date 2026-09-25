@@ -124,16 +124,6 @@ class SmartActionsBriefViewModel @Inject constructor(
             }
         }
 
-    val combinableUiActions: Flow<List<UiAction>> =
-        combine(editedEvent, editedActions) { event, actions ->
-            val actionList = actions.value ?: emptyList()
-            actionList.mapIndexedNotNull { index, action ->
-                if (action is Click || action is Swipe || action is SplitAction) {
-                    action.toUiAction(context, event, inError = !actions.itemValidity[index])
-                } else null
-            }
-        }
-
     val isTestingAction: Flow<Boolean> = smartProcessingRepository.detectionState
         .map { state -> state == DetectionState.DETECTING }
 
@@ -333,15 +323,27 @@ class SmartActionsBriefViewModel @Inject constructor(
         }
     }
 
-    fun combineWithNewClick(action: Action): SplitAction? =
+    override fun isExistingTopLevelAction(action: Action): Boolean =
+        editionRepository.editionState.getEditedEventActions<Action>()?.any { it.id == action.id } == true
+
+    override fun combinableActions(source: Action): List<Action> {
+        val currentCount = (source as? SplitAction)?.subActions?.size ?: 1
+        return editionRepository.editionState.getEditedEventActions<Action>().orEmpty()
+            .filter { other ->
+                other.id != source.id && (other is Click || other is Swipe || other is SplitAction) &&
+                    currentCount + ((other as? SplitAction)?.subActions?.size ?: 1) <= 10
+            }
+    }
+
+    override fun combineWithNewClick(action: Action): SplitAction? =
         editionRepository.combineActionWithNew(action, editionRepository.editedItemsBuilder.createNewClick(context))
 
-    fun combineWithNewSwipe(action: Action): SplitAction? {
+    override fun combineWithNewSwipe(action: Action): SplitAction? {
         val newSwipe = editionRepository.editedItemsBuilder.createNewSwipe(context)
         return editionRepository.combineActionWithNew(action, newSwipe)
     }
 
-    fun combineActions(actionA: Action, actionB: Action): SplitAction? {
+    override fun combineActions(actionA: Action, actionB: Action): SplitAction? {
         return editionRepository.combineActions(actionA, actionB)
     }
 

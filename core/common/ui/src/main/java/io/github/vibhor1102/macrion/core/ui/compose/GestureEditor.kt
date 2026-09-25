@@ -46,6 +46,7 @@ fun MacrionPositionGestureEditor(
     onDismiss: () -> Unit,
     onDelete: () -> Unit,
     onSave: () -> Unit,
+    headerActions: @Composable (() -> Unit)? = null,
 ) {
     Surface(
         shape = OverlayDialogShape,
@@ -55,7 +56,7 @@ fun MacrionPositionGestureEditor(
     ) {
         MacrionDialogSurface {
             Column(Modifier.fillMaxWidth()) {
-                GestureEditorTopBar(title, saveEnabled, onDismiss, onDelete, onSave, deleteEnabled)
+                GestureEditorTopBar(title, saveEnabled, onDismiss, onDelete, onSave, deleteEnabled, headerActions)
                 Column(
                     modifier = Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState())
                         .imePadding()
@@ -90,6 +91,7 @@ fun MacrionGestureEditor(
     onWaitBeforeChanged: (String) -> Unit = {},
     onWaitAfterChanged: (String) -> Unit = {},
     onDismiss: () -> Unit, onDelete: () -> Unit, onSave: () -> Unit,
+    headerActions: @Composable (() -> Unit)? = null,
 ) {
     Surface(
         shape = OverlayDialogShape,
@@ -99,7 +101,7 @@ fun MacrionGestureEditor(
     ) {
         MacrionDialogSurface {
             Column(Modifier.fillMaxWidth()) {
-                GestureEditorTopBar(title, saveEnabled, onDismiss, onDelete, onSave, deleteEnabled)
+                GestureEditorTopBar(title, saveEnabled, onDismiss, onDelete, onSave, deleteEnabled, headerActions)
                 Column(
                     modifier = Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState())
                         .imePadding()
@@ -136,6 +138,7 @@ fun MacrionGestureEditor(
 private fun GestureEditorTopBar(
     title: String, saveEnabled: Boolean, onDismiss: () -> Unit,
     onDelete: () -> Unit, onSave: () -> Unit, deleteEnabled: Boolean,
+    headerActions: @Composable (() -> Unit)?,
 ) {
     Row(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 12.dp),
@@ -143,6 +146,7 @@ private fun GestureEditorTopBar(
     ) {
         IconButton(onClick = onDismiss) { Icon(painterResource(R.drawable.ic_cancel), null) }
         Text(title, Modifier.weight(1f).padding(horizontal = 8.dp), style = MaterialTheme.typography.titleLarge)
+        headerActions?.invoke()
         FilledTonalIconButton(onClick = onDelete, enabled = deleteEnabled) { Icon(painterResource(R.drawable.ic_delete), null) }
         Spacer(Modifier.width(8.dp))
         FilledIconButton(onClick = onSave, enabled = saveEnabled) {

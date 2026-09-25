@@ -55,6 +55,8 @@ import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.ClickDescr
 import io.github.vibhor1102.macrion.feature.smart.config.R
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
 import io.github.vibhor1102.macrion.feature.smart.config.ui.action.OnActionConfigCompleteListener
+import io.github.vibhor1102.macrion.feature.smart.config.ui.action.brief.SmartActionHeaderMenu
+import io.github.vibhor1102.macrion.feature.smart.config.ui.action.brief.toPickerOptions
 import io.github.vibhor1102.macrion.feature.smart.config.ui.action.click.offset.ClickOffsetDialog
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredViewType
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.compose.tutorialAnchor
@@ -62,7 +64,12 @@ import io.github.vibhor1102.macrion.feature.smart.config.ui.common.dialogs.showC
 import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.selection.ScreenConditionSelectionDialog
 import kotlinx.coroutines.launch
 
-class ClickDialog(private val listener: OnActionConfigCompleteListener, private val canDelete: Boolean = true) : OverlayDialog(R.style.ScenarioConfigTheme) {
+class ClickDialog(
+    private val listener: OnActionConfigCompleteListener,
+    private val canDelete: Boolean = true,
+    private val combinationOptions: io.github.vibhor1102.macrion.feature.smart.config.ui.action.brief.SmartCombinationOptions? = null,
+) : OverlayDialog(R.style.ScenarioConfigTheme) {
+    private var showingExistingPicker by mutableStateOf(false)
     override fun tutorialMonitoringTag(): String = MonitoredOverlayType.CLICK.name
     private val viewModel: ClickViewModel by viewModels(
         entryPoint = ScenarioConfigViewModelsEntryPoint::class.java,
@@ -74,7 +81,7 @@ class ClickDialog(private val listener: OnActionConfigCompleteListener, private 
         setContent { MacrionTheme { this@ClickDialog.Content() } }
     }
     override fun onDialogCreated(dialog: Dialog) {
-        lifecycleScope.launch { repeatOnLifecycle(Lifecycle.State.CREATED) {
+        lifecycleScope.launch { repeatOnLifecycle(Lifecycle.State.STARTED) {
             viewModel.isEditingAction.collect { if (!it) { Log.e(TAG, "Closing ClickDialog because there is no action edited"); finish() } }
         } }
     }
@@ -82,6 +89,18 @@ class ClickDialog(private val listener: OnActionConfigCompleteListener, private 
     @Composable private fun Content() {
         val ui by viewModel.uiState.collectAsStateWithLifecycle()
         val state = ui ?: return
+        if (showingExistingPicker) {
+            io.github.vibhor1102.macrion.core.ui.compose.ExistingActionPicker(
+                options = combinationOptions?.existingActions.orEmpty().toPickerOptions(context),
+                onBack = { showingExistingPicker = false },
+                onSelected = { other ->
+                    val source = viewModel.getEditedClick() ?: return@ExistingActionPicker
+                    showingExistingPicker = false
+                    combinationOptions?.onExisting?.invoke(source, other)
+                },
+            )
+            return
+        }
             var name by rememberSaveable { mutableStateOf(state.name.orEmpty()) }
             var duration by rememberSaveable { mutableStateOf(state.pressDuration.orEmpty()) }
             LaunchedEffect(state.name) { if (state.name != name) name = state.name.orEmpty() }
@@ -121,6 +140,16 @@ class ClickDialog(private val listener: OnActionConfigCompleteListener, private 
             IconButton(onClick = ::back) { Icon(painterResource(R.drawable.ic_cancel), null) }
             Text(context.getString(R.string.dialog_title_click), Modifier.weight(1f).padding(horizontal = 8.dp),
                 style = MaterialTheme.typography.titleLarge, maxLines = 1, overflow = TextOverflow.Clip)
+            combinationOptions?.let { options ->
+                SmartActionHeaderMenu(
+                    showNewOptions = true,
+                    canAdd = true,
+                    canCombineExisting = options.existingActions.isNotEmpty(),
+                    onNewClick = { viewModel.getEditedClick()?.let(options.onNewClick) },
+                    onNewSwipe = { viewModel.getEditedClick()?.let(options.onNewSwipe) },
+                    onExisting = { showingExistingPicker = true },
+                )
+            }
             FilledTonalIconButton(onClick = ::delete, enabled = canDelete) { Icon(painterResource(R.drawable.ic_delete), null) }
             Spacer(Modifier.width(8.dp))
             FilledIconButton(
@@ -223,6 +252,7 @@ class ClickDialog(private val listener: OnActionConfigCompleteListener, private 
     }
 
     override fun back() {
+        if (showingExistingPicker) { showingExistingPicker = false; return }
         if (viewModel.hasUnsavedModifications()) { context.showCloseWithoutSavingDialog { listener.onDismissClicked(); super.back() }; return }
         listener.onDismissClicked(); super.back()
     }

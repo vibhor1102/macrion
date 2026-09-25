@@ -78,6 +78,37 @@ class CombinedActionEditingTest {
         assertEquals(original, editor.editedList.value)
     }
 
+    @Test fun combiningOpenEditorUsesDraftAndRestoresItOnCancel() {
+        val source = swipe(10)
+        val other = swipe(11)
+        val editor = editor(listOf(source, other))
+        editor.startItemEdition(source)
+        val draft = source.copy(name = "Unsaved name")
+        editor.updateEditedItem(draft)
+
+        val combined = editor.combineActions(draft, other, newId(), ::newId)!!
+        assertEquals("Unsaved name", combined.subActions.first().name)
+        editor.startItemEdition(combined)
+        editor.stopItemEdition()
+
+        assertEquals(draft, editor.editedItem.value)
+        assertEquals(listOf(source, other), editor.editedList.value)
+    }
+
+    @Test fun deletingChildOfPendingCombinationKeepsParentDraft() {
+        val source = swipe(10)
+        val other = swipe(11)
+        val editor = editor(listOf(source, other))
+        editor.startItemEdition(source)
+        val combined = editor.combineActions(source, other, newId(), ::newId)!!
+        editor.startItemEdition(combined)
+        editor.startSubActionEdition(combined, 0)
+        editor.deleteEditedItem()
+
+        assertEquals(combined, editor.editedItem.value)
+        assertEquals(listOf(source, other), editor.editedList.value)
+    }
+
     @Test fun mergeFlattensExistingGroupsAndCommitsAtOriginalPosition() {
         val group = split()
         val extra = swipe(10)

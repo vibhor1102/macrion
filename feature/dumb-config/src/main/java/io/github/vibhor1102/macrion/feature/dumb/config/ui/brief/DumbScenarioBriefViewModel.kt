@@ -86,9 +86,16 @@ class DumbScenarioBriefViewModel @Inject constructor(
         }
         .filterNotNull()
 
-    val combinableDumbActions: Flow<List<DumbActionDetails>> = dumbActionsBriefList.map { list ->
-        list.mapNotNull { it.data as? DumbActionDetails }
-            .filter { it.action is DumbAction.DumbClick || it.action is DumbAction.DumbSwipe || it.action is DumbAction.DumbSplitAction }
+    fun combinableActionsFor(source: DumbAction): List<DumbActionDetails>? {
+        val actions = dumbEditionRepository.editedDumbScenario.value?.dumbActions ?: return null
+        if (actions.none { it.id == source.id }) return null
+        val sourceCount = (source as? DumbAction.DumbSplitAction)?.subActions?.size ?: 1
+        return actions.asSequence()
+            .filter { it.id != source.id }
+            .filter { it is DumbAction.DumbClick || it is DumbAction.DumbSwipe || it is DumbAction.DumbSplitAction }
+            .filter { sourceCount + ((it as? DumbAction.DumbSplitAction)?.subActions?.size ?: 1) <= 10 }
+            .map { it.toDumbActionDetails(context, withPositions = false) }
+            .toList()
     }
 
     private val focusedAction: Flow<Pair<DumbAction?, Boolean>> =
