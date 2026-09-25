@@ -240,18 +240,4 @@ class ActionMapperTests {
             ActionTestsData.getNewSplitActionEntity(eventId = ActionTestsData.ACTION_EVENT_ID).toDomain(),
         )
     }
-
-    @Test
-    fun splitAction_legacyDefaultNamesUseCurrentLabel() {
-        val split = ActionTestsData.getNewSplitActionEntity(eventId = ActionTestsData.ACTION_EVENT_ID)
-        listOf("Simultaneous click/swipe", "Simultaneous Touch").forEach { oldName ->
-            val saved = split.copy(action = split.action.copy(name = oldName))
-            assertEquals("Multi-touch", (saved.toDomain() as SplitAction).name)
-            assertEquals(oldName, saved.action.name)
-        }
-        assertEquals(
-            "Custom gesture",
-            (split.copy(action = split.action.copy(name = "Custom gesture")).toDomain() as SplitAction).name,
-        )
-    }
 }

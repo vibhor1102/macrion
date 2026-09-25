@@ -2,7 +2,6 @@ package io.github.vibhor1102.macrion.core.domain.model.action.mapper
 
 import android.content.ComponentName
 import android.graphics.Point
-import io.github.vibhor1102.macrion.core.base.compat.normalizedMultiTouchName
 import io.github.vibhor1102.macrion.core.base.identifier.Identifier
 import io.github.vibhor1102.macrion.core.database.entity.ActionType
 import io.github.vibhor1102.macrion.core.database.entity.ChangeCounterOperationType
@@ -192,7 +191,7 @@ private fun getPositionIfValid(x: Int?, y: Int?): Point? =
 private fun CompleteActionEntity.toDomainSplitAction(cleanIds: Boolean = false) = SplitAction(
     id = Identifier(id = action.id, asTemporary = cleanIds),
     eventId = Identifier(id = action.eventId, asTemporary = cleanIds),
-    name = action.name.normalizedMultiTouchName(),
+    name = action.name,
     priority = action.priority,
     subActions = splitItems.sortedBy { it.priority }.map { item ->
         when (item.type) {
