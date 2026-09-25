@@ -103,7 +103,7 @@ abstract class ItemBriefMenu(
             )
         }
 
-        onFocusedItemChanged(0)
+        updateBriefButtons(0)
         onOverlayViewCreated(briefViewBinding)
         return briefViewBinding.root
     }

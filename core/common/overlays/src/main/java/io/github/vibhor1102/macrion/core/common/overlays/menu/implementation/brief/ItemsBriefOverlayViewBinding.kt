@@ -146,7 +146,7 @@ class ItemsBriefOverlayViewBinding private constructor(
     private val emptyText = mutableIntStateOf(0)
     private val controlState = mutableStateOf(ItemBriefControlsState())
     private val briefItems = mutableStateOf<List<ItemBrief>>(emptyList())
-    private val requestedBriefItemIndex = mutableIntStateOf(0)
+    private val navigationRequest = mutableStateOf(CarouselNavigationRequest(0, 0))
     private val isPanelVisible = mutableStateOf(false)
     private val isPointerActive = mutableStateOf(false)
     private val isCarouselScrolling = mutableStateOf(false)
@@ -207,7 +207,7 @@ class ItemsBriefOverlayViewBinding private constructor(
     }
 
     fun scrollToItem(index: Int) {
-        requestedBriefItemIndex.intValue = index
+        requestBriefItem(index)
         showOrResetPanelTimer()
     }
 
@@ -226,19 +226,27 @@ class ItemsBriefOverlayViewBinding private constructor(
         this.onItemClicked = onItemClicked
         this.onFocusedItemChanged = onFocusedItemChanged
         this.firstItemModifier = firstItemModifier
-        requestedBriefItemIndex.intValue = initialItemIndex
+        requestBriefItem(initialItemIndex)
     }
 
     fun updateBriefItems(items: List<ItemBrief>, focusedIndex: Int) {
+        val previousIds = briefItems.value.map { it.id }
         briefItems.value = items
-        requestedBriefItemIndex.intValue = focusedIndex
+        if (previousIds != items.map { it.id } || navigationRequest.value.index != focusedIndex) {
+            requestBriefItem(focusedIndex)
+        }
     }
 
     private fun handleFocusedItemChanged(index: Int) {
         // The pager is removed when the panel auto-hides. Keep its next initial page in sync
         // with the card the user actually reached before that happens.
-        requestedBriefItemIndex.intValue = index
+        navigationRequest.value = navigationRequest.value.copy(index = index)
         onFocusedItemChanged(index)
+    }
+
+    private fun requestBriefItem(index: Int) {
+        val previous = navigationRequest.value
+        navigationRequest.value = CarouselNavigationRequest(index, previous.version + 1)
     }
 
     fun updateDisplayConfig(newConfig: DisplayConfig) {
@@ -482,7 +490,7 @@ class ItemsBriefOverlayViewBinding private constructor(
                             .height(80.dp),
                         items = briefItems.value,
                         orientation = orientation,
-                        requestedIndex = requestedBriefItemIndex.intValue,
+                        navigationRequest = navigationRequest.value,
                         emptyTextRes = emptyText.intValue,
                         itemContent = itemContent,
                         onItemClicked = onItemClicked,
@@ -537,7 +545,7 @@ class ItemsBriefOverlayViewBinding private constructor(
                             .width(124.dp),
                         items = briefItems.value,
                         orientation = orientation,
-                        requestedIndex = requestedBriefItemIndex.intValue,
+                        navigationRequest = navigationRequest.value,
                         emptyTextRes = emptyText.intValue,
                         itemContent = itemContent,
                         onItemClicked = onItemClicked,
@@ -617,6 +625,9 @@ data class ItemBriefControlsState(
     val canSelectPosition: Boolean = false,
     val canPlay: Boolean = false,
 )
+
+@Immutable
+private data class CarouselNavigationRequest(val index: Int, val version: Int)
 
 @androidx.compose.runtime.Composable
 private fun ItemBriefControls(
@@ -705,7 +716,7 @@ private fun BriefItemsCarousel(
     modifier: Modifier,
     items: List<ItemBrief>,
     orientation: Int,
-    requestedIndex: Int,
+    navigationRequest: CarouselNavigationRequest,
     emptyTextRes: Int,
     itemContent: @Composable (ItemBrief, Int, () -> Unit) -> Unit,
     onItemClicked: (Int, ItemBrief) -> Unit,
@@ -716,10 +727,11 @@ private fun BriefItemsCarousel(
 ) {
     var displayedItems by remember { mutableStateOf(items) }
     var deletingItemId by remember { mutableStateOf<Identifier?>(null) }
+    var appliedNavigationVersion by remember { mutableIntStateOf(-1) }
+    val displayedIds = displayedItems.map { it.id }
+    val incomingIds = items.map { it.id }
 
-    val initialPage = remember(displayedItems.isNotEmpty()) {
-        if (displayedItems.isEmpty()) 0 else requestedIndex.coerceIn(0, displayedItems.lastIndex)
-    }
+    val initialPage = if (displayedItems.isEmpty()) 0 else navigationRequest.index.coerceIn(0, displayedItems.lastIndex)
     val pagerState = rememberPagerState(initialPage = initialPage) { displayedItems.size }
     val context = LocalContext.current
     val maximumFlingVelocity = remember(context) {
@@ -798,16 +810,31 @@ private fun BriefItemsCarousel(
         }
     }
 
-    LaunchedEffect(requestedIndex, deletingItemId) {
-        if (deletingItemId == null && displayedItems.isNotEmpty() && pagerState.currentPage != requestedIndex) {
-            val target = requestedIndex.coerceIn(0, displayedItems.lastIndex)
-            pagerState.animateScrollToPage(target)
+    LaunchedEffect(navigationRequest.version, displayedIds, incomingIds, deletingItemId) {
+        // The menu can request a page before the new list reaches the pager. Wait for the
+        // matching list, then apply that request before reporting any pager position back.
+        if (deletingItemId != null || displayedIds != incomingIds || displayedItems.isEmpty()) return@LaunchedEffect
+        val target = navigationRequest.index.coerceIn(0, displayedItems.lastIndex)
+        try {
+            if (pagerState.currentPage != target) {
+                if (appliedNavigationVersion < 0) pagerState.scrollToPage(target)
+                else pagerState.animateScrollToPage(target)
+            }
+        } finally {
+            // A direct swipe may interrupt a programmatic animation. In that case the
+            // user's reached page becomes the focus instead of leaving reporting paused.
+            appliedNavigationVersion = navigationRequest.version
         }
     }
 
-    LaunchedEffect(pagerState) {
+    LaunchedEffect(pagerState, appliedNavigationVersion, navigationRequest.version, displayedIds, incomingIds, deletingItemId) {
+        if (appliedNavigationVersion != navigationRequest.version ||
+            deletingItemId != null || displayedIds != incomingIds || displayedItems.isEmpty()
+        ) return@LaunchedEffect
         snapshotFlow { pagerState.currentPage }
-            .collect { page -> onFocusedItemChanged(page) }
+            .collect { page ->
+                if (page in displayedItems.indices) onFocusedItemChanged(page)
+            }
     }
     LaunchedEffect(pagerState) {
         snapshotFlow { pagerState.isScrollInProgress }
@@ -852,7 +879,6 @@ private fun BriefItemsCarousel(
                 pageSpacing = 8.dp,
                 flingBehavior = flingBehavior,
                 userScrollEnabled = deletingItemId == null,
-                key = { page -> displayedItems.getOrNull(page)?.id?.toBundleKey() ?: page },
             ) { page ->
                 val brief = displayedItems[page]
                 val isDeleting = brief.id == deletingItemId
@@ -876,7 +902,6 @@ private fun BriefItemsCarousel(
                 pageSpacing = 8.dp,
                 flingBehavior = flingBehavior,
                 userScrollEnabled = deletingItemId == null,
-                key = { page -> displayedItems.getOrNull(page)?.id?.toBundleKey() ?: page },
             ) { page ->
                 val brief = displayedItems[page]
                 val isDeleting = brief.id == deletingItemId
@@ -947,6 +972,3 @@ private fun Context.recommendedPanelHideDelayMs(): Long {
             AccessibilityManager.FLAG_CONTENT_TEXT,
     ).toLong()
 }
-
-private fun Identifier.toBundleKey(): String =
-    if (tempId != null) "temp_$tempId" else "db_$databaseId"
