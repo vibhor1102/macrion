@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -41,7 +40,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
@@ -96,7 +94,7 @@ fun MultiTouchEditorFrame(
     }
 }
 
-/** Child navigation stays fixed while the selected child uses the editor area. */
+/** Child navigation scrolls with the selected editor; the action header stays fixed. */
 @Composable
 fun MultiTouchWorkspace(
     items: List<MultiTouchWorkspaceItem>,
@@ -114,6 +112,7 @@ fun MultiTouchWorkspace(
     var pendingNewIndex by rememberSaveable { mutableIntStateOf(-1) }
     val stateHolder = rememberSaveableStateHolder()
     val listState = rememberLazyListState()
+    val editorScrollState = rememberScrollState()
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
 
@@ -134,6 +133,9 @@ fun MultiTouchWorkspace(
         }
         LaunchedEffect(currentSelection) {
             listState.animateScrollToItem(currentSelection)
+        }
+        LaunchedEffect(currentSelection, items[currentSelection].key) {
+            editorScrollState.scrollTo(0)
         }
 
         fun select(index: Int) {
@@ -166,7 +168,7 @@ fun MultiTouchWorkspace(
             onDeleteChild(items[index].key)
         }
 
-        Column(Modifier.fillMaxSize()) {
+        Column(Modifier.fillMaxSize().imePadding().verticalScroll(editorScrollState)) {
             Row(
                 modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp),
                 verticalAlignment = Alignment.CenterVertically,
@@ -194,12 +196,11 @@ fun MultiTouchWorkspace(
                 )
             }
 
-            Box(Modifier.fillMaxWidth().weight(1f).imePadding().padding(horizontal = 12.dp),
+            Box(Modifier.fillMaxWidth().padding(horizontal = 12.dp),
                 contentAlignment = Alignment.TopCenter) {
                 val item = items[currentSelection]
                 stateHolder.SaveableStateProvider(item.key) {
-                    Column(Modifier.widthIn(max = 640.dp).fillMaxWidth().fillMaxHeight()
-                        .verticalScroll(rememberScrollState()).padding(bottom = 16.dp)) {
+                    Column(Modifier.widthIn(max = 640.dp).fillMaxWidth().padding(bottom = 16.dp)) {
                         childContent(currentSelection)
                         if (canDeleteChild) {
                             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
