@@ -4,8 +4,6 @@ package io.github.vibhor1102.macrion.core.ui.compose
 import android.content.res.Configuration
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.awaitEachGesture
-import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -13,9 +11,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
@@ -46,10 +46,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.input.pointer.PointerEventPass
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
@@ -62,7 +59,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import io.github.vibhor1102.macrion.core.ui.R
-import kotlinx.coroutines.launch
 
 data class MultiTouchWorkspaceItem(
     val key: String,
@@ -96,7 +92,7 @@ fun MultiTouchEditorFrame(
     }
 }
 
-/** Child navigation stays fixed while all visible child forms share one scrolling workspace. */
+/** Child navigation stays fixed while the selected child uses the editor area. */
 @Composable
 fun MultiTouchWorkspace(
     items: List<MultiTouchWorkspaceItem>,
@@ -107,40 +103,20 @@ fun MultiTouchWorkspace(
     onAddSwipe: () -> Int?,
     onDeleteChild: (String) -> Unit,
     modifier: Modifier = Modifier,
-    childContent: @Composable (index: Int, renaming: Boolean) -> Unit,
+    childContent: @Composable (index: Int) -> Unit,
 ) {
     if (items.isEmpty()) return
     var selectedIndex by rememberSaveable { mutableIntStateOf(0) }
-    var firstVisibleIndex by rememberSaveable { mutableIntStateOf(0) }
     var pendingNewIndex by rememberSaveable { mutableIntStateOf(-1) }
-    var renamingKey by rememberSaveable { mutableStateOf<String?>(null) }
     val stateHolder = rememberSaveableStateHolder()
-    val scrollState = rememberScrollState()
     val listState = rememberLazyListState()
-    val scope = rememberCoroutineScope()
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
 
     BoxWithConstraints(modifier.fillMaxSize()) {
-        val fontScale = LocalDensity.current.fontScale.coerceAtLeast(1f)
-        val widthBasedCount = ((maxWidth.value - 48f) / (320f * fontScale)).toInt()
-            .coerceIn(1, 3).coerceAtMost(items.size)
-        // The keyboard leaves too little height for a useful two-column form on a phone.
-        val paneCount = if (maxHeight < 300.dp) 1 else widthBasedCount
-        val allVisible = paneCount == items.size && paneCount > 1
-        val nameMaxWidth = minOf(200.dp, maxOf(96.dp,
-            (if (allVisible) (maxWidth.value - 48f) / paneCount - 112f
-                else maxWidth.value - 156f).dp))
+        val nameMaxWidth = minOf(200.dp, maxOf(96.dp, maxWidth - 156.dp))
         val currentSelection = (pendingNewIndex.takeIf { it in items.indices } ?: selectedIndex)
             .coerceIn(items.indices)
-        val lastStart = (items.size - paneCount).coerceAtLeast(0)
-        val savedStart = firstVisibleIndex.coerceIn(0, lastStart)
-        val visibleStart = when {
-            currentSelection < savedStart -> currentSelection
-            currentSelection >= savedStart + paneCount -> currentSelection - paneCount + 1
-            else -> savedStart
-        }.coerceIn(0, lastStart)
-        val visibleIndices = visibleStart until visibleStart + paneCount
         val names = items.map { item ->
             val numberedDefault = item.name.removePrefix("${item.typeLabel} ")
                 .takeIf { item.name.startsWith("${item.typeLabel} ") }
@@ -148,16 +124,12 @@ fun MultiTouchWorkspace(
             item.name.takeIf { it.isNotBlank() && !numberedDefault } ?: item.typeLabel
         }
 
-        LaunchedEffect(items.map { it.key }, paneCount, selectedIndex, pendingNewIndex) {
+        LaunchedEffect(items.map { it.key }, selectedIndex, pendingNewIndex) {
             if (selectedIndex != currentSelection) selectedIndex = currentSelection
             if (pendingNewIndex in items.indices) pendingNewIndex = -1
-            if (firstVisibleIndex != visibleStart) firstVisibleIndex = visibleStart
-            if (renamingKey != null && items.none { it.key == renamingKey }) renamingKey = null
         }
-        LaunchedEffect(currentSelection, allVisible) {
-            if (!allVisible && listState.layoutInfo.visibleItemsInfo.none { it.index == currentSelection }) {
-                listState.animateScrollToItem(currentSelection)
-            }
+        LaunchedEffect(currentSelection) {
+            listState.animateScrollToItem(currentSelection)
         }
 
         fun select(index: Int) {
@@ -167,7 +139,6 @@ fun MultiTouchWorkspace(
                 keyboardController?.hide()
             }
             selectedIndex = index
-            if (index !in visibleIndices) scope.launch { scrollState.scrollTo(0) }
         }
 
         fun add(onAdd: () -> Int?) {
@@ -176,7 +147,6 @@ fun MultiTouchWorkspace(
             onAdd()?.let { newIndex ->
                 pendingNewIndex = newIndex
                 selectedIndex = newIndex
-                scope.launch { scrollState.scrollTo(0) }
             }
         }
 
@@ -185,40 +155,7 @@ fun MultiTouchWorkspace(
                 modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                if (allVisible) {
-                    Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                        items.forEachIndexed { index, item ->
-                            TouchHeading(
-                                item = item, name = names[index], index = index, count = items.size,
-                                duplicated = names.count { it == names[index] } > 1,
-                                selected = index == currentSelection, showActions = true,
-                                nameMaxWidth = nameMaxWidth,
-                                canDelete = canDeleteChild, onSelect = { select(index) },
-                                onRename = {
-                                    select(index)
-                                    if (renamingKey == item.key) {
-                                        focusManager.clearFocus()
-                                        keyboardController?.hide()
-                                    }
-                                    renamingKey = item.key.takeUnless { renamingKey == item.key }
-                                    scope.launch { scrollState.scrollTo(0) }
-                                },
-                                onDelete = {
-                                    renamingKey = null
-                                    selectedIndex = when {
-                                        currentSelection > index -> currentSelection - 1
-                                        currentSelection == index -> index.coerceAtMost(items.lastIndex - 1)
-                                        else -> currentSelection
-                                    }
-                                    onDeleteChild(item.key)
-                                },
-                                renaming = renamingKey == item.key,
-                                modifier = Modifier.weight(1f),
-                            )
-                        }
-                    }
-                } else {
-                    LazyRow(
+                LazyRow(
                         modifier = Modifier.weight(1f),
                         state = listState,
                         horizontalArrangement = Arrangement.spacedBy(4.dp),
@@ -231,17 +168,7 @@ fun MultiTouchWorkspace(
                                 showActions = index == currentSelection,
                                 nameMaxWidth = nameMaxWidth,
                                 canDelete = canDeleteChild, onSelect = { select(index) },
-                                onRename = {
-                                    select(index)
-                                    if (renamingKey == item.key) {
-                                        focusManager.clearFocus()
-                                        keyboardController?.hide()
-                                    }
-                                    renamingKey = item.key.takeUnless { renamingKey == item.key }
-                                    scope.launch { scrollState.scrollTo(0) }
-                                },
                                 onDelete = {
-                                    renamingKey = null
                                     selectedIndex = when {
                                         currentSelection > index -> currentSelection - 1
                                         currentSelection == index -> index.coerceAtMost(items.lastIndex - 1)
@@ -249,11 +176,9 @@ fun MultiTouchWorkspace(
                                     }
                                     onDeleteChild(item.key)
                                 },
-                                renaming = renamingKey == item.key,
                             )
                         }
                     }
-                }
                 AddTouchMenu(
                     enabled = items.size < 10,
                     addClickLabel = addClickLabel,
@@ -263,35 +188,13 @@ fun MultiTouchWorkspace(
                 )
             }
 
-            Column(
-                Modifier.fillMaxWidth().weight(1f).verticalScroll(scrollState)
-                    .padding(start = 12.dp, end = if (allVisible) 60.dp else 12.dp, bottom = 16.dp),
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    verticalAlignment = Alignment.Top,
-                ) {
-                    visibleIndices.forEach { index ->
-                        val item = items[index]
-                        Column(
-                            Modifier.weight(1f).pointerInput(item.key) {
-                                awaitEachGesture {
-                                    awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
-                                    pendingNewIndex = -1
-                                    selectedIndex = index
-                                }
-                            },
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                        ) {
-                            if (paneCount > 1 && !allVisible) {
-                                Text(names[index], style = MaterialTheme.typography.titleMedium,
-                                    maxLines = 1, overflow = TextOverflow.Ellipsis)
-                            }
-                            stateHolder.SaveableStateProvider(item.key) {
-                                childContent(index, renamingKey == item.key)
-                            }
-                        }
+            Box(Modifier.fillMaxWidth().weight(1f).imePadding().padding(horizontal = 12.dp),
+                contentAlignment = Alignment.TopCenter) {
+                val item = items[currentSelection]
+                stateHolder.SaveableStateProvider(item.key) {
+                    Column(Modifier.widthIn(max = 640.dp).fillMaxWidth().fillMaxHeight()
+                        .verticalScroll(rememberScrollState()).padding(bottom = 16.dp)) {
+                        childContent(currentSelection)
                     }
                 }
             }
@@ -311,9 +214,7 @@ private fun TouchHeading(
     nameMaxWidth: Dp,
     canDelete: Boolean,
     onSelect: () -> Unit,
-    onRename: () -> Unit,
     onDelete: () -> Unit,
-    renaming: Boolean,
     modifier: Modifier = Modifier,
 ) {
     val description = stringResource(R.string.multi_touch_touch_description, index + 1, count, name)
@@ -350,12 +251,6 @@ private fun TouchHeading(
             }
         }
         if (showActions) {
-            IconButton(onClick = onRename, modifier = Modifier.size(48.dp)) {
-                Icon(painterResource(if (renaming) R.drawable.ic_check else R.drawable.ic_edit),
-                    stringResource(if (renaming) R.string.multi_touch_done_renaming
-                        else R.string.multi_touch_rename_touch, index + 1),
-                    Modifier.size(20.dp))
-            }
             if (canDelete) {
                 IconButton(onClick = onDelete, modifier = Modifier.size(48.dp)) {
                     Icon(painterResource(R.drawable.ic_delete),

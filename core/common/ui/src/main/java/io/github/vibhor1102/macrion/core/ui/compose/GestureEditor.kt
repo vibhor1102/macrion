@@ -64,11 +64,10 @@ fun MacrionPositionGestureEditor(
                         .padding(horizontal = 16.dp, vertical = 12.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    MacrionTextField(name, onNameChanged, nameLabel, isError = nameError, maxLength = maxNameLength)
-                    NumericField(duration, durationLabel, durationError, onDurationChanged)
-                    PositionCard(positionTitle, positionDescription, positionError, onPositionClicked)
-                    ActionDelaysCard(waitBefore, waitAfter, onWaitBeforeChanged, onWaitAfterChanged)
-                    Spacer(Modifier.height(8.dp))
+                    PositionGestureFields(name, duration, positionTitle, positionDescription,
+                        nameLabel, durationLabel, nameError, durationError, positionError, maxNameLength,
+                        waitBefore, waitAfter, onNameChanged, onDurationChanged, onPositionClicked,
+                        onWaitBeforeChanged, onWaitAfterChanged)
                 }
             }
         }
@@ -109,30 +108,71 @@ fun MacrionGestureEditor(
                         .padding(horizontal = 16.dp, vertical = 12.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    MacrionTextField(name, onNameChanged, nameLabel, isError = nameError, maxLength = maxNameLength)
-                    NumericField(duration, durationLabel, durationError, onDurationChanged)
-                    if (showRepetition) {
-                        Row(verticalAlignment = Alignment.Top) {
-                            NumericField(repeatCount, repeatCountLabel, repeatCountError, onRepeatCountChanged,
-                                Modifier.weight(1f), enabled = !infiniteRepeat)
-                            Spacer(Modifier.width(16.dp))
-                            OutlinedIconToggleButton(
-                                checked = infiniteRepeat,
-                                onCheckedChange = { onInfiniteRepeatChanged() },
-                                modifier = Modifier.padding(top = 8.dp).size(48.dp),
-                            ) {
-                                Icon(painterResource(infiniteRepeatIcon), repeatCountLabel, Modifier.size(24.dp))
-                            }
-                        }
-                        NumericField(repeatDelay, repeatDelayLabel, repeatDelayError, onRepeatDelayChanged)
-                    }
-                    PositionCard(positionTitle, positionDescription, false, onPositionClicked)
-                    ActionDelaysCard(waitBefore, waitAfter, onWaitBeforeChanged, onWaitAfterChanged)
-                    Spacer(Modifier.height(8.dp))
+                    GestureFields(name, duration, repeatCount, repeatDelay, positionTitle,
+                        positionDescription, nameLabel, durationLabel, repeatCountLabel, repeatDelayLabel,
+                        nameError, durationError, repeatCountError, repeatDelayError, infiniteRepeat,
+                        maxNameLength, infiniteRepeatIcon, showRepetition, waitBefore, waitAfter,
+                        onNameChanged = onNameChanged, onDurationChanged = onDurationChanged,
+                        onRepeatCountChanged = onRepeatCountChanged, onRepeatDelayChanged = onRepeatDelayChanged,
+                        onInfiniteRepeatChanged = onInfiniteRepeatChanged,
+                        onPositionClicked = onPositionClicked,
+                        onWaitBeforeChanged = onWaitBeforeChanged,
+                        onWaitAfterChanged = onWaitAfterChanged)
                 }
             }
         }
     }
+}
+
+@Composable
+fun ColumnScope.PositionGestureFields(
+    name: String, duration: String, positionTitle: String, positionDescription: String,
+    nameLabel: String, durationLabel: String, nameError: Boolean, durationError: Boolean,
+    positionError: Boolean, maxNameLength: Int, waitBefore: String = "", waitAfter: String = "",
+    onNameChanged: (String) -> Unit, onDurationChanged: (String) -> Unit,
+    onPositionClicked: () -> Unit, onWaitBeforeChanged: (String) -> Unit = {},
+    onWaitAfterChanged: (String) -> Unit = {},
+) {
+    MacrionTextField(name, onNameChanged, nameLabel, isError = nameError, maxLength = maxNameLength)
+    NumericField(duration, durationLabel, durationError, onDurationChanged)
+    PositionCard(positionTitle, positionDescription, positionError, onPositionClicked)
+    ActionDelaysCard(waitBefore, waitAfter, onWaitBeforeChanged, onWaitAfterChanged)
+    Spacer(Modifier.height(8.dp))
+}
+
+@Composable
+fun ColumnScope.GestureFields(
+    name: String, duration: String, repeatCount: String, repeatDelay: String,
+    positionTitle: String, positionDescription: String, nameLabel: String, durationLabel: String,
+    repeatCountLabel: String, repeatDelayLabel: String, nameError: Boolean, durationError: Boolean,
+    repeatCountError: Boolean, repeatDelayError: Boolean, infiniteRepeat: Boolean,
+    maxNameLength: Int, @DrawableRes infiniteRepeatIcon: Int, showRepetition: Boolean = true,
+    waitBefore: String = "", waitAfter: String = "", positionError: Boolean = false,
+    onNameChanged: (String) -> Unit, onDurationChanged: (String) -> Unit,
+    onRepeatCountChanged: (String) -> Unit, onRepeatDelayChanged: (String) -> Unit,
+    onInfiniteRepeatChanged: () -> Unit, onPositionClicked: () -> Unit,
+    onWaitBeforeChanged: (String) -> Unit = {}, onWaitAfterChanged: (String) -> Unit = {},
+) {
+    MacrionTextField(name, onNameChanged, nameLabel, isError = nameError, maxLength = maxNameLength)
+    NumericField(duration, durationLabel, durationError, onDurationChanged)
+    if (showRepetition) {
+        Row(verticalAlignment = Alignment.Top) {
+            NumericField(repeatCount, repeatCountLabel, repeatCountError, onRepeatCountChanged,
+                Modifier.weight(1f), enabled = !infiniteRepeat)
+            Spacer(Modifier.width(16.dp))
+            OutlinedIconToggleButton(
+                checked = infiniteRepeat,
+                onCheckedChange = { onInfiniteRepeatChanged() },
+                modifier = Modifier.padding(top = 8.dp).size(48.dp),
+            ) {
+                Icon(painterResource(infiniteRepeatIcon), repeatCountLabel, Modifier.size(24.dp))
+            }
+        }
+        NumericField(repeatDelay, repeatDelayLabel, repeatDelayError, onRepeatDelayChanged)
+    }
+    PositionCard(positionTitle, positionDescription, positionError, onPositionClicked)
+    ActionDelaysCard(waitBefore, waitAfter, onWaitBeforeChanged, onWaitAfterChanged)
+    Spacer(Modifier.height(8.dp))
 }
 
 @Composable

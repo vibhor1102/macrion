@@ -13,6 +13,7 @@ import androidx.core.content.edit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.qualifiers.ApplicationContext
+import io.github.vibhor1102.macrion.core.bitmaps.BitmapRepository
 import io.github.vibhor1102.macrion.core.domain.model.action.Action
 import io.github.vibhor1102.macrion.core.domain.model.action.Click
 import io.github.vibhor1102.macrion.core.domain.model.action.SplitAction
@@ -20,12 +21,14 @@ import io.github.vibhor1102.macrion.core.domain.model.action.Swipe
 import io.github.vibhor1102.macrion.core.domain.model.event.Event
 import io.github.vibhor1102.macrion.core.ui.R as UiR
 import io.github.vibhor1102.macrion.feature.smart.config.R
+import io.github.vibhor1102.macrion.feature.smart.config.ui.action.click.buildClickPositionUiState
 import io.github.vibhor1102.macrion.feature.smart.config.domain.EditionRepository
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.condition.UiScreenCondition
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.condition.toUiScreenCondition
 import io.github.vibhor1102.macrion.feature.smart.config.utils.getEventConfigPreferences
 import io.github.vibhor1102.macrion.feature.smart.config.utils.putClickPressDurationConfig
 import io.github.vibhor1102.macrion.feature.smart.config.utils.putSwipeDurationConfig
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -33,6 +36,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
@@ -42,6 +46,7 @@ import kotlin.time.Duration.Companion.milliseconds
 @OptIn(kotlinx.coroutines.FlowPreview::class)
 class SplitActionViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
+    private val bitmapRepository: BitmapRepository,
     private val editionRepository: EditionRepository,
 ) : ViewModel() {
 
@@ -72,7 +77,7 @@ class SplitActionViewModel @Inject constructor(
             availableConditions = conditionsState.value.orEmpty().filter { it.shouldBeDetected }
                 .map { it.toUiScreenCondition(context, shortThreshold = true, inError = !it.isComplete()) },
         )
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+    }.flowOn(Dispatchers.IO).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     fun getEditedSplit(): SplitAction? =
         editionRepository.editionState.getEditedAction<SplitAction>()
@@ -178,7 +183,7 @@ class SplitActionViewModel @Inject constructor(
         editionRepository.stopActionEdition()
     }
 
-    private fun SplitAction.toUiState(
+    private suspend fun SplitAction.toUiState(
         context: Context,
         hasUnsavedModifications: Boolean,
         canBeSaved: Boolean,
@@ -229,6 +234,8 @@ class SplitActionViewModel @Inject constructor(
                         icon = UiR.drawable.ic_click,
                         isComplete = SplitAction.isSubActionComplete(subAction),
                         action = subAction,
+                        clickPositionState = event?.let { buildClickPositionUiState(context, it,
+                            subAction, availableConditions, bitmapRepository) },
                     )
                 }
                 else -> {

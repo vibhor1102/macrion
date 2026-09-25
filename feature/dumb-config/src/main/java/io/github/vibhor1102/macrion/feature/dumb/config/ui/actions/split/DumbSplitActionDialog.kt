@@ -6,7 +6,6 @@ import android.graphics.Point
 import android.graphics.PointF
 import android.view.ViewGroup
 import android.view.WindowManager
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,18 +21,13 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
@@ -51,6 +45,7 @@ import io.github.vibhor1102.macrion.core.dumb.domain.model.DumbAction
 import io.github.vibhor1102.macrion.core.ui.R as UiR
 import io.github.vibhor1102.macrion.core.ui.compose.ActionDelaysCard
 import io.github.vibhor1102.macrion.core.ui.compose.ExistingActionPicker
+import io.github.vibhor1102.macrion.core.ui.compose.GestureFields
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTextField
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.core.ui.compose.MultiTouchEditorFrame
@@ -183,8 +178,8 @@ class DumbSplitActionDialog(
                         onAddSwipe = viewModel::addSwipe,
                         onDeleteChild = viewModel::removeSubActionByKey,
                         modifier = Modifier.weight(1f).padding(horizontal = 12.dp, vertical = 4.dp),
-                    ) { index, renaming ->
-                        ChildEditor(ui.subActions[index], renaming)
+                    ) { index ->
+                        ChildEditor(ui.subActions[index])
                     }
                 }
             }
@@ -230,124 +225,103 @@ class DumbSplitActionDialog(
     }
 
     @Composable
-    private fun ChildEditor(item: DumbSubActionItemUiState, renaming: Boolean) {
-        val maxNameLength = context.resources.getInteger(R.integer.name_max_length)
-        val key = item.action.id.toString()
-        val nameFocus = remember(key) { FocusRequester() }
-        var keepNameField by rememberSaveable(key) { mutableStateOf(when (val action = item.action) {
-            is DumbAction.DumbClick -> action.name.isBlank()
-            is DumbAction.DumbSwipe -> action.name.isBlank()
-            else -> false
-        }) }
-        LaunchedEffect(renaming) { if (renaming) nameFocus.requestFocus() }
-        when (val action = item.action) {
-            is DumbAction.DumbClick -> {
-                var duration by rememberSaveable(action.id.toString()) { mutableStateOf(action.pressDurationMs.toString()) }
-                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    if (renaming || keepNameField || action.name.isBlank()) {
-                        MacrionTextField(action.name,
-                            { name ->
-                                if (name.isBlank()) keepNameField = true
-                                viewModel.updateSubAction(key) { (it as DumbAction.DumbClick).copy(name = name) }
-                            },
-                            stringResource(R.string.input_field_label_name),
-                            modifier = Modifier.focusRequester(nameFocus).onFocusChanged {
-                                if (!it.isFocused && action.name.isNotBlank()) keepNameField = false
-                            },
-                            isError = action.name.isBlank(), maxLength = maxNameLength)
-                    }
-                    PositionCard(stringResource(UiR.string.field_click_position_title),
-                        if (action.position.x >= 0 && action.position.y >= 0)
-                            context.getString(R.string.split_action_click_coordinates, action.position.x, action.position.y)
-                        else stringResource(R.string.split_action_position_not_set),
-                        action.position.x < 0 || action.position.y < 0) { showClickPositionSelector(item.index) }
-                    NumericField(duration, stringResource(R.string.input_field_label_click_press_duration),
-                        action.pressDurationMs <= 0, { input ->
-                            if (input.toLongOrNull() == null && input.isNotEmpty()) return@NumericField
-                            if ((input.toLongOrNull() ?: 0L) > GESTURE_DURATION_MAX_VALUE) return@NumericField
-                            duration = input
-                            viewModel.updateSubAction(key) { (it as DumbAction.DumbClick).copy(pressDurationMs = input.toLongOrNull() ?: 0L) }
-                        })
-                    ChildDelays(item.index, key, action.waitBeforeMs, action.waitAfterMs)
-                }
-            }
-            is DumbAction.DumbSwipe -> {
-                var duration by rememberSaveable(action.id.toString()) { mutableStateOf(action.swipeDurationMs.toString()) }
-                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    if (renaming || keepNameField || action.name.isBlank()) {
-                        MacrionTextField(action.name,
-                            { name ->
-                                if (name.isBlank()) keepNameField = true
-                                viewModel.updateSubAction(key) { (it as DumbAction.DumbSwipe).copy(name = name) }
-                            },
-                            stringResource(R.string.input_field_label_name),
-                            modifier = Modifier.focusRequester(nameFocus).onFocusChanged {
-                                if (!it.isFocused && action.name.isNotBlank()) keepNameField = false
-                            },
-                            isError = action.name.isBlank(), maxLength = maxNameLength)
-                    }
-                    PositionCard(stringResource(UiR.string.field_swipe_positions_title),
-                        if (action.fromPosition.x >= 0 && action.fromPosition.y >= 0 &&
-                            action.toPosition.x >= 0 && action.toPosition.y >= 0)
-                            context.getString(R.string.split_action_swipe_coordinates,
-                                action.fromPosition.x, action.fromPosition.y, action.toPosition.x, action.toPosition.y)
-                        else stringResource(R.string.split_action_position_not_set),
-                        action.fromPosition.x < 0 || action.fromPosition.y < 0 ||
-                            action.toPosition.x < 0 || action.toPosition.y < 0) { showSwipePositionSelector(item.index) }
-                    NumericField(duration, stringResource(R.string.input_field_label_swipe_duration),
-                        action.swipeDurationMs <= 0, { input ->
-                            if (input.toLongOrNull() == null && input.isNotEmpty()) return@NumericField
-                            if ((input.toLongOrNull() ?: 0L) > GESTURE_DURATION_MAX_VALUE) return@NumericField
-                            duration = input
-                            viewModel.updateSubAction(key) { (it as DumbAction.DumbSwipe).copy(swipeDurationMs = input.toLongOrNull() ?: 0L) }
-                        })
-                    ChildDelays(item.index, key, action.waitBeforeMs, action.waitAfterMs)
-                }
-            }
-            else -> TextButton(onClick = {
+    private fun ChildEditor(item: DumbSubActionItemUiState) {
+        val action = item.action
+        val key = action.id.toString()
+        if (action !is DumbAction.DumbClick && action !is DumbAction.DumbSwipe) {
+            TextButton(onClick = {
                 viewModel.getEditedDumbSplit()?.let { onConfigureSubAction?.invoke(it, item.index) }
             }) { Text(item.name) }
+            return
         }
-    }
-
-    @Composable
-    private fun ChildDelays(index: Int, key: String, waitBefore: Long?, waitAfter: Long?) {
-        var before by rememberSaveable(index) { mutableStateOf(waitBefore?.toString().orEmpty()) }
-        var after by rememberSaveable(index) { mutableStateOf(waitAfter?.toString().orEmpty()) }
-        ActionDelaysCard(before, after,
-            onWaitBeforeChanged = { input ->
-                before = input
-                viewModel.updateSubAction(key) { child -> when (child) {
-                    is DumbAction.DumbClick -> child.copy(waitBeforeMs = input.takeIf(String::isNotBlank)?.toLongOrNull()
-                        ?: if (input.isBlank()) null else -1L)
-                    is DumbAction.DumbSwipe -> child.copy(waitBeforeMs = input.takeIf(String::isNotBlank)?.toLongOrNull()
-                        ?: if (input.isBlank()) null else -1L)
+        val name = when (action) {
+            is DumbAction.DumbClick -> action.name
+            is DumbAction.DumbSwipe -> action.name
+            else -> ""
+        }
+        val initialDuration = when (action) {
+            is DumbAction.DumbClick -> action.pressDurationMs
+            is DumbAction.DumbSwipe -> action.swipeDurationMs
+            else -> 0L
+        }
+        val initialBefore = when (action) {
+            is DumbAction.DumbClick -> action.waitBeforeMs
+            is DumbAction.DumbSwipe -> action.waitBeforeMs
+            else -> null
+        }
+        val initialAfter = when (action) {
+            is DumbAction.DumbClick -> action.waitAfterMs
+            is DumbAction.DumbSwipe -> action.waitAfterMs
+            else -> null
+        }
+        var duration by rememberSaveable(key) { mutableStateOf(initialDuration.toString()) }
+        var before by rememberSaveable(key) { mutableStateOf(initialBefore?.toString().orEmpty()) }
+        var after by rememberSaveable(key) { mutableStateOf(initialAfter?.toString().orEmpty()) }
+        val click = action as? DumbAction.DumbClick
+        val swipe = action as? DumbAction.DumbSwipe
+        val positionError = if (click != null) click.position.x < 0 || click.position.y < 0
+            else swipe!!.fromPosition.x < 0 || swipe.fromPosition.y < 0 ||
+                swipe.toPosition.x < 0 || swipe.toPosition.y < 0
+        val positionDescription = when {
+            positionError -> stringResource(R.string.split_action_position_not_set)
+            click != null -> stringResource(R.string.item_desc_dumb_click_on_position,
+                click.position.x, click.position.y)
+            else -> stringResource(R.string.item_desc_dumb_swipe_positions,
+                swipe!!.fromPosition.x, swipe.fromPosition.y, swipe.toPosition.x, swipe.toPosition.y)
+        }
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            GestureFields(
+                name = name, duration = duration, repeatCount = "", repeatDelay = "",
+                positionTitle = stringResource(if (click != null) R.string.field_click_position_title
+                    else R.string.field_swipe_positions_title),
+                positionDescription = positionDescription,
+                nameLabel = stringResource(R.string.input_field_label_name),
+                durationLabel = stringResource(if (click != null) R.string.input_field_label_click_press_duration
+                    else R.string.input_field_label_swipe_duration),
+                repeatCountLabel = stringResource(R.string.input_field_label_repeat_count),
+                repeatDelayLabel = stringResource(R.string.input_field_label_repeat_delay),
+                nameError = name.isBlank(), durationError = initialDuration <= 0,
+                repeatCountError = false, repeatDelayError = false, infiniteRepeat = false,
+                maxNameLength = context.resources.getInteger(R.integer.name_max_length),
+                infiniteRepeatIcon = R.drawable.ic_infinite, showRepetition = false,
+                waitBefore = before, waitAfter = after, positionError = positionError,
+                onNameChanged = { input -> viewModel.updateSubAction(key) { child -> when (child) {
+                    is DumbAction.DumbClick -> child.copy(name = input)
+                    is DumbAction.DumbSwipe -> child.copy(name = input)
                     else -> child
-                } }
-            },
-            onWaitAfterChanged = { input ->
-                after = input
-                viewModel.updateSubAction(key) { child -> when (child) {
-                    is DumbAction.DumbClick -> child.copy(waitAfterMs = input.takeIf(String::isNotBlank)?.toLongOrNull()
-                        ?: if (input.isBlank()) null else -1L)
-                    is DumbAction.DumbSwipe -> child.copy(waitAfterMs = input.takeIf(String::isNotBlank)?.toLongOrNull()
-                        ?: if (input.isBlank()) null else -1L)
-                    else -> child
-                } }
-            })
-    }
-
-    @Composable
-    private fun PositionCard(title: String, description: String, isError: Boolean, onClick: () -> Unit) {
-        Card(onClick = onClick, modifier = Modifier.fillMaxWidth(),
-            border = if (isError) BorderStroke(1.dp, MaterialTheme.colorScheme.error) else null) {
-            Column(Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(title, style = MaterialTheme.typography.bodyLarge,
-                    color = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface)
-                Text(description, style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
+                } } },
+                onDurationChanged = { input ->
+                    if (input.isBlank() || input.toLongOrNull()?.let { it <= GESTURE_DURATION_MAX_VALUE } == true) {
+                        duration = input
+                        viewModel.updateSubAction(key) { child -> when (child) {
+                            is DumbAction.DumbClick -> child.copy(pressDurationMs = input.toLongOrNull() ?: 0L)
+                            is DumbAction.DumbSwipe -> child.copy(swipeDurationMs = input.toLongOrNull() ?: 0L)
+                            else -> child
+                        } }
+                    }
+                },
+                onRepeatCountChanged = {}, onRepeatDelayChanged = {}, onInfiniteRepeatChanged = {},
+                onPositionClicked = { if (click != null) showClickPositionSelector(item.index)
+                    else showSwipePositionSelector(item.index) },
+                onWaitBeforeChanged = { input ->
+                    before = input
+                    val value = input.toLongOrNull() ?: if (input.isBlank()) null else -1L
+                    viewModel.updateSubAction(key) { child -> when (child) {
+                        is DumbAction.DumbClick -> child.copy(waitBeforeMs = value)
+                        is DumbAction.DumbSwipe -> child.copy(waitBeforeMs = value)
+                        else -> child
+                    } }
+                },
+                onWaitAfterChanged = { input ->
+                    after = input
+                    val value = input.toLongOrNull() ?: if (input.isBlank()) null else -1L
+                    viewModel.updateSubAction(key) { child -> when (child) {
+                        is DumbAction.DumbClick -> child.copy(waitAfterMs = value)
+                        is DumbAction.DumbSwipe -> child.copy(waitAfterMs = value)
+                        else -> child
+                    } }
+                },
+            )
         }
     }
 

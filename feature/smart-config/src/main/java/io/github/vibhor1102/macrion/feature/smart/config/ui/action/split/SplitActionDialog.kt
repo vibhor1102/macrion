@@ -5,8 +5,6 @@ import android.app.Dialog
 import android.util.Log
 import android.view.ViewGroup
 import android.view.WindowManager
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,24 +12,18 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
@@ -49,20 +41,18 @@ import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayDialog
 import io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.PositionSelectorMenu
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredOverlayType
-import io.github.vibhor1102.macrion.core.domain.model.AND
 import io.github.vibhor1102.macrion.core.domain.model.action.Click
 import io.github.vibhor1102.macrion.core.domain.model.action.SplitAction
 import io.github.vibhor1102.macrion.core.domain.model.action.Swipe
-import io.github.vibhor1102.macrion.core.domain.model.event.ScreenEvent
 import io.github.vibhor1102.macrion.core.ui.R as UiR
-import io.github.vibhor1102.macrion.core.ui.compose.ActionDelaysCard
 import io.github.vibhor1102.macrion.core.ui.compose.ExistingActionPicker
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTextField
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.core.ui.compose.MultiTouchEditorFrame
 import io.github.vibhor1102.macrion.core.ui.compose.MultiTouchWorkspace
 import io.github.vibhor1102.macrion.core.ui.compose.MultiTouchWorkspaceItem
-import io.github.vibhor1102.macrion.core.ui.compose.NumericField
+import io.github.vibhor1102.macrion.core.ui.compose.PositionGestureFields
+import io.github.vibhor1102.macrion.feature.smart.config.ui.action.click.ClickFields
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.ClickDescription
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.SwipeDescription
 import io.github.vibhor1102.macrion.feature.smart.config.R
@@ -187,8 +177,8 @@ class SplitActionDialog(
                         onAddSwipe = viewModel::addSwipe,
                         onDeleteChild = viewModel::removeSubActionByKey,
                         modifier = Modifier.weight(1f).padding(horizontal = 12.dp, vertical = 4.dp),
-                    ) { index, renaming ->
-                        SmartChildEditor(ui, ui.subActions[index], renaming)
+                    ) { index ->
+                        SmartChildEditor(ui, ui.subActions[index])
                     }
                 }
             }
@@ -196,175 +186,86 @@ class SplitActionDialog(
     }
 
     @Composable
-    private fun SmartChildEditor(ui: SplitActionUiState, item: SubActionItemUiState, renaming: Boolean) {
-        val nameLabel = stringResource(R.string.generic_name)
-        val maxNameLength = context.resources.getInteger(R.integer.name_max_length)
+    private fun SmartChildEditor(ui: SplitActionUiState, item: SubActionItemUiState) {
         val key = item.action.id.toString()
-        val nameFocus = remember(key) { FocusRequester() }
-        var keepNameField by rememberSaveable(key) { mutableStateOf(when (val action = item.action) {
-            is Click -> action.name.isNullOrBlank()
-            is Swipe -> action.name.isNullOrBlank()
-            else -> false
-        }) }
-        LaunchedEffect(renaming) { if (renaming) nameFocus.requestFocus() }
-        when (val action = item.action) {
-            is Swipe -> Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                val from = action.from
-                val to = action.to
-                if (renaming || keepNameField || action.name.isNullOrBlank()) {
-                    MacrionTextField(action.name.orEmpty(),
-                        { name ->
-                            if (name.isBlank()) keepNameField = true
-                            viewModel.updateSubAction(key) { (it as Swipe).copy(name = name) }
-                        },
-                        nameLabel, modifier = Modifier.focusRequester(nameFocus).onFocusChanged {
-                            if (!it.isFocused && !action.name.isNullOrBlank()) keepNameField = false
-                        },
-                        isError = action.name.isNullOrBlank(), maxLength = maxNameLength)
-                }
-                PositionCard(
-                    title = stringResource(R.string.field_swipe_positions_title),
-                    description = if (from != null && to != null)
-                        stringResource(R.string.field_swipe_positions_desc, from.x, from.y, to.x, to.y)
+        val maxNameLength = context.resources.getInteger(R.integer.name_max_length)
+        val action = item.action
+        val initialBefore = when (action) {
+            is Click -> action.waitBeforeMs
+            is Swipe -> action.waitBeforeMs
+            else -> null
+        }
+        val initialAfter = when (action) {
+            is Click -> action.waitAfterMs
+            is Swipe -> action.waitAfterMs
+            else -> null
+        }
+        var before by rememberSaveable(key) { mutableStateOf(initialBefore?.toString().orEmpty()) }
+        var after by rememberSaveable(key) { mutableStateOf(initialAfter?.toString().orEmpty()) }
+        val onBefore: (String) -> Unit = { input ->
+            before = input
+            val value = input.toLongOrNull() ?: if (input.isBlank()) null else -1L
+            viewModel.updateSubAction(key) { child -> when (child) {
+                is Click -> child.copy(waitBeforeMs = value)
+                is Swipe -> child.copy(waitBeforeMs = value)
+                else -> child
+            } }
+        }
+        val onAfter: (String) -> Unit = { input ->
+            after = input
+            val value = input.toLongOrNull() ?: if (input.isBlank()) null else -1L
+            viewModel.updateSubAction(key) { child -> when (child) {
+                is Click -> child.copy(waitAfterMs = value)
+                is Swipe -> child.copy(waitAfterMs = value)
+                else -> child
+            } }
+        }
+        when (action) {
+            is Swipe -> Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                PositionGestureFields(
+                    name = action.name.orEmpty(), duration = action.swipeDuration?.toString().orEmpty(),
+                    positionTitle = stringResource(R.string.field_swipe_positions_title),
+                    positionDescription = if (action.from != null && action.to != null)
+                        stringResource(R.string.field_swipe_positions_desc, action.from!!.x, action.from!!.y,
+                            action.to!!.x, action.to!!.y)
                     else stringResource(R.string.generic_select_the_position),
-                    isError = from == null || to == null,
-                    onClick = { showSwipePositionSelector(item.index) },
+                    nameLabel = stringResource(R.string.generic_name),
+                    durationLabel = stringResource(R.string.input_field_label_swipe_duration),
+                    nameError = action.name.isNullOrBlank(),
+                    durationError = (action.swipeDuration ?: 0L) <= 0L,
+                    positionError = action.from == null || action.to == null,
+                    maxNameLength = maxNameLength, waitBefore = before, waitAfter = after,
+                    onNameChanged = { name -> viewModel.updateSubAction(key) { (it as Swipe).copy(name = name) } },
+                    onDurationChanged = { input ->
+                        if (input.isBlank() || input.toLongOrNull()?.let { it <= GESTURE_DURATION_MAX_VALUE } == true)
+                            viewModel.updateSubAction(key) { (it as Swipe).copy(swipeDuration = input.toLongOrNull()) }
+                    },
+                    onPositionClicked = { showSwipePositionSelector(item.index) },
+                    onWaitBeforeChanged = onBefore, onWaitAfterChanged = onAfter,
                 )
-                NumericField(action.swipeDuration?.toString().orEmpty(),
-                    stringResource(R.string.input_field_label_swipe_duration),
-                    action.swipeDuration?.let { it <= 0 } ?: true,
-                    { input -> if (input.isBlank() || input.toLongOrNull()?.let { it <= GESTURE_DURATION_MAX_VALUE } == true)
-                        viewModel.updateSubAction(key) { (it as Swipe).copy(swipeDuration = input.toLongOrNull()) } })
-                ChildDelays(item.index, key, action.waitBeforeMs, action.waitAfterMs)
             }
-            is Click -> Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                if (renaming || keepNameField || action.name.isNullOrBlank()) {
-                    MacrionTextField(action.name.orEmpty(),
-                        { name ->
-                            if (name.isBlank()) keepNameField = true
-                            viewModel.updateSubAction(key) { (it as Click).copy(name = name) }
-                        },
-                        nameLabel, modifier = Modifier.focusRequester(nameFocus).onFocusChanged {
-                            if (!it.isFocused && !action.name.isNullOrBlank()) keepNameField = false
-                        },
-                        isError = action.name.isNullOrBlank(), maxLength = maxNameLength)
-                }
-                ClickTarget(ui, item.index, key, action)
-                NumericField(action.pressDuration?.toString().orEmpty(),
-                    stringResource(R.string.input_field_label_click_press_duration),
-                    action.pressDuration?.let { it <= 0 } ?: true,
-                    { input -> if (input.isBlank() || input.toLongOrNull()?.let { it <= GESTURE_DURATION_MAX_VALUE } == true)
-                        viewModel.updateSubAction(key) { (it as Click).copy(pressDuration = input.toLongOrNull()) } })
-                ChildDelays(item.index, key, action.waitBeforeMs, action.waitAfterMs)
+            is Click -> Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                ClickFields(
+                    name = action.name.orEmpty(), duration = action.pressDuration?.toString().orEmpty(),
+                    nameError = action.name.isNullOrBlank(),
+                    durationError = (action.pressDuration ?: 0L) <= 0L,
+                    positionState = item.clickPositionState, maxNameLength = maxNameLength,
+                    waitBefore = before, waitAfter = after,
+                    onNameChanged = { name -> viewModel.updateSubAction(key) { (it as Click).copy(name = name) } },
+                    onDurationChanged = { input ->
+                        if (input.isBlank() || input.toLongOrNull()?.let { it <= GESTURE_DURATION_MAX_VALUE } == true)
+                            viewModel.updateSubAction(key) { (it as Click).copy(pressDuration = input.toLongOrNull()) }
+                    },
+                    onTypeSelected = { type -> viewModel.updateSubAction(key) { (it as Click).copy(positionType = type) } },
+                    onPositionSelected = { showClickPositionSelector(item.index) },
+                    onConditionSelected = { showConditionSelector(ui, item.index) },
+                    onOffsetSelected = { showClickOffsetEditor(item.index) },
+                    onWaitBeforeChanged = onBefore, onWaitAfterChanged = onAfter,
+                )
             }
             else -> TextButton(onClick = {
                 viewModel.getEditedSplit()?.let { onConfigureSubAction?.invoke(it, item.index) }
             }) { Text(item.name) }
-        }
-    }
-
-    @Composable
-    private fun ClickTarget(ui: SplitActionUiState, index: Int, key: String, click: Click) {
-        val screenEvent = ui.event as? ScreenEvent
-        if (screenEvent != null) {
-            Text(stringResource(R.string.field_click_type_title), style = MaterialTheme.typography.titleSmall)
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                listOf(
-                    Click.PositionType.USER_SELECTED to stringResource(R.string.split_action_fixed_position),
-                    Click.PositionType.ON_DETECTED_CONDITION to stringResource(R.string.split_action_detected_condition),
-                ).forEach { (type, label) ->
-                    Row(
-                        modifier = Modifier.weight(1f).heightIn(min = 48.dp).clickable {
-                            viewModel.updateSubAction(key) { (it as Click).copy(positionType = type) }
-                        },
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        RadioButton(selected = click.positionType == type, onClick = null)
-                        Text(label, style = MaterialTheme.typography.bodyMedium)
-                    }
-                }
-            }
-        }
-        if (screenEvent == null || click.positionType == Click.PositionType.USER_SELECTED) {
-            PositionCard(
-                title = stringResource(R.string.field_click_position_title),
-                description = click.position?.let {
-                    stringResource(R.string.field_click_position_desc, it.x, it.y)
-                } ?: stringResource(R.string.generic_select_the_position),
-                isError = click.position == null,
-                onClick = { showClickPositionSelector(index) },
-            )
-        } else {
-            val isAnd = screenEvent.conditionOperator == AND
-            val condition = ui.availableConditions.find { it.condition.id == click.clickOnConditionId }
-            PositionCard(
-                title = if (isAnd) stringResource(R.string.field_condition_selection_title_and_operator)
-                    else stringResource(R.string.field_condition_selection_title_or_operator),
-                description = if (isAnd) condition?.name
-                    ?: stringResource(R.string.field_condition_selection_desc_and_operator_not_found)
-                    else null,
-                isError = isAnd && condition == null,
-                enabled = isAnd && ui.availableConditions.isNotEmpty(),
-                onClick = { showConditionSelector(ui, index) },
-            )
-            PositionCard(
-                title = stringResource(R.string.field_click_offset_title),
-                description = click.clickOffset?.let {
-                    stringResource(R.string.field_click_offset_desc, it.x, it.y)
-                } ?: stringResource(R.string.field_click_offset_desc_none),
-                isError = false,
-                onClick = { showClickOffsetEditor(index) },
-            )
-        }
-    }
-
-    @Composable
-    private fun ChildDelays(index: Int, key: String, waitBefore: Long?, waitAfter: Long?) {
-        var before by rememberSaveable(index) { mutableStateOf(waitBefore?.toString().orEmpty()) }
-        var after by rememberSaveable(index) { mutableStateOf(waitAfter?.toString().orEmpty()) }
-        ActionDelaysCard(
-            waitBefore = before,
-            waitAfter = after,
-            onWaitBeforeChanged = { input ->
-                before = input
-                viewModel.updateSubAction(key) { child -> when (child) {
-                    is Click -> child.copy(waitBeforeMs = input.takeIf(String::isNotBlank)?.toLongOrNull() ?: if (input.isBlank()) null else -1L)
-                    is Swipe -> child.copy(waitBeforeMs = input.takeIf(String::isNotBlank)?.toLongOrNull() ?: if (input.isBlank()) null else -1L)
-                    else -> child
-                } }
-            },
-            onWaitAfterChanged = { input ->
-                after = input
-                viewModel.updateSubAction(key) { child -> when (child) {
-                    is Click -> child.copy(waitAfterMs = input.takeIf(String::isNotBlank)?.toLongOrNull() ?: if (input.isBlank()) null else -1L)
-                    is Swipe -> child.copy(waitAfterMs = input.takeIf(String::isNotBlank)?.toLongOrNull() ?: if (input.isBlank()) null else -1L)
-                    else -> child
-                } }
-            },
-        )
-    }
-
-    @Composable
-    private fun PositionCard(
-        title: String,
-        description: String?,
-        isError: Boolean,
-        enabled: Boolean = true,
-        onClick: () -> Unit,
-    ) {
-        Card(
-            onClick = onClick,
-            enabled = enabled,
-            modifier = Modifier.fillMaxWidth(),
-            border = if (isError) BorderStroke(1.dp, MaterialTheme.colorScheme.error) else null,
-        ) {
-            Column(Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(title, style = MaterialTheme.typography.bodyLarge,
-                    color = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface)
-                description?.let { Text(it, style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant) }
-            }
         }
     }
 

@@ -19,22 +19,14 @@ package io.github.vibhor1102.macrion.feature.smart.config.ui.action.click
 import android.content.Context
 import android.content.SharedPreferences
 import android.graphics.Point
-import androidx.core.content.ContextCompat
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 
 import io.github.vibhor1102.macrion.core.bitmaps.BitmapRepository
-import io.github.vibhor1102.macrion.core.domain.ext.getConditionBitmap
-import io.github.vibhor1102.macrion.core.domain.model.AND
-import io.github.vibhor1102.macrion.core.domain.model.OR
 import io.github.vibhor1102.macrion.core.domain.model.action.Click
 import io.github.vibhor1102.macrion.core.domain.model.event.Event
-import io.github.vibhor1102.macrion.core.domain.model.event.ScreenEvent
-import io.github.vibhor1102.macrion.core.domain.model.event.TriggerEvent
 import io.github.vibhor1102.macrion.core.domain.model.condition.ScreenCondition
-import io.github.vibhor1102.macrion.core.ui.utils.createColorIndicatorDrawable
-import io.github.vibhor1102.macrion.feature.smart.config.R
 import io.github.vibhor1102.macrion.feature.smart.config.domain.EditionRepository
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.condition.UiScreenCondition
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.condition.toUiScreenCondition
@@ -182,21 +174,8 @@ class ClickViewModel @Inject constructor(
         hasUnsavedModifications: Boolean,
         canBeSaved: Boolean,
     ) : ClickUiState {
-        val positionState = when (event) {
-            is TriggerEvent ->
-                context.getUserSelectedClickPositionState(this, forced = true)
-
-            is ScreenEvent if this.positionType == Click.PositionType.USER_SELECTED ->
-                context.getUserSelectedClickPositionState(this, forced = false)
-
-            is ScreenEvent if this.positionType == Click.PositionType.ON_DETECTED_CONDITION && event.conditionOperator == OR ->
-                context.getOnConditionWithOrPositionState(this)
-
-            is ScreenEvent if this.positionType == Click.PositionType.ON_DETECTED_CONDITION && event.conditionOperator == AND ->
-                context.getOnConditionWithAndPositionState(event, this, availableConditions)
-
-            else -> null
-        }
+        val positionState = buildClickPositionUiState(context, event, this,
+            availableConditions, bitmapRepository)
 
         return ClickUiState(
             canBeSaved = canBeSaved,
@@ -212,71 +191,4 @@ class ClickViewModel @Inject constructor(
         )
     }
 
-    private fun Context.getUserSelectedClickPositionState(click: Click, forced: Boolean): ClickPositionUiState =
-        ClickPositionUiState(
-            positionType = Click.PositionType.USER_SELECTED,
-            isTypeFieldVisible = !forced,
-            isSelectorEnabled = true,
-            selectorTitle = getString(R.string.field_click_position_title),
-            selectorDescription =
-                if (click.position == null) getString(R.string.generic_select_the_position)
-                else getString(R.string.field_click_position_desc, click.position?.x ?: 0, click.position?.y ?: 0),
-            isSelectorInError = click.position == null,
-            isClickOffsetEnabled = false,
-            isClickOffsetVisible = !forced,
-            clickOffsetDescription = getClickOffsetString(click),
-        )
-
-    private fun Context.getOnConditionWithOrPositionState(click: Click): ClickPositionUiState =
-        ClickPositionUiState(
-            positionType = Click.PositionType.ON_DETECTED_CONDITION,
-            isTypeFieldVisible = true,
-            isSelectorEnabled = false,
-            selectorTitle = getString(R.string.field_condition_selection_title_or_operator),
-            selectorDescription = getString(R.string.field_condition_selection_desc_or_operator),
-            isSelectorInError = false,
-            isClickOffsetVisible = true,
-            isClickOffsetEnabled = true,
-            clickOffsetDescription = getClickOffsetString(click),
-        )
-
-    private suspend fun Context.getOnConditionWithAndPositionState(
-        event: ScreenEvent,
-        click: Click,
-        availableConditions: List<UiScreenCondition>,
-    ): ClickPositionUiState {
-        val conditionToClick = event.conditions.find { condition -> click.clickOnConditionId == condition.id }
-
-        val conditionVisualization = when (conditionToClick) {
-            is ScreenCondition.Color -> createColorIndicatorDrawable(conditionToClick.color)
-            is ScreenCondition.Image -> bitmapRepository.getConditionBitmap(conditionToClick)
-            is ScreenCondition.Number -> ContextCompat.getDrawable(this, R.drawable.ic_number_condition)
-            is ScreenCondition.Text -> ContextCompat.getDrawable(this, R.drawable.ic_text_condition)
-            null -> null
-        }
-
-        return ClickPositionUiState(
-            positionType = Click.PositionType.ON_DETECTED_CONDITION,
-            isTypeFieldVisible = true,
-            isSelectorEnabled = availableConditions.isNotEmpty(),
-            selectorTitle = getString(R.string.field_condition_selection_title_and_operator),
-            selectorDescription =
-                if (conditionToClick == null || conditionVisualization == null) getString(R.string.field_condition_selection_desc_and_operator_not_found)
-                else getString(R.string.field_condition_selection_desc_and_operator, conditionToClick.name),
-            selectorVisualization = conditionVisualization,
-            isSelectorInError = availableConditions.isNotEmpty() && (conditionToClick == null || conditionVisualization == null),
-            isClickOffsetVisible = true,
-            isClickOffsetEnabled = true,
-            clickOffsetDescription = getClickOffsetString(click),
-        )
-    }
-
-    private fun Context.getClickOffsetString(click: Click): String {
-        val offset =
-            if (click.positionType == Click.PositionType.ON_DETECTED_CONDITION) click.clickOffset
-            else null
-
-        return offset?.let { getString(R.string.field_click_offset_desc, it.x, it.y) }
-            ?: getString(R.string.field_click_offset_desc_none)
-    }
 }

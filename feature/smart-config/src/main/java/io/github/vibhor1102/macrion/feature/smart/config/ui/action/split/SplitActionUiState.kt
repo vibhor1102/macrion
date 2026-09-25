@@ -12,6 +12,7 @@ import androidx.annotation.DrawableRes
 import io.github.vibhor1102.macrion.core.domain.model.action.Action
 import io.github.vibhor1102.macrion.core.domain.model.event.Event
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.condition.UiScreenCondition
+import io.github.vibhor1102.macrion.feature.smart.config.ui.action.click.ClickPositionUiState
 
 data class SubActionItemUiState(
     val index: Int,
@@ -20,6 +21,7 @@ data class SubActionItemUiState(
     @DrawableRes val icon: Int,
     val isComplete: Boolean,
     val action: Action,
+    val clickPositionState: ClickPositionUiState? = null,
 )
 
 data class SplitActionUiState(
