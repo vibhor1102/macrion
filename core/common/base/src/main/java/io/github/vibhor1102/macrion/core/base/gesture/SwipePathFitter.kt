@@ -29,8 +29,18 @@ fun fitSwipePath(rawPoints: List<SwipePoint>, tolerancePx: Float = 4f): SwipePat
         anchors.zipWithNext().forEachIndexed { segmentIndex, (first, last) ->
             val from = path.nodes[segmentIndex]
             val to = path.nodes[segmentIndex + 1]
+            val fitted = sampleSegment(from, to)
+            val fittedLength = fitted.zipWithNext().sumOf { (a, b) -> a.distanceTo(b).toDouble() }.toFloat()
+            val traceLength = (first + 1..last).sumOf { index ->
+                points[index - 1].distanceTo(points[index]).toDouble()
+            }.toFloat()
+            var traceDistance = 0f
             for (index in first + 1 until last) {
-                val error = distanceToSegment(points[index], from, to)
+                traceDistance += points[index - 1].distanceTo(points[index])
+                // Compare in stroke order, not to the nearest point on the fitted segment.
+                // Nearest-point distance would erase a retraced line or a self-crossing loop.
+                val progress = if (traceLength > 0f) traceDistance / traceLength else 0f
+                val error = points[index].distanceTo(pointAtDistance(fitted, fittedLength * progress))
                 if (error > worstError) {
                     worstError = error
                     worstIndex = index
@@ -76,20 +86,30 @@ private fun direction(from: SwipePoint, to: SwipePoint): Pair<Float, Float> {
     return if (distance < 0.001f) 0f to 0f else (to.x - from.x) / distance to (to.y - from.y) / distance
 }
 
-private fun distanceToSegment(point: SwipePoint, from: SwipeNode, to: SwipeNode): Float {
+private fun sampleSegment(from: SwipeNode, to: SwipeNode): List<SwipePoint> {
     val firstControl = from.controlOut
     val secondControl = to.controlIn
     if (firstControl == null || secondControl == null) {
-        return distanceToLineSegment(point, from.position, to.position)
+        return listOf(from.position, to.position)
     }
-    var smallest = Float.POSITIVE_INFINITY
-    var previous = from.position
-    for (step in 1..24) {
-        val current = cubic(from.position, firstControl, secondControl, to.position, step / 24f)
-        smallest = min(smallest, distanceToLineSegment(point, previous, current))
-        previous = current
+    return (0..24).map { step ->
+        cubic(from.position, firstControl, secondControl, to.position, step / 24f)
     }
-    return smallest
+}
+
+private fun pointAtDistance(samples: List<SwipePoint>, distance: Float): SwipePoint {
+    var remaining = distance.coerceAtLeast(0f)
+    for (index in 1 until samples.size) {
+        val from = samples[index - 1]
+        val to = samples[index]
+        val length = from.distanceTo(to)
+        if (remaining <= length && length > 0f) {
+            val fraction = remaining / length
+            return SwipePoint(from.x + (to.x - from.x) * fraction, from.y + (to.y - from.y) * fraction)
+        }
+        remaining -= length
+    }
+    return samples.last()
 }
 
 private fun cubic(a: SwipePoint, b: SwipePoint, c: SwipePoint, d: SwipePoint, t: Float): SwipePoint {

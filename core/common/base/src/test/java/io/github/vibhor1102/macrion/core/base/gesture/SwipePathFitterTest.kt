@@ -4,6 +4,9 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import kotlin.math.PI
+import kotlin.math.cos
+import kotlin.math.sin
 
 class SwipePathFitterTest {
     @Test fun straightTraceNeedsOnlyItsEndpoints() {
@@ -38,6 +41,34 @@ class SwipePathFitterTest {
 
         assertEquals(path.start, path.end)
         assertTrue(path.nodes.size >= 4)
+        assertTrue(path.isValid())
+    }
+
+    @Test fun retracingTheSameLinePreservesTheReturnTrip() {
+        val trace = listOf(
+            SwipePoint(0f, 0f), SwipePoint(50f, 0f), SwipePoint(100f, 0f),
+            SwipePoint(50f, 0f), SwipePoint(0f, 0f),
+            SwipePoint(50f, 0f), SwipePoint(100f, 0f),
+        )
+
+        val path = fitSwipePath(trace)!!
+
+        assertEquals(trace.first(), path.start)
+        assertEquals(trace.last(), path.end)
+        assertTrue(path.nodes.size >= 4)
+        assertTrue(path.nodes.drop(1).any { it.position == SwipePoint(0f, 0f) })
+        assertTrue(path.isValid())
+    }
+
+    @Test fun smoothArcDoesNotBecomeAHandleAtEverySample() {
+        val trace = (0..60).map { index ->
+            val angle = PI * index / 120.0
+            SwipePoint((100 * cos(angle)).toFloat(), (100 * sin(angle)).toFloat())
+        }
+
+        val path = fitSwipePath(trace)!!
+
+        assertTrue(path.nodes.size <= 6)
         assertTrue(path.isValid())
     }
 
