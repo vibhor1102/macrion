@@ -120,7 +120,9 @@ class SmartActionsBriefMenu(initialItemIndex: Int) : ItemBriefMenu(
                 }
             },
         )
-        menuView.findOverlayView<OverlayMenuButtonView>(R.id.btn_show_all_action_previews).visibility = View.GONE
+        canCompareActionPreviews = viewModel.canCompareActionPreviews.value
+        menuView.findOverlayView<OverlayMenuButtonView>(R.id.btn_show_all_action_previews).visibility =
+            if (canCompareActionPreviews) View.VISIBLE else View.GONE
         updatePreviewMode(viewModel.showAllActionPreviews.value)
         return menuView
     }

@@ -98,16 +98,19 @@ class SmartActionsBriefViewModel @Inject constructor(
     private val briefVisualizationState: MutableStateFlow<BriefVisualizationState> =
         MutableStateFlow(BriefVisualizationState(0, false, true))
 
+    private val initialCanCompareActionPreviews = editionRepository.editionState
+        .getEditedEventActions<Action>().orEmpty().hasMultipleSpatialPreviews()
+
     /** Multiple cards with fixed screen positions are needed for a comparison preview. */
     val canCompareActionPreviews: StateFlow<Boolean> = editedActions
         .map { it.value.orEmpty().hasMultipleSpatialPreviews() }
         .distinctUntilChanged()
-        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, initialCanCompareActionPreviews)
 
     val showAllActionPreviews: StateFlow<Boolean> = combine(
         briefVisualizationState, canCompareActionPreviews,
     ) { state, canCompare -> state.showAllPreviews && canCompare }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, initialCanCompareActionPreviews)
 
     val isGestureCaptureStarted: StateFlow<Boolean> = briefVisualizationState
         .map { it.gestureCaptureStarted }
