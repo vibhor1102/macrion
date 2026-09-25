@@ -925,7 +925,7 @@ private const val FLING_LINEAR_FACTOR = 2f
 private const val FLING_QUADRATIC_FACTOR = 2f
 private const val EXPRESSIVE_SNAP_DAMPING_RATIO = 0.8f
 private const val EXPRESSIVE_SNAP_STIFFNESS = 380f
-private const val AUTO_HIDE_DELAY_MS = 5_000L
+private const val AUTO_HIDE_DELAY_MS = 3_000L
 
 private fun Context.recommendedPanelHideDelayMs(): Long {
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return AUTO_HIDE_DELAY_MS
