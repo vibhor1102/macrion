@@ -56,7 +56,7 @@ sealed class DumbActionTypeChoice(
         R.drawable.ic_wait,
     )
 
-    /** Simultaneous click/swipe action choice. */
+    /** Multi-touch action choice. */
     data object Zoom : DumbActionTypeChoice(
         R.string.item_title_dumb_zoom,
         R.string.item_desc_dumb_zoom,

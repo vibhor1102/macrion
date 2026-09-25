@@ -87,8 +87,8 @@
     <string name="item_swipe_desc">Swipe from a position on the screen to another</string>
     <string name="item_swipe_details">During %1$s</string>
 
-    <string name="item_zoom_title">Simultaneous click/swipe</string>
-    <string name="item_zoom_desc">Run clicks and swipes together, with separate start times and durations.</string>
+    <string name="item_zoom_title">Multi-touch</string>
+    <string name="item_zoom_desc">Run two or more clicks or swipes together.</string>
     <string name="item_zoom_details">Clicks and swipes together</string>
 
     <string name="item_pause_title">Wait</string>
@@ -409,8 +409,8 @@
 
     <!-- Dialog Action Split ======================================================================================= -->
 
-    <string name="dialog_title_split_action">Simultaneous click/swipe</string>
-    <string name="action_type_zoom">Simultaneous click/swipe</string>
+    <string name="dialog_title_split_action">Multi-touch</string>
+    <string name="action_type_zoom">Multi-touch</string>
     <string name="split_action_touch_actions_header">Touch Strokes</string>
     <string name="split_action_add_swipe">Add Swipe</string>
     <string name="split_action_add_click">Add Tap</string>

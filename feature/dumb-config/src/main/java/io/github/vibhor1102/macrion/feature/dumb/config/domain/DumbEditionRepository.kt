@@ -229,7 +229,7 @@ class DumbEditionRepository @Inject constructor(
         val splitAction = DumbAction.DumbSplitAction(
             id = dumbActionBuilder.generateNewIdentifier(),
             scenarioId = editedScenario.id,
-            name = existingParent?.name ?: "Simultaneous click/swipe",
+            name = existingParent?.name ?: "Multi-touch",
             repeatCount = existingParent?.repeatCount ?: 1,
             isRepeatInfinite = existingParent?.isRepeatInfinite ?: false,
             repeatDelayMs = existingParent?.repeatDelayMs ?: 0L,
@@ -254,7 +254,7 @@ class DumbEditionRepository @Inject constructor(
         val splitAction = DumbAction.DumbSplitAction(
             id = dumbActionBuilder.generateNewIdentifier(),
             scenarioId = editedScenario.id,
-            name = existingParent?.name ?: "Simultaneous click/swipe",
+            name = existingParent?.name ?: "Multi-touch",
             repeatCount = existingParent?.repeatCount ?: 1,
             isRepeatInfinite = existingParent?.isRepeatInfinite ?: false,
             repeatDelayMs = existingParent?.repeatDelayMs ?: 0L,

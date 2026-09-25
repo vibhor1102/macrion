@@ -62,7 +62,7 @@ sealed class ActionTypeChoice(
         R.string.item_swipe_desc,
         getSwipeIconRes(),
     )
-    /** Simultaneous click/swipe action choice. */
+    /** Multi-touch action choice. */
     data object Zoom : ActionTypeChoice(
         R.string.item_zoom_title,
         R.string.item_zoom_desc,

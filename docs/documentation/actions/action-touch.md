@@ -168,9 +168,9 @@ When **Randomization** is enabled, both Clicks and Swipes undergo spatial pertur
 
 This guarantees that bot detection algorithms tracking identical repetitive touch centroids cannot identify a fixed coordinate signature.
 
-## Simultaneous click/swipe and combined touches
+## Multi-touch actions
 
-**Simultaneous click/swipe** opens a parent editor with two unconfigured swipes in Smart and Dumb modes. Set each swipe's start and end positions separately. You can also add clicks or more swipes, up to ten touches. The parent shows the number of configured touches and the duration of their combined timeline.
+**Multi-touch** opens a parent editor with two unconfigured swipes in Smart and Dumb modes. Set each swipe's start and end positions separately. You can also add clicks or more swipes, up to ten touches. The parent shows the number of configured touches and the duration of their combined timeline.
 
 Saving a child updates the parent draft. Save the parent to apply the entire gesture; cancelling the parent discards its child changes as well. A child cannot be deleted when only two remain. Use **Unsplit** to turn a saved combined gesture into sequential actions.
 

@@ -25,7 +25,7 @@
     <string name="default_swipe_name">Swipe</string>
     <integer name="default_swipe_duration">500</integer>
 
-    <string name="default_zoom_name">Simultaneous click/swipe</string>
+    <string name="default_zoom_name">Multi-touch</string>
 
     <string name="default_pause_name">Wait</string>
     <integer name="default_pause_duration">50</integer>

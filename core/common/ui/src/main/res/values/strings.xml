@@ -137,5 +137,5 @@
     <string name="combined_gesture_duration">Touch timeline</string>
     <string name="action_editor_more_options">More action options</string>
     <string name="action_combine_choose_existing">Choose an action</string>
-    <string name="action_combine_choose_help">Choose a click, swipe, or simultaneous action to run together. The originals are replaced when you save.</string>
+    <string name="action_combine_choose_help">Choose a click, swipe, or multi-touch action to run together. The originals are replaced when you save.</string>
 </resources>
