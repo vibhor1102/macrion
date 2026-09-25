@@ -237,7 +237,7 @@ fun ItemBriefCanvas(
                         ))
                     }
                 }
-                clipPath(badgeCutouts, clipOp = ClipOp.Difference) {
+                val drawCarouselActions: DrawScope.(IndicatorPass) -> Unit = { pass ->
                     when (val fallback = description.focusedFallback) {
                         is ClickDescription -> drawClickIndicator(
                             description = fallback,
@@ -248,8 +248,9 @@ fun ItemBriefCanvas(
                             primaryColor = primaryColor,
                             innerColor = innerColor,
                             backgroundColor = backgroundColor,
+                            pass = pass,
                         )
-                        is PauseDescription -> drawPauseIndicator(
+                        is PauseDescription -> if (pass != IndicatorPass.BACKGROUND) drawPauseIndicator(
                             rotationDegrees = if (animate) pauseRotation.value else 0f,
                             outerRadiusPx = outerRadiusPx,
                             thicknessPx = thicknessPx,
@@ -257,7 +258,7 @@ fun ItemBriefCanvas(
                             innerColor = innerColor,
                             backgroundColor = backgroundColor,
                         )
-                        is DefaultDescription -> drawDefaultIndicator(
+                        is DefaultDescription -> if (pass != IndicatorPass.BACKGROUND) drawDefaultIndicator(
                             description = fallback,
                             outerRadiusPx = outerRadiusPx,
                             backgroundColor = backgroundColor,
@@ -272,6 +273,7 @@ fun ItemBriefCanvas(
                                 primaryColor = primaryColor,
                                 innerColor = innerColor,
                                 backgroundColor = backgroundColor,
+                                pass = pass,
                             )
                         }
                         else -> Unit
@@ -280,14 +282,22 @@ fun ItemBriefCanvas(
                         drawNumberedActionPreview(
                             preview, false, false, clickScale.value, swipeProgress.value, simultaneousTime.value,
                             outerRadiusPx, innerRadiusPx, thicknessPx, primaryColor, secondaryColor, innerColor, backgroundColor,
+                            pass = pass,
                         )
                     }
                     description.previews.firstOrNull { it.order == description.focusedOrder }?.let { preview ->
                         drawNumberedActionPreview(
                             preview, true, animate, clickScale.value, swipeProgress.value, simultaneousTime.value,
                             outerRadiusPx, innerRadiusPx, thicknessPx, primaryColor, secondaryColor, innerColor, backgroundColor,
+                            pass = pass,
                         )
                     }
+                }
+                // The badge cuts only the visible geometry. Its transparent center still
+                // receives the same background haze as the rest of the target.
+                drawCarouselActions(IndicatorPass.BACKGROUND)
+                clipPath(badgeCutouts, clipOp = ClipOp.Difference) {
+                    drawCarouselActions(IndicatorPass.FOREGROUND)
                 }
                 badges.filterNot { it.isFocused }.forEach { drawActionNumber(it, innerColor.copy(alpha = 0.7f)) }
                 badges.filter { it.isFocused }.forEach { drawActionNumber(it, innerColor) }
@@ -415,6 +425,7 @@ private fun ItemBriefDescription.markerPositions(): List<Offset> = when (this) {
 }
 
 private const val INACTIVE_PREVIEW_STROKE_ALPHA = 0.6f
+private enum class IndicatorPass { ALL, BACKGROUND, FOREGROUND }
 
 private fun DrawScope.drawNumberedActionPreview(
     preview: NumberedActionPreview,
@@ -430,6 +441,7 @@ private fun DrawScope.drawNumberedActionPreview(
     secondaryColor: Color,
     innerColor: Color,
     backgroundColor: Color,
+    pass: IndicatorPass = IndicatorPass.ALL,
 ) {
     val ringColor = if (isFocused) primaryColor else primaryColor.copy(alpha = INACTIVE_PREVIEW_STROKE_ALPHA)
     val markerColor = if (isFocused) innerColor else innerColor.copy(alpha = INACTIVE_PREVIEW_STROKE_ALPHA)
@@ -445,6 +457,7 @@ private fun DrawScope.drawNumberedActionPreview(
             primaryColor = ringColor,
             innerColor = markerColor,
             backgroundColor = hazeColor,
+            pass = pass,
         )
         is SwipeDescription -> drawSwipeIndicator(
             description = action,
@@ -457,6 +470,7 @@ private fun DrawScope.drawNumberedActionPreview(
             innerColor = markerColor,
             backgroundColor = hazeColor,
             isFocused = isFocused,
+            pass = pass,
         )
         is SplitDescription -> action.subDescriptions.forEach { child ->
             when (child) {
@@ -469,6 +483,7 @@ private fun DrawScope.drawNumberedActionPreview(
                     primaryColor = ringColor,
                     innerColor = markerColor,
                     backgroundColor = hazeColor,
+                    pass = pass,
                 )
                 is SwipeDescription -> drawSwipeIndicator(
                     description = child,
@@ -481,6 +496,7 @@ private fun DrawScope.drawNumberedActionPreview(
                     innerColor = markerColor,
                     backgroundColor = hazeColor,
                     isFocused = isFocused,
+                    pass = pass,
                 )
                 else -> Unit
             }
@@ -498,17 +514,19 @@ private fun DrawScope.drawClickIndicator(
     primaryColor: Color,
     innerColor: Color,
     backgroundColor: Color,
+    pass: IndicatorPass = IndicatorPass.ALL,
 ) {
     val bitmap = description.imageConditionBitmap
     val pos = if (bitmap != null) {
         val left = ((size.width - bitmap.width) / 2).toInt()
         val top = ((size.height - bitmap.height) / 2).toInt()
-        val imageBitmap = bitmap.asImageBitmap()
-        drawImage(
-            image = imageBitmap,
-            dstOffset = IntOffset(left, top),
-            dstSize = IntSize(bitmap.width, bitmap.height),
-        )
+        if (pass != IndicatorPass.FOREGROUND) {
+            drawImage(
+                image = bitmap.asImageBitmap(),
+                dstOffset = IntOffset(left, top),
+                dstSize = IntSize(bitmap.width, bitmap.height),
+            )
+        }
         Offset(size.width / 2f, size.height / 2f)
     } else {
         description.position?.let { Offset(it.x, it.y) }
@@ -517,7 +535,7 @@ private fun DrawScope.drawClickIndicator(
     val animatedRadius = outerRadiusPx * scale
 
     // Keep the glow's drawing area fixed so the shrinking ring cannot clip its gradient.
-    drawCircle(
+    if (pass != IndicatorPass.FOREGROUND) drawCircle(
         brush = Brush.radialGradient(
             colors = listOf(backgroundColor, Color.Transparent),
             center = pos,
@@ -526,6 +544,8 @@ private fun DrawScope.drawClickIndicator(
         radius = outerRadiusPx * 2f,
         center = pos,
     )
+
+    if (pass == IndicatorPass.BACKGROUND) return
 
     // Outer stroke circle
     drawCircle(
@@ -555,6 +575,7 @@ private fun DrawScope.drawSwipeIndicator(
     innerColor: Color,
     backgroundColor: Color,
     isFocused: Boolean = true,
+    pass: IndicatorPass = IndicatorPass.ALL,
 ) {
     val from = description.from?.let { Offset(it.x, it.y) }
     val to = description.to?.let { Offset(it.x, it.y) }
@@ -562,7 +583,7 @@ private fun DrawScope.drawSwipeIndicator(
     if (from == null && to == null) return
 
     from?.let { p ->
-        drawCircle(
+        if (pass != IndicatorPass.FOREGROUND) drawCircle(
             brush = Brush.radialGradient(
                 colors = listOf(backgroundColor, Color.Transparent),
                 center = p,
@@ -571,13 +592,13 @@ private fun DrawScope.drawSwipeIndicator(
             radius = outerRadiusPx * 2f,
             center = p,
         )
-        drawCircle(
+        if (pass != IndicatorPass.BACKGROUND) drawCircle(
             color = primaryColor,
             radius = outerRadiusPx,
             center = p,
             style = Stroke(width = thicknessPx),
         )
-        drawCircle(
+        if (pass != IndicatorPass.BACKGROUND) drawCircle(
             color = innerColor,
             radius = innerRadiusPx,
             center = p,
@@ -586,7 +607,7 @@ private fun DrawScope.drawSwipeIndicator(
     }
 
     to?.let { p ->
-        drawCircle(
+        if (pass != IndicatorPass.FOREGROUND) drawCircle(
             brush = Brush.radialGradient(
                 colors = listOf(backgroundColor, Color.Transparent),
                 center = p,
@@ -595,19 +616,21 @@ private fun DrawScope.drawSwipeIndicator(
             radius = outerRadiusPx * 2f,
             center = p,
         )
-        drawCircle(
+        if (pass != IndicatorPass.BACKGROUND) drawCircle(
             color = secondaryColor,
             radius = outerRadiusPx,
             center = p,
             style = Stroke(width = thicknessPx),
         )
-        drawCircle(
+        if (pass != IndicatorPass.BACKGROUND) drawCircle(
             color = innerColor,
             radius = innerRadiusPx,
             center = p,
             style = Fill,
         )
     }
+
+    if (pass == IndicatorPass.BACKGROUND) return
 
     if (from != null && to != null) {
         drawLine(

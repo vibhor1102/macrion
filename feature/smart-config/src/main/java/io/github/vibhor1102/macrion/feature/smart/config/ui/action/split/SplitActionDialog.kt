@@ -168,7 +168,7 @@ class SplitActionDialog(
                                 else -> item.name
                             }
                             MultiTouchWorkspaceItem(item.action.id.toString(), name, type,
-                                item.icon, item.isComplete)
+                                item.isComplete)
                         },
                         canDeleteChild = ui.canDeleteSubAction,
                         addClickLabel = stringResource(R.string.split_action_add_click),

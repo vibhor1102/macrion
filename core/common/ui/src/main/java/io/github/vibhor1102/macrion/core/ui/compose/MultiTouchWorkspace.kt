@@ -2,14 +2,15 @@
 package io.github.vibhor1102.macrion.core.ui.compose
 
 import android.content.res.Configuration
-import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -27,11 +28,13 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -64,7 +67,6 @@ data class MultiTouchWorkspaceItem(
     val key: String,
     val name: String,
     val typeLabel: String,
-    @DrawableRes val icon: Int,
     val isComplete: Boolean,
 )
 
@@ -150,6 +152,18 @@ fun MultiTouchWorkspace(
             }
         }
 
+        fun delete(index: Int) {
+            focusManager.clearFocus()
+            keyboardController?.hide()
+            pendingNewIndex = -1
+            selectedIndex = when {
+                currentSelection > index -> currentSelection - 1
+                currentSelection == index -> index.coerceAtMost(items.lastIndex - 1)
+                else -> currentSelection
+            }
+            onDeleteChild(items[index].key)
+        }
+
         Column(Modifier.fillMaxSize()) {
             Row(
                 modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp),
@@ -163,19 +177,9 @@ fun MultiTouchWorkspace(
                         itemsIndexed(items, key = { _, item -> item.key }) { index, item ->
                             TouchHeading(
                                 item = item, name = names[index], index = index, count = items.size,
-                                duplicated = names.count { it == names[index] } > 1,
                                 selected = index == currentSelection,
-                                showActions = index == currentSelection,
                                 nameMaxWidth = nameMaxWidth,
-                                canDelete = canDeleteChild, onSelect = { select(index) },
-                                onDelete = {
-                                    selectedIndex = when {
-                                        currentSelection > index -> currentSelection - 1
-                                        currentSelection == index -> index.coerceAtMost(items.lastIndex - 1)
-                                        else -> currentSelection
-                                    }
-                                    onDeleteChild(item.key)
-                                },
+                                onSelect = { select(index) },
                             )
                         }
                     }
@@ -195,6 +199,17 @@ fun MultiTouchWorkspace(
                     Column(Modifier.widthIn(max = 640.dp).fillMaxWidth().fillMaxHeight()
                         .verticalScroll(rememberScrollState()).padding(bottom = 16.dp)) {
                         childContent(currentSelection)
+                        if (canDeleteChild) {
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                                TextButton(onClick = { delete(currentSelection) },
+                                    colors = ButtonDefaults.textButtonColors(
+                                        contentColor = MaterialTheme.colorScheme.error)) {
+                                    Icon(painterResource(R.drawable.ic_delete), null, Modifier.size(18.dp))
+                                    Spacer(Modifier.size(8.dp))
+                                    Text(stringResource(R.string.action_editor_delete_touch, currentSelection + 1))
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -208,13 +223,9 @@ private fun TouchHeading(
     name: String,
     index: Int,
     count: Int,
-    duplicated: Boolean,
     selected: Boolean,
-    showActions: Boolean,
     nameMaxWidth: Dp,
-    canDelete: Boolean,
     onSelect: () -> Unit,
-    onDelete: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val description = stringResource(R.string.multi_touch_touch_description, index + 1, count, name)
@@ -230,33 +241,19 @@ private fun TouchHeading(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
-            Icon(painterResource(item.icon), null, Modifier.size(20.dp),
-                tint = if (selected) MaterialTheme.colorScheme.onSecondaryContainer
-                    else MaterialTheme.colorScheme.onSurfaceVariant)
+            Surface(shape = CircleShape, color = MaterialTheme.colorScheme.tertiaryContainer,
+                contentColor = MaterialTheme.colorScheme.onTertiaryContainer) {
+                Box(Modifier.size(24.dp), contentAlignment = Alignment.Center) {
+                    Text((index + 1).toString(), style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.SemiBold)
+                }
+            }
             Text(name, maxLines = 1, overflow = TextOverflow.Ellipsis,
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal)
-            if (duplicated) {
-                Surface(shape = MaterialTheme.shapes.extraSmall,
-                    color = MaterialTheme.colorScheme.tertiaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onTertiaryContainer) {
-                    Box(Modifier.size(20.dp), contentAlignment = Alignment.Center) {
-                        Text((index + 1).toString(), style = MaterialTheme.typography.labelSmall)
-                    }
-                }
-            }
             if (!item.isComplete) {
                 Icon(painterResource(R.drawable.ic_warning), null, Modifier.size(16.dp),
                     tint = MaterialTheme.colorScheme.error)
-            }
-        }
-        if (showActions) {
-            if (canDelete) {
-                IconButton(onClick = onDelete, modifier = Modifier.size(48.dp)) {
-                    Icon(painterResource(R.drawable.ic_delete),
-                        stringResource(R.string.action_editor_delete_touch, index + 1),
-                        Modifier.size(20.dp))
-                }
             }
         }
     }
