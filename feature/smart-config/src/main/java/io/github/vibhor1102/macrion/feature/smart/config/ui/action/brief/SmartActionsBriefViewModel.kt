@@ -68,6 +68,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
@@ -97,9 +98,16 @@ class SmartActionsBriefViewModel @Inject constructor(
     private val briefVisualizationState: MutableStateFlow<BriefVisualizationState> =
         MutableStateFlow(BriefVisualizationState(0, false, true))
 
-    val showAllActionPreviews: StateFlow<Boolean> = briefVisualizationState
-        .map { it.showAllPreviews }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, true)
+    /** Multiple cards with fixed screen positions are needed for a comparison preview. */
+    val canCompareActionPreviews: StateFlow<Boolean> = editedActions
+        .map { it.value.orEmpty().hasMultipleSpatialPreviews() }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
+    val showAllActionPreviews: StateFlow<Boolean> = combine(
+        briefVisualizationState, canCompareActionPreviews,
+    ) { state, canCompare -> state.showAllPreviews && canCompare }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     val isGestureCaptureStarted: StateFlow<Boolean> = briefVisualizationState
         .map { it.gestureCaptureStarted }
@@ -134,7 +142,7 @@ class SmartActionsBriefViewModel @Inject constructor(
             .filterNotNull()
             .mapLatest { (state, actions) ->
                 val focusedOrder = state.focusedIndex + 1
-                if (state.showAllPreviews) {
+                if (state.showAllPreviews && actions.hasMultipleSpatialPreviews()) {
                     val focusedAction = actions.getOrNull(state.focusedIndex)
                     val focusedSpatial = focusedAction?.toSpatialDescription()
                     val focusedFallback = when {
@@ -223,6 +231,7 @@ class SmartActionsBriefViewModel @Inject constructor(
     }
 
     fun toggleShowAllActionPreviews() {
+        if (!canCompareActionPreviews.value) return
         briefVisualizationState.update { state ->
             state.copy(showAllPreviews = !state.showAllPreviews)
         }
@@ -419,6 +428,9 @@ class SmartActionsBriefViewModel @Inject constructor(
             icon = ContextCompat.getDrawable(context, getIconRes())
         )
     }
+
+    private fun List<Action>.hasMultipleSpatialPreviews(): Boolean =
+        count { it.toSpatialDescription() != null } >= 2
 
     /** Only fixed screen positions belong in the combined overlay. Condition-target clicks have no fixed point. */
     private fun Action.toSpatialDescription(): ItemBriefDescription? = when (this) {

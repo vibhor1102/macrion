@@ -21,6 +21,7 @@ import io.github.vibhor1102.macrion.core.common.overlays.menu.OverlayMenuButtonV
 
 import android.view.KeyEvent
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.ViewCompat
 import androidx.lifecycle.Lifecycle
@@ -33,9 +34,6 @@ import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.M
 import io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.brief.ItemBrief
 import io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.brief.ItemBriefMenu
 import io.github.vibhor1102.macrion.core.domain.model.action.Action
-import io.github.vibhor1102.macrion.core.domain.model.action.Click
-import io.github.vibhor1102.macrion.core.domain.model.action.SplitAction
-import io.github.vibhor1102.macrion.core.domain.model.action.Swipe
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.ItemBriefDescription
 import io.github.vibhor1102.macrion.feature.smart.config.R
 import io.github.vibhor1102.macrion.feature.smart.config.ui.createActionsOverlayToolbar
@@ -78,7 +76,7 @@ class SmartActionsBriefMenu(initialItemIndex: Int) : ItemBriefMenu(
     )
 
     private lateinit var menuView: ViewGroup
-    private var hasSpatialActions = false
+    private var canCompareActionPreviews = false
     private var isRecording = false
     private var isReplaying = false
 
@@ -96,6 +94,7 @@ class SmartActionsBriefMenu(initialItemIndex: Int) : ItemBriefMenu(
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch { viewModel.isGestureCaptureStarted.collect(::updateRecordingState) }
                 launch { viewModel.actionBriefList.collect(::updateActions) }
+                launch { viewModel.canCompareActionPreviews.collect(::updatePreviewToggleVisibility) }
                 launch { viewModel.actionVisualization.collect(::updateActionVisualisation) }
                 launch { viewModel.showAllActionPreviews.collect(::updatePreviewMode) }
                 launch { viewModel.isTutorialModeEnabled.collect(::updateTutorialModeState) }
@@ -121,6 +120,7 @@ class SmartActionsBriefMenu(initialItemIndex: Int) : ItemBriefMenu(
                 }
             },
         )
+        menuView.findOverlayView<OverlayMenuButtonView>(R.id.btn_show_all_action_previews).visibility = View.GONE
         updatePreviewMode(viewModel.showAllActionPreviews.value)
         return menuView
     }
@@ -328,22 +328,20 @@ class SmartActionsBriefMenu(initialItemIndex: Int) : ItemBriefMenu(
 
     private fun updateActions(items: List<ItemBrief>) {
         updateItemList(items)
-        hasSpatialActions = items.any { (it.data as UiAction).action.hasSpatialPreview() }
-        updatePreviewToggleAvailability()
     }
 
-    private fun Action.hasSpatialPreview(): Boolean = when (this) {
-        is Click -> position != null
-        is Swipe -> from != null || to != null
-        is SplitAction -> subActions.any { it.hasSpatialPreview() }
-        else -> false
+    private fun updatePreviewToggleVisibility(canCompare: Boolean) {
+        canCompareActionPreviews = canCompare
+        updatePreviewToggleAvailability()
     }
 
     private fun updatePreviewToggleAvailability() {
         if (this::menuView.isInitialized) {
+            val button = menuView.findOverlayView<OverlayMenuButtonView>(R.id.btn_show_all_action_previews)
+            setMenuItemVisibility(button, canCompareActionPreviews)
             setMenuItemViewEnabled(
-                menuView.findOverlayView(R.id.btn_show_all_action_previews),
-                hasSpatialActions && !isRecording && !isReplaying,
+                button,
+                canCompareActionPreviews && !isRecording && !isReplaying,
             )
         }
     }
