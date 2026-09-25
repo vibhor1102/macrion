@@ -12,6 +12,7 @@ package io.github.vibhor1102.macrion.core.common.overlays.menu.implementation
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.graphics.PointF
 
 import io.github.vibhor1102.macrion.core.common.overlays.R
 import io.github.vibhor1102.macrion.core.common.overlays.menu.OverlayMenu
@@ -21,6 +22,7 @@ import io.github.vibhor1102.macrion.core.common.overlays.menu.findOverlayView
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.ItemBriefDescription
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.ClickDescription
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.SwipeDescription
+import io.github.vibhor1102.macrion.core.ui.views.gesturerecord.RecordedGesture
 
 /**
  * [OverlayMenu] implementation for displaying the click area selection menu and its overlay view.
@@ -42,7 +44,12 @@ class PositionSelectorMenu(
     /** The view binding for the position selector. */
     private lateinit var selectorViews: PositionSelectorViews
     private lateinit var confirmButton: View
+    private lateinit var recordButton: View
+    private lateinit var hideButton: View
     private var currentDescription: ItemBriefDescription = itemBriefDescription
+    private var isRecordingSwipe = false
+    private var isDraggingSwipe = false
+    private var multiTouchWarningShown = false
 
     private var confirmListener: (() -> Unit)? = null
     private var cancelListener: (() -> Unit)? = null
@@ -52,13 +59,20 @@ class PositionSelectorMenu(
     override fun onCreateMenu(layoutInflater: LayoutInflater): ViewGroup {
         return createOverlayMenuLayout(
             context,
-            listOf(
-                OverlayMenuButton(R.id.btn_confirm, R.drawable.ic_confirm, R.string.content_desc_confirm),
-                OverlayMenuButton(R.id.btn_cancel, R.drawable.ic_cancel, R.string.content_desc_go_back),
-                OverlayMenuButton(R.id.btn_hide_overlay, R.drawable.ic_visible_on, R.string.content_desc_go_back),
-                OverlayMenuButton(R.id.btn_move, R.drawable.ic_move, R.string.content_desc_move_menu),
-            ),
-        ).also { menu -> confirmButton = menu.findOverlayView(R.id.btn_confirm) }
+            buildList {
+                add(OverlayMenuButton(R.id.btn_confirm, R.drawable.ic_confirm, R.string.content_desc_confirm))
+                if (itemBriefDescription is SwipeDescription) {
+                    add(OverlayMenuButton(R.id.btn_record_swipe, R.drawable.ic_gesture_record, R.string.swipe_position_record))
+                }
+                add(OverlayMenuButton(R.id.btn_cancel, R.drawable.ic_cancel, R.string.content_desc_go_back))
+                add(OverlayMenuButton(R.id.btn_hide_overlay, R.drawable.ic_visible_on, R.string.content_desc_go_back))
+                add(OverlayMenuButton(R.id.btn_move, R.drawable.ic_move, R.string.content_desc_move_menu))
+            },
+        ).also { menu ->
+            confirmButton = menu.findOverlayView(R.id.btn_confirm)
+            hideButton = menu.findOverlayView(R.id.btn_hide_overlay)
+            if (itemBriefDescription is SwipeDescription) recordButton = menu.findOverlayView(R.id.btn_record_swipe)
+        }
     }
 
     override fun onCreateOverlayView(): View {
@@ -87,7 +101,15 @@ class PositionSelectorMenu(
     override fun onMenuItemClicked(viewId: Int) {
         when (viewId) {
             R.id.btn_confirm -> confirmListener?.invoke()
-            R.id.btn_cancel -> cancelListener?.invoke()
+            R.id.btn_record_swipe -> startSwipeRecording()
+            R.id.btn_cancel -> {
+                val swipe = currentDescription as? SwipeDescription
+                if (isRecordingSwipe && swipe?.from != null && swipe.to != null) {
+                    stopSwipeRecording(swipe)
+                } else {
+                    cancelListener?.invoke()
+                }
+            }
         }
     }
 
@@ -117,41 +139,119 @@ class PositionSelectorMenu(
     }
 
     private fun setSwipeDescription(description: SwipeDescription) {
-        toSelectSwipeFromState(description)
-    }
-
-    private fun toSelectSwipeFromState(description: SwipeDescription) {
-        currentDescription = description
-        selectorViews.setInstruction(R.string.toast_configure_swipe_from)
-        selectorViews.setDescription(description)
-        selectorViews.onTouchListener = { position ->
-            toSelectSwipeFromState(description.copy(from = position))
-        }
-
-        setConfirmEnabledState(description.from != null) {
-            toSelectSwipeToState(description)
-            selectorViews.showOrResetInstructionsTimer()
-        }
-        setCancelListener {
-            dismiss()
+        updateSwipeDescription(description)
+        if (isRecordingSwipe) {
+            selectorViews.showSwipeRecording(true)
+            selectorViews.setDescription(null)
+            selectorViews.showInstruction(R.string.swipe_position_record_instruction)
+        } else if (description.from == null || description.to == null) {
+            startSwipeRecording()
         }
     }
 
-    private fun toSelectSwipeToState(description: SwipeDescription) {
+    private fun updateSwipeDescription(description: SwipeDescription) {
         currentDescription = description
-        selectorViews.setInstruction(R.string.toast_configure_swipe_to)
-        selectorViews.setDescription(description)
-        selectorViews.onTouchListener = { position ->
-            toSelectSwipeToState(description.copy(to = position))
+        selectorViews.showSwipeEditor(true)
+        if (!isRecordingSwipe) {
+            selectorViews.setInstruction(R.string.swipe_position_drag_instruction)
+            selectorViews.setDescription(description)
         }
+        selectorViews.onSwipeHandleDragged = { handle, position ->
+            val current = currentDescription as? SwipeDescription
+            if (current != null) {
+                updateSwipeDescription(when (handle) {
+                    SwipeHandle.START -> current.copy(from = position)
+                    SwipeHandle.END -> current.copy(to = position)
+                })
+            }
+        }
+        selectorViews.onSwipeDragCancelled = { handle, original ->
+            val current = currentDescription as? SwipeDescription
+            if (current != null) {
+                updateSwipeDescription(when (handle) {
+                    SwipeHandle.START -> current.copy(from = original)
+                    SwipeHandle.END -> current.copy(to = original)
+                })
+            }
+            selectorViews.showInstruction(R.string.swipe_position_multi_touch)
+        }
+        selectorViews.onSwipeMultiTouch = {
+            selectorViews.showInstruction(R.string.swipe_position_multi_touch)
+        }
+        selectorViews.onSwipeDragStateChanged = { dragging ->
+            isDraggingSwipe = dragging
+            val current = currentDescription as? SwipeDescription
+            setConfirmEnabledState(!isRecordingSwipe && !dragging && current?.from != null && current?.to != null) {
+                onPositionSelectionCompleted(currentDescription)
+            }
+            setMenuItemViewEnabled(recordButton, !isRecordingSwipe && !dragging)
+            setMenuItemViewEnabled(hideButton, !isRecordingSwipe && !dragging)
+        }
+        selectorViews.onGestureRecorded = ::onSwipeGestureRecorded
+        setConfirmEnabledState(!isRecordingSwipe && !isDraggingSwipe && description.from != null && description.to != null) {
+            onPositionSelectionCompleted(currentDescription)
+        }
+        setCancelListener { dismiss() }
+    }
 
-        setConfirmEnabledState(description.to != null) {
-            onPositionSelectionCompleted(description)
+    private fun startSwipeRecording() {
+        if (currentDescription !is SwipeDescription) return
+        if (isRecordingSwipe) return
+        isRecordingSwipe = true
+        multiTouchWarningShown = false
+        selectorViews.showSwipeRecording(true)
+        selectorViews.setDescription(null)
+        selectorViews.showInstruction(R.string.swipe_position_record_instruction)
+        setConfirmEnabledState(false)
+        setMenuItemViewEnabled(recordButton, false)
+        setMenuItemViewEnabled(hideButton, false)
+    }
+
+    private fun stopSwipeRecording(description: SwipeDescription) {
+        isRecordingSwipe = false
+        multiTouchWarningShown = false
+        selectorViews.showSwipeRecording(false)
+        setMenuItemViewEnabled(recordButton, true)
+        setMenuItemViewEnabled(hideButton, true)
+        updateSwipeDescription(description)
+        selectorViews.showOrResetInstructionsTimer()
+    }
+
+    private fun onSwipeGestureRecorded(gesture: RecordedGesture?, isFinished: Boolean) {
+        val swipe = currentDescription as? SwipeDescription ?: return
+        if (!isRecordingSwipe) return
+        when (gesture) {
+            is RecordedGesture.Swipe -> {
+                val preview = swipe.copy(from = gesture.from.clampToDisplay(), to = gesture.to.clampToDisplay())
+                if (isFinished) stopSwipeRecording(preview)
+                else selectorViews.setDescription(preview)
+            }
+            is RecordedGesture.Click -> {
+                if (isFinished) {
+                    selectorViews.setDescription(null)
+                    selectorViews.showInstruction(R.string.swipe_position_short_gesture)
+                } else {
+                    selectorViews.setDescription(swipe.copy(from = gesture.position.clampToDisplay(), to = null))
+                }
+            }
+            is RecordedGesture.Split -> {
+                selectorViews.setDescription(null)
+                if (!multiTouchWarningShown) {
+                    multiTouchWarningShown = true
+                    selectorViews.showInstruction(R.string.swipe_position_multi_touch)
+                }
+                if (isFinished) multiTouchWarningShown = false
+            }
+            null -> if (isFinished) {
+                selectorViews.setDescription(null)
+                selectorViews.showInstruction(R.string.swipe_position_record_failed)
+            }
         }
-        setCancelListener {
-            toSelectSwipeFromState(description.copy(to = null))
-            selectorViews.showOrResetInstructionsTimer()
-        }
+    }
+
+    private fun PointF.clampToDisplay(): PointF {
+        val size = displayConfigManager.displayConfig.sizePx
+        return PointF(x.coerceIn(0f, size.x.toFloat()), y.coerceIn(0f, size.y.toFloat()))
     }
 
     private fun onPositionSelectionCompleted(description: ItemBriefDescription) {

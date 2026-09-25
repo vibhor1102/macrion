@@ -50,13 +50,14 @@ fun GestureRecordOverlay(
     isRecording: Boolean,
     onGestureCaptured: (gesture: RecordedGesture?, isFinished: Boolean) -> Unit,
     modifier: Modifier = Modifier,
+    swipeMinDistancePx: Float = SWIPE_MIN_DISTANCE_PX,
     borderColor: Color = colorResource(R.color.overlayGestureRecorder),
     borderThicknessPx: Float = dimensionResource(R.dimen.overlay_gesture_recorder_thickness).value,
 ) {
     Canvas(
         modifier = modifier
             .fillMaxSize()
-            .pointerInput(isRecording) {
+            .pointerInput(isRecording, swipeMinDistancePx) {
                 if (!isRecording) return@pointerInput
                 awaitEachGesture {
                     val down = awaitFirstDown(requireUnconsumed = false)
@@ -106,7 +107,7 @@ fun GestureRecordOverlay(
                         val subGestures = tracks.values.map { t ->
                             val dist = hypot(t.origin.x - t.current.x, t.origin.y - t.current.y)
                             val dur = (t.lastUptime - t.downTime).coerceAtLeast(1L)
-                            if (dist <= SWIPE_MIN_DISTANCE_PX) {
+                            if (dist <= swipeMinDistancePx) {
                                 RecordedGesture.Click(t.origin, dur, t.downTime - sessionStartTime)
                             } else {
                                 RecordedGesture.Swipe(t.origin, t.current, dur, t.downTime - sessionStartTime)
