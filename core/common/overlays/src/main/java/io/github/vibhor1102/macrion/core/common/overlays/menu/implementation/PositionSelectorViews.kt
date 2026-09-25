@@ -142,14 +142,17 @@ internal class PositionSelectorViews(
                                         else -> SwipeHandle.END
                                     }
                                     if (handle == null) {
+                                        var multiTouch = false
                                         while (true) {
                                             val event = awaitPointerEvent()
                                             if (event.changes.count { it.pressed } > 1) {
+                                                multiTouch = true
                                                 onSwipeMultiTouch?.invoke()
                                                 break
                                             }
                                             if (event.changes.none { it.pressed }) break
                                         }
+                                        if (!multiTouch) showInstruction(R.string.swipe_position_drag_instruction)
                                         return@awaitEachGesture
                                     }
                                     val original = if (handle == SwipeHandle.START) from else to
