@@ -79,8 +79,8 @@
     <string name="field_delays_expanded">Expanded</string>
     <string name="field_delays_collapsed">Collapsed</string>
     <string name="field_delays_check_values">Check delay values</string>
-    <string name="field_delay_range_hint">0–%1$d ms; blank = none</string>
     <string name="field_delay_range_error">Enter 0–%1$d ms</string>
+    <string name="field_delay_number_error">Enter a valid delay in milliseconds</string>
 
 
     <!--

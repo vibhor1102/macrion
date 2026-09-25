@@ -99,7 +99,7 @@ sealed class DumbAction : Identifiable {
                     is DumbSwipe -> isCombinedTouchTimingValid(it.swipeDurationMs, it.waitBeforeMs, it.waitAfterMs)
                     else -> false
                 }
-            } && (waitBeforeMs ?: 0L) in 0..MAX_TOUCH_DURATION_MS && (waitAfterMs ?: 0L) in 0..MAX_TOUCH_DURATION_MS && isRepeatCountValid() && isRepeatDelayValid()
+            } && (waitBeforeMs ?: 0L) >= 0L && (waitAfterMs ?: 0L) >= 0L && isRepeatCountValid() && isRepeatDelayValid()
     }
 
     data class DumbPause(

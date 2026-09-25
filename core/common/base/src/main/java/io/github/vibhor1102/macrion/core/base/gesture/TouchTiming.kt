@@ -4,10 +4,12 @@ package io.github.vibhor1102.macrion.core.base.gesture
 const val MAX_TOUCH_STROKES = 10
 const val MAX_TOUCH_DURATION_MS = 59_999L
 
+/** Standalone waits run outside the Android gesture and do not share its duration limit. */
 fun isTouchTimingValid(duration: Long?, before: Long?, after: Long?): Boolean =
     duration != null && duration in 1..MAX_TOUCH_DURATION_MS &&
-        (before ?: 0L) in 0..MAX_TOUCH_DURATION_MS && (after ?: 0L) in 0..MAX_TOUCH_DURATION_MS
+        (before ?: 0L) >= 0L && (after ?: 0L) >= 0L
 
+/** A child's wait-before is its stroke start offset inside the combined gesture. */
 fun isCombinedTouchTimingValid(duration: Long?, before: Long?, after: Long?): Boolean =
     isTouchTimingValid(duration, before, after) && (before ?: 0L) <= MAX_TOUCH_DURATION_MS - duration!!
 

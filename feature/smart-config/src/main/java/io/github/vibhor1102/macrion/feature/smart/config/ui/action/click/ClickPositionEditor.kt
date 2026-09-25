@@ -101,7 +101,7 @@ fun ColumnScope.ClickFields(
     name: String, duration: String, nameError: Boolean, durationError: Boolean,
     positionState: ClickPositionUiState?, maxNameLength: Int,
     waitBefore: String, waitAfter: String,
-    maxWaitBeforeMs: Long = io.github.vibhor1102.macrion.core.base.gesture.MAX_TOUCH_DURATION_MS,
+    maxWaitBeforeMs: Long? = null,
     onNameChanged: (String) -> Unit, onDurationChanged: (String) -> Unit,
     onTypeSelected: (Click.PositionType) -> Unit,
     onPositionSelected: () -> Unit, onConditionSelected: () -> Unit, onOffsetSelected: () -> Unit,
@@ -122,4 +122,5 @@ fun ColumnScope.ClickFields(
     io.github.vibhor1102.macrion.core.ui.compose.ActionDelaysCard(
         waitBefore, waitAfter, onWaitBeforeChanged, onWaitAfterChanged,
         maxWaitBeforeMs = maxWaitBeforeMs)
+    Spacer(Modifier.height(24.dp))
 }

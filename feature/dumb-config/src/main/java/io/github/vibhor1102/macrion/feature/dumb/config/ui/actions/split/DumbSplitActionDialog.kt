@@ -148,7 +148,7 @@ class DumbSplitActionDialog(
             else {
                 val groupError = ui.nameError || ui.repeatCountError || ui.repeatDelayError ||
                     listOf(ui.waitBefore, ui.waitAfter).any { value ->
-                        value.isNotBlank() && value.toLongOrNull()?.let { it in 0..59_999L } != true
+                        value.isNotBlank() && value.toLongOrNull()?.let { it >= 0L } != true
                     }
                 if (groupError) TextButton(onClick = { showingGroupSettings = true }) {
                     Icon(painterResource(UiR.drawable.ic_warning), null, Modifier.size(18.dp))

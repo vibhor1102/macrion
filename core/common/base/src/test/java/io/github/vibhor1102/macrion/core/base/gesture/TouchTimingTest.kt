@@ -10,6 +10,10 @@ class TouchTimingTest {
         assertEquals(500L, combinedTouchTailDelay(listOf(100, 1000), listOf(1200, 500)))
     }
     @Test fun invalidOffsetsDurationsAndOverflowAreRejected() {
+        assertTrue(isTouchTimingValid(100, 120_000, 180_000))
+        assertTrue(isCombinedTouchTimingValid(100, 59_899, 180_000))
+        assertFalse(isTouchTimingValid(100, -1, null))
+        assertFalse(isTouchTimingValid(100, null, -1))
         assertFalse(isCombinedTouchTimingValid(100, -1, null))
         assertFalse(isCombinedTouchTimingValid(100, Long.MAX_VALUE, null))
         assertFalse(isCombinedTouchTimingValid(0, null, null))
