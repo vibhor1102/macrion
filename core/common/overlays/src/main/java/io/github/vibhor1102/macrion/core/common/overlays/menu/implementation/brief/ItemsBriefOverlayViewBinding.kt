@@ -16,9 +16,12 @@
  */
 package io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.brief
 
+import android.content.Context
 import android.content.res.Configuration
+import android.os.Build
 import android.view.LayoutInflater
 import android.view.ViewConfiguration
+import android.view.accessibility.AccessibilityManager
 import kotlin.math.roundToInt
 import kotlinx.coroutines.delay
 import androidx.compose.animation.AnimatedVisibility
@@ -37,7 +40,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
-import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerDefaults
@@ -67,6 +69,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -142,6 +145,9 @@ class ItemsBriefOverlayViewBinding private constructor(
     private val briefItems = mutableStateOf<List<ItemBrief>>(emptyList())
     private val requestedBriefItemIndex = mutableIntStateOf(0)
     private val isPanelVisible = mutableStateOf(false)
+    private val isPanelHideCueVisible = mutableStateOf(false)
+    private val isPointerActive = mutableStateOf(false)
+    private val isCarouselScrolling = mutableStateOf(false)
     val isGestureRecording = mutableStateOf(false)
     private val isInstructionsVisible = mutableStateOf(false)
     private val isPanelAutoHideEnabled = mutableStateOf(true)
@@ -161,7 +167,9 @@ class ItemsBriefOverlayViewBinding private constructor(
 
     companion object {
 
-        private const val AUTO_HIDE_DELAY_MS = 3_000L
+        private const val AUTO_HIDE_CUE_MS = 750L
+        private const val PANEL_EXIT_DURATION_MS = 400
+        private const val INSTRUCTIONS_HIDE_DELAY_MS = 3_000L
 
         fun inflate(
             inflater: LayoutInflater,
@@ -232,15 +240,19 @@ class ItemsBriefOverlayViewBinding private constructor(
         displayConfig = newConfig
     }
 
-    /** Mirrors the legacy brief panel's immediate reveal and three-second auto-hide timer. */
+    /** Reveal the panel and restart its idle countdown after an interaction. */
     fun showOrResetPanelTimer() {
         if (isGestureRecording.value) return
+        isPanelHideCueVisible.value = false
         isPanelVisible.value = true
         panelTimerTrigger.intValue++
     }
 
     fun hidePanel() {
         panelTimerTrigger.intValue = 0
+        isPanelHideCueVisible.value = false
+        isPointerActive.value = false
+        isCarouselScrolling.value = false
         isPanelVisible.value = false
     }
 
@@ -250,10 +262,32 @@ class ItemsBriefOverlayViewBinding private constructor(
     }
 
     fun setPanelAutoHideEnabled(enabled: Boolean) {
+        if (isPanelAutoHideEnabled.value == enabled) return
         isPanelAutoHideEnabled.value = enabled
         if (!enabled) {
             panelTimerTrigger.intValue = 0
+            isPanelHideCueVisible.value = false
+        } else if (isPanelVisible.value) {
+            showOrResetPanelTimer()
         }
+    }
+
+    private fun onPointerDown() {
+        if (isGestureRecording.value) return
+        isPointerActive.value = true
+        showOrResetPanelTimer()
+    }
+
+    private fun onPointerUp() {
+        if (!isPointerActive.value) return
+        isPointerActive.value = false
+        showOrResetPanelTimer()
+    }
+
+    private fun onCarouselScrollChanged(scrolling: Boolean) {
+        if (isCarouselScrolling.value == scrolling) return
+        isCarouselScrolling.value = scrolling
+        if (!scrolling && !isPointerActive.value) showOrResetPanelTimer()
     }
 
     fun showOrResetInstructionsTimer() {
@@ -273,20 +307,50 @@ class ItemsBriefOverlayViewBinding private constructor(
 
     @Composable
     private fun OverlayContent() {
-        LaunchedEffect(panelTimerTrigger.intValue, isPanelAutoHideEnabled.value) {
-            if (panelTimerTrigger.intValue > 0 && isPanelAutoHideEnabled.value) {
-                delay(AUTO_HIDE_DELAY_MS)
+        val context = LocalContext.current
+        LaunchedEffect(
+            panelTimerTrigger.intValue,
+            isPanelAutoHideEnabled.value,
+            isPointerActive.value,
+            isCarouselScrolling.value,
+        ) {
+            if (panelTimerTrigger.intValue > 0 && isPanelAutoHideEnabled.value &&
+                !isPointerActive.value && !isCarouselScrolling.value
+            ) {
+                delay(context.recommendedPanelHideDelayMs())
+                isPanelHideCueVisible.value = true
+                delay(AUTO_HIDE_CUE_MS)
                 isPanelVisible.value = false
             }
         }
         LaunchedEffect(instructionsTimerTrigger.intValue) {
             if (instructionsTimerTrigger.intValue > 0) {
-                delay(AUTO_HIDE_DELAY_MS)
+                delay(INSTRUCTIONS_HIDE_DELAY_MS)
                 isInstructionsVisible.value = false
             }
         }
         val isPortrait = orientation == Configuration.ORIENTATION_PORTRAIT
-        Box(Modifier.fillMaxSize()) {
+        val panelAlpha by animateFloatAsState(
+            targetValue = if (isPanelHideCueVisible.value) 0.82f else 1f,
+            animationSpec = tween(durationMillis = 220),
+            label = "panelHideCueAlpha",
+        )
+        Box(
+            Modifier.fillMaxSize().pointerInput(Unit) {
+                awaitEachGesture {
+                    awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
+                    val tracksPanel = !isGestureRecording.value
+                    if (tracksPanel) onPointerDown()
+                    try {
+                        do {
+                            val event = awaitPointerEvent(PointerEventPass.Final)
+                        } while (event.changes.any { it.pressed })
+                    } finally {
+                        if (tracksPanel) onPointerUp()
+                    }
+                }
+            },
+        ) {
             ItemBriefCanvas(
                 description = currentDescription.value,
                 displayConfig = displayConfig,
@@ -307,7 +371,18 @@ class ItemsBriefOverlayViewBinding private constructor(
             if (!isGestureRecording.value) AnimatedVisibility(
                 visible = isPanelVisible.value,
                 enter = if (isPortrait) slideInVertically { it } + fadeIn() else slideInHorizontally { -it } + fadeIn(),
-                exit = if (isPortrait) slideOutVertically { it } + fadeOut() else slideOutHorizontally { -it } + fadeOut(),
+                exit = if (isPortrait) {
+                    slideOutVertically(
+                        animationSpec = tween(PANEL_EXIT_DURATION_MS, easing = FastOutSlowInEasing),
+                        targetOffsetY = { (it * 0.2f).roundToInt() },
+                    ) + fadeOut(animationSpec = tween(PANEL_EXIT_DURATION_MS))
+                } else {
+                    slideOutHorizontally(
+                        animationSpec = tween(PANEL_EXIT_DURATION_MS, easing = FastOutSlowInEasing),
+                        targetOffsetX = { -(it * 0.2f).roundToInt() },
+                    ) + fadeOut(animationSpec = tween(PANEL_EXIT_DURATION_MS))
+                },
+                modifier = Modifier.graphicsLayer { alpha = panelAlpha },
             ) {
                 if (isPortrait) PortraitBriefPanel() else LandscapeBriefPanel()
             }
@@ -415,7 +490,7 @@ class ItemsBriefOverlayViewBinding private constructor(
                         onItemClicked = onItemClicked,
                         onFocusedItemChanged = ::handleFocusedItemChanged,
                         firstItemModifier = firstItemModifier(),
-                        onInteraction = ::showOrResetPanelTimer,
+                        onScrollInProgressChanged = ::onCarouselScrollChanged,
                         onDeleteAnimationChanged = { isDeleteAnimating.value = it },
                     )
                 } else if (briefItems.value.isEmpty()) {
@@ -470,7 +545,7 @@ class ItemsBriefOverlayViewBinding private constructor(
                         onItemClicked = onItemClicked,
                         onFocusedItemChanged = ::handleFocusedItemChanged,
                         firstItemModifier = firstItemModifier(),
-                        onInteraction = ::showOrResetPanelTimer,
+                        onScrollInProgressChanged = ::onCarouselScrollChanged,
                         onDeleteAnimationChanged = { isDeleteAnimating.value = it },
                     )
                 } else if (briefItems.value.isEmpty()) {
@@ -638,7 +713,7 @@ private fun BriefItemsCarousel(
     onItemClicked: (Int, ItemBrief) -> Unit,
     onFocusedItemChanged: (Int) -> Unit,
     firstItemModifier: Modifier,
-    onInteraction: () -> Unit,
+    onScrollInProgressChanged: (Boolean) -> Unit,
     onDeleteAnimationChanged: (Boolean) -> Unit,
 ) {
     var displayedItems by remember { mutableStateOf(items) }
@@ -736,6 +811,10 @@ private fun BriefItemsCarousel(
         snapshotFlow { pagerState.currentPage }
             .collect { page -> onFocusedItemChanged(page) }
     }
+    LaunchedEffect(pagerState) {
+        snapshotFlow { pagerState.isScrollInProgress }
+            .collect(onScrollInProgressChanged)
+    }
 
     if (displayedItems.isEmpty()) {
         AnimatedVisibility(
@@ -785,7 +864,6 @@ private fun BriefItemsCarousel(
                     isFirstItem = page == 0,
                     isDeleting = isDeleting,
                     orientation = orientation,
-                    onInteraction = onInteraction,
                 ) {
                     itemContent(brief, orientation) { if (!isDeleting) onItemClicked(page, brief) }
                 }
@@ -810,7 +888,6 @@ private fun BriefItemsCarousel(
                     isFirstItem = page == 0,
                     isDeleting = isDeleting,
                     orientation = orientation,
-                    onInteraction = onInteraction,
                 ) {
                     itemContent(brief, orientation) { if (!isDeleting) onItemClicked(page, brief) }
                 }
@@ -826,7 +903,6 @@ private fun BriefItemContainer(
     isFirstItem: Boolean,
     isDeleting: Boolean,
     orientation: Int,
-    onInteraction: () -> Unit,
     content: @Composable () -> Unit,
 ) {
     val deleteProgress by animateFloatAsState(
@@ -848,14 +924,6 @@ private fun BriefItemContainer(
                 } else {
                     translationX = -28.dp.toPx() * progress
                 }
-            }
-            .pointerInput(onInteraction, isDeleting) {
-                if (isDeleting) return@pointerInput
-                awaitEachGesture {
-                    awaitFirstDown(requireUnconsumed = false)
-                    onInteraction()
-                    waitForUpOrCancellation()
-                }
             },
     ) {
         content()
@@ -869,8 +937,18 @@ private const val FLING_LINEAR_FACTOR = 2f
 private const val FLING_QUADRATIC_FACTOR = 2f
 private const val EXPRESSIVE_SNAP_DAMPING_RATIO = 0.8f
 private const val EXPRESSIVE_SNAP_STIFFNESS = 380f
+private const val AUTO_HIDE_DELAY_MS = 5_000L
+
+private fun Context.recommendedPanelHideDelayMs(): Long {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return AUTO_HIDE_DELAY_MS
+    val accessibilityManager = getSystemService(AccessibilityManager::class.java) ?: return AUTO_HIDE_DELAY_MS
+    return accessibilityManager.getRecommendedTimeoutMillis(
+        AUTO_HIDE_DELAY_MS.toInt(),
+        AccessibilityManager.FLAG_CONTENT_CONTROLS or
+            AccessibilityManager.FLAG_CONTENT_ICONS or
+            AccessibilityManager.FLAG_CONTENT_TEXT,
+    ).toLong()
+}
 
 private fun Identifier.toBundleKey(): String =
     if (tempId != null) "temp_$tempId" else "db_$databaseId"
-
-
