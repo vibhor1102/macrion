@@ -33,6 +33,8 @@ import io.github.vibhor1102.macrion.core.domain.model.action.SplitAction
 import io.github.vibhor1102.macrion.core.domain.model.action.Swipe
 import io.github.vibhor1102.macrion.core.domain.model.action.SystemAction
 import io.github.vibhor1102.macrion.core.domain.model.action.ToggleEvent
+import io.github.vibhor1102.macrion.core.domain.model.action.isValidForEvent
+import io.github.vibhor1102.macrion.core.domain.model.action.isValidMultiTouchChildForEvent
 import io.github.vibhor1102.macrion.core.domain.model.event.Event
 
 data class UiAction(
@@ -44,7 +46,7 @@ data class UiAction(
     val subUiActions: List<UiAction> = emptyList(),
 )
 
-internal fun Action.toUiAction(context: Context, parent: Event? = null, inError: Boolean = !isComplete()): UiAction =
+internal fun Action.toUiAction(context: Context, parent: Event? = null, inError: Boolean = !isValidForEvent(parent)): UiAction =
     UiAction(
         action = this,
         name = name!!,
@@ -52,7 +54,7 @@ internal fun Action.toUiAction(context: Context, parent: Event? = null, inError:
         description = getActionDescription(context, parent, inError),
         haveError = inError,
         subUiActions = if (this is SplitAction) {
-            subActions.map { it.toUiAction(context, parent, !it.isComplete()) }
+            subActions.map { it.toUiAction(context, parent, !it.isValidMultiTouchChildForEvent(parent)) }
         } else {
             emptyList()
         },

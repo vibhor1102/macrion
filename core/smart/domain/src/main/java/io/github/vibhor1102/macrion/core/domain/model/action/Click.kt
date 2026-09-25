@@ -79,6 +79,4 @@ data class Click(
     private fun isPositionValid(): Boolean =
         (positionType == PositionType.USER_SELECTED && position != null) || positionType == PositionType.ON_DETECTED_CONDITION
 
-    fun isClickOnConditionValid(): Boolean =
-        (positionType == PositionType.ON_DETECTED_CONDITION && clickOnConditionId != null) || positionType == PositionType.USER_SELECTED
 }

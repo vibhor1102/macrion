@@ -17,7 +17,6 @@
 package io.github.vibhor1102.macrion.feature.smart.config.data
 
 import io.github.vibhor1102.macrion.core.base.identifier.Identifier
-import io.github.vibhor1102.macrion.core.domain.model.AND
 import io.github.vibhor1102.macrion.core.domain.model.action.Action
 import io.github.vibhor1102.macrion.core.domain.model.action.Click
 import io.github.vibhor1102.macrion.core.domain.model.action.Intent
@@ -26,8 +25,8 @@ import io.github.vibhor1102.macrion.core.domain.model.action.toggleevent.EventTo
 import io.github.vibhor1102.macrion.core.domain.model.action.intent.IntentExtra
 import io.github.vibhor1102.macrion.core.domain.model.action.Swipe
 import io.github.vibhor1102.macrion.core.domain.model.action.SplitAction
-import io.github.vibhor1102.macrion.core.domain.model.event.ScreenEvent
-import io.github.vibhor1102.macrion.core.domain.model.event.TriggerEvent
+import io.github.vibhor1102.macrion.core.domain.model.action.isValidForEvent
+import io.github.vibhor1102.macrion.core.domain.model.event.Event
 import io.github.vibhor1102.macrion.feature.smart.config.data.base.ListEditor
 
 import kotlinx.coroutines.flow.StateFlow
@@ -266,22 +265,7 @@ internal class ActionsEditor<Parent>(
     }
 
     override fun itemCanBeSaved(item: Action?, parent: Parent?): Boolean =
-        when (item) {
-            is Click -> {
-                when (parent) {
-                    is TriggerEvent ->
-                        item.isComplete() && item.positionType != Click.PositionType.ON_DETECTED_CONDITION
-
-                    is ScreenEvent ->
-                        if (item.isComplete()) !(parent.conditionOperator == AND && !item.isClickOnConditionValid())
-                        else false
-
-                    else -> item.isComplete()
-                }
-            }
-            is SplitAction -> item.isComplete() && item.subActions.all { itemCanBeSaved(it, parent) }
-            else -> item?.isComplete() ?: false
-        }
+        item?.isValidForEvent(parent as? Event) ?: false
 
     private fun onEditedActionIntentExtraUpdated(extras: List<IntentExtra<out Any>>) {
         val action = editedItem.value

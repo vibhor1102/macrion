@@ -18,6 +18,7 @@ import io.github.vibhor1102.macrion.core.domain.model.action.Action
 import io.github.vibhor1102.macrion.core.domain.model.action.Click
 import io.github.vibhor1102.macrion.core.domain.model.action.SplitAction
 import io.github.vibhor1102.macrion.core.domain.model.action.Swipe
+import io.github.vibhor1102.macrion.core.domain.model.action.isValidMultiTouchChildForEvent
 import io.github.vibhor1102.macrion.core.domain.model.event.Event
 import io.github.vibhor1102.macrion.core.ui.R as UiR
 import io.github.vibhor1102.macrion.feature.smart.config.R
@@ -212,7 +213,7 @@ class SplitActionViewModel @Inject constructor(
                         name = subAction.name ?: "${context.getString(R.string.item_swipe_title)} ${index + 1}",
                         details = details,
                         icon = UiR.drawable.ic_swipe,
-                        isComplete = SplitAction.isSubActionComplete(subAction),
+                        isComplete = subAction.isValidMultiTouchChildForEvent(event),
                         action = subAction,
                     )
                 }
@@ -232,7 +233,7 @@ class SplitActionViewModel @Inject constructor(
                         name = subAction.name ?: "${context.getString(R.string.item_click_title)} ${index + 1}",
                         details = details,
                         icon = UiR.drawable.ic_click,
-                        isComplete = SplitAction.isSubActionComplete(subAction),
+                        isComplete = subAction.isValidMultiTouchChildForEvent(event),
                         action = subAction,
                         clickPositionState = event?.let { buildClickPositionUiState(context, it,
                             subAction, availableConditions, bitmapRepository) },
@@ -244,7 +245,7 @@ class SplitActionViewModel @Inject constructor(
                         name = subAction.name ?: "Action ${index + 1}",
                         details = "",
                         icon = UiR.drawable.ic_swipe,
-                        isComplete = SplitAction.isSubActionComplete(subAction),
+                        isComplete = subAction.isValidMultiTouchChildForEvent(event),
                         action = subAction,
                     )
                 }
