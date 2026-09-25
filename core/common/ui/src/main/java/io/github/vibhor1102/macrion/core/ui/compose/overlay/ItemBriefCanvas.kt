@@ -68,6 +68,8 @@ import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.SwipeDescr
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.TextConditionDescription
 
 import kotlin.math.hypot
+import kotlin.math.acos
+import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.max
 import kotlin.math.min
@@ -658,10 +660,27 @@ private fun DrawScope.actionNumberBadges(
 ): List<ActionNumberBadge> {
     fun badgeAt(target: Offset, radius: Float): ActionNumberBadge {
         val badgeRadius = actionNumberBadgeRadius.toPx()
-        val angle = Math.toRadians((labelAngles[order to target] ?: 0f).toDouble())
+        val preferredDegrees = labelAngles[order to target] ?: 0f
+        val preferredAngle = Math.toRadians(preferredDegrees.toDouble())
+        val anglesAtTarget = labelAngles.filterKeys { it.second == target }.values
+        val spacing = Math.toRadians(min(47f, 340f / (anglesAtTarget.size - 1).coerceAtLeast(1)).toDouble())
+        fun sideFor(degrees: Float) = when {
+            degrees < 0f -> -1.0
+            degrees > 0f -> 1.0
+            target.x > size.width / 2f -> -1.0
+            else -> 1.0
+        }
+        val side = sideFor(preferredDegrees)
+        val rankOnSide = anglesAtTarget.count { sideFor(it) == side && abs(it) < abs(preferredDegrees) }
+        // Rotate labels away from the clipped top edge while keeping their angular spacing.
+        // This also moves continuously with an animated click ring instead of jumping below it.
+        val topClearance = if (radius > 0f && target.y - radius < badgeRadius) {
+            acos(((target.y - badgeRadius) / radius).coerceIn(-1f, 1f).toDouble())
+        } else 0.0
+        val angle = (side * max(abs(preferredAngle), topClearance + rankOnSide * spacing))
+            .coerceIn(-Math.PI, Math.PI)
         val ringX = target.x + radius * sin(angle).toFloat()
-        val topY = target.y - radius * cos(angle).toFloat()
-        val ringY = if (topY >= badgeRadius) topY else target.y + radius * cos(angle).toFloat()
+        val ringY = target.y - radius * cos(angle).toFloat()
         return ActionNumberBadge(order, Offset(
             x = ringX.coerceIn(badgeRadius, (size.width - badgeRadius).coerceAtLeast(badgeRadius)),
             y = ringY.coerceIn(badgeRadius, (size.height - badgeRadius).coerceAtLeast(badgeRadius)),
