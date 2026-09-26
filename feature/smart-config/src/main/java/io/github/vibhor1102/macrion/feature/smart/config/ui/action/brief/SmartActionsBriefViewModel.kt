@@ -38,8 +38,10 @@ import io.github.vibhor1102.macrion.core.domain.model.action.Click
 import io.github.vibhor1102.macrion.core.domain.model.action.Pause
 import io.github.vibhor1102.macrion.core.domain.model.action.SplitAction
 import io.github.vibhor1102.macrion.core.domain.model.action.Swipe
+import io.github.vibhor1102.macrion.core.domain.model.OR
 import io.github.vibhor1102.macrion.core.domain.model.condition.ScreenCondition
 import io.github.vibhor1102.macrion.core.domain.model.event.Event
+import io.github.vibhor1102.macrion.core.domain.model.event.ScreenEvent
 import io.github.vibhor1102.macrion.core.processing.domain.SmartProcessingRepository
 import io.github.vibhor1102.macrion.core.processing.domain.model.DetectionState
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.TutorialRepository
@@ -139,22 +141,22 @@ class SmartActionsBriefViewModel @Inject constructor(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val actionVisualization: Flow<ItemBriefDescription?> =
-        combine(briefVisualizationState, editedActions) { state, actions ->
-            if (state.gestureCaptureStarted) null else state to actions.value.orEmpty()
+        combine(briefVisualizationState, editedActions, editedEvent) { state, actions, event ->
+            if (state.gestureCaptureStarted) null else Triple(state, actions.value.orEmpty(), event)
         }
             .filterNotNull()
-            .mapLatest { (state, actions) ->
+            .mapLatest { (state, actions, event) ->
                 val focusedOrder = state.focusedIndex + 1
                 if (state.showAllPreviews && actions.hasMultipleSpatialPreviews()) {
                     val focusedAction = actions.getOrNull(state.focusedIndex)
                     val focusedSpatial = focusedAction?.toSpatialDescription()
                     val focusedFallback = when {
                         focusedAction == null -> null
-                        focusedSpatial == null -> focusedAction.toActionDescription(context)
+                        focusedSpatial == null -> focusedAction.toActionDescription(context, event)
                         focusedAction is SplitAction && focusedAction.subActions.any {
                             it is Click && it.positionType == Click.PositionType.ON_DETECTED_CONDITION
                         } -> {
-                            val fullSplit = focusedAction.toActionDescription(context) as SplitDescription
+                            val fullSplit = focusedAction.toActionDescription(context, event) as SplitDescription
                             fullSplit.subDescriptions.filterIsInstance<ClickDescription>()
                                 .filter { it.position == null && it.imageConditionBitmap != null }
                                 .takeIf { it.isNotEmpty() }?.let(::SplitDescription)
@@ -171,7 +173,7 @@ class SmartActionsBriefViewModel @Inject constructor(
                     )
                 } else {
                     val focusedAction = actions.getOrNull(state.focusedIndex) ?: return@mapLatest null
-                    val focusedDescription = focusedAction.toActionDescription(context)
+                    val focusedDescription = focusedAction.toActionDescription(context, event)
                     when (focusedDescription) {
                         is ClickDescription, is SwipeDescription, is SplitDescription -> ActionCarouselDescription(
                             previews = listOf(NumberedActionPreview(focusedOrder, focusedDescription)),
@@ -491,11 +493,13 @@ class SmartActionsBriefViewModel @Inject constructor(
             else -> null
         }
 
-    private suspend fun Action.toActionDescription(context: Context): ItemBriefDescription = when (this) {
+    private suspend fun Action.toActionDescription(context: Context, event: Event): ItemBriefDescription = when (this) {
         is Click -> ClickDescription(
-            position = position?.toPointF(),
+            // Switching to a detected-condition target can retain the former fixed position.
+            // Runtime ignores it, so the preview must ignore it too.
+            position = position?.takeIf { positionType == Click.PositionType.USER_SELECTED }?.toPointF(),
             pressDurationMs = pressDuration ?: 1,
-            imageConditionBitmap = findClickOnConditionBitmap(context),
+            imageConditionBitmap = findClickOnConditionBitmap(context, event),
         )
 
         is Swipe -> SwipeDescription(
@@ -511,7 +515,7 @@ class SmartActionsBriefViewModel @Inject constructor(
 
         is SplitAction -> SplitDescription(
             subDescriptions = subActions.map { child ->
-                when (val desc = child.toActionDescription(context)) {
+                when (val desc = child.toActionDescription(context, event)) {
                     is SwipeDescription -> desc.copy(startOffsetMs = (child as Swipe).waitBeforeMs ?: 0L)
                     is ClickDescription -> desc.copy(startOffsetMs = (child as Click).waitBeforeMs ?: 0L)
                     else -> desc
@@ -550,8 +554,10 @@ class SmartActionsBriefViewModel @Inject constructor(
         else -> null
     }
 
-    private suspend fun Click.findClickOnConditionBitmap(context: Context): Bitmap? {
+    private suspend fun Click.findClickOnConditionBitmap(context: Context, event: Event): Bitmap? {
         if (positionType != Click.PositionType.ON_DETECTED_CONDITION) return null
+        // OR clicks use whichever condition fulfills the event first, regardless of any saved ID.
+        if (event is ScreenEvent && event.conditionOperator == OR) return null
 
         return editionRepository.editionState.getEditedEventConditions<ScreenCondition>()
             ?.find { it.id == clickOnConditionId }
