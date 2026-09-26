@@ -42,6 +42,7 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
@@ -56,11 +57,12 @@ import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -72,8 +74,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.liveRegion
@@ -81,6 +85,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.geometry.Offset
@@ -93,6 +98,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.annotation.StringRes
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -137,7 +143,13 @@ private fun BoxScope.HandleUndoSnackbar(
     LaunchedEffect(notice.id) {
         progress.animateTo(0f, tween(notice.durationMs.toInt(), easing = LinearEasing))
     }
-    Snackbar(
+    val colors = MaterialTheme.colorScheme
+    val darkTheme = isSystemInDarkTheme()
+    val containerColor = if (darkTheme) colors.surfaceContainerHigh else colors.inverseSurface
+    val contentColor = if (darkTheme) colors.onSurface else colors.inverseOnSurface
+    val accentColor = if (darkTheme) colors.primary else colors.inversePrimary
+    val snackbarShape = SnackbarDefaults.shape
+    Box(
         modifier = Modifier
             .align(if (isPortrait) Alignment.BottomCenter else Alignment.BottomEnd)
             .padding(
@@ -146,23 +158,50 @@ private fun BoxScope.HandleUndoSnackbar(
                 bottom = if (isPortrait) 188.dp else 16.dp,
             )
             .widthIn(max = 360.dp),
-        action = {
-            TextButton(onClick = onUndo) {
-                Text(
-                    stringResource(R.string.brief_handle_undo),
-                    color = MaterialTheme.colorScheme.inversePrimary,
-                )
-            }
-        },
     ) {
-        Column(Modifier.semantics { liveRegion = LiveRegionMode.Polite }) {
-            Text(stringResource(notice.messageRes))
-            Spacer(Modifier.height(8.dp))
-            LinearProgressIndicator(
-                progress = { progress.value },
-                modifier = Modifier.fillMaxWidth().height(2.dp).clearAndSetSemantics {},
-                color = MaterialTheme.colorScheme.inversePrimary,
-                trackColor = MaterialTheme.colorScheme.inverseOnSurface.copy(alpha = 0.24f),
+        Snackbar(
+            modifier = Modifier.fillMaxWidth(),
+            shape = snackbarShape,
+            containerColor = containerColor,
+            contentColor = contentColor,
+            actionContentColor = accentColor,
+            action = {
+                TextButton(
+                    onClick = onUndo,
+                    colors = ButtonDefaults.textButtonColors(contentColor = accentColor),
+                ) {
+                    Text(stringResource(R.string.brief_handle_undo))
+                }
+            },
+        ) {
+            Text(
+                stringResource(notice.messageRes),
+                modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+            )
+        }
+        // Draw against the whole snackbar surface, including the Undo action. The standard
+        // content slot only spans the message area and the progress indicator adds a gap/stop dot.
+        Canvas(
+            Modifier
+                .matchParentSize()
+                .clip(snackbarShape)
+                .clearAndSetSemantics {},
+        ) {
+            val lineHeight = 2.dp.toPx()
+            val lineTop = size.height - lineHeight
+            drawRect(
+                color = contentColor.copy(alpha = 0.16f),
+                topLeft = Offset(0f, lineTop),
+                size = Size(size.width, lineHeight),
+            )
+            val remainingWidth = size.width * progress.value.coerceIn(0f, 1f)
+            drawRect(
+                color = accentColor,
+                topLeft = Offset(
+                    if (layoutDirection == LayoutDirection.Rtl) size.width - remainingWidth else 0f,
+                    lineTop,
+                ),
+                size = Size(remainingWidth, lineHeight),
             )
         }
     }
