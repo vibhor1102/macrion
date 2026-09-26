@@ -73,7 +73,6 @@
     <string name="item_desc_dumb_scenario">Классический автокликер.\nПросто разместите на экране нажатия и смахивания.</string>
     <string name="item_desc_dumb_scenario_max_duration">Остановиться после %1$s</string>
     <string name="item_desc_dumb_scenario_max_duration_infinite">Неограниченная длительность</string>
-    <string name="item_desc_dumb_scenario_repeat_count">Повторить %1$d раз</string>
     <string name="item_desc_dumb_scenario_repeat_infinite">Повторять бесконечно</string>
     <string name="item_desc_smart_scenario">Используется обнаружение изображений для создания сложных ситуаций.\nНекоторые функции платные.</string>
     <string name="item_desc_smart_scenario_pro_mode">Используется обнаружение изображений для создания сложных ситуаций.</string>
@@ -102,7 +101,6 @@
       - TextButton content.
       - Should be short and concise.
       -->
-    <string name="button_text_create_scenario">Создать сценарий</string>
 
     <!--
       - Content description texts.
@@ -128,8 +126,6 @@
     <string name="field_home_button_title">Показывать кнопку главного экрана Macrion</string>
     <string name="field_home_button_desc">Добавляет на панель инструментов кнопку для остановки сценария и открытия главного экрана Macrion.</string>
 
-    <string name="field_legacy_action_ui_title">Устаревший пользовательский интерфейс действий</string>
-    <string name="field_legacy_action_ui_desc">Измените отображение действий списком. Полезно для сложных сценариев.</string>
 
     <string name="field_legacy_notification_ui_title">Устаревший пользовательский интерфейс уведомлений</string>
     <string name="field_legacy_notification_ui_desc">Используйте системные кнопки вместо кнопок со значками в уведомлении.</string>
@@ -149,24 +145,66 @@
     <string name="dialog_condition_migration_title">Миграция</string>
 
     <string name="message_condition_migration_desc">Формат изображений Macrion изменился, и ваш сценарий необходимо обновить.         Это может занять несколько минут в зависимости от количества условий для миграции.</string>
-    <string name="message_condition_migration_count">%1$d Изображение Условия для миграции.</string>
+    <plurals name="message_condition_migration_count">
+        <item quantity="one">Требуется перенести %1$d условие изображения.</item>
+        <item quantity="few">Требуется перенести %1$d условия изображений.</item>
+        <item quantity="many">Требуется перенести %1$d условий изображений.</item>
+        <item quantity="other">Требуется перенести %1$d условия изображений.</item>
+    </plurals>
+
+    <plurals name="settings_toolbar_auto_hide_delay_seconds">
+        <item quantity="one">%1$d секунда</item>
+        <item quantity="few">%1$d секунды</item>
+        <item quantity="many">%1$d секунд</item>
+        <item quantity="other">%1$d секунды</item>
+    </plurals>
+
+    <plurals name="settings_toolbar_auto_hide_delay_minutes">
+        <item quantity="one">%1$d минута</item>
+        <item quantity="few">%1$d минуты</item>
+        <item quantity="many">%1$d минут</item>
+        <item quantity="other">%1$d минуты</item>
+    </plurals>
+
+    <plurals name="settings_toolbar_auto_hide_delay_minutes_default">
+        <item quantity="one">%1$d минута (по умолчанию)</item>
+        <item quantity="few">%1$d минуты (по умолчанию)</item>
+        <item quantity="many">%1$d минут (по умолчанию)</item>
+        <item quantity="other">%1$d минуты (по умолчанию)</item>
+    </plurals>
+
+    <plurals name="settings_screenshot_rate_limit_item">
+        <item quantity="one">%1$d в минуту</item>
+        <item quantity="few">%1$d в минуту</item>
+        <item quantity="many">%1$d в минуту</item>
+        <item quantity="other">%1$d в минуту</item>
+    </plurals>
+
+    <plurals name="settings_screenshot_rate_limit_item_default">
+        <item quantity="one">%1$d в минуту (по умолчанию)</item>
+        <item quantity="few">%1$d в минуту (по умолчанию)</item>
+        <item quantity="many">%1$d в минуту (по умолчанию)</item>
+        <item quantity="other">%1$d в минуту (по умолчанию)</item>
+    </plurals>
+
+    <plurals name="item_desc_dumb_scenario_repeat_count">
+        <item quantity="one">Повторить %1$d раз</item>
+        <item quantity="few">Повторить %1$d раза</item>
+        <item quantity="many">Повторить %1$d раз</item>
+        <item quantity="other">Повторить %1$d раза</item>
+    </plurals>
+
     <string name="message_condition_migration_success">Все условия изображения перенесены.</string>
     <string name="message_condition_migration_error">Некоторые условия не удалось перенести. Пожалуйста, проверьте свои сценарии.</string>
-
     <string name="button_condition_migration_start">Мигрировать</string>
     <string name="button_condition_migration_running">Миграция</string>
     <string name="button_condition_migration_finished">ХОРОШО</string>
-
-
     <string name="dialog_title_backup">Резервная копия</string>
     <string name="message_backup">Создайте или импортируйте zip-архив сценариев</string>
     <string name="button_import">Импортировать</string>
     <string name="button_export">Экспортировать</string>
-
     <string name="dialog_title_locale_plugin_background_launch">Фоновый запуск заблокирован</string>
     <string name="message_locale_plugin_background_launch">Macrion не удалось автоматически открыть окно записи экрана.\n\nЧтобы завершить запуск сценария, было показано уведомление.\n\nНекоторые телефоны Android сильнее ограничивают фоновые приложения. Обратитесь к этому руководству, чтобы повысить стабильность разрешений.</string>
-    <string name="field_tutorial_title">Обучение</string>
-    <string name="field_tutorial_desc">Узнайте, как пользоваться Macrion</string>
     <string name="dialog_title_copy_scenario">Копировать сценарий</string>
     <string name="content_desc_back">Назад</string>
     <string name="crash_reports_title">Локальные отчёты о сбоях</string>
@@ -202,7 +240,6 @@
     <string name="install_source_unknown">Неизвестно</string>
     <string name="settings_toolbar_size_title">Размер панели инструментов</string>
     <string name="settings_toolbar_size_dialog_description">Настройка размера плавающей панели инструментов и панели отладки.</string>
-
     <string name="settings_section_advanced">Дополнительно</string>
     <string name="settings_enable_advanced_title">Включить расширенные настройки</string>
     <string name="settings_enable_advanced_desc">Показывать экспериментальные настройки для опытных пользователей.</string>
@@ -218,12 +255,18 @@
     <string name="settings_toolbar_auto_hide_desc">Сворачивать панель инструментов к краю экрана при бездействии.</string>
     <string name="settings_toolbar_auto_hide_delay_title">Задержка автоматического скрытия</string>
     <string name="settings_toolbar_auto_hide_delay_dialog_title">Задержка автоматического скрытия</string>
-    <string name="settings_toolbar_auto_hide_delay_seconds">%1$d сек.</string>
-    <string name="settings_toolbar_auto_hide_delay_seconds_default">%1$d сек. (По умолчанию)</string>
     <string name="settings_toolbar_auto_hide_delay_1_minute">1 минута</string>
-    <string name="settings_toolbar_auto_hide_delay_minutes">%1$d мин.</string>
-    <string name="settings_toolbar_auto_hide_delay_minutes_default">%1$d мин. (По умолчанию)</string>
-    <string name="content_desc_tuck_toolbar">Свернуть панель инструментов к краю экрана</string>
-    <string name="content_desc_expand_toolbar">Развернуть панель инструментов</string>
     <string name="toast_advanced_settings_restored_defaults">Расширенные настройки были сброшены к значениям по умолчанию.</string>
+
+    <!-- Russian translations reported missing by lint -->
+    <string name="settings_section_scenario_editing">Редактирование сценариев</string>
+    <string name="settings_preview_handle_editing_title">Изменение позиций касаний в предпросмотре</string>
+    <string name="settings_preview_handle_editing_desc">Перетаскивайте маркеры касаний в предпросмотре действия, чтобы изменить их положение.</string>
+    <string name="settings_screenshot_rate_limit_title">Ограничение частоты снимков экрана</string>
+    <string name="settings_screenshot_rate_limit_item_disabled">Отключено (без ограничений)</string>
+    <string name="settings_screenshot_rate_limit_dialog_title">Ограничение частоты снимков экрана</string>
+    <string name="settings_screenshot_rate_limit_dialog_desc">Введите максимальное количество снимков экрана за скользящую минуту. Введите 0, чтобы отключить ограничение.</string>
+    <string name="settings_screenshot_rate_limit_dialog_label">Снимков экрана в минуту</string>
+    <string name="settings_screenshot_rate_limit_invalid">Введите допустимое число (0 или больше)</string>
+
 </resources>

@@ -45,8 +45,6 @@
     <string name="message_backup_create_error">Сталася помилка, і експорт резервної копії було скасовано</string>
     <string name="message_backup_import_progress">Імпорт резервної копії: %1$d</string>
     <string name="message_backup_import_verification">Перевірка даних</string>
-    <string name="message_backup_import_completed">Імпорт завершено, імпортовано %1$d сценарій</string>
-    <string name="message_backup_import_completed_with_error">Імпорт завершено, імпортовано %1$d сценаріїв, %2$d помилок</string>
     <string name="message_backup_import_error">Сталася помилка, і імпорт резервної копії було скасовано</string>
     <string name="message_backup_import_compatibility">Деякі з імпортованих сценаріїв були створені на пристрої з іншим екраном, і це може спричинити проблеми з координатами виявлення та дій.\n\nЩоб виправити це, вам потрібно зробити нові знімки екрана для ваших умов і оновити позиції натискань/свайпів.</string>
     <string name="message_backup_error_no_zip_app">На пристрої не знайдено програми для обробки збереження/завантаження zip-файлу.</string>
@@ -66,4 +64,24 @@
     <string name="message_backup_klickr_compatibility_review">Цільова сумісність: %1$s\n\nБуде видалено компонентів: %2$d\nНеможливо експортувати сценаріїв: %3$d\n\nПродовжте, щоб вибрати місце збереження копії, або скасуйте без створення файлу.</string>
     <string name="message_backup_create_klickr_compatible_completed">Резервну копію для Klick’r створено. Видалено компонентів Macrion: %1$d.</string>
     <string name="message_backup_create_klickr_compatible_completed_without_loss">Резервну копію для Klick’r створено. Видаляти функції Macrion не знадобилося.</string>
+    <string name="message_backup_klickr_curved_swipes_excluded">Викривлені свайпи не включено: %1$d. Використайте резервну копію Macrion, щоб зберегти їхні повні траєкторії.</string>
+    <plurals name="message_backup_import_completed">
+        <item quantity="one">Імпорт завершено\nІмпортовано %1$d сценарій</item>
+        <item quantity="few">Імпорт завершено\nІмпортовано %1$d сценарії</item>
+        <item quantity="many">Імпорт завершено\nІмпортовано %1$d сценаріїв</item>
+        <item quantity="other">Імпорт завершено\nІмпортовано %1$d сценарію</item>
+    </plurals>
+    <plurals name="message_backup_import_scenarios">
+        <item quantity="one">Імпортовано %1$d сценарій</item>
+        <item quantity="few">Імпортовано %1$d сценарії</item>
+        <item quantity="many">Імпортовано %1$d сценаріїв</item>
+        <item quantity="other">Імпортовано %1$d сценарію</item>
+    </plurals>
+    <plurals name="message_backup_import_errors">
+        <item quantity="one">%1$d помилка</item>
+        <item quantity="few">%1$d помилки</item>
+        <item quantity="many">%1$d помилок</item>
+        <item quantity="other">%1$d помилки</item>
+    </plurals>
+    <string name="message_backup_import_completed_with_error">Імпорт завершено\n%1$s\n%2$s</string>
 </resources>

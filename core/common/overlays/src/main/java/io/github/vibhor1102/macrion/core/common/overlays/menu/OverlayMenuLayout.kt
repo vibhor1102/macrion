@@ -133,11 +133,19 @@ class ComposeOverlayMenuHost(context: Context) : FrameLayout(context) {
         return super.onInterceptTouchEvent(ev)
     }
 
+    @SuppressLint("ClickableViewAccessibility") // The tucked-touch callback dispatches taps through performClick().
     override fun onTouchEvent(event: MotionEvent): Boolean {
         if (isTucked) {
             return onTuckedTouch?.invoke(event) ?: false
         }
         return super.onTouchEvent(event)
+    }
+
+    override fun performClick(): Boolean {
+        if (!isTucked) return super.performClick()
+        super.performClick()
+        onUntuckRequested?.invoke()
+        return true
     }
 }
 

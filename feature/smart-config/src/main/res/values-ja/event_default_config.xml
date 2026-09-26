@@ -19,4 +19,8 @@
     <string name="default_notification_name">通知</string>
     <string name="default_system_action_name">システム操作</string>
     <string name="default_set_text_name">テキスト入力</string>
+    <string name="default_zoom_name">マルチタッチ</string>
+    <string name="default_external_action_name">外部アクション</string>
+    <string name="default_play_sound_name">サウンドを再生</string>
+    <string name="default_capture_screenshot_name">スクリーンショットを撮影</string>
 </resources>

@@ -24,6 +24,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -32,8 +33,8 @@ import io.github.vibhor1102.macrion.R
 @Composable
 internal fun formatScreenshotRateLimit(limit: Int): String = when {
     limit <= 0 -> stringResource(R.string.settings_screenshot_rate_limit_item_disabled)
-    limit == 10 -> stringResource(R.string.settings_screenshot_rate_limit_item_default, limit)
-    else -> stringResource(R.string.settings_screenshot_rate_limit_item, limit)
+    limit == 10 -> pluralStringResource(R.plurals.settings_screenshot_rate_limit_item_default, limit, limit)
+    else -> pluralStringResource(R.plurals.settings_screenshot_rate_limit_item, limit, limit)
 }
 
 @Composable
@@ -95,7 +96,7 @@ internal fun ScreenshotRateLimitDialog(
         },
         confirmButton = {
             Button(
-                onClick = { if (isValid && parsed != null) onConfirm(parsed) },
+                onClick = { parsed?.takeIf { it >= 0 }?.let(onConfirm) },
                 enabled = isValid,
             ) {
                 Text(stringResource(android.R.string.ok))

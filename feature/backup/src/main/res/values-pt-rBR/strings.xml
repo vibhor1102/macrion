@@ -45,8 +45,12 @@
     <string name="message_backup_create_error">Ocorreu um erro e a exportação do backup foi cancelada</string>
     <string name="message_backup_import_progress">Importando backup: %1$d</string>
     <string name="message_backup_import_verification">Verificação de dados</string>
-    <string name="message_backup_import_completed">Importação concluída\n%1$d cenário importado</string>
-    <string name="message_backup_import_completed_with_error">Importação concluída\n%1$d cenários importados\n%2$d erros</string>
+    <plurals name="message_backup_import_completed">
+        <item quantity="one">Importação concluída\n%1$d cenário importado</item>
+        <item quantity="many">Importação concluída\n%1$d cenários importados</item>
+        <item quantity="other">Importação concluída\n%1$d cenários importados</item>
+    </plurals>
+    <string name="message_backup_import_completed_with_error">Importação concluída\n%1$s\n%2$s</string>
     <string name="message_backup_import_error">Ocorreu um erro e a importação do backup foi cancelada</string>
     <string name="message_backup_import_compatibility">Alguns dos cenários importados foram gerados de um dispositivo com uma tela diferente e isso pode causar problemas com a detecção e as coordenadas das ações.\n\nPara corrigir, você precisa tirar novas capturas de tela para suas condições e atualizar as posições dos cliques/swipes.</string>
     <string name="message_backup_error_no_zip_app">Nenhum aplicativo encontrado no dispositivo para lidar com o salvamento/carregamento de um arquivo zip.</string>
@@ -66,4 +70,17 @@
     <string name="message_backup_klickr_compatibility_review">Destino de compatibilidade: %1$s\n\nComponentes que serão removidos: %2$d\nCenários que não podem ser exportados: %3$d\n\nContinue para escolher onde salvar o backup ou cancele sem criar um arquivo.</string>
     <string name="message_backup_create_klickr_compatible_completed">Backup compatível com o Klick’r concluído. Componentes exclusivos do Macrion removidos: %1$d.</string>
     <string name="message_backup_create_klickr_compatible_completed_without_loss">Backup compatível com o Klick’r concluído. Nenhum recurso exclusivo do Macrion precisou ser removido.</string>
+
+    <!-- Current feature translations -->
+    <string name="message_backup_klickr_curved_swipes_excluded">Deslizes curvos excluídos: %1$d. Use um backup nativo do Macrion para manter os caminhos completos.</string>
+    <plurals name="message_backup_import_scenarios">
+        <item quantity="one">%1$d cenário importado</item>
+        <item quantity="many">%1$d cenários importados</item>
+        <item quantity="other">%1$d cenários importados</item>
+    </plurals>
+    <plurals name="message_backup_import_errors">
+        <item quantity="one">%1$d erro</item>
+        <item quantity="many">%1$d erros</item>
+        <item quantity="other">%1$d erros</item>
+    </plurals>
 </resources>

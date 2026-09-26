@@ -77,7 +77,6 @@
     <string name="item_toggle_event_details_enable_all">Увімкнути всі</string>
     <string name="item_toggle_event_details_disable_all">Вимкнути всі</string>
     <string name="item_toggle_event_details_invert_all">Інвертувати всі</string>
-    <string name="item_toggle_event_details_manual">Змінити %1$d подій</string>
     <string name="item_toggle_event_details_error">Цільову подію не знайдено</string>
 
     <string name="item_intent_title">Намір</string>
@@ -152,7 +151,6 @@
     <string name="dialog_title_action_type">Тип дії</string>
     <string name="dialog_title_trigger_condition_type">Тип тригера</string>
 
-    <string name="field_condition_selector_desc">%1$d умов</string>
     <string name="message_empty_screen_condition_list_title">Немає умов екрана!</string>
     <string name="message_empty_screen_condition_list_desc">Умова екрана - це частина скріншота, яка буде шукатися у кожному кадрі, що відображається екраном вашого телефона.</string>
     <string name="message_empty_trigger_condition_list_title">Немає умов!</string>
@@ -310,7 +308,6 @@
     <string name="field_change_all_desc_invert_all">Інвертувати стан всіх подій у цьому сценарії</string>
     <string name="field_change_all_desc_disable_all">Вимкнути всі події в цьому сценарії. Коли всі події вимкнені, сценарій автоматично зупиняється.</string>
 
-    <string name="field_select_toggle_events_title">%1$d змін</string>
     <string name="field_select_toggle_events_title_empty">Немає змін</string>
     <string name="field_select_toggle_events_desc_empty">Оберіть принаймні одну подію для зміни стану</string>
 
@@ -409,7 +406,6 @@
 
     <string name="field_counters_title">Лічильники</string>
     <string name="field_counters_desc_empty">Лічильники не визначені</string>
-    <string name="field_counters_desc">%1$d лічильників визначено</string>
 
     <string name="dialog_title_screen_condition_type">Тип умови</string>
 
@@ -466,13 +462,9 @@
     <string name="message_empty_counter_name_list_title">Лічильники не визначені</string>
     <string name="message_empty_counter_name_list_desc">Лічильник зберігає числове значення, яке можна змінювати, перевіряти або використовувати у ваших діях чи умовах</string>
     <string name="item_counter_desc_collapsed_no_reference">Цей лічильник не використовується. (%1$s)</string>
-    <string name="item_counter_desc_collapsed_referenced">На цей лічильник посилаються %1$d разів. (%2$s)</string>
     <string name="item_counter_desc_expanded_no_reference">Цей лічильник не використовується.</string>
-    <string name="item_counter_desc_expanded_referenced">На цей лічильник посилаються %1$d разів.</string>
     <string name="field_label_counter_starting_value">Початкове значення</string>
-    <string name="button_text_counter_actions_references">%1$d запис</string>
     <string name="button_text_counter_actions_no_reference">Ніколи не змінювався</string>
-    <string name="button_text_counter_conditions_references">%1$d читання</string>
     <string name="button_text_counter_conditions_no_reference">Ніколи не читався</string>
     <string name="button_text_counter_delete">Видалити лічильник</string>
     <string name="button_text_counter_delete_and_replace">Замінити та видалити</string>
@@ -526,4 +518,134 @@
     <string name="dialog_stop_confirmation_stop">Зупинити</string>
     <string name="action_move_event_up">Перемістити подію вгору</string>
     <string name="action_move_event_down">Перемістити подію вниз</string>
+    <string name="action_combine_title">Об’єднати</string>
+    <string name="action_combine_with">Об’єднати з «%1$s»</string>
+    <string name="action_combine_with_existing">Об’єднати з наявною дією…</string>
+    <string name="action_combine_with_new">Об’єднати з новим свайпом</string>
+    <string name="action_combine_with_new_click">Об’єднати з новим натисканням</string>
+    <string name="action_combine_with_new_swipe">Об’єднати з новим свайпом</string>
+    <string name="action_edit_gestures">Налаштувати жести</string>
+    <string name="action_edit_stroke">Редагувати: %1$s</string>
+    <string name="action_previews_all_off">Лише поточна дія</string>
+    <string name="action_previews_all_on">Усі дії</string>
+    <string name="action_type_zoom">Мультитач</string>
+    <string name="action_unsplit">Розділити на окремі дії</string>
+    <string name="action_unsplit_title">Розділити</string>
+    <string name="capture_screenshot_button_choose_folder">Вибрати теку</string>
+    <string name="capture_screenshot_button_open_folder">Відкрити теку у Файлах</string>
+    <string name="capture_screenshot_button_reset_folder">Відновити теку за замовчуванням</string>
+    <string name="capture_screenshot_location_default">Pictures/Macrion (за замовчуванням)</string>
+    <string name="capture_screenshot_location_label">Місце збереження</string>
+    <string name="capture_screenshot_storage_note">Знімки екрана зберігаються у форматі JPEG. Тека за замовчуванням автоматично відображається в Галереї та Фото.</string>
+    <string name="click_offset_next_condition">Попередній перегляд наступної умови</string>
+    <string name="click_offset_preview_label">Попередній перегляд %1$d/%2$d · %3$s</string>
+    <string name="click_offset_previous_condition">Попередній перегляд попередньої умови</string>
+    <string name="content_desc_show_all_action_previews">Показати попередній перегляд усіх дій</string>
+    <string name="default_notification_sound">Звук сповіщення за замовчуванням</string>
+    <string name="dialog_screenshot_rate_limit_title">Досягнуто обмеження знімків екрана</string>
+    <string name="dialog_title_capture_screenshot">Зробити знімок екрана</string>
+    <string name="dialog_title_play_sound">Відтворити звук</string>
+    <string name="dialog_title_select_sound">Вибрати звук</string>
+    <string name="dialog_title_split_action">Мультитач</string>
+    <string name="field_condition_fps_limit_desc">Обмежте частоту перевірки цієї умови, щоб заощадити заряд батареї та ресурси процесора. Виявлення відбуватиметься повільніше.</string>
+    <string name="field_sound_selector_label">Звук сповіщення</string>
+    <string name="folder_action_create_event">Створити подію</string>
+    <string name="folder_action_delete">Видалити теку</string>
+    <string name="folder_action_new">Нова тека</string>
+    <string name="folder_action_rename">Перейменувати теку</string>
+    <string name="folder_collapse_all">Згорнути всі</string>
+    <string name="folder_delete_all_events">Видалити події</string>
+    <string name="folder_delete_dialog_message">Що зробити з подіями в теці «%1$s»?</string>
+    <string name="folder_delete_dialog_title">Видалити теку</string>
+    <string name="folder_delete_keep_events">Залишити події (розгрупувати)</string>
+    <string name="folder_menu_options">Параметри теки</string>
+    <string name="folder_name_hint">Назва теки</string>
+    <string name="folder_reorder_disabled_hint">Згорніть усі теки, щоб змінити порядок</string>
+    <string name="folder_ungrouped_label">Без групи</string>
+    <string name="generic_cancel">Скасувати</string>
+    <string name="generic_create">Створити</string>
+    <string name="item_capture_screenshot_desc">Зробити знімок екрана та зберегти у сховище</string>
+    <string name="item_capture_screenshot_details_custom">Місце: %1$s</string>
+    <string name="item_capture_screenshot_details_default">Місце: Pictures/Macrion</string>
+    <string name="item_capture_screenshot_title">Зробити знімок екрана</string>
+    <string name="item_play_sound_desc">Відтворити звукове сповіщення</string>
+    <string name="item_play_sound_details_none">Звук не вибрано</string>
+    <string name="item_play_sound_details_text">Звук: %1$s</string>
+    <string name="item_play_sound_title">Відтворити звук</string>
+    <string name="item_zoom_desc">Виконати кілька натискань або свайпів одночасно.</string>
+    <string name="item_zoom_details">Натискання та свайпи разом</string>
+    <string name="item_zoom_title">Мультитач</string>
+    <string name="play_sound_tip_custom_files">Порада: щоб використовувати власні звуки, помістіть аудіофайли в теку Notifications на телефоні за допомогою файлового менеджера. Вони з’являться тут автоматично.</string>
+    <string name="split_action_add_click">Додати натискання</string>
+    <string name="split_action_add_swipe">Додати свайп</string>
+    <string name="split_action_detected_condition">Умова</string>
+    <string name="split_action_detected_position">Позиція відповідає виявленій умові</string>
+    <string name="split_action_fixed_position">Позиція</string>
+    <string name="split_action_name_required">Задайте назву мультитачу</string>
+    <string name="split_action_position_not_set">Позицію не задано</string>
+    <string name="split_action_rename">Перейменувати мультитач</string>
+    <string name="split_action_stroke_not_configured">Позицію не задано</string>
+    <string name="split_action_touch_actions_header">Дії дотику</string>
+    <string name="split_action_unsplit">Розділити</string>
+    <string name="split_repeat_help">Повторення застосовується до всього жесту. Кожен дотик виконується один раз за повтор; після розділення відновлюються індивідуальні параметри повторення.</string>
+    <plurals name="item_toggle_event_details_manual">
+        <item quantity="one">Змінити %1$d подію</item>
+        <item quantity="few">Змінити %1$d події</item>
+        <item quantity="many">Змінити %1$d подій</item>
+        <item quantity="other">Змінити %1$d події</item>
+    </plurals>
+    <plurals name="field_counters_desc">
+        <item quantity="one">Визначено %1$d лічильник</item>
+        <item quantity="few">Визначено %1$d лічильники</item>
+        <item quantity="many">Визначено %1$d лічильників</item>
+        <item quantity="other">Визначено %1$d лічильники</item>
+    </plurals>
+    <plurals name="field_condition_selector_desc">
+        <item quantity="one">%1$d умова</item>
+        <item quantity="few">%1$d умови</item>
+        <item quantity="many">%1$d умов</item>
+        <item quantity="other">%1$d умови</item>
+    </plurals>
+    <plurals name="field_select_toggle_events_title">
+        <item quantity="one">%1$d зміна</item>
+        <item quantity="few">%1$d зміни</item>
+        <item quantity="many">%1$d змін</item>
+        <item quantity="other">%1$d зміни</item>
+    </plurals>
+    <plurals name="item_counter_desc_collapsed_referenced">
+        <item quantity="one">На цей лічильник є посилання %1$d раз. (%2$s)</item>
+        <item quantity="few">На цей лічильник є посилання %1$d рази. (%2$s)</item>
+        <item quantity="many">На цей лічильник є посилання %1$d разів. (%2$s)</item>
+        <item quantity="other">На цей лічильник є посилання %1$d рази. (%2$s)</item>
+    </plurals>
+    <plurals name="item_counter_desc_expanded_referenced">
+        <item quantity="one">На цей лічильник є посилання %1$d раз.</item>
+        <item quantity="few">На цей лічильник є посилання %1$d рази.</item>
+        <item quantity="many">На цей лічильник є посилання %1$d разів.</item>
+        <item quantity="other">На цей лічильник є посилання %1$d рази.</item>
+    </plurals>
+    <plurals name="button_text_counter_actions_references">
+        <item quantity="one">%1$d операція запису</item>
+        <item quantity="few">%1$d операції запису</item>
+        <item quantity="many">%1$d операцій запису</item>
+        <item quantity="other">%1$d операції запису</item>
+    </plurals>
+    <plurals name="button_text_counter_conditions_references">
+        <item quantity="one">%1$d операція читання</item>
+        <item quantity="few">%1$d операції читання</item>
+        <item quantity="many">%1$d операцій читання</item>
+        <item quantity="other">%1$d операції читання</item>
+    </plurals>
+    <plurals name="dialog_screenshot_rate_limit_message">
+        <item quantity="one">Сценарій призупинено, оскільки за хвилину зроблено понад %1$d знімок екрана. Це захищає сховище пристрою від переповнення.\n\nЦе обмеження можна змінити в Налаштуваннях &gt; Додаткові налаштування або додати затримки до сценарію.</item>
+        <item quantity="few">Сценарій призупинено, оскільки за хвилину зроблено понад %1$d знімки екрана. Це захищає сховище пристрою від переповнення.\n\nЦе обмеження можна змінити в Налаштуваннях &gt; Додаткові налаштування або додати затримки до сценарію.</item>
+        <item quantity="many">Сценарій призупинено, оскільки за хвилину зроблено понад %1$d знімків екрана. Це захищає сховище пристрою від переповнення.\n\nЦе обмеження можна змінити в Налаштуваннях &gt; Додаткові налаштування або додати затримки до сценарію.</item>
+        <item quantity="other">Сценарій призупинено, оскільки за хвилину зроблено понад %1$d знімка екрана. Це захищає сховище пристрою від переповнення.\n\nЦе обмеження можна змінити в Налаштуваннях &gt; Додаткові налаштування або додати затримки до сценарію.</item>
+    </plurals>
+    <plurals name="combined_touch_count">
+        <item quantity="one">%1$d дія дотику</item>
+        <item quantity="few">%1$d дії дотику</item>
+        <item quantity="many">%1$d дій дотику</item>
+        <item quantity="other">%1$d дії дотику</item>
+    </plurals>
 </resources>

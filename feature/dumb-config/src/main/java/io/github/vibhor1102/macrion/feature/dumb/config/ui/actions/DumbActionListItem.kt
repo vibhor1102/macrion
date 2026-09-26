@@ -46,6 +46,7 @@ import androidx.compose.material3.ripple
 internal fun DumbActionListItem(
     details: DumbActionDetails,
     showHandle: Boolean,
+    modifier: Modifier = Modifier,
     reorderHandleModifier: Modifier = Modifier,
     isBeingDragged: Boolean = false,
     onClick: () -> Unit,
@@ -56,7 +57,7 @@ internal fun DumbActionListItem(
     )
 
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .height(80.dp)
             .background(rowBackground)

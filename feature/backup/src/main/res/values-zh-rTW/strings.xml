@@ -10,8 +10,10 @@
     <string name="message_backup_create_error">發生錯誤，已取消備份匯出</string>
     <string name="message_backup_import_progress">正在匯入備份：%1$d</string>
     <string name="message_backup_import_verification">資料驗證</string>
-    <string name="message_backup_import_completed">匯入已完成\n已匯入 %1$d 個情境</string>
-    <string name="message_backup_import_completed_with_error">匯入已完成\n已匯入 %1$d 個情境\n錯誤 %2$d 項</string>
+    <plurals name="message_backup_import_completed">
+        <item quantity="other">匯入已完成\n已匯入 %1$d 個情境</item>
+    </plurals>
+    <string name="message_backup_import_completed_with_error">匯入已完成\n%1$s\n%2$s</string>
     <string name="message_backup_import_error">發生錯誤，已取消備份匯入</string>
     <string name="message_backup_import_compatibility">部分匯入的情境來自螢幕規格不同的裝置，可能影響偵測與操作座標。\n\n請重新擷取條件影像，並更新點擊／滑動位置。</string>
     <string name="message_backup_error_no_zip_app">裝置上未找到可處理 Zip 檔案儲存／讀取的應用程式。</string>
@@ -24,4 +26,11 @@
     <string name="message_backup_klickr_compatibility_review">相容目標：%1$s\n\n將移除的元件：%2$d\n無法匯出的情境：%3$d\n\n繼續選擇備份的儲存位置，或取消且不建立檔案。</string>
     <string name="message_backup_create_klickr_compatible_completed">相容 Klick’r 的備份已完成。已移除的 Macrion 專用元件：%1$d。</string>
     <string name="message_backup_create_klickr_compatible_completed_without_loss">相容 Klick’r 的備份已完成。不需要移除任何 Macrion 專用功能。</string>
+    <string name="message_backup_klickr_curved_swipes_excluded">已排除曲線滑動：%1$d。請使用 Macrion 原生備份以保留完整路徑。</string>
+    <plurals name="message_backup_import_scenarios">
+        <item quantity="other">已匯入 %1$d 個情境</item>
+    </plurals>
+    <plurals name="message_backup_import_errors">
+        <item quantity="other">%1$d 個錯誤</item>
+    </plurals>
 </resources>

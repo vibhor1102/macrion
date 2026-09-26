@@ -516,7 +516,11 @@ class MainMenu(
     private fun showScreenshotRateLimitErrorDialog(limit: Int) {
         context.createMacrionMessageDialog(
             title = context.getString(R.string.dialog_screenshot_rate_limit_title),
-            message = context.getString(R.string.dialog_screenshot_rate_limit_message, limit),
+            message = context.resources.getQuantityString(
+                R.plurals.dialog_screenshot_rate_limit_message,
+                limit,
+                limit,
+            ),
             confirmLabel = android.R.string.ok,
             onConfirm = {},
         ).showAsOverlay()

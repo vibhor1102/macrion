@@ -76,7 +76,6 @@
     <string name="item_toggle_event_details_enable_all">Включить все</string>
     <string name="item_toggle_event_details_disable_all">Отключить все</string>
     <string name="item_toggle_event_details_invert_all">Инвертировать все</string>
-    <string name="item_toggle_event_details_manual">Изменить %1$d событий</string>
     <string name="item_toggle_event_details_error">Целевое событие не найдено</string>
 
     <string name="item_intent_title">Намерение</string>
@@ -151,177 +150,174 @@
     <string name="dialog_title_action_type">Тип действия</string>
     <string name="dialog_title_trigger_condition_type">Тип триггера</string>
 
-    <string name="field_condition_selector_desc">%1$d условий</string>
+    <plurals name="field_condition_selector_desc">
+        <item quantity="one">%1$d условие</item>
+        <item quantity="few">%1$d условия</item>
+        <item quantity="many">%1$d условий</item>
+        <item quantity="other">%1$d условия</item>
+    </plurals>
+
+    <plurals name="field_select_toggle_events_title">
+        <item quantity="one">%1$d изменение</item>
+        <item quantity="few">%1$d изменения</item>
+        <item quantity="many">%1$d изменений</item>
+        <item quantity="other">%1$d изменения</item>
+    </plurals>
+
+    <plurals name="item_counter_desc_collapsed_referenced">
+        <item quantity="one">На этот счётчик ссылаются %1$d раз. (%2$s)</item>
+        <item quantity="few">На этот счётчик ссылаются %1$d раза. (%2$s)</item>
+        <item quantity="many">На этот счётчик ссылаются %1$d раз. (%2$s)</item>
+        <item quantity="other">На этот счётчик ссылаются %1$d раза. (%2$s)</item>
+    </plurals>
+
+    <plurals name="item_counter_desc_expanded_referenced">
+        <item quantity="one">На этот счётчик ссылаются %1$d раз.</item>
+        <item quantity="few">На этот счётчик ссылаются %1$d раза.</item>
+        <item quantity="many">На этот счётчик ссылаются %1$d раз.</item>
+        <item quantity="other">На этот счётчик ссылаются %1$d раза.</item>
+    </plurals>
+
+    <plurals name="button_text_counter_actions_references">
+        <item quantity="one">%1$d запись</item>
+        <item quantity="few">%1$d записи</item>
+        <item quantity="many">%1$d записей</item>
+        <item quantity="other">%1$d записи</item>
+    </plurals>
+
+    <plurals name="button_text_counter_conditions_references">
+        <item quantity="one">%1$d чтение</item>
+        <item quantity="few">%1$d чтения</item>
+        <item quantity="many">%1$d чтений</item>
+        <item quantity="other">%1$d чтения</item>
+    </plurals>
+
+    <plurals name="dialog_screenshot_rate_limit_message">
+        <item quantity="one">Сценарий приостановлен, потому что за минуту было сделано более %1$d снимка экрана. Это защищает хранилище устройства от заполнения.
+
+Изменить ограничение можно в разделе «Настройки» &gt; «Расширенные настройки». Также можно добавить задержки в сценарий.</item>
+        <item quantity="few">Сценарий приостановлен, потому что за минуту было сделано более %1$d снимков экрана. Это защищает хранилище устройства от заполнения.
+
+Изменить ограничение можно в разделе «Настройки» &gt; «Расширенные настройки». Также можно добавить задержки в сценарий.</item>
+        <item quantity="many">Сценарий приостановлен, потому что за минуту было сделано более %1$d снимков экрана. Это защищает хранилище устройства от заполнения.
+
+Изменить ограничение можно в разделе «Настройки» &gt; «Расширенные настройки». Также можно добавить задержки в сценарий.</item>
+        <item quantity="other">Сценарий приостановлен, потому что за минуту было сделано более %1$d снимков экрана. Это защищает хранилище устройства от заполнения.
+
+Изменить ограничение можно в разделе «Настройки» &gt; «Расширенные настройки». Также можно добавить задержки в сценарий.</item>
+    </plurals>
+
+    <plurals name="combined_touch_count">
+        <item quantity="one">%1$d действие касания</item>
+        <item quantity="few">%1$d действия касания</item>
+        <item quantity="many">%1$d действий касания</item>
+        <item quantity="other">%1$d действия касания</item>
+    </plurals>
+
+    <plurals name="item_toggle_event_details_manual">
+        <item quantity="one">Изменить %1$d событие</item>
+        <item quantity="few">Изменить %1$d события</item>
+        <item quantity="many">Изменить %1$d событий</item>
+        <item quantity="other">Изменить %1$d события</item>
+    </plurals>
+
+    <plurals name="field_counters_desc">
+        <item quantity="one">Задан %1$d счётчик</item>
+        <item quantity="few">Задано %1$d счётчика</item>
+        <item quantity="many">Задано %1$d счётчиков</item>
+        <item quantity="other">Задано %1$d счётчика</item>
+    </plurals>
+
     <string name="message_empty_screen_condition_list_title">Нет экранных условий!</string>
     <string name="message_empty_screen_condition_list_desc">Экранное условие — это часть снимка экрана, которая будет искаться в каждом кадре, отображаемом на экране телефона.</string>
     <string name="message_empty_trigger_condition_list_title">Нет условий!</string>
     <string name="message_empty_trigger_condition_list_desc">Условие — это пользовательский критерий для запуска действия.</string>
     <string name="message_empty_action_list_title">Нет действий!</string>
     <string name="message_empty_action_list_desc">Действие — это взаимодействие (нажатие, свайп…) с телефоном, запускаемое при выполнении созданных условий.</string>
-
     <string name="menu_item_title_conditions">Условия</string>
     <string name="menu_item_title_actions">Действия</string>
-
     <string name="menu_item_title_state">Состояние</string>
     <string name="field_event_state_title">Начальное состояние</string>
     <string name="field_event_state_desc_enabled">Это событие будет обрабатываться нормально при воспроизведении сценария</string>
     <string name="field_event_state_desc_disabled">Это событие должно быть включено действием для обработки при воспроизведении сценария</string>
-
     <string name="field_event_keep_detecting_title">Продолжайте выполнять</string>
     <string name="field_event_keep_detecting_desc_enabled">Когда это событие срабатывает, продолжите выполнение со следующего события в списке.</string>
     <string name="field_event_keep_detecting_desc_disabled">Когда это событие срабатывает, перезапустите выполнение с первого события в списке.</string>
-
     <string name="field_operator_title">Оператор</string>
     <string name="field_operator_desc_or">Для запуска действий должно быть выполнено только одно условие</string>
     <string name="field_operator_desc_and">Для запуска действий должны быть выполнены все условия</string>
-
-
-    <!-- Brief overlays ============================================================================================ -->
-
     <string name="brief_empty_actions">Нет действий. Необходимо хотя бы одно действие для создания допустимого события</string>
     <string name="brief_empty_image_conditions">Нет экранного условия. Необходимо хотя бы одно условие для создания допустимого события</string>
-
-
-    <!-- Dialog Condition Image ==================================================================================== -->
-
     <string name="dialog_title_condition_config">Условие</string>
-
     <string name="field_condition_visibility_title">Видимость</string>
     <string name="field_condition_visibility_desc_present">Условие должно быть обнаружено</string>
     <string name="field_condition_visibility_desc_absent">Условие не должно быть обнаружено</string>
-
     <string name="field_detection_type_title">Тип обнаружения</string>
     <string name="field_detection_type_desc_exact">Обнаружение в захваченной позиции</string>
     <string name="field_detection_type_desc_screen">Обнаружение на всём экране</string>
     <string name="field_detection_type_desc_area">Обнаружение в выбранной области</string>
-
     <string name="field_select_detection_area_title">Область обнаружения</string>
     <string name="field_select_detection_area_desc">В [%1$d, %2$d, %3$d, %4$d]</string>
-
     <string name="generic_condition_threshold_title">Допустимое отличие</string>
-
     <string name="toast_capture_failed">Не удалось сделать снимок экрана, кадры не были созданы.</string>
-
-
-    <!-- Dialog Condition Counter Reached ========================================================================== -->
-
     <string name="dialog_title_counter_reached">Значение счётчика достигнуто</string>
-
     <string name="field_counter_name_label">Название счётчика</string>
-
     <string name="field_counter_comparison_value_label">Значение</string>
-
     <string name="dropdown_comparison_operator_label">Оператор</string>
-
-    <!-- Dialog Condition Timer Reached ============================================================================ -->
-
     <string name="dialog_title_timer_reached">Таймер достигнут</string>
-
     <string name="input_field_label_timer_duration_no_unit">После</string>
-
     <string name="field_timer_restart_title">Перезапустить при достижении</string>
     <string name="field_timer_restart_desc_on">После достижения таймер перезапустится, позволяя снова выполнить это условие</string>
     <string name="field_timer_restart_desc_off">После достижения таймер не перезапустится, то есть это условие может быть выполнено только один раз</string>
-
-
-    <!-- Dialog Condition broadcast received ======================================================================= -->
-
     <string name="dialog_title_broadcast_received">Получено широковещательное сообщение</string>
-
-
-    <!-- Dialog Action Click ======================================================================================= -->
-
     <string name="dialog_title_click">Нажатие</string>
     <string name="dialog_title_condition_selection">Выбрать условие</string>
-
     <string name="field_click_type_title">Нажать на</string>
     <string name="field_click_type_desc_on_condition">Нажать на обнаруженное условие</string>
     <string name="field_click_type_desc_on_position">Нажать на выбранную позицию</string>
-
     <string name="field_condition_selection_title_and_operator">Нажать на условие</string>
     <string name="field_condition_selection_desc_and_operator">%1$s</string>
     <string name="field_condition_selection_desc_and_operator_not_found">Условие не выбрано</string>
-
     <string name="field_condition_selection_title_or_operator">Нажать на первое обнаруженное условие</string>
     <string name="field_condition_selection_desc_or_operator">Оператор условия события установлен на \"OR\", клик произойдёт по первому обнаруженному условию</string>
-
     <string name="field_click_position_desc">Нажать на %1$d, %2$d</string>
-
     <string name="field_click_offset_title">Нажмите смещение</string>
     <string name="field_click_offset_desc_none">Никто</string>
-
-    <!-- Dialog Action Swipe ======================================================================================= -->
-
     <string name="dialog_title_swipe">Свайп</string>
-
     <string name="field_swipe_positions_title">Позиции свайпа</string>
     <string name="field_swipe_positions_desc">Свайп от %1$d, %2$d до %3$d, %4$d</string>
-
-
-    <!-- Dialog Action Pause ======================================================================================= -->
-
     <string name="dialog_title_pause">Ожидание</string>
-
-
-    <!-- Dialog Action Intent ====================================================================================== -->
-
     <string name="dialog_title_application_selection">Выбрать приложение</string>
-
     <string name="menu_item_title_advanced">Расширенный</string>
     <string name="menu_item_title_simple">Простой</string>
-
     <string name="field_application_selection_title">Выбрать приложение</string>
     <string name="field_application_selection_desc">Запустить приложение при выполнении этого действия</string>
-
     <string name="dropdown_intent_sending_type_label">Тип</string>
-
-    <!-- Dialogs Intent Extras ===================================================================================== -->
-
     <string name="field_intent_extra_key_label">Ключ</string>
     <string name="field_intent_extra_value_title">Значение</string>
-
     <string name="dropdown_intent_extra_type_title">Тип значения</string>
-
-    <!-- Dialog Action Change Counter ============================================================================== -->
-
     <string name="dialog_title_change_counter">Изменить счётчик</string>
-
     <string name="field_counter_operation_value_label">Значение</string>
-
     <string name="dropdown_counter_operation_label">Операция</string>
-
-    <!-- Dialogs Action ToggleEvent ================================================================================ -->
-
     <string name="dialog_title_toggle_event">Состояние события</string>
     <string name="dialog_title_events_toggle">Переключение событий</string>
-
     <string name="list_header_image_events">Экранные события</string>
     <string name="list_header_trigger_events">События-триггеры</string>
-
     <string name="field_change_all_title">Изменить все</string>
     <string name="field_change_all_desc_manual">Определить события для изменения вручную</string>
     <string name="field_change_all_desc_enable_all">Включить все события в этом сценарии</string>
     <string name="field_change_all_desc_invert_all">Инвертировать состояние всех событий в этом сценарии</string>
     <string name="field_change_all_desc_disable_all">Отключить все события в этом сценарии. Когда все события отключены, сценарий останавливается автоматически.</string>
-
-    <string name="field_select_toggle_events_title">%1$d изменений</string>
     <string name="field_select_toggle_events_title_empty">Нет изменений</string>
     <string name="field_select_toggle_events_desc_empty">Выберите хотя бы одно событие для изменения состояния</string>
-
-
-    <!-- Dialogs Notification ===================================================================================== -->
-
     <string name="dialog_title_notification">Уведомление</string>
-
     <string name="field_notification_title_label">Заголовок</string>
-
     <string name="field_notification_message_title">Сообщение</string>
     <string name="field_dropdown_notification_message_type_title">Тип</string>
     <string name="field_dropdown_item_notification_message_type_text">Текст</string>
     <string name="field_dropdown_item_notification_message_type_counter">Значение счетчика</string>
     <string name="field_notification_message_text_label">Содержание</string>
     <string name="field_notification_message_counter_label">Имя счетчика</string>
-
     <string name="field_dropdown_notification_importance_title">Важность</string>
     <string name="field_dropdown_item_notification_importance_type_low">Низкий</string>
     <string name="field_dropdown_item_notification_importance_type_low_desc">Не издает ни звука.</string>
@@ -329,25 +325,14 @@
     <string name="field_dropdown_item_notification_importance_type_default_desc">Издает звук.</string>
     <string name="field_dropdown_item_notification_importance_type_high">Высокий</string>
     <string name="field_dropdown_item_notification_importance_type_high_desc">Издает звук и появляется как хедз-ап.</string>
-
     <string name="button_notification_config">Открыть настройки</string>
     <string name="message_notification_config">Поведение уведомлений зависит от ОС вашего устройства. Вы можете настроить обработку уведомлений в настройках вашего устройства.</string>
-
-
-    <!-- Dialogs Action System ===================================================================================== -->
-
     <string name="dialog_title_system_action">Системное действие</string>
-
     <string name="field_dropdown_system_action_type_title">Тип</string>
     <string name="field_dropdown_system_action_type_back">Назад</string>
     <string name="field_dropdown_system_action_type_home">Дом</string>
     <string name="field_dropdown_system_action_type_recent_apps">Недавние приложения</string>
-
-
-    <!-- Dialogs Action WriteText ================================================================================== -->
-
     <string name="dialog_title_set_text_action">Написать текст</string>
-
     <string name="field_input_set_text_text_to_write_title">Текст</string>
     <string name="field_set_text_validate_title">Проверить текст</string>
     <string name="field_set_text_validate_desc_enabled">Нажмите «Enter» после написания текста</string>
@@ -356,34 +341,21 @@
         нажав на него.\n\nОбратите внимание, что в зависимости от приложения вам может потребоваться немного подождать после
         щелчка, иначе текст будет записан слишком рано.\n\nЭто также могут быть нерабочие приложения, которые
         не поддерживает стандартное написание текста, поэтому всегда сначала проверяйте свои действия!</string>
-
-
-    <!-- Dialogs warning/error ===================================================================================== -->
-
     <string name="warning_dialog_message_toggle_action_from_another_scenario">У этого события есть одно или несколько действий переключения событий, ссылающихся на событие из другого сценария.\nПеред сохранением сценария необходимо обновить целевые события.</string>
     <string name="warning_dialog_message_event_delete_associated_action">На это событие ссылаются одно или несколько действий. При удалении события связанные действия также будут удалены.\nВы уверены?</string>
     <string name="warning_dialog_message_condition_delete_associated_action">На это условие ссылаются одно или несколько действий. При удалении условия связанные действия также будут удалены.\nВы уверены?</string>
     <string name="warning_dialog_message_close_without_saving">У вас есть несохраненные изменения. Хотите их удалить?</string>
-
-
     <string name="error_dialog_message_scenario_saving">Ваш сценарий не может быть сохранён из-за внутренней ошибки.\nХотите изменить его или отменить все изменения?</string>
     <string name="error_dialog_message_error_native_lib">Macrion установлен неправильно и не может запустить обнаружение.\n\nЕсли вы установили его из официального магазина приложений, свяжитесь с нами на GitHub — это поможет исправить проблему.</string>
     <string name="error_dialog_message_screen_capture_unsupported">Экран вашего устройства не может быть прочитан Macrion из-за ограничения графического драйвера.\n\nК сожалению, это аппаратное ограничение, которое невозможно обойти. Пожалуйста, свяжитесь с нами на GitHub, указав модель вашего устройства, чтобы мы могли отслеживать затронутые устройства.</string>
-
-
-    <!-- Content description ======================================================================================= -->
-    <!--They are use as accessibility texts for visually impaired people. They will not be displayed but spoken. -->
-
     <string name="content_desc_event_state">Состояние события</string>
     <string name="content_desc_conditions_count">Количество условий в этом событии</string>
     <string name="content_desc_actions_count">Количество действий в этом событии</string>
     <string name="content_desc_image_condition">Изображение для обнаружения</string>
     <string name="content_desc_open_event_list">Открыть список событий</string>
     <string name="content_desc_application_icon">Значок приложения для запуска.</string>
-
     <string name="generic_detection_area_title">Область обнаружения</string>
     <string name="generic_detection_area_desc_empty">Необходимо определить область обнаружения. Нажмите здесь, чтобы определить её</string>
-
     <string name="item_color_condition_title">При обнаружении цвета</string>
     <string name="item_color_condition_desc">Выполняется, когда цвет виден где-либо на экране</string>
     <string name="item_image_condition_title">При обнаружении изображения</string>
@@ -393,35 +365,25 @@
     <string name="item_number_condition_title">При обнаружении числа</string>
     <string name="item_number_condition_desc">Выполняется, когда число видно где-либо на экране</string>
     <string name="item_click_details_on_condition_unknown">В течение %1$s на обнаруженном условии</string>
-
     <string name="list_header_copy_conditions_this_scenario">Условия из этого сценария</string>
     <string name="list_header_copy_action_this_scenario">Действия из этого сценария</string>
-
     <string name="field_scenario_fps_limit_title">Ограничитель выполнения</string>
     <string name="field_scenario_fps_limit_desc">Ограничьте частоту обработки сценария для экономии заряда батареи. Обнаружение будет медленнее.</string>
     <string name="field_scenario_fps_rate_label">Выполнений</string>
     <string name="field_scenario_fps_rate_unit_label">В</string>
     <string name="field_scenario_fps_dropdown_item_second">Секунда</string>
     <string name="field_scenario_fps_dropdown_item_minute">Минута</string>
-
     <string name="field_counters_title">Счётчики</string>
     <string name="field_counters_desc_empty">Счётчики не определены</string>
-    <string name="field_counters_desc">%1$d счётчиков определено</string>
-
     <string name="dialog_title_screen_condition_type">Тип условия</string>
-
     <string name="field_event_cooldown_title">Перезарядка</string>
     <string name="field_event_cooldown_desc">Игнорировать это событие в течение заданного времени после выполнения.</string>
     <string name="field_event_cooldown_edit_label">Длительность</string>
-
     <string name="brief_overlay_number_condition_format">%1$s %2$s</string>
-
     <string name="overlay_pixel_selector_title">Выбрать пиксель</string>
     <string name="dialog_title_condition_color_config">Условие</string>
-
     <string name="field_text_to_detect_label">Текст для обнаружения</string>
     <string name="field_text_detection_alphabet_title">Алфавит</string>
-
     <string name="field_number_condition_number_format_label">Формат числа</string>
     <string name="dropdown_item_number_format_auto">Автоопределение</string>
     <string name="dropdown_item_number_format_auto_helper">Определяет разделители по структуре числа</string>
@@ -429,7 +391,6 @@
     <string name="dropdown_item_number_format_dot_decimal_helper">Точка — десятичный разделитель (пр. 1 234.56)</string>
     <string name="dropdown_item_number_format_comma_decimal">Запятая как десятичный разделитель</string>
     <string name="dropdown_item_number_format_comma_decimal_helper">Запятая — десятичный разделитель (пр. 1.234,56)</string>
-
     <string name="field_number_condition_effect_title">Эффект условия</string>
     <string name="message_number_condition_static_value_desc">Обнаруженное число должно быть %1$s %2$s</string>
     <string name="message_number_condition_counter_value_desc">Обнаруженное число должно быть %1$s значением счётчика \"%2$s\"</string>
@@ -438,7 +399,6 @@
     <string name="comparison_operator_equals_full">равно</string>
     <string name="comparison_operator_lower_or_equals_full">меньше или равно</string>
     <string name="comparison_operator_lower_full">меньше</string>
-
     <string name="item_alphabet_selection_header">Чтобы использовать распознавание текста в сценарии, необходимо загрузить соответствующую модель алфавита.\n\nКаждая модель может занимать до 5 МБ.</string>
     <string name="item_alphabet_required_header">Для выполнения этого сценария необходимо загрузить следующие модели алфавита.\n\nКаждая модель может занимать до 5 МБ.</string>
     <string name="item_alphabet_name_arabic">Арабский</string>
@@ -452,24 +412,18 @@
     <string name="item_alphabet_name_latin">Латиница</string>
     <string name="item_alphabet_name_tamil">Тамильский</string>
     <string name="item_alphabet_name_telugu">Телугу</string>
-
     <string name="field_change_counter_check_effect_title">Эффект условия</string>
     <string name="field_change_counter_check_effect_desc">%1$s %2$s %3$s</string>
     <string name="field_change_counter_effect_title">Эффект действия</string>
     <string name="field_change_counter_effect_desc_set">%1$s = %2$s</string>
     <string name="field_change_counter_effect_desc_operation">%1$s = %1$s %2$s %3$s</string>
-
     <string name="dialog_title_counters_config">Счётчики</string>
     <string name="message_empty_counter_name_list_title">Счётчики не определены</string>
     <string name="message_empty_counter_name_list_desc">Счетчик хранит числовое значение, которое можно изменять, проверять или использовать в действиях или условиях</string>
     <string name="item_counter_desc_collapsed_no_reference">Этот счётчик не используется. (%1$s)</string>
-    <string name="item_counter_desc_collapsed_referenced">На этот счётчик ссылаются %1$d раз. (%2$s)</string>
     <string name="item_counter_desc_expanded_no_reference">Этот счётчик не используется.</string>
-    <string name="item_counter_desc_expanded_referenced">На этот счётчик ссылаются %1$d раз.</string>
     <string name="field_label_counter_starting_value">Начальное значение</string>
-    <string name="button_text_counter_actions_references">%1$d запись</string>
     <string name="button_text_counter_actions_no_reference">Никогда не изменялся</string>
-    <string name="button_text_counter_conditions_references">%1$d чтение</string>
     <string name="button_text_counter_conditions_no_reference">Никогда не читался</string>
     <string name="button_text_counter_delete">Удалить счётчик</string>
     <string name="button_text_counter_delete_and_replace">Заменить и удалить</string>
@@ -480,14 +434,11 @@
     <string name="field_counter_selection_title_empty">Счётчик не выбран</string>
     <string name="field_counter_selection_desc">Начальное значение: %1$s</string>
     <string name="field_counter_selection_desc_empty">Нажмите здесь, чтобы выбрать счётчик</string>
-
     <string name="dialog_title_copy_fix">Устранить проблемы</string>
     <string name="item_header_event_copy_fix">Один или несколько элементов этой копии ссылаются на недоступный элемент.\nНажмите на проблемный элемент, чтобы устранить эти проблемы.</string>
     <string name="item_copy_fix_description_ok">Элемент допустим</string>
     <string name="item_copy_fix_description_missing">Отсутствует ссылочный элемент(ы)</string>
-
     <string name="warning_dialog_message_delete">Вы собираетесь удалить этот элемент, вы уверены?</string>
-
     <string name="scenario_switcher_dismiss">Закрыть переключатель сценариев</string>
     <string name="dialog_title_scenario_switcher">Переключить сценарий</string>
     <string name="content_desc_open_home">Остановить сценарий и открыть главный экран Macrion</string>
@@ -501,7 +452,6 @@
     <string name="scenario_switcher_error_unknown">Не удалось переключить сценарий. Повторите попытку.</string>
     <string name="scenario_switcher_retry">Повторить</string>
     <string name="scenario_switcher_switching">Переключение на %1$s</string>
-
     <string name="item_external_action_title">Внешнее действие</string>
     <string name="item_external_action_desc">Запустить внешнее приложение автоматизации</string>
     <string name="item_external_action_details">Вызвать \"%1$s\"</string>
@@ -517,10 +467,82 @@
     <string name="message_empty_external_action_list_title">Внешние действия не найдены</string>
     <string name="message_empty_external_action_list_desc">Сначала введите новое имя внешнего действия в умном сценарии.</string>
     <string name="content_desc_switch_scenario">Сменить сценарий</string>
-    <string name="default_external_action_name">Внешнее действие</string>
     <string name="dialog_stop_confirmation_title">Остановить Macrion?</string>
     <string name="dialog_stop_confirmation_message">Текущий сценарий будет остановлен.</string>
     <string name="dialog_stop_confirmation_stop">Остановить</string>
     <string name="action_move_event_up">Переместить событие вверх</string>
     <string name="action_move_event_down">Переместить событие вниз</string>
+
+    <!-- Russian translations reported missing by lint -->
+    <string name="content_desc_show_all_action_previews">Показать предпросмотр всех действий</string>
+    <string name="action_previews_all_on">Все действия</string>
+    <string name="action_previews_all_off">Только текущее действие</string>
+    <string name="item_zoom_title">Мультитач</string>
+    <string name="item_zoom_desc">Выполняйте два или более нажатия или смахивания одновременно.</string>
+    <string name="item_zoom_details">Одновременные нажатия и смахивания</string>
+    <string name="item_play_sound_title">Воспроизвести звук</string>
+    <string name="item_play_sound_desc">Воспроизвести звук уведомления</string>
+    <string name="item_play_sound_details_text">Звук: %1$s</string>
+    <string name="item_play_sound_details_none">Звук не выбран</string>
+    <string name="dialog_title_play_sound">Воспроизвести звук</string>
+    <string name="default_notification_sound">Звук уведомления по умолчанию</string>
+    <string name="field_sound_selector_label">Звук уведомления</string>
+    <string name="dialog_title_select_sound">Выбрать звук</string>
+    <string name="play_sound_tip_custom_files">Совет: чтобы использовать собственные звуки, поместите аудиофайлы в папку Notifications на телефоне с помощью файлового менеджера. Они появятся здесь автоматически.</string>
+    <string name="item_capture_screenshot_title">Сделать снимок экрана</string>
+    <string name="item_capture_screenshot_desc">Сделать снимок экрана и сохранить его в хранилище</string>
+    <string name="item_capture_screenshot_details_default">Папка: Pictures/Macrion</string>
+    <string name="item_capture_screenshot_details_custom">Папка: %1$s</string>
+    <string name="dialog_title_capture_screenshot">Сделать снимок экрана</string>
+    <string name="capture_screenshot_location_label">Папка для сохранения</string>
+    <string name="capture_screenshot_location_default">Pictures/Macrion (по умолчанию)</string>
+    <string name="capture_screenshot_button_choose_folder">Выбрать папку</string>
+    <string name="capture_screenshot_button_reset_folder">Вернуть папку по умолчанию</string>
+    <string name="capture_screenshot_button_open_folder">Открыть папку в приложении «Файлы»</string>
+    <string name="capture_screenshot_storage_note">Снимки экрана сохраняются в формате JPEG. Папка по умолчанию автоматически отображается в приложениях «Галерея» и «Фото».</string>
+    <string name="field_condition_fps_limit_desc">Ограничьте частоту проверки этого условия, чтобы экономить заряд и ресурсы процессора. Обнаружение будет медленнее.</string>
+    <string name="click_offset_preview_label">Предпросмотр %1$d/%2$d · %3$s</string>
+    <string name="click_offset_previous_condition">Предпросмотр предыдущего условия</string>
+    <string name="click_offset_next_condition">Предпросмотр следующего условия</string>
+    <string name="dialog_title_split_action">Мультитач</string>
+    <string name="action_type_zoom">Мультитач</string>
+    <string name="split_action_touch_actions_header">Траектории касаний</string>
+    <string name="split_action_add_swipe">Добавить смахивание</string>
+    <string name="split_action_add_click">Добавить нажатие</string>
+    <string name="split_action_rename">Переименовать мультитач</string>
+    <string name="split_action_name_required">Задайте название мультитач-действия</string>
+    <string name="split_action_fixed_position">Положение</string>
+    <string name="split_action_detected_condition">Условие</string>
+    <string name="split_action_unsplit">Разделить</string>
+    <string name="split_action_stroke_not_configured">Положение не задано</string>
+    <string name="action_combine_title">Объединить</string>
+    <string name="action_combine_with_new">Объединить с новым смахиванием</string>
+    <string name="action_combine_with_existing">Объединить с существующим действием…</string>
+    <string name="action_unsplit_title">Разделить</string>
+    <string name="dialog_screenshot_rate_limit_title">Достигнуто ограничение снимков экрана</string>
+    <string name="folder_ungrouped_label">Без папки</string>
+    <string name="folder_action_new">Новая папка</string>
+    <string name="folder_action_create_event">Создать событие</string>
+    <string name="folder_action_rename">Переименовать папку</string>
+    <string name="folder_action_delete">Удалить папку</string>
+    <string name="folder_menu_options">Параметры папки</string>
+    <string name="folder_delete_dialog_title">Удалить папку</string>
+    <string name="folder_delete_dialog_message">Что сделать с событиями в папке «%1$s»?</string>
+    <string name="folder_delete_keep_events">Оставить события (убрать из папки)</string>
+    <string name="folder_delete_all_events">Удалить события</string>
+    <string name="folder_name_hint">Название папки</string>
+    <string name="folder_collapse_all">Свернуть все папки</string>
+    <string name="folder_reorder_disabled_hint">Чтобы изменить порядок, сверните все папки</string>
+    <string name="generic_cancel">Отмена</string>
+    <string name="generic_create">Создать</string>
+    <string name="action_combine_with_new_swipe">Объединить с новым смахиванием</string>
+    <string name="action_combine_with">Объединить с «%1$s»</string>
+    <string name="action_unsplit">Разделить на отдельные действия</string>
+    <string name="action_edit_gestures">Настроить жесты</string>
+    <string name="action_edit_stroke">Изменить: %1$s</string>
+    <string name="action_combine_with_new_click">Объединить с новым нажатием</string>
+    <string name="split_repeat_help">Повтор применяется ко всему жесту. Каждое касание выполняется один раз за повтор; при разделении восстанавливаются индивидуальные настройки повторов.</string>
+    <string name="split_action_position_not_set">Положение не задано</string>
+    <string name="split_action_detected_position">Положение определяется по обнаруженному условию</string>
+
 </resources>

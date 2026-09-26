@@ -29,4 +29,8 @@
     <string name="default_system_action_name">Hành động hệ thống</string>
     <string name="default_set_text_name">Viết văn bản</string>
 
+    <string name="default_zoom_name">Chạm đa điểm</string>
+    <string name="default_play_sound_name">Phát âm thanh</string>
+    <string name="default_capture_screenshot_name">Chụp ảnh màn hình</string>
+
 </resources>

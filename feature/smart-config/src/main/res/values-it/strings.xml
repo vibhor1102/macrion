@@ -86,7 +86,11 @@
     <string name="item_toggle_event_details_enable_all">Abilitare tutti</string>
     <string name="item_toggle_event_details_disable_all">Disattivare tutti</string>
     <string name="item_toggle_event_details_invert_all">Invertire tutti</string>
-    <string name="item_toggle_event_details_manual">Modifica di %1$d eventi</string>
+    <plurals name="item_toggle_event_details_manual">
+        <item quantity="one">Modifica %1$d evento</item>
+        <item quantity="other">Modifica %1$d eventi</item>
+        <item quantity="many">Modifica %1$d eventi</item>
+    </plurals>
     <string name="item_change_counter_desc">Modificare un valore per verificarlo in seguito</string>
     <string name="item_change_counter_details">%1$s %2$s %3$s</string>
     <string name="item_broadcast_received_details">%1$s ricevuto</string>
@@ -116,7 +120,11 @@
     <string name="item_timer_reached_title">Al raggiungimento del timer</string>
     <string name="item_broadcast_received_title">Su Broadcast ricevuta</string>
     <string name="field_select_toggle_events_title_empty">Nessuna modifica</string>
-    <string name="field_select_toggle_events_title">%1$d modifiche</string>
+    <plurals name="field_select_toggle_events_title">
+        <item quantity="one">%1$d modifica</item>
+        <item quantity="other">%1$d modifiche</item>
+        <item quantity="many">%1$d modifiche</item>
+    </plurals>
     <string name="item_change_counter_title">Modificare contatore</string>
     <string name="field_timer_restart_title">Riavviare quando viene raggiunto</string>
     <string name="field_change_all_title">Cambiare tutti</string>
@@ -124,7 +132,11 @@
     <string name="item_copy_desc">Copiare un\'azione esistente da qualsiasi scenario</string>
     <string name="item_image_condition_visible">Visibile</string>
     <string name="item_image_condition_not_visible">Non visibile</string>
-    <string name="field_condition_selector_desc">%1$d condizioni</string>
+    <plurals name="field_condition_selector_desc">
+        <item quantity="one">%1$d condizione</item>
+        <item quantity="other">%1$d condizioni</item>
+        <item quantity="many">%1$d condizioni</item>
+    </plurals>
     <string name="item_intent_details_start_activity">Avviare %1$s</string>
 
     <!--
@@ -385,7 +397,11 @@
 
     <string name="field_counters_title">Contatori</string>
     <string name="field_counters_desc_empty">Nessun contatore definito</string>
-    <string name="field_counters_desc">%1$d contatori definiti</string>
+    <plurals name="field_counters_desc">
+        <item quantity="one">%1$d contatore definito</item>
+        <item quantity="other">%1$d contatori definiti</item>
+        <item quantity="many">%1$d contatori definiti</item>
+    </plurals>
 
     <string name="dialog_title_screen_condition_type">Tipo di condizione</string>
 
@@ -440,13 +456,29 @@
 
     <string name="dialog_title_counters_config">Contatori</string>
     <string name="item_counter_desc_collapsed_no_reference">Questo contatore non è utilizzato. (%1$s)</string>
-    <string name="item_counter_desc_collapsed_referenced">Questo contatore è referenziato %1$d volte. (%2$s)</string>
+    <plurals name="item_counter_desc_collapsed_referenced">
+        <item quantity="one">Questo contatore è referenziato %1$d volta. (%2$s)</item>
+        <item quantity="other">Questo contatore è referenziato %1$d volte. (%2$s)</item>
+        <item quantity="many">Questo contatore è referenziato %1$d volte. (%2$s)</item>
+    </plurals>
     <string name="item_counter_desc_expanded_no_reference">Questo contatore non è utilizzato.</string>
-    <string name="item_counter_desc_expanded_referenced">Questo contatore è referenziato %1$d volte.</string>
+    <plurals name="item_counter_desc_expanded_referenced">
+        <item quantity="one">Questo contatore è referenziato %1$d volta.</item>
+        <item quantity="other">Questo contatore è referenziato %1$d volte.</item>
+        <item quantity="many">Questo contatore è referenziato %1$d volte.</item>
+    </plurals>
     <string name="field_label_counter_starting_value">Valore iniziale</string>
-    <string name="button_text_counter_actions_references">%1$d scrittura/e</string>
+    <plurals name="button_text_counter_actions_references">
+        <item quantity="one">%1$d scrittura</item>
+        <item quantity="other">%1$d scritture</item>
+        <item quantity="many">%1$d scritture</item>
+    </plurals>
     <string name="button_text_counter_actions_no_reference">Mai modificato</string>
-    <string name="button_text_counter_conditions_references">%1$d lettura/e</string>
+    <plurals name="button_text_counter_conditions_references">
+        <item quantity="one">%1$d lettura</item>
+        <item quantity="other">%1$d letture</item>
+        <item quantity="many">%1$d letture</item>
+    </plurals>
     <string name="button_text_counter_conditions_no_reference">Mai letto</string>
     <string name="button_text_counter_delete">Elimina contatore</string>
     <string name="button_text_counter_delete_and_replace">Sostituisci ed elimina</string>
@@ -496,10 +528,89 @@
     <string name="message_empty_external_action_list_title">Nessuna azione esterna trovata</string>
     <string name="message_empty_external_action_list_desc">Inserisci prima un nuovo nome di azione esterna in uno scenario intelligente.</string>
     <string name="content_desc_switch_scenario">Cambia scenario</string>
-    <string name="default_external_action_name">Azione esterna</string>
     <string name="dialog_stop_confirmation_title">Interrompere Macrion?</string>
     <string name="dialog_stop_confirmation_message">Lo scenario corrente verrà interrotto.</string>
     <string name="dialog_stop_confirmation_stop">Interrompi</string>
     <string name="action_move_event_up">Sposta evento in alto</string>
     <string name="action_move_event_down">Sposta evento in basso</string>
+    <string name="content_desc_show_all_action_previews">Mostra tutte le anteprime delle azioni</string>
+    <string name="action_previews_all_on">Tutte le azioni</string>
+    <string name="action_previews_all_off">Solo l’azione corrente</string>
+    <string name="item_zoom_title">Multi-touch</string>
+    <string name="item_zoom_desc">Esegui insieme due o più clic o scorrimenti.</string>
+    <string name="item_zoom_details">Clic e scorrimenti insieme</string>
+    <string name="item_play_sound_title">Riproduci suono</string>
+    <string name="item_play_sound_desc">Riproduci un suono di notifica</string>
+    <string name="item_play_sound_details_text">Suono: %1$s</string>
+    <string name="item_play_sound_details_none">Nessun suono selezionato</string>
+    <string name="dialog_title_play_sound">Riproduci suono</string>
+    <string name="default_notification_sound">Suono di notifica predefinito</string>
+    <string name="field_sound_selector_label">Suono di notifica</string>
+    <string name="dialog_title_select_sound">Seleziona suono</string>
+    <string name="play_sound_tip_custom_files">Suggerimento: per usare suoni personalizzati, copia i file audio nella cartella Notifiche del telefono con un file manager. Appariranno qui automaticamente.</string>
+    <string name="item_capture_screenshot_title">Acquisisci screenshot</string>
+    <string name="item_capture_screenshot_desc">Acquisisci lo schermo e salva l’immagine nella memoria</string>
+    <string name="item_capture_screenshot_details_default">Percorso: Pictures/Macrion</string>
+    <string name="item_capture_screenshot_details_custom">Percorso: %1$s</string>
+    <string name="dialog_title_capture_screenshot">Acquisisci screenshot</string>
+    <string name="capture_screenshot_location_label">Destinazione di salvataggio</string>
+    <string name="capture_screenshot_location_default">Pictures/Macrion (predefinita)</string>
+    <string name="capture_screenshot_button_choose_folder">Scegli cartella</string>
+    <string name="capture_screenshot_button_reset_folder">Ripristina predefinita</string>
+    <string name="capture_screenshot_button_open_folder">Apri cartella in File</string>
+    <string name="capture_screenshot_storage_note">Gli screenshot vengono salvati in formato JPEG. La cartella predefinita è visibile automaticamente in Galleria e Foto.</string>
+    <string name="field_condition_fps_limit_desc">Limita la frequenza di controllo di questa condizione per risparmiare batteria e CPU. Il rilevamento sarà più lento.</string>
+    <string name="click_offset_preview_label">Anteprima %1$d/%2$d · %3$s</string>
+    <string name="click_offset_previous_condition">Anteprima della condizione precedente</string>
+    <string name="click_offset_next_condition">Anteprima della condizione successiva</string>
+    <string name="dialog_title_split_action">Multi-touch</string>
+    <string name="action_type_zoom">Multi-touch</string>
+    <string name="split_action_touch_actions_header">Tratti tattili</string>
+    <string name="split_action_add_swipe">Aggiungi scorrimento</string>
+    <string name="split_action_add_click">Aggiungi clic</string>
+    <string name="split_action_rename">Rinomina Multi-touch</string>
+    <string name="split_action_name_required">Assegna un nome al Multi-touch</string>
+    <string name="split_action_fixed_position">Posizione</string>
+    <string name="split_action_detected_condition">Condizione</string>
+    <string name="split_action_unsplit">Separa</string>
+    <string name="split_action_stroke_not_configured">Posizione non impostata</string>
+    <string name="action_combine_title">Combina</string>
+    <string name="action_combine_with_new">Combina con un nuovo scorrimento</string>
+    <string name="action_combine_with_existing">Combina con un’azione esistente…</string>
+    <string name="action_unsplit_title">Separa</string>
+    <string name="dialog_screenshot_rate_limit_title">Limite screenshot raggiunto</string>
+    <plurals name="dialog_screenshot_rate_limit_message">
+        <item quantity="one">Lo scenario è stato messo in pausa perché ha acquisito più di %1$d screenshot in un minuto. Questo impedisce che la memoria del dispositivo si riempia.\n\nPuoi modificare questo limite in Impostazioni &gt; Impostazioni avanzate oppure aggiungere ritardi allo scenario.</item>
+        <item quantity="other">Lo scenario è stato messo in pausa perché ha acquisito più di %1$d screenshot in un minuto. Questo impedisce che la memoria del dispositivo si riempia.\n\nPuoi modificare questo limite in Impostazioni &gt; Impostazioni avanzate oppure aggiungere ritardi allo scenario.</item>
+        <item quantity="many">Lo scenario è stato messo in pausa perché ha acquisito più di %1$d screenshot in un minuto. Questo impedisce che la memoria del dispositivo si riempia.\n\nPuoi modificare questo limite in Impostazioni &gt; Impostazioni avanzate oppure aggiungere ritardi allo scenario.</item>
+    </plurals>
+    <string name="folder_ungrouped_label">Senza cartella</string>
+    <string name="folder_action_new">Nuova cartella</string>
+    <string name="folder_action_create_event">Crea evento</string>
+    <string name="folder_action_rename">Rinomina cartella</string>
+    <string name="folder_action_delete">Elimina cartella</string>
+    <string name="folder_menu_options">Opzioni cartella</string>
+    <string name="folder_delete_dialog_title">Elimina cartella</string>
+    <string name="folder_delete_dialog_message">Cosa vuoi fare con gli eventi contenuti in "%1$s"?</string>
+    <string name="folder_delete_keep_events">Mantieni eventi (rimuovi dal gruppo)</string>
+    <string name="folder_delete_all_events">Elimina eventi</string>
+    <string name="folder_name_hint">Nome cartella</string>
+    <string name="folder_collapse_all">Comprimi tutte</string>
+    <string name="folder_reorder_disabled_hint">Comprimi tutte le cartelle per riordinarle</string>
+    <string name="generic_cancel">Annulla</string>
+    <string name="generic_create">Crea</string>
+    <string name="action_combine_with_new_swipe">Combina con un nuovo scorrimento</string>
+    <string name="action_combine_with">Combina con "%1$s"</string>
+    <string name="action_unsplit">Separa in azioni distinte</string>
+    <string name="action_edit_gestures">Configura gesti</string>
+    <string name="action_edit_stroke">Modifica %1$s</string>
+    <string name="action_combine_with_new_click">Combina con un nuovo clic</string>
+    <plurals name="combined_touch_count">
+        <item quantity="one">%1$d azione tattile</item>
+        <item quantity="other">%1$d azioni tattili</item>
+        <item quantity="many">%1$d azioni tattili</item>
+    </plurals>
+    <string name="split_repeat_help">La ripetizione si applica all’intero gesto. Ogni contatto viene eseguito una volta per ripetizione; separando il gesto, vengono ripristinate le impostazioni di ripetizione individuali.</string>
+    <string name="split_action_position_not_set">Posizione non impostata</string>
+    <string name="split_action_detected_position">La posizione segue la condizione rilevata</string>
 </resources>

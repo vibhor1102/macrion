@@ -57,7 +57,11 @@ class MoreViewModel @Inject constructor(
     val counterFieldDescription: Flow<String> = editionRepository.editionState.allEditedCountersFlow
         .map { counters ->
             if (counters.isEmpty()) context.getString(R.string.field_counters_desc_empty)
-            else context.getString(R.string.field_counters_desc, counters.size)
+            else context.resources.getQuantityString(
+                R.plurals.field_counters_desc,
+                counters.size,
+                counters.size,
+            )
         }
 
 

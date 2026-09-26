@@ -24,4 +24,25 @@
     <string name="dialog_reorder_discard_title">Descartar alterações?</string>
     <string name="dialog_reorder_discard_message">Você tem alterações não salvas. Tem certeza de que deseja descartá-las?</string>
     <string name="dialog_reorder_discard_confirm">Descartar</string>
+
+    <!-- Current feature translations -->
+    <string name="swipe_position_record">Gravar gesto</string>
+    <string name="swipe_position_drag_instruction">Arraste Início ou Fim para ajustar o deslize</string>
+    <string name="swipe_position_drag_node_instruction">Arraste qualquer alça para ajustar o deslize</string>
+    <string name="swipe_position_record_instruction">Desenhe um deslize para definir as duas posições</string>
+    <string name="swipe_position_short_gesture">Desenhe um deslize para definir as duas posições</string>
+    <string name="swipe_position_multi_touch">Um deslize usa um dedo. Crie uma ação de multitoque para usar vários dedos.</string>
+    <string name="swipe_position_record_failed">Não foi possível gravar o deslize. Tente novamente.</string>
+    <string name="swipe_position_start">Início</string>
+    <string name="swipe_position_end">Fim</string>
+    <string name="swipe_position_node">Ponto %1$d</string>
+    <string name="swipe_position_move_left">Mover %1$s para a esquerda</string>
+    <string name="swipe_position_move_right">Mover %1$s para a direita</string>
+    <string name="swipe_position_move_up">Mover %1$s para cima</string>
+    <string name="swipe_position_move_down">Mover %1$s para baixo</string>
+    <string name="brief_handle_moved_click">Posição do clique movida</string>
+    <string name="brief_handle_moved_swipe_start">Início do deslize movido</string>
+    <string name="brief_handle_moved_swipe_node">Ponto do deslize movido</string>
+    <string name="brief_handle_moved_swipe_end">Fim do deslize movido</string>
+    <string name="brief_handle_undo">Desfazer</string>
 </resources>

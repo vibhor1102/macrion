@@ -16,11 +16,11 @@
  */
 package io.github.vibhor1102.macrion.core.common.actions.screenshot
 
+import androidx.core.net.toUri
 import android.content.ContentValues
 import android.content.Context
 import android.graphics.Bitmap
 import android.media.MediaScannerConnection
-import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.os.SystemClock
@@ -113,7 +113,7 @@ internal class ScreenshotExecutor @Inject constructor(
 
     private fun saveToCustomFolder(bitmap: Bitmap, folderUri: String, fileName: String): Boolean {
         return try {
-            val treeUri = Uri.parse(folderUri)
+            val treeUri = folderUri.toUri()
             val treeDocId = DocumentsContract.getTreeDocumentId(treeUri)
             val parentDocUri = DocumentsContract.buildDocumentUriUsingTree(treeUri, treeDocId)
             val newDocUri = DocumentsContract.createDocument(

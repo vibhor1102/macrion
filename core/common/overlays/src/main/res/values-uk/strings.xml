@@ -24,4 +24,23 @@
     <string name="dialog_reorder_discard_title">Відкинути зміни?</string>
     <string name="dialog_reorder_discard_message">У вас є незбережені зміни. Ви впевнені, що хочете їх відкинути?</string>
     <string name="dialog_reorder_discard_confirm">Відкинути</string>
+    <string name="brief_handle_moved_click">Позицію натискання переміщено</string>
+    <string name="brief_handle_moved_swipe_end">Кінець свайпу переміщено</string>
+    <string name="brief_handle_moved_swipe_node">Точку свайпу переміщено</string>
+    <string name="brief_handle_moved_swipe_start">Початок свайпу переміщено</string>
+    <string name="brief_handle_undo">Скасувати</string>
+    <string name="swipe_position_drag_instruction">Перетягніть початок або кінець, щоб налаштувати свайп</string>
+    <string name="swipe_position_drag_node_instruction">Перетягніть будь-який маркер, щоб налаштувати свайп</string>
+    <string name="swipe_position_end">Кінець</string>
+    <string name="swipe_position_move_down">Перемістити «%1$s» вниз</string>
+    <string name="swipe_position_move_left">Перемістити «%1$s» ліворуч</string>
+    <string name="swipe_position_move_right">Перемістити «%1$s» праворуч</string>
+    <string name="swipe_position_move_up">Перемістити «%1$s» вгору</string>
+    <string name="swipe_position_multi_touch">Свайп використовує один палець. Для кількох пальців створіть дію «Мультитач».</string>
+    <string name="swipe_position_node">Точка %1$d</string>
+    <string name="swipe_position_record">Записати жест</string>
+    <string name="swipe_position_record_failed">Не вдалося записати свайп. Спробуйте ще раз.</string>
+    <string name="swipe_position_record_instruction">Намалюйте один свайп, щоб задати обидві позиції</string>
+    <string name="swipe_position_short_gesture">Намалюйте свайп, щоб задати обидві позиції</string>
+    <string name="swipe_position_start">Початок</string>
 </resources>

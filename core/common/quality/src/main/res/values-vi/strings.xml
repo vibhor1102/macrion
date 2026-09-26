@@ -20,4 +20,6 @@
     <string name="dialog_title_permission_issue">Khắc phục sự cố</string>
     <string name="message_accessibility_issues">Có vẻ như quyền Dịch vụ trợ năng đã bị xóa nhiều lần. Nếu bạn chưa tự thay đổi thì điều này có nghĩa là thiết bị của bạn đã xóa nó.\n\nMột số nhà sản xuất thiết bị Android không tôn trọng hành vi tiêu chuẩn về ứng dụng nền và tùy thuộc vào thương hiệu thiết bị của bạn, bạn có thể cần phải thực hiện cấu hình bổ sung.\n\nVui lòng tham khảo trang web sau để tìm hiểu sâu hơn về vấn đề đó và cách bạn có thể cải thiện tính ổn định của quyền.</string>
 
+
+    <!-- Added Vietnamese translations -->
 </resources>

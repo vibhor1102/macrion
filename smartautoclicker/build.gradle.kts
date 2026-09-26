@@ -70,6 +70,11 @@ obfuscationConfig {
 android {
     namespace = "io.github.vibhor1102.macrion"
 
+    lint {
+        // Local debug APKs intentionally target the connected ARM64 device; release APKs include x86_64.
+        disable += "ChromeOsAbiSupport"
+    }
+
     // AGP otherwise attaches release-style vital lint to non-debuggable debug builds.
     // Explicit lint tasks and actual release builds retain their normal checks.
     if (macrionDebugMode == "performance" && !isRelease) {
@@ -183,7 +188,7 @@ dependencies {
     implementation(libs.kotlinx.coroutines.core)
 
     implementation(composeBom)
-    debugImplementation("androidx.compose.runtime:runtime-tracing")
+    debugImplementation(libs.androidx.compose.runtime.tracing)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.ui)

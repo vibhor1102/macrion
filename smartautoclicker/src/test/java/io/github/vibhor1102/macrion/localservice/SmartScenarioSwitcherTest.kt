@@ -201,6 +201,7 @@ private class TestProcessingRepository(initialScenarioId: Identifier) : SmartPro
     override val detectionState: Flow<DetectionState> = detectionStateValue
     override val detectionPhase = flowOf(io.github.vibhor1102.macrion.core.processing.domain.model.DetectionPhase.RECORDING)
     override val detectionStopSequence = MutableStateFlow(0L)
+    override val screenshotRateLimitError: Flow<Int> = emptyFlow()
 
     override fun getScenarioId() = scenarioIdValue.value
     override fun isRunning() = detectionStateValue.value == DetectionState.DETECTING

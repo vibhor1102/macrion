@@ -43,7 +43,14 @@
     <string name="item_desc_dumb_click_on_position">انقر على %1$d، %2$d</string>
     <string name="item_desc_dumb_pause">وقفة التنفيذ</string>
     <string name="item_desc_dumb_pause_details">خلال %1$s</string>
-    <string name="item_desc_dumb_repeat_count">كرر %1$d مرات</string>
+    <plurals name="item_desc_dumb_repeat_count">
+        <item quantity="zero">تكرار %1$d مرة</item>
+        <item quantity="one">تكرار %1$d مرة</item>
+        <item quantity="two">تكرار %1$d مرتين</item>
+        <item quantity="few">تكرار %1$d مرات</item>
+        <item quantity="many">تكرار %1$d مرة</item>
+        <item quantity="other">تكرار %1$d مرة</item>
+    </plurals>
     <string name="item_desc_dumb_repeat_infinite">تكرار لا نهاية له</string>
     <string name="item_desc_dumb_swipe">اسحب من موضع على الشاشة إلى آخر</string>
     <string name="item_desc_dumb_swipe_details">خلال %1$s من [%2$d، %3$d] إلى [%4$d، %5$d]</string>
@@ -101,4 +108,38 @@
     <string name="dialog_stop_confirmation_title">إيقاف Macrion؟</string>
     <string name="dialog_stop_confirmation_message">سيتم إيقاف السيناريو الحالي.</string>
     <string name="dialog_stop_confirmation_stop">إيقاف</string>
+    <!-- Added translations for the current feature set -->
+    <string name="action_type_zoom">متعدد اللمس</string>
+    <string name="item_desc_dumb_zoom">نفّذ نقرتين أو أكثر أو حركات سحب معًا.</string>
+    <string name="item_title_dumb_zoom">متعدد اللمس</string>
+    <string name="action_combine_with_new_swipe">دمج مع حركة سحب جديدة</string>
+    <string name="action_combine_with">دمج مع ‎«%1$s»‎</string>
+    <string name="action_unsplit">فصل إلى إجراءات منفصلة</string>
+    <string name="action_edit_gestures">إعداد الإيماءات</string>
+    <string name="action_edit_stroke">تعديل %1$s</string>
+    <string name="dialog_title_split_action">متعدد اللمس</string>
+    <string name="split_action_touch_actions_header">حركات اللمس</string>
+    <string name="split_action_add_swipe">إضافة سحب</string>
+    <string name="split_action_add_click">إضافة نقرة</string>
+    <string name="split_action_group_settings">إعدادات متعدد اللمس</string>
+    <string name="split_action_check_group_settings">تحقق من إعدادات متعدد اللمس</string>
+    <string name="split_action_click_coordinates">عند %1$d، %2$d</string>
+    <string name="split_action_swipe_coordinates">من %1$d، %2$d إلى %3$d، %4$d</string>
+    <string name="split_action_unsplit">فصل</string>
+    <string name="action_combine_with_new_click">دمج مع نقرة جديدة</string>
+    <string name="action_combine_with_existing">دمج مع إجراء موجود…</string>
+    <plurals name="combined_touch_count">
+        <item quantity="zero">%1$d من إجراءات اللمس</item>
+        <item quantity="one">إجراء لمس واحد (%1$d)</item>
+        <item quantity="two">إجراءا لمس (%1$d)</item>
+        <item quantity="few">%1$d من إجراءات اللمس</item>
+        <item quantity="many">%1$d من إجراء لمس</item>
+        <item quantity="other">%1$d من إجراءات اللمس</item>
+    </plurals>
+    <string name="split_repeat_help">ينطبق التكرار على الإيماءة كلها. تُنفّذ كل لمسة مرة واحدة في كل تكرار، وتُستعاد إعدادات التكرار الفردية عند فصلها.</string>
+    <string name="split_action_position_not_set">لم يتم تحديد الموضع</string>
+    <string name="split_discard_title">تجاهل التغييرات؟</string>
+    <string name="split_discard_message">لم تُحفظ التغييرات على هذه الإيماءة ولمساتها.</string>
+    <string name="split_discard_confirm">تجاهل</string>
+    <string name="split_keep_editing">متابعة التعديل</string>
 </resources>

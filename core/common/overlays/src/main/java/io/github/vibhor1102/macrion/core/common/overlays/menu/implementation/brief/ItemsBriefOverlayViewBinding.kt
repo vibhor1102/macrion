@@ -1029,7 +1029,7 @@ private fun BriefItemsCarousel(
 
         val shouldAnimate = deletedItem != null && (deletedIndex == pagerState.currentPage || displayedItems.size == 1)
 
-        if (shouldAnimate && deletedItem != null) {
+        if (shouldAnimate) {
             deletingItemId = deletedItem.id
             onDeleteAnimationChanged(true)
             try {

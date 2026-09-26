@@ -858,8 +858,7 @@ abstract class OverlayMenu(
 
             MotionEvent.ACTION_UP -> {
                 if (!isTuckedDragging) {
-                    onUserInteraction()
-                    untuckMenu()
+                    host.performClick()
                 } else {
                     val wasDismissHovered = isDragToDismissEnabled && isTuckedHoveringDismiss
                     isTuckedDragging = false

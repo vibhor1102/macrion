@@ -170,21 +170,38 @@ private fun Counter.toUiItem(
 private fun Context.getDescription(referencesCount: Int, isExpanded: Boolean, startingValue: Double): String =
     if (isExpanded) {
         if (referencesCount == 0) getString(R.string.item_counter_desc_expanded_no_reference)
-        else getString(R.string.item_counter_desc_expanded_referenced, referencesCount)
+        else resources.getQuantityString(
+            R.plurals.item_counter_desc_expanded_referenced,
+            referencesCount,
+            referencesCount,
+        )
     } else {
         val startingValueText = startingValue.toNaturalDisplayString(maxFractionDigits = 2)
 
         if (referencesCount == 0) getString(R.string.item_counter_desc_collapsed_no_reference, startingValueText)
-        else getString(R.string.item_counter_desc_collapsed_referenced, referencesCount, startingValueText)
+        else resources.getQuantityString(
+            R.plurals.item_counter_desc_collapsed_referenced,
+            referencesCount,
+            referencesCount,
+            startingValueText,
+        )
     }
 
 private fun Context.getSetByButtonText(actionsCount: Int): String =
     if (actionsCount == 0) getString(R.string.button_text_counter_actions_no_reference)
-    else getString(R.string.button_text_counter_actions_references, actionsCount)
+    else resources.getQuantityString(
+        R.plurals.button_text_counter_actions_references,
+        actionsCount,
+        actionsCount,
+    )
 
 private fun Context.getReadByButtonText(conditionsCount: Int): String =
     if (conditionsCount == 0) getString(R.string.button_text_counter_conditions_no_reference)
-    else getString(R.string.button_text_counter_conditions_references, conditionsCount)
+    else resources.getQuantityString(
+        R.plurals.button_text_counter_conditions_references,
+        conditionsCount,
+        conditionsCount,
+    )
 
 private fun Context.getDeleteButtonText(referencesCount: Int): String =
     if (referencesCount == 0) getString(R.string.button_text_counter_delete)

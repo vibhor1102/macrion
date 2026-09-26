@@ -27,5 +27,8 @@
     <string name="default_notification_name">Notification</string>
     <string name="default_system_action_name">Action du système</string>
     <string name="default_set_text_name">Écrire du texte</string>
+    <string name="default_zoom_name">Multi-touch</string>
+    <string name="default_play_sound_name">Lire un son</string>
+    <string name="default_capture_screenshot_name">Capturer l’écran</string>
 
 </resources>

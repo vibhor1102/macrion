@@ -46,8 +46,19 @@
     <string name="message_backup_create_error">An error has occurred and the backup export has been cancelled</string>
     <string name="message_backup_import_progress">Importing backup: %1$d</string>
     <string name="message_backup_import_verification">Data verification</string>
-    <string name="message_backup_import_completed">Import completed\n%1$d scenario imported</string>
-    <string name="message_backup_import_completed_with_error">Import completed\n%1$d scenarios imported\n%2$d errors</string>
+    <plurals name="message_backup_import_completed">
+        <item quantity="one">Import completed\n%1$d scenario imported</item>
+        <item quantity="other">Import completed\n%1$d scenarios imported</item>
+    </plurals>
+    <string name="message_backup_import_completed_with_error">Import completed\n%1$s\n%2$s</string>
+    <plurals name="message_backup_import_scenarios">
+        <item quantity="one">%1$d scenario imported</item>
+        <item quantity="other">%1$d scenarios imported</item>
+    </plurals>
+    <plurals name="message_backup_import_errors">
+        <item quantity="one">%1$d error</item>
+        <item quantity="other">%1$d errors</item>
+    </plurals>
     <string name="message_backup_import_error">An error has occurred and the backup import has been cancelled</string>
     <string name="message_backup_import_malformed">This backup appears to be malformed or mixes Macrion and Klick’r backup formats.</string>
     <string name="message_backup_klickr_compatibility_loss">Macrion-only features will be removed from this backup so that Klick’r can import it.</string>

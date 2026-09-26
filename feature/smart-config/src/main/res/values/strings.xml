@@ -110,7 +110,10 @@
     <string name="item_toggle_event_details_enable_all">Enable all</string>
     <string name="item_toggle_event_details_disable_all">Disable all</string>
     <string name="item_toggle_event_details_invert_all">Invert all</string>
-    <string name="item_toggle_event_details_manual">Change %1$d events</string>
+    <plurals name="item_toggle_event_details_manual">
+        <item quantity="one">Change %1$d event</item>
+        <item quantity="other">Change %1$d events</item>
+    </plurals>
     <string name="item_toggle_event_details_error">Target event not found</string>
 
     <string name="item_intent_title">Intent</string>
@@ -203,7 +206,10 @@
 
     <string name="field_counters_title">Counters</string>
     <string name="field_counters_desc_empty">No counters defined</string>
-    <string name="field_counters_desc">%1$d counters defined</string>
+    <plurals name="field_counters_desc">
+        <item quantity="one">%1$d counter defined</item>
+        <item quantity="other">%1$d counters defined</item>
+    </plurals>
 
     <string name="field_show_debug_view_title">Show debug view</string>
     <string name="field_show_debug_view_desc">Display the events triggered while detecting.</string>
@@ -223,7 +229,10 @@
     <string name="dialog_title_screen_condition_type">Condition type</string>
     <string name="dialog_title_trigger_condition_type">Trigger type</string>
 
-    <string name="field_condition_selector_desc">%1$d conditions</string>
+    <plurals name="field_condition_selector_desc">
+        <item quantity="one">%1$d condition</item>
+        <item quantity="other">%1$d conditions</item>
+    </plurals>
     <string name="message_empty_screen_condition_list_title">No screen conditions !</string>
     <string name="message_empty_screen_condition_list_desc">A screen condition is a part of a screenshot that will be searched on each frames displayed by your phone screen.</string>
     <string name="message_empty_trigger_condition_list_title">No conditions !</string>
@@ -520,7 +529,10 @@
     <string name="field_change_all_desc_invert_all">Invert the state of all events in this scenario</string>
     <string name="field_change_all_desc_disable_all">Disable all events in this scenario. When all events are disabled, the scenario is stopped automatically.</string>
 
-    <string name="field_select_toggle_events_title">%1$d changes</string>
+    <plurals name="field_select_toggle_events_title">
+        <item quantity="one">%1$d change</item>
+        <item quantity="other">%1$d changes</item>
+    </plurals>
     <string name="field_select_toggle_events_title_empty">No changes</string>
     <string name="field_select_toggle_events_desc_empty">Select at least one event to change to state of</string>
 
@@ -582,15 +594,27 @@
     <string name="message_empty_counter_name_list_desc">A Counter stores a numeric value that can be changed, verified or used in your Actions or Conditions</string>
 
     <string name="item_counter_desc_collapsed_no_reference">This counter is unused. (%1$s)</string>
-    <string name="item_counter_desc_collapsed_referenced">This counter is referenced %1$d times. (%2$s)</string>
+    <plurals name="item_counter_desc_collapsed_referenced">
+        <item quantity="one">This counter is referenced %1$d time. (%2$s)</item>
+        <item quantity="other">This counter is referenced %1$d times. (%2$s)</item>
+    </plurals>
     <string name="item_counter_desc_expanded_no_reference">This counter is unused.</string>
-    <string name="item_counter_desc_expanded_referenced">This counter is referenced %1$d times.</string>
+    <plurals name="item_counter_desc_expanded_referenced">
+        <item quantity="one">This counter is referenced %1$d time.</item>
+        <item quantity="other">This counter is referenced %1$d times.</item>
+    </plurals>
 
     <string name="field_label_counter_starting_value">Starting value</string>
 
-    <string name="button_text_counter_actions_references">%1$d write</string>
+    <plurals name="button_text_counter_actions_references">
+        <item quantity="one">%1$d write</item>
+        <item quantity="other">%1$d writes</item>
+    </plurals>
     <string name="button_text_counter_actions_no_reference">Never changed</string>
-    <string name="button_text_counter_conditions_references">%1$d read</string>
+    <plurals name="button_text_counter_conditions_references">
+        <item quantity="one">%1$d read</item>
+        <item quantity="other">%1$d reads</item>
+    </plurals>
     <string name="button_text_counter_conditions_no_reference">Never read</string>
 
     <string name="button_text_counter_delete">Delete counter</string>
@@ -628,7 +652,10 @@
     <string name="error_dialog_message_error_native_lib">Macrion is incorrectly installed and can\'t start the detection.\n\nIf you have installed it from a legitimate application store, please contact us on GitHub, as it will help us fix this issue.</string>
     <string name="error_dialog_message_screen_capture_unsupported">Your device\'s screen can\'t be read by Macrion due to a driver limitation.\n\nUnfortunately this is a hardware restriction that can\'t be worked around. Please contact us on GitHub with your device model so we can track affected devices.</string>
     <string name="dialog_screenshot_rate_limit_title">Screenshot limit reached</string>
-    <string name="dialog_screenshot_rate_limit_message">The scenario was paused because it captured more than %1$d screenshots in a minute. This protects your device storage from filling up.\n\nYou can adjust this limit in Settings > Advanced Settings, or add delays to your scenario.</string>
+    <plurals name="dialog_screenshot_rate_limit_message">
+        <item quantity="one">The scenario was paused because it captured more than %1$d screenshot in a minute. This protects your device storage from filling up.\n\nYou can adjust this limit in Settings &gt; Advanced Settings, or add delays to your scenario.</item>
+        <item quantity="other">The scenario was paused because it captured more than %1$d screenshots in a minute. This protects your device storage from filling up.\n\nYou can adjust this limit in Settings &gt; Advanced Settings, or add delays to your scenario.</item>
+    </plurals>
     <string name="dialog_stop_confirmation_title">Stop Macrion?</string>
     <string name="dialog_stop_confirmation_message">The current scenario will be stopped.</string>
     <string name="dialog_stop_confirmation_stop">Stop</string>
@@ -683,7 +710,10 @@
     <string name="action_edit_stroke">Edit %1$s</string>
 
     <string name="action_combine_with_new_click">Combine with new click</string>
-    <string name="combined_touch_count">%1$d touch actions</string>
+    <plurals name="combined_touch_count">
+        <item quantity="one">%1$d touch action</item>
+        <item quantity="other">%1$d touch actions</item>
+    </plurals>
     <string name="split_repeat_help">Repetition applies to the whole gesture. Each touch runs once per repetition; its individual repeat settings are restored when you Unsplit.</string>
     <string name="split_action_position_not_set">Position not set</string>
     <string name="split_action_detected_position">Position follows detected condition</string>

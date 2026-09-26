@@ -113,7 +113,7 @@ class ClickDialog(
                             typeModifier = { type -> if (type == Click.PositionType.ON_DETECTED_CONDITION)
                                 Modifier.tutorialAnchor(MonitoredViewType.CLICK_DIALOG_FIELD_POSITION_TYPE_ITEM_ON_CONDITION,
                                     onClick = { viewModel.setClickOnCondition(type) }) else Modifier },
-                            selectorModifier = Modifier.tutorialAnchor(
+                            selectorAnchorModifier = Modifier.tutorialAnchor(
                                 MonitoredViewType.CLICK_DIALOG_FIELD_SELECT_POSITION_OR_CONDITION,
                                 onClick = if (state.positionState?.positionType == Click.PositionType.USER_SELECTED)
                                     ::showPositionSelector else ::showConditionSelector,

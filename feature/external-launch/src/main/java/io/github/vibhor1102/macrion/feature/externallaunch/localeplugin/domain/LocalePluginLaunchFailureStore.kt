@@ -113,7 +113,8 @@ class LocalePluginLaunchFailureStore @Inject constructor(
     suspend fun consumePendingDirectLaunchFailure(): Boolean {
         var hasPendingFailure = false
         dataStore.edit { preferences ->
-            hasPendingFailure = preferences.remove(KEY_PENDING_FAILURE_REQUEST_ID) != null
+            hasPendingFailure = preferences.contains(KEY_PENDING_FAILURE_REQUEST_ID)
+            preferences.remove(KEY_PENDING_FAILURE_REQUEST_ID)
         }
         return hasPendingFailure
     }

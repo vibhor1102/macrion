@@ -48,7 +48,9 @@
     <string name="item_desc_dumb_scenario">一般自動點擊體驗。\n於螢幕上設定點擊與滑動即可。</string>
     <string name="item_desc_dumb_scenario_max_duration">於 %1$s 後停止</string>
     <string name="item_desc_dumb_scenario_max_duration_infinite">無最長持續時間</string>
-    <string name="item_desc_dumb_scenario_repeat_count">重複 %1$d 次</string>
+    <plurals name="item_desc_dumb_scenario_repeat_count">
+        <item quantity="other">重複 %1$d 次</item>
+    </plurals>
     <string name="item_desc_dumb_scenario_repeat_infinite">無限重複</string>
     <string name="item_desc_smart_scenario">運用影像辨識建立複雜使用情境。</string>
     <string name="item_desc_smart_scenario_pro_mode">須觀看廣告或購買專業版</string>
@@ -61,7 +63,6 @@
 
     <string name="toast_denied_foreground_permission">使用者已拒絕前景服務權限</string>
 
-    <string name="button_text_create_scenario">建立情境</string>
 
     <string name="content_desc_add_scenario">建立新情境</string>
 
@@ -78,8 +79,6 @@
     <string name="field_home_button_title">顯示 Macrion 主畫面按鈕</string>
     <string name="field_home_button_desc">在工具列新增按鈕，用於停止情境並開啟 Macrion 主畫面。</string>
 
-    <string name="field_legacy_action_ui_title">經典操作介面</string>
-    <string name="field_legacy_action_ui_desc">以清單方式顯示操作，適用於複雜情境。</string>
 
     <string name="field_legacy_notification_ui_title">經典通知介面</string>
     <string name="field_legacy_notification_ui_desc">於通知中使用系統按鈕，而非圖示按鈕。</string>
@@ -97,7 +96,9 @@
     <string name="dialog_condition_migration_title">移轉</string>
 
     <string name="message_condition_migration_desc">Macrion 的影像格式已變更，您的情境須予更新。所需時間視待移轉條件數量而定，可能需數分鐘。</string>
-    <string name="message_condition_migration_count">待移轉影像條件：%1$d 項</string>
+    <plurals name="message_condition_migration_count">
+        <item quantity="other">待移轉影像條件：%1$d 項。</item>
+    </plurals>
     <string name="message_condition_migration_success">全部影像條件已移轉完成。</string>
     <string name="message_condition_migration_error">部分條件未能移轉，請檢查您的情境。</string>
 
@@ -113,8 +114,6 @@
 
     <string name="dialog_title_locale_plugin_background_launch">背景啟動遭到封鎖</string>
     <string name="message_locale_plugin_background_launch">Macrion 無法自動開啟螢幕擷取提示。\n\n為了完成情境啟動，Macrion 改為顯示通知。\n\n部分 Android 手機對背景應用程式限制更嚴格。請參考此指南以提高權限穩定性。</string>
-    <string name="field_tutorial_title">教學</string>
-    <string name="field_tutorial_desc">瞭解如何使用 Macrion</string>
     <string name="dialog_title_copy_scenario">複製情境</string>
     <string name="content_desc_back">返回</string>
     <string name="crash_reports_title">本機當機報告</string>
@@ -166,12 +165,30 @@
     <string name="settings_toolbar_auto_hide_desc">無操作時將工具列收起至螢幕邊緣。</string>
     <string name="settings_toolbar_auto_hide_delay_title">自動隱藏延遲</string>
     <string name="settings_toolbar_auto_hide_delay_dialog_title">自動隱藏延遲</string>
-    <string name="settings_toolbar_auto_hide_delay_seconds">%1$d 秒</string>
-    <string name="settings_toolbar_auto_hide_delay_seconds_default">%1$d 秒（預設）</string>
+    <plurals name="settings_toolbar_auto_hide_delay_seconds">
+        <item quantity="other">%1$d 秒</item>
+    </plurals>
     <string name="settings_toolbar_auto_hide_delay_1_minute">1 分鐘</string>
-    <string name="settings_toolbar_auto_hide_delay_minutes">%1$d 分鐘</string>
-    <string name="settings_toolbar_auto_hide_delay_minutes_default">%1$d 分鐘（預設）</string>
-    <string name="content_desc_tuck_toolbar">將工具列收起至螢幕邊緣</string>
-    <string name="content_desc_expand_toolbar">展開工具列</string>
+    <plurals name="settings_toolbar_auto_hide_delay_minutes">
+        <item quantity="other">%1$d 分鐘</item>
+    </plurals>
+    <plurals name="settings_toolbar_auto_hide_delay_minutes_default">
+        <item quantity="other">%1$d 分鐘（預設）</item>
+    </plurals>
     <string name="toast_advanced_settings_restored_defaults">高級設定已恢復為預設值。</string>
+    <string name="settings_section_scenario_editing">場景編輯</string>
+    <string name="settings_preview_handle_editing_title">在預覽中編輯觸控位置</string>
+    <string name="settings_preview_handle_editing_desc">拖曳動作預覽中的觸控控制點以重新定位。</string>
+    <string name="settings_screenshot_rate_limit_title">螢幕擷取速率限制</string>
+    <plurals name="settings_screenshot_rate_limit_item">
+        <item quantity="other">每分鐘 %1$d 張</item>
+    </plurals>
+    <plurals name="settings_screenshot_rate_limit_item_default">
+        <item quantity="other">每分鐘 %1$d 張（預設）</item>
+    </plurals>
+    <string name="settings_screenshot_rate_limit_item_disabled">已停用（不限數量）</string>
+    <string name="settings_screenshot_rate_limit_dialog_title">螢幕擷取速率限制</string>
+    <string name="settings_screenshot_rate_limit_dialog_desc">輸入每個滾動分鐘內允許擷取的螢幕畫面數量上限。輸入 0 可停用限制。</string>
+    <string name="settings_screenshot_rate_limit_dialog_label">每分鐘螢幕擷取數</string>
+    <string name="settings_screenshot_rate_limit_invalid">請輸入有效數字（0 或大於 0）</string>
 </resources>

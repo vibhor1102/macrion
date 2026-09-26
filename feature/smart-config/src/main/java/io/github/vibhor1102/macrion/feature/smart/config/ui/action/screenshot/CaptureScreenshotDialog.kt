@@ -18,7 +18,7 @@ package io.github.vibhor1102.macrion.feature.smart.config.ui.action.screenshot
 
 import android.app.Dialog
 import android.content.Intent
-import android.net.Uri
+import androidx.core.net.toUri
 import android.provider.DocumentsContract
 import android.util.Log
 import android.view.ViewGroup
@@ -298,7 +298,7 @@ class CaptureScreenshotDialog(
     private fun openFolderInFileManager(folderUri: String?) {
         try {
             val intent = if (!folderUri.isNullOrBlank()) {
-                val treeUri = Uri.parse(folderUri)
+                val treeUri = folderUri.toUri()
                 val docUri = DocumentsContract.buildDocumentUriUsingTree(
                     treeUri,
                     DocumentsContract.getTreeDocumentId(treeUri),
@@ -308,7 +308,7 @@ class CaptureScreenshotDialog(
                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
                 }
             } else {
-                val defaultTreeDocUri = Uri.parse("content://com.android.externalstorage.documents/document/primary%3APictures%2FMacrion")
+                val defaultTreeDocUri = "content://com.android.externalstorage.documents/document/primary%3APictures%2FMacrion".toUri()
                 Intent(Intent.ACTION_VIEW).apply {
                     setDataAndType(defaultTreeDocUri, DocumentsContract.Document.MIME_TYPE_DIR)
                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -319,7 +319,7 @@ class CaptureScreenshotDialog(
             Log.w(TAG, "Failed to open folder directly, attempting fallback files intent", e)
             try {
                 val fallbackIntent = Intent(Intent.ACTION_MAIN).apply {
-                    addCategory(Intent.CATEGORY_APP_FILES)
+                    addCategory("android.intent.category.APP_FILES")
                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 }
                 context.startActivity(fallbackIntent)

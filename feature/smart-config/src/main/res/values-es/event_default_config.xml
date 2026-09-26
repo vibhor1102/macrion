@@ -24,6 +24,8 @@
     <string name="default_swipe_name">Golpe fuerte</string>
     <integer name="default_swipe_duration">500</integer>
 
+    <string name="default_zoom_name">Multitáctil</string>
+
     <string name="default_pause_name">Esperar</string>
     <integer name="default_pause_duration">50</integer>
 
@@ -37,9 +39,13 @@
 
     <string name="default_change_counter_name">Contador de cambios</string>
 
+    <string name="default_external_action_name">Acción externa</string>
+
     <string name="default_notification_name">Notificación</string>
 
     <string name="default_system_action_name">Acción del sistema</string>
 
     <string name="default_set_text_name">escribir texto</string>
+    <string name="default_play_sound_name">Reproducir sonido</string>
+    <string name="default_capture_screenshot_name">Capturar pantalla</string>
 </resources>

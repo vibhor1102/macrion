@@ -19,4 +19,7 @@
     <string name="default_notification_name">通知</string>
     <string name="default_system_action_name">系統操作</string>
     <string name="default_set_text_name">輸入文字</string>
+    <string name="default_zoom_name">多點觸控</string>
+    <string name="default_play_sound_name">播放音效</string>
+    <string name="default_capture_screenshot_name">擷取螢幕</string>
 </resources>

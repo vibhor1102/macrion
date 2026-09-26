@@ -138,6 +138,7 @@ class SmartActionsBriefMenu(initialItemIndex: Int) : ItemBriefMenu(
         )
     }
 
+    @Suppress("ModifierFactoryExtensionFunction")
     @Composable
     override fun firstBriefItemModifier(): Modifier =
         Modifier.tutorialAnchor(MonitoredViewType.ACTIONS_BRIEF_FIRST_ITEM)
@@ -338,7 +339,10 @@ class SmartActionsBriefMenu(initialItemIndex: Int) : ItemBriefMenu(
         ViewCompat.setStateDescription(button, context.getString(
             if (showAll) R.string.action_previews_all_on else R.string.action_previews_all_off,
         ))
-        button.tooltipText = context.getString(R.string.content_desc_show_all_action_previews)
+        ViewCompat.setTooltipText(
+            button,
+            context.getString(R.string.content_desc_show_all_action_previews),
+        )
     }
 
     private fun updateActionVisualisation(visualization: ItemBriefDescription?) {

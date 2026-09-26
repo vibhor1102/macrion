@@ -25,4 +25,23 @@
     <string name="dialog_reorder_discard_title">¿Descartar cambios?</string>
     <string name="dialog_reorder_discard_message">Tiene cambios sin guardar. ¿Está seguro de que desea descartarlos?</string>
     <string name="dialog_reorder_discard_confirm">Descartar</string>
+    <string name="swipe_position_record">Grabar gesto</string>
+    <string name="swipe_position_drag_instruction">Arrastra Inicio o Fin para ajustar el deslizamiento</string>
+    <string name="swipe_position_drag_node_instruction">Arrastra cualquier control para ajustar el deslizamiento</string>
+    <string name="swipe_position_record_instruction">Dibuja un deslizamiento para definir ambas posiciones</string>
+    <string name="swipe_position_short_gesture">Dibuja un deslizamiento para definir ambas posiciones</string>
+    <string name="swipe_position_multi_touch">Un deslizamiento usa un dedo. Crea una acción multitáctil para usar varios dedos.</string>
+    <string name="swipe_position_record_failed">No se pudo grabar el deslizamiento. Inténtalo de nuevo.</string>
+    <string name="swipe_position_start">Inicio</string>
+    <string name="swipe_position_end">Fin</string>
+    <string name="swipe_position_node">Punto %1$d</string>
+    <string name="swipe_position_move_left">Mover %1$s a la izquierda</string>
+    <string name="swipe_position_move_right">Mover %1$s a la derecha</string>
+    <string name="swipe_position_move_up">Mover %1$s hacia arriba</string>
+    <string name="swipe_position_move_down">Mover %1$s hacia abajo</string>
+    <string name="brief_handle_moved_click">Se movió la posición del toque</string>
+    <string name="brief_handle_moved_swipe_start">Se movió el inicio del deslizamiento</string>
+    <string name="brief_handle_moved_swipe_node">Se movió un punto del deslizamiento</string>
+    <string name="brief_handle_moved_swipe_end">Se movió el final del deslizamiento</string>
+    <string name="brief_handle_undo">Deshacer</string>
 </resources>

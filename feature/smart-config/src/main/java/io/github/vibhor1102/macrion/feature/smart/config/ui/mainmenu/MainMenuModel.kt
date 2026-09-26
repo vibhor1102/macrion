@@ -18,6 +18,7 @@
 package io.github.vibhor1102.macrion.feature.smart.config.ui.mainmenu
 
 import android.content.Context
+import android.app.Application
 import android.util.Log
 
 import androidx.lifecycle.ViewModel
@@ -57,6 +58,7 @@ import javax.inject.Inject
 
 /** View model for the [MainMenu]. */
 class MainMenuModel @Inject constructor(
+    private val application: Application,
     private val smartProcessingRepository: SmartProcessingRepository,
     settingsRepository: SettingsRepository,
     private val editionRepository: EditionRepository,
@@ -77,7 +79,6 @@ class MainMenuModel @Inject constructor(
     private var paywallResultJob: Job? = null
     private var paywallRequestId = 0L
     private var paywallPending = false
-    private var startContext: Context? = null
     private var startScenarioId: Identifier? = null
 
     /** Tells if the paywall is currently displayed. */
@@ -115,11 +116,10 @@ class MainMenuModel @Inject constructor(
         stopSequence = smartProcessingRepository.detectionStopSequence,
         initiallyRunning = smartProcessingRepository.isRunning(),
         start = {
-            val context = startContext
-            if (context == null || startScenarioId == null ||
+            if (startScenarioId == null ||
                 smartProcessingRepository.getScenarioId() != startScenarioId) false
             else smartProcessingRepository.startDetection(
-                context = context,
+                context = application,
                 liveDebugging = debuggingRepository.isDebugViewEnabled(),
                 generateReport = debuggingRepository.isDebugReportEnabled(),
             )
@@ -200,7 +200,7 @@ class MainMenuModel @Inject constructor(
         } else if (shouldStartPaywall()) {
             startPaywall(context)
         } else {
-            requestStart(context)
+            requestStart()
         }
     }
 
@@ -237,14 +237,13 @@ class MainMenuModel @Inject constructor(
             Log.d(TAG, "onPaywall finished")
 
             paywallPending = false
-            if (!state.isAdRequested()) requestStart(context)
+            if (!state.isAdRequested()) requestStart()
             paywallResultJob?.cancel()
             paywallResultJob = null
         }.launchIn(viewModelScope)
     }
 
-    private fun requestStart(context: Context) {
-        startContext = context
+    private fun requestStart() {
         startScenarioId = smartProcessingRepository.getScenarioId()
         detectionIntent.toggle()
     }

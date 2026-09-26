@@ -10,7 +10,9 @@
     <string name="item_desc_dumb_click_on_position">於 %1$d, %2$d 點擊</string>
     <string name="item_desc_dumb_pause">暫停執行</string>
     <string name="item_desc_dumb_pause_details">持續 %1$s</string>
-    <string name="item_desc_dumb_repeat_count">重複 %1$d 次</string>
+    <plurals name="item_desc_dumb_repeat_count">
+        <item quantity="other">重複 %1$d 次</item>
+    </plurals>
     <string name="item_desc_dumb_repeat_infinite">無限重複</string>
     <string name="item_desc_dumb_swipe">自螢幕上一點滑動至另一點</string>
     <string name="item_desc_dumb_swipe_details">自 [%2$d, %3$d] 至 [%4$d, %5$d]，持續 %1$s</string>
@@ -36,4 +38,32 @@
     <string name="dialog_stop_confirmation_title">停止 Macrion？</string>
     <string name="dialog_stop_confirmation_message">目前的情境將會停止。</string>
     <string name="dialog_stop_confirmation_stop">停止</string>
+    <string name="action_type_zoom">多點觸控</string>
+    <string name="item_desc_dumb_zoom">同時執行兩個或多個點擊或滑動。</string>
+    <string name="item_title_dumb_zoom">多點觸控</string>
+    <string name="action_combine_with_new_swipe">與新的滑動合併</string>
+    <string name="action_combine_with">與「%1$s」合併</string>
+    <string name="action_unsplit">拆分為個別動作</string>
+    <string name="action_edit_gestures">設定手勢</string>
+    <string name="action_edit_stroke">編輯%1$s</string>
+    <string name="dialog_title_split_action">多點觸控</string>
+    <string name="split_action_touch_actions_header">觸控筆劃</string>
+    <string name="split_action_add_swipe">新增滑動</string>
+    <string name="split_action_add_click">新增點擊</string>
+    <string name="split_action_group_settings">多點觸控設定</string>
+    <string name="split_action_check_group_settings">檢查多點觸控設定</string>
+    <string name="split_action_click_coordinates">位置：%1$d，%2$d</string>
+    <string name="split_action_swipe_coordinates">從 %1$d，%2$d 到 %3$d，%4$d</string>
+    <string name="split_action_unsplit">拆分</string>
+    <string name="action_combine_with_new_click">與新的點擊合併</string>
+    <string name="action_combine_with_existing">與現有動作合併…</string>
+    <plurals name="combined_touch_count">
+        <item quantity="other">%1$d 個觸控動作</item>
+    </plurals>
+    <string name="split_repeat_help">重複次數會套用至整個手勢。每次重複時，每個觸控只會執行一次；拆分後會還原各自的重複設定。</string>
+    <string name="split_action_position_not_set">尚未設定位置</string>
+    <string name="split_discard_title">捨棄變更？</string>
+    <string name="split_discard_message">此手勢及其觸控的變更尚未儲存。</string>
+    <string name="split_discard_confirm">捨棄</string>
+    <string name="split_keep_editing">繼續編輯</string>
 </resources>

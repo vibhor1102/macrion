@@ -182,7 +182,7 @@ class PositionSelectorMenu(
         selectorViews.onSwipeDragStateChanged = { dragging ->
             isDraggingSwipe = dragging
             val current = currentDescription as? SwipeDescription
-            setConfirmEnabledState(!isRecordingSwipe && !dragging && current?.from != null && current?.to != null) {
+            setConfirmEnabledState(!isRecordingSwipe && !dragging && current?.from != null && current.to != null) {
                 onPositionSelectionCompleted(currentDescription)
             }
             setMenuItemViewEnabled(recordButton, !isRecordingSwipe && !dragging)

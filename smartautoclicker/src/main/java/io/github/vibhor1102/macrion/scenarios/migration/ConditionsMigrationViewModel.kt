@@ -71,14 +71,22 @@ private fun Context.getUiState(state: MigrationState, conditionsCount: Int): Con
         MigrationState.NOT_STARTED ->
             ConditionsMigrationUiState(
                 migrationState = state,
-                textState = getString(R.string.message_condition_migration_count, conditionsCount),
+                textState = resources.getQuantityString(
+                    R.plurals.message_condition_migration_count,
+                    conditionsCount,
+                    conditionsCount,
+                ),
                 buttonState = LoadableButtonState.Loaded.Enabled(getString(R.string.button_condition_migration_start))
             )
 
         MigrationState.STARTED ->
             ConditionsMigrationUiState(
                 migrationState = state,
-                textState = getString(R.string.message_condition_migration_count, conditionsCount),
+                textState = resources.getQuantityString(
+                    R.plurals.message_condition_migration_count,
+                    conditionsCount,
+                    conditionsCount,
+                ),
                 buttonState = LoadableButtonState.Loading(getString(R.string.button_condition_migration_running))
             )
 

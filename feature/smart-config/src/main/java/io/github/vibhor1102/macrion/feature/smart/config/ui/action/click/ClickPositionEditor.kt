@@ -33,10 +33,11 @@ fun ClickPositionEditor(
     onPositionSelected: () -> Unit,
     onConditionSelected: () -> Unit,
     onOffsetSelected: () -> Unit,
+    modifier: Modifier = Modifier,
     typeModifier: @Composable (Click.PositionType) -> Modifier = { Modifier },
-    selectorModifier: Modifier = Modifier,
+    @Suppress("ModifierParameter") selectorAnchorModifier: Modifier = Modifier,
 ) {
-    ElevatedCard(Modifier.fillMaxWidth()) {
+    ElevatedCard(modifier.fillMaxWidth()) {
         Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
             if (state.isTypeFieldVisible) {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -65,7 +66,7 @@ fun ClickPositionEditor(
             ClickSelectorRow(state.selectorTitle, state.selectorDescription,
                 state.isSelectorEnabled, state.isSelectorInError, state.selectorVisualization,
                 if (state.positionType == Click.PositionType.USER_SELECTED) onPositionSelected else onConditionSelected,
-                selectorModifier)
+                selectorAnchorModifier)
             if (state.isClickOffsetVisible) {
                 HorizontalDivider()
                 ClickSelectorRow(stringResource(R.string.field_click_offset_title), state.clickOffsetDescription,
@@ -101,16 +102,17 @@ fun ColumnScope.ClickFields(
     name: String, duration: String, nameError: Boolean, durationError: Boolean,
     positionState: ClickPositionUiState?, maxNameLength: Int,
     waitBefore: String, waitAfter: String,
+    modifier: Modifier = Modifier,
+    @Suppress("ModifierParameter") selectorAnchorModifier: Modifier = Modifier,
     maxWaitBeforeMs: Long? = null,
     onNameChanged: (String) -> Unit, onDurationChanged: (String) -> Unit,
     onTypeSelected: (Click.PositionType) -> Unit,
     onPositionSelected: () -> Unit, onConditionSelected: () -> Unit, onOffsetSelected: () -> Unit,
     onWaitBeforeChanged: (String) -> Unit, onWaitAfterChanged: (String) -> Unit,
     typeModifier: @Composable (Click.PositionType) -> Modifier = { Modifier },
-    selectorModifier: Modifier = Modifier,
 ) {
     io.github.vibhor1102.macrion.core.ui.compose.MacrionTextField(name, onNameChanged,
-        stringResource(R.string.generic_name), isError = nameError, maxLength = maxNameLength)
+        stringResource(R.string.generic_name), modifier = modifier, isError = nameError, maxLength = maxNameLength)
     OutlinedTextField(duration, { onDurationChanged(it.filter(Char::isDigit)) }, Modifier.fillMaxWidth(),
         label = { Text(stringResource(R.string.input_field_label_click_press_duration)) },
         isError = durationError, singleLine = true,
@@ -118,7 +120,8 @@ fun ColumnScope.ClickFields(
             androidx.compose.ui.text.input.KeyboardType.Number),
         keyboardActions = io.github.vibhor1102.macrion.core.ui.compose.macrionDoneKeyboardActions())
     positionState?.let { ClickPositionEditor(it, onTypeSelected, onPositionSelected,
-        onConditionSelected, onOffsetSelected, typeModifier, selectorModifier) }
+        onConditionSelected, onOffsetSelected, typeModifier = typeModifier,
+        selectorAnchorModifier = selectorAnchorModifier) }
     io.github.vibhor1102.macrion.core.ui.compose.ActionDelaysCard(
         waitBefore, waitAfter, onWaitBeforeChanged, onWaitAfterChanged,
         maxWaitBeforeMs = maxWaitBeforeMs)

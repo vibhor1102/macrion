@@ -30,7 +30,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import io.github.vibhor1102.macrion.core.ui.R
@@ -258,7 +257,6 @@ fun ActionDelaysCard(
     modifier: Modifier = Modifier,
     maxWaitBeforeMs: Long? = null,
 ) {
-    val context = LocalContext.current
     var expanded by rememberSaveable { mutableStateOf(false) }
     var beforeText by rememberSaveable { mutableStateOf(waitBefore) }
     var afterText by rememberSaveable { mutableStateOf(waitAfter) }
@@ -296,12 +294,18 @@ fun ActionDelaysCard(
     val afterError = afterText.isNotBlank() && afterText.toLongOrNull()?.let { it >= 0L } != true
     val hasError = beforeError || afterError
     val expandedState = stringResource(if (expanded) R.string.field_delays_expanded else R.string.field_delays_collapsed)
+    val beforeSummary = beforeText.takeIf(String::isNotBlank)?.let {
+        stringResource(R.string.field_wait_before_summary, it)
+    }
+    val afterSummary = afterText.takeIf(String::isNotBlank)?.let {
+        stringResource(R.string.field_wait_after_summary, it)
+    }
     val collapsedSummary = when {
         hasError -> stringResource(R.string.field_delays_check_values)
         beforeText.isNotBlank() || afterText.isNotBlank() -> buildString {
-            if (beforeText.isNotBlank()) append(context.getString(R.string.field_wait_before_summary, beforeText))
+            if (beforeSummary != null) append(beforeSummary)
             if (beforeText.isNotBlank() && afterText.isNotBlank()) append(" • ")
-            if (afterText.isNotBlank()) append(context.getString(R.string.field_wait_after_summary, afterText))
+            if (afterSummary != null) append(afterSummary)
         }
         else -> null
     }

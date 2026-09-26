@@ -241,22 +241,18 @@ class DumbSplitActionDialog(
         val name = when (action) {
             is DumbAction.DumbClick -> action.name
             is DumbAction.DumbSwipe -> action.name
-            else -> ""
         }
         val initialDuration = when (action) {
             is DumbAction.DumbClick -> action.pressDurationMs
             is DumbAction.DumbSwipe -> action.swipeDurationMs
-            else -> 0L
         }
         val initialBefore = when (action) {
             is DumbAction.DumbClick -> action.waitBeforeMs
             is DumbAction.DumbSwipe -> action.waitBeforeMs
-            else -> null
         }
         val initialAfter = when (action) {
             is DumbAction.DumbClick -> action.waitAfterMs
             is DumbAction.DumbSwipe -> action.waitAfterMs
-            else -> null
         }
         var duration by rememberSaveable(key) { mutableStateOf(initialDuration.toString()) }
         var before by rememberSaveable(key) { mutableStateOf(initialBefore?.toString().orEmpty()) }

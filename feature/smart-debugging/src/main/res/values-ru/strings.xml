@@ -87,44 +87,49 @@
     <string name="title_event_occurrence_filtered_empty">Нет подходящих событий</string>
     <string name="desc_event_occurrence_filtered_empty">Нет событий хронологии, соответствующих текущим фильтрам.</string>
     <string name="button_clear_timeline_filters">Очистить фильтры</string>
-    <string name="content_desc_timeline_filters_active">Активных категорий фильтров хронологии: %1$d</string>
     <string name="content_desc_timeline_fast_scroller">Быстрая прокрутка хронологии</string>
     <string name="item_event_occurrence_frame_number">Кадр №%1$d</string>
     <string name="item_event_occurrence_trigger">Курок</string>
     <string name="item_event_occurrence_one_condition_fulfilled">Выполнено: %1$s</string>
-    <string name="item_event_occurrence_several_condition_processed">%1$d условий обработано</string>
+    <plurals name="item_event_occurrence_several_condition_processed">
+        <item quantity="one">Обработано %1$d условие</item>
+        <item quantity="few">Обработано %1$d условия</item>
+        <item quantity="many">Обработано %1$d условий</item>
+        <item quantity="other">Обработано %1$d условия</item>
+    </plurals>
+
+    <plurals name="field_debug_filter_events_show_select_desc">
+        <item quantity="one">%1$d событие</item>
+        <item quantity="few">%1$d события</item>
+        <item quantity="many">%1$d событий</item>
+        <item quantity="other">%1$d события</item>
+    </plurals>
+
+    <plurals name="content_desc_timeline_filters_active">
+        <item quantity="one">Активных категорий фильтров хронологии: %1$d</item>
+        <item quantity="few">Активных категорий фильтров хронологии: %1$d</item>
+        <item quantity="many">Активных категорий фильтров хронологии: %1$d</item>
+        <item quantity="other">Активных категорий фильтров хронологии: %1$d</item>
+    </plurals>
+
     <string name="item_event_occurrence_detecting_label">обнаружение</string>
     <string name="item_event_occurrence_actions_label">действия</string>
     <string name="item_event_occurrence_detected_at">Обнаружено в %1$s</string>
     <string name="item_event_occurrence_recorded_at">Записано в %1$s</string>
-
-
-    <!-- Debug Report Timeline filters dialog ====================================================================== -->
-
     <string name="dialog_overlay_title_timeline_filters">Фильтры временной шкалы</string>
-
     <string name="field_debug_filter_image_events_title">События изображения</string>
     <string name="field_debug_filter_image_events_show_desc_on">Показывать события изображений на временной шкале</string>
     <string name="field_debug_filter_image_events_show_desc_off">Скрыть все события изображения на временной шкале</string>
-
     <string name="field_debug_filter_trigger_events_title">Триггерные события</string>
     <string name="field_debug_filter_trigger_events_show_desc_on">Показывать триггерные события на временной шкале</string>
     <string name="field_debug_filter_trigger_events_show_desc_off">Скрыть все триггерные события на временной шкале</string>
-
     <string name="field_debug_filter_events_show_title">Фильтры</string>
-    <string name="field_debug_filter_events_show_select_desc">%1$d событий</string>
     <string name="field_debug_filter_events_show_select_desc_none">Нет событий</string>
-
-
-    <!-- Debug Report Event Occurrence dialog ====================================================================== -->
-
     <string name="menu_item_debug_event_occurrence_conditions">Условия</string>
     <string name="content_desc_event_occurrence_fast_scroller">Быстрая прокрутка сведений о срабатывании события</string>
     <string name="content_desc_filtered_events_fast_scroller">Быстрая прокрутка отфильтрованных событий</string>
     <string name="menu_item_debug_event_occurrence_counters">Счетчики</string>
     <string name="menu_item_debug_event_occurrence_events_state">Штаты</string>
-
-    <!-- Debug Report Event Occurrence conditions Tab -->
     <string name="item_event_occurrence_details_header_title">Оператор условия</string>
     <string name="item_event_occurrence_details_image_confidence">Доверие: %1$.2f/%2$.2f</string>
     <string name="item_event_occurrence_details_image_should_be_detected">Должно быть обнаружено?</string>
@@ -132,22 +137,12 @@
     <string name="item_event_occurrence_details_trigger_desc_broadcast">Трансляция получена: %1$s</string>
     <string name="item_event_occurrence_details_trigger_desc_timer">Таймер достиг: %1$s</string>
     <string name="item_event_occurrence_details_trigger_desc_counter">Достигнут счетчик: %1$s %2$s %3$s</string>
-
-    <!-- Debug Report Event Occurrence counters Tab -->
     <string name="title_event_occurrence_counters_empty">Нет счетчиков</string>
     <string name="desc_event_occurrence_counters_empty">Для этого сценария не были определены счетчики.</string>
-
-    <!-- Debug Report Event Occurrence events state Tab -->
     <string name="item_event_state_header_image">События изображения</string>
     <string name="item_event_state_header_trigger">Триггерные события</string>
-
-
-    <!-- Overlay texts ============================================================================================ -->
-
     <string name="overlay_title_results">Результаты</string>
     <string name="overlay_title_threshold">Порог</string>
-
-
     <string name="content_desc_condition_preview">Предпросмотр условия</string>
     <string name="content_desc_close_condition_preview">Закрыть предпросмотр</string>
     <string name="title_condition_preview_image_failed">Изображение недоступно</string>

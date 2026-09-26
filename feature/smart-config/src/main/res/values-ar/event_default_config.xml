@@ -24,6 +24,8 @@
     <string name="default_swipe_name">انتقد</string>
     <integer name="default_swipe_duration">500</integer>
 
+    <string name="default_zoom_name">متعدد اللمس</string>
+
     <string name="default_pause_name">انتظر</string>
     <integer name="default_pause_duration">50</integer>
 
@@ -42,4 +44,6 @@
     <string name="default_system_action_name">عمل النظام</string>
 
     <string name="default_set_text_name">اكتب النص</string>
+    <string name="default_play_sound_name">تشغيل صوت</string>
+    <string name="default_capture_screenshot_name">التقاط لقطة شاشة</string>
 </resources>

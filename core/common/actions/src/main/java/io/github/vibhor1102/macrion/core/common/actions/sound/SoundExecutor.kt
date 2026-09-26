@@ -16,10 +16,10 @@
  */
 package io.github.vibhor1102.macrion.core.common.actions.sound
 
+import androidx.core.net.toUri
 import android.content.Context
 import android.media.AudioAttributes
 import android.media.MediaPlayer
-import android.net.Uri
 import android.util.Log
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
@@ -35,7 +35,7 @@ internal class SoundExecutor @Inject constructor(
     fun playSound(soundUri: String) {
         stopSound()
         try {
-            val uri = Uri.parse(soundUri)
+            val uri = soundUri.toUri()
             val player = MediaPlayer().apply {
                 setAudioAttributes(
                     AudioAttributes.Builder()

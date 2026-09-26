@@ -22,7 +22,7 @@
       - Allowed characters can be small due to save/delete/close buttons.
       -->
     <string name="dialog_overlay_title_dumb_action_type">Tipo de acción</string>
-    <string name="dialog_overlay_title_dumb_scenario_config">Guión</string>
+    <string name="dialog_overlay_title_dumb_scenario_config">Guion</string>
 
     <!--
       - Text for menu items.
@@ -43,8 +43,7 @@
     <string name="item_desc_dumb_click_on_position">Haga clic en %1$d, %2$d</string>
     <string name="item_desc_dumb_pause">Pausar la ejecución</string>
     <string name="item_desc_dumb_pause_details">Durante %1$s</string>
-    <string name="item_desc_dumb_repeat_count">Repetir %1$d veces</string>
-    <string name="item_desc_dumb_repeat_infinite">repetición infinita</string>
+<string name="item_desc_dumb_repeat_infinite">repetición infinita</string>
     <string name="item_desc_dumb_swipe">Deslizar de una posición en la pantalla a otra</string>
     <string name="item_desc_dumb_swipe_details">Durante %1$s de [%2$d, %3$d] a [%4$d, %5$d]</string>
     <string name="item_desc_dumb_swipe_positions">Desliza desde %1$d, %2$d a %3$d, %4$d</string>
@@ -101,4 +100,39 @@
     <string name="dialog_stop_confirmation_title">¿Detener Macrion?</string>
     <string name="dialog_stop_confirmation_message">Se detendrá el escenario actual.</string>
     <string name="dialog_stop_confirmation_stop">Detener</string>
+    <string name="action_type_zoom">Multitáctil</string>
+    <string name="item_desc_dumb_zoom">Ejecuta dos o más toques o deslizamientos a la vez.</string>
+    <string name="item_title_dumb_zoom">Multitáctil</string>
+    <string name="action_combine_with_new_swipe">Combinar con un nuevo deslizamiento</string>
+    <string name="action_combine_with">Combinar con «%1$s»</string>
+    <string name="action_unsplit">Separar en acciones individuales</string>
+    <string name="action_edit_gestures">Configurar gestos</string>
+    <string name="action_edit_stroke">Editar %1$s</string>
+    <string name="dialog_title_split_action">Multitáctil</string>
+    <string name="split_action_touch_actions_header">Trazos táctiles</string>
+    <string name="split_action_add_swipe">Añadir deslizamiento</string>
+    <string name="split_action_add_click">Añadir toque</string>
+    <string name="split_action_group_settings">Ajustes de multitáctil</string>
+    <string name="split_action_check_group_settings">Comprobar ajustes de multitáctil</string>
+    <string name="split_action_click_coordinates">En %1$d, %2$d</string>
+    <string name="split_action_swipe_coordinates">De %1$d, %2$d a %3$d, %4$d</string>
+    <string name="split_action_unsplit">Separar</string>
+    <string name="action_combine_with_new_click">Combinar con un nuevo toque</string>
+    <string name="action_combine_with_existing">Combinar con una acción existente…</string>
+<string name="split_repeat_help">La repetición se aplica a todo el gesto. Cada toque se ejecuta una vez por repetición; al separar, se restauran los ajustes de repetición individuales.</string>
+    <string name="split_action_position_not_set">Posición sin definir</string>
+    <string name="split_discard_title">¿Descartar los cambios?</string>
+    <string name="split_discard_message">No se han guardado los cambios de este gesto ni de sus toques.</string>
+    <string name="split_discard_confirm">Descartar</string>
+    <string name="split_keep_editing">Seguir editando</string>
+    <plurals name="item_desc_dumb_repeat_count">
+        <item quantity="one">Repetir %1$d vez</item>
+        <item quantity="many">Repetir %1$d veces</item>
+        <item quantity="other">Repetir %1$d veces</item>
+    </plurals>
+    <plurals name="combined_touch_count">
+        <item quantity="one">%1$d acción táctil</item>
+        <item quantity="many">%1$d acciones táctiles</item>
+        <item quantity="other">%1$d acciones táctiles</item>
+    </plurals>
 </resources>

@@ -24,6 +24,8 @@
     <string name="default_swipe_name">Свайп</string>
     <integer name="default_swipe_duration">500</integer>
 
+    <string name="default_zoom_name">Мультитач</string>
+
     <string name="default_pause_name">Очікування</string>
     <integer name="default_pause_duration">50</integer>
 
@@ -40,4 +42,6 @@
     <string name="default_notification_name">Сповіщення</string>
     <string name="default_system_action_name">Дія системи</string>
     <string name="default_set_text_name">Написати текст</string>
+    <string name="default_play_sound_name">Відтворити звук</string>
+    <string name="default_capture_screenshot_name">Зробити знімок екрана</string>
 </resources>

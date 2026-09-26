@@ -22,7 +22,7 @@
       - Regular Android dialog title characters size.
       -->
     <string name="dialog_title_create_backup">Crear copia de seguridad</string>
-    <string name="dialog_title_delete_scenario">Eliminar guión</string>
+    <string name="dialog_title_delete_scenario">Eliminar guion</string>
     <string name="dialog_title_import_backup">Importar copia de seguridad</string>
 
 
@@ -45,8 +45,9 @@
     <string name="message_backup_create_error">Se ha producido un error y se ha cancelado la exportación de la copia de seguridad</string>
     <string name="message_backup_import_progress">Importando copia de seguridad: %1$d</string>
     <string name="message_backup_import_verification">Verificación de datos</string>
-    <string name="message_backup_import_completed">Importación completada\n%1$d guión importado</string>
-    <string name="message_backup_import_completed_with_error">Importación completada\n%1$d guiones importados\n%2$d errores</string>
+<string name="message_backup_import_completed_with_error">Importación completada
+%1$s
+%2$s</string>
     <string name="message_backup_import_error">Se ha producido un error y se ha cancelado la importación de la copia de seguridad</string>
     <string name="message_backup_import_compatibility">"Algunos de los escenarios importados se generaron desde un dispositivo con una pantalla diferente, lo que podría causar problemas con las coordenadas de detección y acción.\n\nPara solucionarlo, debes tomar nuevas capturas de pantalla para tus condiciones y actualizar las posiciones de clic/deslizamiento."</string>
     <string name="message_backup_error_no_zip_app">"No se encontró ninguna aplicación en el dispositivo para manejar la carga/guardado de un archivo ZIP."</string>
@@ -66,4 +67,20 @@
     <string name="message_backup_klickr_compatibility_review">Destino de compatibilidad: %1$s\n\nComponentes que se eliminarán: %2$d\nEscenarios que no se pueden exportar: %3$d\n\nContinúa para elegir dónde guardar la copia o cancela sin crear un archivo.</string>
     <string name="message_backup_create_klickr_compatible_completed">Copia compatible con Klick’r completada. Componentes exclusivos de Macrion eliminados: %1$d.</string>
     <string name="message_backup_create_klickr_compatible_completed_without_loss">Copia compatible con Klick’r completada. No fue necesario eliminar ninguna función exclusiva de Macrion.</string>
+    <string name="message_backup_klickr_curved_swipes_excluded">Deslizamientos curvos excluidos: %1$d. Usa una copia de seguridad nativa de Macrion para conservar sus trayectorias completas.</string>
+<plurals name="message_backup_import_completed">
+        <item quantity="one">Importación completada\n%1$d escenario importado</item>
+        <item quantity="many">Importación completada\n%1$d escenarios importados</item>
+        <item quantity="other">Importación completada\n%1$d escenarios importados</item>
+    </plurals>
+    <plurals name="message_backup_import_scenarios">
+        <item quantity="one">%1$d escenario importado</item>
+        <item quantity="many">%1$d escenarios importados</item>
+        <item quantity="other">%1$d escenarios importados</item>
+    </plurals>
+    <plurals name="message_backup_import_errors">
+        <item quantity="one">%1$d error</item>
+        <item quantity="many">%1$d errores</item>
+        <item quantity="other">%1$d errores</item>
+    </plurals>
 </resources>

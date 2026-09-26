@@ -8,4 +8,23 @@
     <string name="dialog_reorder_discard_title">放弃更改？</string>
     <string name="dialog_reorder_discard_message">您有未保存的更改。确定要放弃它们吗？</string>
     <string name="dialog_reorder_discard_confirm">放弃</string>
+    <string name="swipe_position_record">录制手势</string>
+    <string name="swipe_position_drag_instruction">拖动起点或终点以调整滑动</string>
+    <string name="swipe_position_drag_node_instruction">拖动任意控制点以调整滑动</string>
+    <string name="swipe_position_record_instruction">绘制一次滑动以设置起点和终点</string>
+    <string name="swipe_position_short_gesture">绘制一次滑动以设置起点和终点</string>
+    <string name="swipe_position_multi_touch">滑动使用一根手指。若要使用多根手指，请创建多点触控操作。</string>
+    <string name="swipe_position_record_failed">无法录制滑动，请重试。</string>
+    <string name="swipe_position_start">起点</string>
+    <string name="swipe_position_end">终点</string>
+    <string name="swipe_position_node">点 %1$d</string>
+    <string name="swipe_position_move_left">将%1$s向左移动</string>
+    <string name="swipe_position_move_right">将%1$s向右移动</string>
+    <string name="swipe_position_move_up">将%1$s向上移动</string>
+    <string name="swipe_position_move_down">将%1$s向下移动</string>
+    <string name="brief_handle_moved_click">已移动点击位置</string>
+    <string name="brief_handle_moved_swipe_start">已移动滑动起点</string>
+    <string name="brief_handle_moved_swipe_node">已移动滑动点</string>
+    <string name="brief_handle_moved_swipe_end">已移动滑动终点</string>
+    <string name="brief_handle_undo">撤销</string>
 </resources>

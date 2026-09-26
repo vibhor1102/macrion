@@ -46,7 +46,11 @@ internal fun List<Action>.toPickerOptions(context: Context): List<ExistingAction
     val type = when (action) {
         is Click -> context.getString(R.string.item_click_title)
         is Swipe -> context.getString(R.string.item_swipe_title)
-        is SplitAction -> context.getString(R.string.combined_touch_count, action.subActions.size)
+        is SplitAction -> context.resources.getQuantityString(
+            R.plurals.combined_touch_count,
+            action.subActions.size,
+            action.subActions.size,
+        )
         else -> ""
     }
     ExistingActionOption(

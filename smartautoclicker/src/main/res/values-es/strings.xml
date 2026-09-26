@@ -27,7 +27,7 @@
       - Titles for the dialogs displayed from the activity.
       - Regular Android dialog title characters size.
       -->
-    <string name="dialog_title_add_scenario">Nuevo guión</string>
+    <string name="dialog_title_add_scenario">Nuevo guion</string>
 
     <!--
       - Text for menu items.
@@ -70,8 +70,7 @@
     <string name="item_desc_dumb_scenario">La experiencia normal de clic automático.\nSimplemente haga clic y deslice el dedo en la pantalla.</string>
     <string name="item_desc_dumb_scenario_max_duration">Detener después de %1$s</string>
     <string name="item_desc_dumb_scenario_max_duration_infinite">Sin duración máxima</string>
-    <string name="item_desc_dumb_scenario_repeat_count">Repetir %1$d veces</string>
-    <string name="item_desc_dumb_scenario_repeat_infinite">repetición infinita</string>
+<string name="item_desc_dumb_scenario_repeat_infinite">repetición infinita</string>
     <string name="item_desc_smart_scenario">Utilice la detección de imágenes para crear casos de uso complejos.</string>
     <string name="item_desc_smart_scenario_pro_mode">Requiere ver un anuncio o comprar el modo profesional</string>
     <string name="item_title_dumb_scenario">Simple</string>
@@ -81,7 +80,7 @@
       - Empty list messages.
       - Views handles any length here, but try to be concise.
       -->
-    <string name="message_empty_scenario_list">Crea tu primer guión y empieza a automatizar tareas en tu teléfono</string>
+    <string name="message_empty_scenario_list">Crea tu primer guion y empieza a automatizar tareas en tu teléfono</string>
 
     <!--
       - Messages.
@@ -105,13 +104,12 @@
       - TextButton content.
       - Should be short and concise.
       -->
-    <string name="button_text_create_scenario">Crear un guión</string>
 
     <!--
       - Content description texts.
       - They are use as accessibility texts for visually impaired people. They will not be displayed but spoken.
       -->
-    <string name="content_desc_add_scenario">Crear un nuevo guión</string>
+    <string name="content_desc_add_scenario">Crear un nuevo guion</string>
 
 
     <!-- Default name when creating a new scenario -->
@@ -131,8 +129,6 @@
     <string name="field_home_button_title">Mostrar botón de inicio de Macrion</string>
     <string name="field_home_button_desc">Añade un botón a la barra de herramientas para detener el escenario y abrir la pantalla principal de Macrion.</string>
 
-    <string name="field_legacy_action_ui_title">IU de acción heredada</string>
-    <string name="field_legacy_action_ui_desc">Cambie la visualización de acciones por una lista. Útil para escenarios complejos.</string>
 
     <string name="field_legacy_notification_ui_title">UI de notificación heredada</string>
     <string name="field_legacy_notification_ui_desc">Utilice los botones del sistema en lugar de los botones de iconos en la notificación.</string>
@@ -152,8 +148,7 @@
     <string name="dialog_condition_migration_title">Migración</string>
 
     <string name="message_condition_migration_desc">El formato de las imágenes de Macrion ha cambiado y es necesario actualizar su escenario.         Esto puede tardar unos minutos dependiendo de la cantidad de condiciones para migrar.</string>
-    <string name="message_condition_migration_count">%1$d Imagen Condiciones para migrar.</string>
-    <string name="message_condition_migration_success">Todas las condiciones de imagen migraron.</string>
+<string name="message_condition_migration_success">Todas las condiciones de imagen migraron.</string>
     <string name="message_condition_migration_error">Algunas condiciones no se pudieron migrar. Por favor revise sus escenarios.</string>
 
     <string name="button_condition_migration_start">Emigrar</string>
@@ -168,8 +163,6 @@
 
     <string name="dialog_title_locale_plugin_background_launch">Inicio en segundo plano bloqueado</string>
     <string name="message_locale_plugin_background_launch">Macrion no pudo abrir automáticamente la ventana de captura de pantalla.\n\nPara terminar de iniciar el escenario, mostró una notificación.\n\nAlgunos teléfonos Android restringen más las aplicaciones en segundo plano. Consulta esta guía para mejorar la estabilidad de los permisos.</string>
-    <string name="field_tutorial_title">Tutorial</string>
-    <string name="field_tutorial_desc">Aprende a usar Macrion</string>
     <string name="dialog_title_copy_scenario">Copiar escenario</string>
     <string name="content_desc_back">Volver</string>
     <string name="crash_reports_title">Informes de fallos locales</string>
@@ -221,12 +214,50 @@
     <string name="settings_toolbar_auto_hide_desc">Plegar la barra de herramientas contra el borde de la pantalla cuando esté inactiva.</string>
     <string name="settings_toolbar_auto_hide_delay_title">Retardo de ocultación automática</string>
     <string name="settings_toolbar_auto_hide_delay_dialog_title">Retardo de ocultación automática</string>
-    <string name="settings_toolbar_auto_hide_delay_seconds">%1$d segundos</string>
-    <string name="settings_toolbar_auto_hide_delay_seconds_default">%1$d segundos (Predeterminado)</string>
     <string name="settings_toolbar_auto_hide_delay_1_minute">1 minuto</string>
-    <string name="settings_toolbar_auto_hide_delay_minutes">%1$d minutos</string>
-    <string name="settings_toolbar_auto_hide_delay_minutes_default">%1$d minutos (Predeterminado)</string>
-    <string name="content_desc_tuck_toolbar">Plegar la barra de herramientas al borde de la pantalla</string>
-    <string name="content_desc_expand_toolbar">Expandir la barra de herramientas</string>
     <string name="toast_advanced_settings_restored_defaults">Los ajustes avanzados se han restaurado a los valores predeterminados.</string>
+    <string name="settings_section_scenario_editing">Edición de escenarios</string>
+    <string name="settings_preview_handle_editing_title">Editar posiciones táctiles en la vista previa</string>
+    <string name="settings_preview_handle_editing_desc">Arrastra los controles táctiles en la vista previa de la acción para cambiar su posición.</string>
+    <string name="settings_screenshot_rate_limit_title">Límite de capturas de pantalla</string>
+<string name="settings_screenshot_rate_limit_item_disabled">Desactivado (sin límite)</string>
+    <string name="settings_screenshot_rate_limit_dialog_title">Límite de capturas de pantalla</string>
+    <string name="settings_screenshot_rate_limit_dialog_desc">Introduce el número máximo de capturas de pantalla permitidas en cualquier intervalo de un minuto. Introduce 0 para desactivar el límite.</string>
+    <string name="settings_screenshot_rate_limit_dialog_label">Capturas de pantalla por minuto</string>
+    <string name="settings_screenshot_rate_limit_invalid">Introduce un número válido (0 o superior)</string>
+    <plurals name="item_desc_dumb_scenario_repeat_count">
+        <item quantity="one">Repetir %1$d vez</item>
+        <item quantity="many">Repetir %1$d veces</item>
+        <item quantity="other">Repetir %1$d veces</item>
+    </plurals>
+    <plurals name="message_condition_migration_count">
+        <item quantity="one">%1$d condición de imagen para migrar.</item>
+        <item quantity="many">%1$d condiciones de imagen para migrar.</item>
+        <item quantity="other">%1$d condiciones de imagen para migrar.</item>
+    </plurals>
+    <plurals name="settings_toolbar_auto_hide_delay_seconds">
+        <item quantity="one">%1$d segundo</item>
+        <item quantity="many">%1$d segundos</item>
+        <item quantity="other">%1$d segundos</item>
+    </plurals>
+    <plurals name="settings_toolbar_auto_hide_delay_minutes">
+        <item quantity="one">%1$d minuto</item>
+        <item quantity="many">%1$d minutos</item>
+        <item quantity="other">%1$d minutos</item>
+    </plurals>
+    <plurals name="settings_toolbar_auto_hide_delay_minutes_default">
+        <item quantity="one">%1$d minuto (predeterminado)</item>
+        <item quantity="many">%1$d minutos (predeterminado)</item>
+        <item quantity="other">%1$d minutos (predeterminado)</item>
+    </plurals>
+    <plurals name="settings_screenshot_rate_limit_item">
+        <item quantity="one">%1$d por minuto</item>
+        <item quantity="many">%1$d por minuto</item>
+        <item quantity="other">%1$d por minuto</item>
+    </plurals>
+    <plurals name="settings_screenshot_rate_limit_item_default">
+        <item quantity="one">%1$d por minuto (predeterminado)</item>
+        <item quantity="many">%1$d por minuto (predeterminado)</item>
+        <item quantity="other">%1$d por minuto (predeterminado)</item>
+    </plurals>
 </resources>

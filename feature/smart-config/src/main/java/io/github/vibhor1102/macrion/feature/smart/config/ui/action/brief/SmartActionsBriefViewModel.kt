@@ -424,16 +424,16 @@ class SmartActionsBriefViewModel @Inject constructor(
             }
     }
 
-    override fun combineWithNewClick(action: Action): SplitAction? =
-        editionRepository.combineActionWithNew(action, editionRepository.editedItemsBuilder.createNewClick(context))
+    override fun combineWithNewClick(source: Action): SplitAction? =
+        editionRepository.combineActionWithNew(source, editionRepository.editedItemsBuilder.createNewClick(context))
 
-    override fun combineWithNewSwipe(action: Action): SplitAction? {
+    override fun combineWithNewSwipe(source: Action): SplitAction? {
         val newSwipe = editionRepository.editedItemsBuilder.createNewSwipe(context)
-        return editionRepository.combineActionWithNew(action, newSwipe)
+        return editionRepository.combineActionWithNew(source, newSwipe)
     }
 
-    override fun combineActions(actionA: Action, actionB: Action): SplitAction? {
-        return editionRepository.combineActions(actionA, actionB)
+    override fun combineActions(source: Action, other: Action): SplitAction? {
+        return editionRepository.combineActions(source, other)
     }
 
     fun unsplitAction(splitAction: SplitAction) {

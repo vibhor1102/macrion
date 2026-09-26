@@ -48,18 +48,18 @@
     <string name="item_scenario_last_used_never">Mai utilizzato</string>
     <plurals name="item_scenario_last_used_minutes">
         <item quantity="one">%1$d min. fa</item>
-        <item quantity="many">%1$d min. fa</item>
         <item quantity="other">%1$d min. fa</item>
+        <item quantity="many">%1$d min. fa</item>
     </plurals>
     <plurals name="item_scenario_last_used_hours">
         <item quantity="one">%1$d ora fa</item>
-        <item quantity="many">%1$d ore fa</item>
         <item quantity="other">%1$d ore fa</item>
+        <item quantity="many">%1$d ore fa</item>
     </plurals>
     <plurals name="item_scenario_last_used_days">
         <item quantity="one">%1$d giorno fa</item>
-        <item quantity="many">%1$d giorni fa</item>
         <item quantity="other">%1$d giorni fa</item>
+        <item quantity="many">%1$d giorni fa</item>
     </plurals>
 
     <!--
@@ -71,7 +71,11 @@
     <string name="item_desc_dumb_scenario">L\'esperienza regolare del cliccatore automatico.\nÈ sufficiente posizionare i clic e i passaggi sullo schermo.</string>
     <string name="item_desc_dumb_scenario_max_duration">Interrompere dopo %1$s</string>
     <string name="item_desc_dumb_scenario_max_duration_infinite">Nessuna durata massima</string>
-    <string name="item_desc_dumb_scenario_repeat_count">Ripetere %1$d volte</string>
+    <plurals name="item_desc_dumb_scenario_repeat_count">
+        <item quantity="one">Ripeti %1$d volta</item>
+        <item quantity="other">Ripeti %1$d volte</item>
+        <item quantity="many">Ripeti %1$d volte</item>
+    </plurals>
     <string name="item_desc_dumb_scenario_repeat_infinite">Ripetizione infinita</string>
     <string name="item_desc_smart_scenario">Utilizzate il rilevamento delle immagini per creare casi d\'uso complessi.</string>
     <string name="item_desc_smart_scenario_pro_mode">Richiede la visione di un annuncio o l\'acquisto della modalità pro</string>
@@ -104,7 +108,6 @@
       - TextButton content.
       - Should be short and concise.
       -->
-    <string name="button_text_create_scenario">Crea uno scenario</string>
 
     <!--
       - Content description texts.
@@ -129,8 +132,6 @@
     <string name="field_home_button_title">Mostra il pulsante Home di Macrion</string>
     <string name="field_home_button_desc">Aggiunge un pulsante alla barra degli strumenti per arrestare lo scenario e aprire la schermata principale di Macrion.</string>
 
-    <string name="field_legacy_action_ui_title">Interfaccia utente dell\'azione legacy</string>
-    <string name="field_legacy_action_ui_desc">Modifica la visualizzazione delle azioni tramite un elenco. Utile per scenari complessi.</string>
 
     <string name="field_legacy_notification_ui_title">Interfaccia di notifica legacy</string>
     <string name="field_legacy_notification_ui_desc">Utilizzare i pulsanti di sistema invece dei pulsanti delle icone nella notifica.</string>
@@ -151,7 +152,11 @@
     <string name="dialog_condition_migration_title">Migrazione</string>
 
     <string name="message_condition_migration_desc">Il formato delle immagini Macrion è cambiato e il tuo scenario deve essere aggiornato. L\'operazione potrebbe richiedere alcuni minuti a seconda del numero di condizioni da migrare.</string>
-    <string name="message_condition_migration_count">%1$d Condizioni dell\'immagine da migrare.</string>
+    <plurals name="message_condition_migration_count">
+        <item quantity="one">%1$d condizione dell’immagine da migrare.</item>
+        <item quantity="other">%1$d condizioni dell’immagine da migrare.</item>
+        <item quantity="many">%1$d condizioni dell’immagine da migrare.</item>
+    </plurals>
     <string name="message_condition_migration_success">Tutte le condizioni delle immagini sono state migrate.</string>
     <string name="message_condition_migration_error">Alcune condizioni non è stato possibile migrare. Controlla i tuoi scenari.</string>
 
@@ -167,8 +172,6 @@
 
     <string name="dialog_title_locale_plugin_background_launch">Avvio in background bloccato</string>
     <string name="message_locale_plugin_background_launch">Macrion non ha potuto aprire automaticamente la finestra di cattura dello schermo.\n\nPer completare l\'avvio dello scenario, è stata mostrata una notifica.\n\nAlcuni telefoni Android impongono restrizioni maggiori alle app in background. Consulta questa guida per migliorare la stabilità delle autorizzazioni.</string>
-    <string name="field_tutorial_title">Tutorial</string>
-    <string name="field_tutorial_desc">Scopri come usare Macrion</string>
     <string name="dialog_title_copy_scenario">Copia scenario</string>
     <string name="content_desc_back">Torna indietro</string>
     <string name="crash_reports_title">Rapporti sugli arresti anomali locali</string>
@@ -220,12 +223,40 @@
     <string name="settings_toolbar_auto_hide_desc">Riduci la barra degli strumenti sul bordo dello schermo quando è inattiva.</string>
     <string name="settings_toolbar_auto_hide_delay_title">Ritardo di scomparsa automatica</string>
     <string name="settings_toolbar_auto_hide_delay_dialog_title">Ritardo di scomparsa automatica</string>
-    <string name="settings_toolbar_auto_hide_delay_seconds">%1$d secondi</string>
-    <string name="settings_toolbar_auto_hide_delay_seconds_default">%1$d secondi (Predefinito)</string>
+    <plurals name="settings_toolbar_auto_hide_delay_seconds">
+        <item quantity="one">%1$d secondo</item>
+        <item quantity="other">%1$d secondi</item>
+        <item quantity="many">%1$d secondi</item>
+    </plurals>
     <string name="settings_toolbar_auto_hide_delay_1_minute">1 minuto</string>
-    <string name="settings_toolbar_auto_hide_delay_minutes">%1$d minuti</string>
-    <string name="settings_toolbar_auto_hide_delay_minutes_default">%1$d minuti (Predefinito)</string>
-    <string name="content_desc_tuck_toolbar">Riduci la barra degli strumenti al bordo dello schermo</string>
-    <string name="content_desc_expand_toolbar">Espandi la barra degli strumenti</string>
+    <plurals name="settings_toolbar_auto_hide_delay_minutes">
+        <item quantity="one">%1$d minuto</item>
+        <item quantity="other">%1$d minuti</item>
+        <item quantity="many">%1$d minuti</item>
+    </plurals>
+    <plurals name="settings_toolbar_auto_hide_delay_minutes_default">
+        <item quantity="one">%1$d minuto (predefinito)</item>
+        <item quantity="other">%1$d minuti (predefinito)</item>
+        <item quantity="many">%1$d minuti (predefinito)</item>
+    </plurals>
     <string name="toast_advanced_settings_restored_defaults">Le impostazioni avanzate sono state ripristinate ai valori predefiniti.</string>
+    <string name="settings_section_scenario_editing">Modifica scenario</string>
+    <string name="settings_preview_handle_editing_title">Modifica le posizioni tattili nell’anteprima</string>
+    <string name="settings_preview_handle_editing_desc">Trascina i punti di contatto nell’anteprima dell’azione per riposizionarli.</string>
+    <string name="settings_screenshot_rate_limit_title">Limite screenshot</string>
+    <plurals name="settings_screenshot_rate_limit_item">
+        <item quantity="one">%1$d al minuto</item>
+        <item quantity="other">%1$d al minuto</item>
+        <item quantity="many">%1$d al minuto</item>
+    </plurals>
+    <plurals name="settings_screenshot_rate_limit_item_default">
+        <item quantity="one">%1$d al minuto (predefinito)</item>
+        <item quantity="other">%1$d al minuto (predefinito)</item>
+        <item quantity="many">%1$d al minuto (predefinito)</item>
+    </plurals>
+    <string name="settings_screenshot_rate_limit_item_disabled">Disattivato (illimitato)</string>
+    <string name="settings_screenshot_rate_limit_dialog_title">Limite screenshot</string>
+    <string name="settings_screenshot_rate_limit_dialog_desc">Inserisci il numero massimo di screenshot consentiti in un minuto mobile. Inserisci 0 per disattivare il limite.</string>
+    <string name="settings_screenshot_rate_limit_dialog_label">Screenshot al minuto</string>
+    <string name="settings_screenshot_rate_limit_invalid">Inserisci un numero valido (0 o superiore)</string>
 </resources>

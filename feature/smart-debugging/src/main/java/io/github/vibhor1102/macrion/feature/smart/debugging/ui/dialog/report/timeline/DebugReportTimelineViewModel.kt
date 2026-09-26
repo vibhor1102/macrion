@@ -213,7 +213,11 @@ class DebugReportTimelineViewModel @Inject constructor(
                 R.string.item_event_occurrence_one_condition_fulfilled,
                 conditions.findWithId(first().conditionId)?.name ?: "",
             )
-            else -> context.getString(R.string.item_event_occurrence_several_condition_processed, size)
+            else -> context.resources.getQuantityString(
+                R.plurals.item_event_occurrence_several_condition_processed,
+                size,
+                size,
+            )
         }
 
     @DrawableRes

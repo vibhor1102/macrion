@@ -27,6 +27,7 @@ import android.view.ViewGroup
 import android.view.ViewTreeObserver
 import android.view.WindowManager
 import androidx.annotation.IdRes
+import androidx.lifecycle.Lifecycle
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.github.vibhor1102.macrion.core.common.overlays.di.OverlaysEntryPoint
 import io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.common.OverlayMenuPositionDataSource
@@ -96,6 +97,9 @@ class OverlayMenuTests {
             setMenuItemViewEnabled(view, enabled, clickable)
         }
         fun isUserOverlayVisibleForTest(): Boolean = isUserOverlayVisible
+        fun finishShowAnimationForTest() {
+            lifecycleRegistry.currentState = Lifecycle.State.RESUMED
+        }
     }
 
     /**
@@ -371,6 +375,8 @@ class OverlayMenuTests {
         testController.create(mockContext)
         testController.start()
         testController.resume()
+        // Compose's animation clock is not advanced by Robolectric; model its completed lifecycle.
+        testController.finishShowAnimationForTest()
 
         verify(hideItem).setOnClickListener(clickCaptor.capture())
         // Click to toggle overlay visibility off

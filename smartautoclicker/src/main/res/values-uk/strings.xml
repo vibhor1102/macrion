@@ -72,7 +72,6 @@
     <string name="item_desc_dumb_scenario">Звичайний досвід автоклікера.\nПросто розміщуйте натискання та свайпи на екрані.</string>
     <string name="item_desc_dumb_scenario_max_duration">Зупинити через %1$s</string>
     <string name="item_desc_dumb_scenario_max_duration_infinite">Без максимальної тривалості</string>
-    <string name="item_desc_dumb_scenario_repeat_count">Повторити %1$d разів</string>
     <string name="item_desc_dumb_scenario_repeat_infinite">Нескінченне повторення</string>
     <string name="item_desc_smart_scenario">Використовуйте виявлення зображень для створення складних випадків використання.</string>
     <string name="item_desc_smart_scenario_pro_mode">Потрібно переглянути рекламу або купити про-режим</string>
@@ -105,7 +104,6 @@
       - TextButton content.
       - Should be short and concise.
       -->
-    <string name="button_text_create_scenario">Створити сценарій</string>
 
     <!--
       - Content description texts.
@@ -131,8 +129,6 @@
     <string name="field_home_button_title">Показувати кнопку головного екрана Macrion</string>
     <string name="field_home_button_desc">Додає до панелі інструментів кнопку для зупинки сценарію та відкриття головного екрана Macrion.</string>
 
-    <string name="field_legacy_action_ui_title">Застарілий інтерфейс дій</string>
-    <string name="field_legacy_action_ui_desc">Змінити відображення дії списком. Корисно для складних сценаріїв.</string>
 
     <string name="field_legacy_notification_ui_title">Застарілий інтерфейс сповіщень</string>
     <string name="field_legacy_notification_ui_desc">Використовувати системні кнопки замість іконних кнопок у сповіщенні.</string>
@@ -152,7 +148,6 @@
     <string name="dialog_condition_migration_title">Міграція</string>
 
     <string name="message_condition_migration_desc">Формат зображень Macrion змінився, і ваш сценарій потрібно оновити. Це може зайняти кілька хвилин, залежно від кількості умов, які потрібно перенести.</string>
-    <string name="message_condition_migration_count">%1$d Умови зображення для міграції.</string>
     <string name="message_condition_migration_success">Всі умови зображення перенесені.</string>
     <string name="message_condition_migration_error">Деякі умови не вдалося перенести. Перевірте свої сценарії.</string>
 
@@ -168,8 +163,6 @@
 
     <string name="dialog_title_locale_plugin_background_launch">Фоновий запуск заблоковано</string>
     <string name="message_locale_plugin_background_launch">Macrion не вдалося автоматично відкрити вікно запису екрана.\n\nЩоб завершити запуск сценарію, було показано сповіщення.\n\nДеякі телефони Android сильніше обмежують фонові застосунки. Перегляньте цей посібник, щоб підвищити стабільність дозволів.</string>
-    <string name="field_tutorial_title">Навчання</string>
-    <string name="field_tutorial_desc">Дізнайтеся, як користуватися Macrion</string>
     <string name="dialog_title_copy_scenario">Копіювати сценарій</string>
     <string name="content_desc_back">Назад</string>
     <string name="crash_reports_title">Локальні звіти про збої</string>
@@ -221,12 +214,57 @@
     <string name="settings_toolbar_auto_hide_desc">Згортати панель інструментів до краю екрана при бездіяльності.</string>
     <string name="settings_toolbar_auto_hide_delay_title">Затримка автоприховування</string>
     <string name="settings_toolbar_auto_hide_delay_dialog_title">Затримка автоприховування</string>
-    <string name="settings_toolbar_auto_hide_delay_seconds">%1$d сек.</string>
-    <string name="settings_toolbar_auto_hide_delay_seconds_default">%1$d сек. (За замовчуванням)</string>
     <string name="settings_toolbar_auto_hide_delay_1_minute">1 хвилина</string>
-    <string name="settings_toolbar_auto_hide_delay_minutes">%1$d хв.</string>
-    <string name="settings_toolbar_auto_hide_delay_minutes_default">%1$d хв. (За замовчуванням)</string>
-    <string name="content_desc_tuck_toolbar">Згорнути панель інструментів до краю екрана</string>
-    <string name="content_desc_expand_toolbar">Розгорнути панель інструментів</string>
     <string name="toast_advanced_settings_restored_defaults">Розширені налаштування скинуто до значень за замовчуванням.</string>
+    <string name="settings_preview_handle_editing_desc">Перетягуйте маркери дотику в попередньому перегляді дії, щоб змінити їхнє положення.</string>
+    <string name="settings_preview_handle_editing_title">Редагування позицій дотику в попередньому перегляді</string>
+    <string name="settings_screenshot_rate_limit_dialog_desc">Введіть максимальну кількість знімків екрана за одну хвилину. Введіть 0, щоб вимкнути обмеження.</string>
+    <string name="settings_screenshot_rate_limit_dialog_label">Знімків екрана за хвилину</string>
+    <string name="settings_screenshot_rate_limit_dialog_title">Обмеження частоти знімків екрана</string>
+    <string name="settings_screenshot_rate_limit_invalid">Введіть коректне число (0 або більше)</string>
+    <string name="settings_screenshot_rate_limit_item_disabled">Вимкнено (без обмежень)</string>
+    <string name="settings_screenshot_rate_limit_title">Обмеження частоти знімків екрана</string>
+    <string name="settings_section_scenario_editing">Редагування сценаріїв</string>
+    <plurals name="item_desc_dumb_scenario_repeat_count">
+        <item quantity="one">Повторити %1$d раз</item>
+        <item quantity="few">Повторити %1$d рази</item>
+        <item quantity="many">Повторити %1$d разів</item>
+        <item quantity="other">Повторити %1$d разу</item>
+    </plurals>
+    <plurals name="message_condition_migration_count">
+        <item quantity="one">%1$d умову зображення потрібно перенести.</item>
+        <item quantity="few">%1$d умови зображення потрібно перенести.</item>
+        <item quantity="many">%1$d умов зображення потрібно перенести.</item>
+        <item quantity="other">%1$d умови зображення потрібно перенести.</item>
+    </plurals>
+    <plurals name="settings_toolbar_auto_hide_delay_seconds">
+        <item quantity="one">%1$d секунда</item>
+        <item quantity="few">%1$d секунди</item>
+        <item quantity="many">%1$d секунд</item>
+        <item quantity="other">%1$d секунди</item>
+    </plurals>
+    <plurals name="settings_toolbar_auto_hide_delay_minutes">
+        <item quantity="one">%1$d хвилина</item>
+        <item quantity="few">%1$d хвилини</item>
+        <item quantity="many">%1$d хвилин</item>
+        <item quantity="other">%1$d хвилини</item>
+    </plurals>
+    <plurals name="settings_toolbar_auto_hide_delay_minutes_default">
+        <item quantity="one">%1$d хвилина (за замовчуванням)</item>
+        <item quantity="few">%1$d хвилини (за замовчуванням)</item>
+        <item quantity="many">%1$d хвилин (за замовчуванням)</item>
+        <item quantity="other">%1$d хвилини (за замовчуванням)</item>
+    </plurals>
+    <plurals name="settings_screenshot_rate_limit_item">
+        <item quantity="one">%1$d за хвилину</item>
+        <item quantity="few">%1$d за хвилину</item>
+        <item quantity="many">%1$d за хвилину</item>
+        <item quantity="other">%1$d за хвилину</item>
+    </plurals>
+    <plurals name="settings_screenshot_rate_limit_item_default">
+        <item quantity="one">%1$d за хвилину (за замовчуванням)</item>
+        <item quantity="few">%1$d за хвилину (за замовчуванням)</item>
+        <item quantity="many">%1$d за хвилину (за замовчуванням)</item>
+        <item quantity="other">%1$d за хвилину (за замовчуванням)</item>
+    </plurals>
 </resources>

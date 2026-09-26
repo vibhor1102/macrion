@@ -69,7 +69,9 @@
     <string name="item_toggle_event_details_enable_all">Kích hoạt tất cả</string>
     <string name="item_toggle_event_details_disable_all">Vô hiệu hóa tất cả</string>
     <string name="item_toggle_event_details_invert_all">Đảo ngược tất cả</string>
-    <string name="item_toggle_event_details_manual">Thay đổi Sự kiện %1$d</string>
+    <plurals name="item_toggle_event_details_manual">
+        <item quantity="other">Thay đổi %1$d sự kiện</item>
+    </plurals>
     <string name="item_toggle_event_details_error">Không tìm thấy Sự kiện mục tiêu</string>
     <string name="item_intent_title">Ý định</string>
     <string name="item_intent_desc">Tương tác với ứng dụng khác</string>
@@ -118,7 +120,9 @@
     <string name="field_scenario_quality_description">Để tăng tốc độ nhận diện, Macrion sẽ giảm độ phân giải của hình ảnh trước khi quét.\n\nNếu bạn tăng độ phân giải, quá trình nhận diện sẽ chậm hơn nhưng chính xác hơn. Nếu giảm độ phân giải, tốc độ nhận diện sẽ nhanh hơn nhưng kém chính xác hơn. Hãy cân đối giữa độ phân giải nhận diện và ngưỡng điều kiện để kịch bản hoạt động tối ưu nhất!</string>
     <string name="field_counters_title">Bộ đếm</string>
     <string name="field_counters_desc_empty">Không có bộ đếm nào được xác định</string>
-    <string name="field_counters_desc">%1$d Đã xác định bộ đếm</string>
+    <plurals name="field_counters_desc">
+        <item quantity="other">%1$d bộ đếm đã xác định</item>
+    </plurals>
     <string name="field_show_debug_view_title">Hiển thị chế độ xem gỡ lỗi</string>
     <string name="field_show_debug_view_desc">Hiển thị các Sự kiện được kích hoạt trong khi phát hiện.</string>
     <string name="item_title_debug_generate_report">Tạo báo cáo</string>
@@ -131,7 +135,9 @@
     <string name="dialog_title_action_type">Loại hành động</string>
     <string name="dialog_title_screen_condition_type">Loại Điều kiện</string>
     <string name="dialog_title_trigger_condition_type">Loại kích hoạt</string>
-    <string name="field_condition_selector_desc">%1$d điều kiện</string>
+    <plurals name="field_condition_selector_desc">
+        <item quantity="other">%1$d điều kiện</item>
+    </plurals>
     <string name="message_empty_screen_condition_list_title">Không có điều kiện màn hình nào!</string>
     <string name="message_empty_screen_condition_list_desc">Điều kiện màn hình là một phần của ảnh chụp màn hình sẽ được tìm kiếm trên từng khung hình hiển thị bởi màn hình điện thoại của bạn.</string>
     <string name="message_empty_trigger_condition_list_title">Không có điều kiện nào!</string>
@@ -252,7 +258,9 @@
     <string name="field_change_all_desc_enable_all">Kích hoạt tất cả các Sự kiện trong kịch bản này</string>
     <string name="field_change_all_desc_invert_all">Đảo ngược trạng thái của tất cả các Sự kiện trong kịch bản này</string>
     <string name="field_change_all_desc_disable_all">Vô hiệu hóa tất cả các Sự kiện trong trường hợp này. Khi tất cả các Sự kiện bị tắt, kịch bản sẽ tự động dừng.</string>
-    <string name="field_select_toggle_events_title">%1$d thay đổi</string>
+    <plurals name="field_select_toggle_events_title">
+        <item quantity="other">%1$d thay đổi</item>
+    </plurals>
     <string name="field_select_toggle_events_title_empty">Không có thay đổi</string>
     <string name="field_select_toggle_events_desc_empty">Chọn ít nhất một Sự kiện để thay đổi sang trạng thái</string>
     <string name="dialog_title_notification">Thông báo</string>
@@ -287,13 +295,21 @@
     <string name="message_empty_counter_name_list_title">Không có bộ đếm được xác định</string>
     <string name="message_empty_counter_name_list_desc">Bộ đếm lưu trữ một giá trị số có thể thay đổi, kiểm tra hoặc sử dụng trong các Hành động hoặc Điều kiện của bạn.</string>
     <string name="item_counter_desc_collapsed_no_reference">Bộ đếm này không được sử dụng. (%1$s)</string>
-    <string name="item_counter_desc_collapsed_referenced">Bộ đếm này được tham chiếu %1$d lần. (%2$s)</string>
+    <plurals name="item_counter_desc_collapsed_referenced">
+        <item quantity="other">Bộ đếm này được tham chiếu %1$d lần. (%2$s)</item>
+    </plurals>
     <string name="item_counter_desc_expanded_no_reference">Bộ đếm này không được sử dụng.</string>
-    <string name="item_counter_desc_expanded_referenced">Bộ đếm này được tham chiếu %1$d lần.</string>
+    <plurals name="item_counter_desc_expanded_referenced">
+        <item quantity="other">Bộ đếm này được tham chiếu %1$d lần.</item>
+    </plurals>
     <string name="field_label_counter_starting_value">Giá trị ban đầu</string>
-    <string name="button_text_counter_actions_references">%1$d viết</string>
+    <plurals name="button_text_counter_actions_references">
+        <item quantity="other">%1$d lần ghi</item>
+    </plurals>
     <string name="button_text_counter_actions_no_reference">Chưa bao giờ thay đổi</string>
-    <string name="button_text_counter_conditions_references">%1$d đã đọc</string>
+    <plurals name="button_text_counter_conditions_references">
+        <item quantity="other">%1$d lần đọc</item>
+    </plurals>
     <string name="button_text_counter_conditions_no_reference">Chưa bao giờ đọc</string>
     <string name="button_text_counter_delete">Xóa bộ đếm</string>
     <string name="button_text_counter_delete_and_replace">Thay thế và xóa</string>
@@ -358,4 +374,82 @@
 
     <string name="action_move_event_up">Di chuyển sự kiện lên</string>
     <string name="action_move_event_down">Di chuyển sự kiện xuống</string>
+
+    <!-- Added Vietnamese translations -->
+    <string name="content_desc_show_all_action_previews">Hiển thị bản xem trước của mọi hành động</string>
+    <string name="action_previews_all_on">Tất cả hành động</string>
+    <string name="action_previews_all_off">Chỉ hành động hiện tại</string>
+    <string name="item_zoom_title">Chạm đa điểm</string>
+    <string name="item_zoom_desc">Chạy đồng thời từ hai thao tác nhấp hoặc vuốt trở lên.</string>
+    <string name="item_zoom_details">Các thao tác nhấp và vuốt cùng lúc</string>
+    <string name="item_play_sound_title">Phát âm thanh</string>
+    <string name="item_play_sound_desc">Phát âm báo bằng âm thanh</string>
+    <string name="item_play_sound_details_text">Âm thanh: %1$s</string>
+    <string name="item_play_sound_details_none">Chưa chọn âm thanh</string>
+    <string name="dialog_title_play_sound">Phát âm thanh</string>
+    <string name="default_notification_sound">Âm thanh thông báo mặc định</string>
+    <string name="field_sound_selector_label">Âm thanh thông báo</string>
+    <string name="dialog_title_select_sound">Chọn âm thanh</string>
+    <string name="play_sound_tip_custom_files">Mẹo: Để dùng âm thanh tùy chỉnh, hãy dùng trình quản lý tệp đặt tệp âm thanh vào thư mục Notifications trên điện thoại. Các tệp sẽ tự động xuất hiện tại đây.</string>
+    <string name="item_capture_screenshot_title">Chụp ảnh màn hình</string>
+    <string name="item_capture_screenshot_desc">Chụp màn hình và lưu vào bộ nhớ</string>
+    <string name="item_capture_screenshot_details_default">Vị trí: Pictures/Macrion</string>
+    <string name="item_capture_screenshot_details_custom">Vị trí: %1$s</string>
+    <string name="dialog_title_capture_screenshot">Chụp ảnh màn hình</string>
+    <string name="capture_screenshot_location_label">Thư mục lưu</string>
+    <string name="capture_screenshot_location_default">Pictures/Macrion (Mặc định)</string>
+    <string name="capture_screenshot_button_choose_folder">Chọn thư mục</string>
+    <string name="capture_screenshot_button_reset_folder">Đặt lại về mặc định</string>
+    <string name="capture_screenshot_button_open_folder">Mở thư mục trong ứng dụng Tệp</string>
+    <string name="capture_screenshot_storage_note">Ảnh chụp màn hình được lưu dưới dạng JPEG. Thư mục mặc định tự động hiển thị trong Bộ sưu tập và Google Photos.</string>
+    <string name="field_condition_fps_limit_desc">Giới hạn tần suất kiểm tra điều kiện này để tiết kiệm pin và CPU. Việc phát hiện sẽ chậm hơn.</string>
+    <string name="click_offset_preview_label">Xem trước %1$d/%2$d · %3$s</string>
+    <string name="click_offset_previous_condition">Xem trước điều kiện trước đó</string>
+    <string name="click_offset_next_condition">Xem trước điều kiện tiếp theo</string>
+    <string name="dialog_title_split_action">Chạm đa điểm</string>
+    <string name="action_type_zoom">Chạm đa điểm</string>
+    <string name="split_action_touch_actions_header">Các nét chạm</string>
+    <string name="split_action_add_swipe">Thêm thao tác vuốt</string>
+    <string name="split_action_add_click">Thêm thao tác nhấp</string>
+    <string name="split_action_rename">Đổi tên thao tác chạm đa điểm</string>
+    <string name="split_action_name_required">Đặt tên cho thao tác chạm đa điểm</string>
+    <string name="split_action_fixed_position">Vị trí</string>
+    <string name="split_action_detected_condition">Điều kiện</string>
+    <string name="split_action_unsplit">Tách ra</string>
+    <string name="split_action_stroke_not_configured">Chưa đặt vị trí</string>
+    <string name="action_combine_title">Kết hợp</string>
+    <string name="action_combine_with_new">Kết hợp với thao tác vuốt mới</string>
+    <string name="action_combine_with_existing">Kết hợp với hành động hiện có…</string>
+    <string name="action_unsplit_title">Tách ra</string>
+    <string name="dialog_screenshot_rate_limit_title">Đã đạt giới hạn chụp màn hình</string>
+    <plurals name="dialog_screenshot_rate_limit_message">
+        <item quantity="other">Kịch bản đã tạm dừng vì đã chụp hơn %1$d ảnh màn hình trong một phút. Việc này giúp tránh làm đầy bộ nhớ thiết bị.\n\nBạn có thể điều chỉnh giới hạn này trong Cài đặt > Cài đặt nâng cao hoặc thêm thời gian chờ vào kịch bản.</item>
+    </plurals>
+    <string name="folder_ungrouped_label">Chưa nhóm</string>
+    <string name="folder_action_new">Thư mục mới</string>
+    <string name="folder_action_create_event">Tạo sự kiện</string>
+    <string name="folder_action_rename">Đổi tên thư mục</string>
+    <string name="folder_action_delete">Xóa thư mục</string>
+    <string name="folder_menu_options">Tùy chọn thư mục</string>
+    <string name="folder_delete_dialog_title">Xóa thư mục</string>
+    <string name="folder_delete_dialog_message">Bạn muốn làm gì với các sự kiện trong "%1$s"?</string>
+    <string name="folder_delete_keep_events">Giữ sự kiện (bỏ nhóm)</string>
+    <string name="folder_delete_all_events">Xóa sự kiện</string>
+    <string name="folder_name_hint">Tên thư mục</string>
+    <string name="folder_collapse_all">Thu gọn tất cả</string>
+    <string name="folder_reorder_disabled_hint">Thu gọn tất cả thư mục để sắp xếp lại</string>
+    <string name="generic_cancel">Hủy</string>
+    <string name="generic_create">Tạo</string>
+    <string name="action_combine_with_new_swipe">Kết hợp với thao tác vuốt mới</string>
+    <string name="action_combine_with">Kết hợp với "%1$s"</string>
+    <string name="action_unsplit">Tách thành các hành động riêng biệt</string>
+    <string name="action_edit_gestures">Cấu hình cử chỉ</string>
+    <string name="action_edit_stroke">Chỉnh sửa %1$s</string>
+    <string name="action_combine_with_new_click">Kết hợp với thao tác nhấp mới</string>
+    <plurals name="combined_touch_count">
+        <item quantity="other">%1$d thao tác chạm</item>
+    </plurals>
+    <string name="split_repeat_help">Số lần lặp áp dụng cho toàn bộ cử chỉ. Mỗi lần chạm chạy một lần trong mỗi lượt lặp; cài đặt lặp riêng của từng lần chạm sẽ được khôi phục khi bạn tách ra.</string>
+    <string name="split_action_position_not_set">Chưa đặt vị trí</string>
+    <string name="split_action_detected_position">Vị trí theo điều kiện được phát hiện</string>
 </resources>

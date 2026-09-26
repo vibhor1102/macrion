@@ -48,7 +48,9 @@
     <string name="item_desc_dumb_scenario">一般的な自動タップの使い方です。\n画面上にタップおよびスワイプを配置します。</string>
     <string name="item_desc_dumb_scenario_max_duration">%1$s 後に停止</string>
     <string name="item_desc_dumb_scenario_max_duration_infinite">最大時間なし</string>
-    <string name="item_desc_dumb_scenario_repeat_count">%1$d 回繰り返す</string>
+    <plurals name="item_desc_dumb_scenario_repeat_count">
+        <item quantity="other">%1$d 回繰り返す</item>
+    </plurals>
     <string name="item_desc_dumb_scenario_repeat_infinite">無限に繰り返す</string>
     <string name="item_desc_smart_scenario">画像検出により、複雑な用途を作成できます。</string>
     <string name="item_desc_smart_scenario_pro_mode">広告の視聴またはプロ版の購入が必要です</string>
@@ -61,7 +63,6 @@
 
     <string name="toast_denied_foreground_permission">フォアグラウンド サービスの権限が拒否されました</string>
 
-    <string name="button_text_create_scenario">シナリオを作成</string>
 
     <string name="content_desc_add_scenario">新しいシナリオを作成します</string>
 
@@ -78,8 +79,6 @@
     <string name="field_home_button_title">Macrionホームボタンを表示</string>
     <string name="field_home_button_desc">シナリオを停止してMacrionのホーム画面を開くボタンをツールバーに追加します。</string>
 
-    <string name="field_legacy_action_ui_title">従来の操作 UI</string>
-    <string name="field_legacy_action_ui_desc">操作を一覧で表示します。複雑なシナリオに適しています。</string>
 
     <string name="field_legacy_notification_ui_title">従来の通知 UI</string>
     <string name="field_legacy_notification_ui_desc">通知でアイコンではなくシステムのボタンを使用します。</string>
@@ -97,7 +96,9 @@
     <string name="dialog_condition_migration_title">移行</string>
 
     <string name="message_condition_migration_desc">Macrion の画像形式が変更されたため、シナリオの更新が必要です。移行する条件の数により、数分かかる場合があります。</string>
-    <string name="message_condition_migration_count">移行対象の画像条件：%1$d 件</string>
+    <plurals name="message_condition_migration_count">
+        <item quantity="other">移行対象の画像条件：%1$d 件</item>
+    </plurals>
     <string name="message_condition_migration_success">すべての画像条件を移行しました。</string>
     <string name="message_condition_migration_error">一部の条件を移行できませんでした。シナリオをご確認ください。</string>
 
@@ -113,8 +114,6 @@
 
     <string name="dialog_title_locale_plugin_background_launch">バックグラウンド起動がブロックされました</string>
     <string name="message_locale_plugin_background_launch">Macrion は画面キャプチャの確認画面を自動で開けませんでした。\n\nシナリオの起動を完了するため、代わりに通知を表示しました。\n\n一部の Android 端末では、バックグラウンドアプリにより厳しい制限があります。このガイドを確認して権限の安定性を改善してください。</string>
-    <string name="field_tutorial_title">チュートリアル</string>
-    <string name="field_tutorial_desc">Macrion の使い方を確認します</string>
     <string name="dialog_title_copy_scenario">シナリオをコピー</string>
     <string name="content_desc_back">戻る</string>
     <string name="crash_reports_title">ローカルのクラッシュレポート</string>
@@ -151,6 +150,21 @@
     <string name="settings_toolbar_size_title">ツールバーのサイズ</string>
     <string name="settings_toolbar_size_dialog_description">フローティングツールバーとデバッグパネルのサイズを調整します。</string>
 
+    <string name="settings_section_scenario_editing">シナリオの編集</string>
+    <string name="settings_preview_handle_editing_title">プレビューでタッチ位置を編集</string>
+    <string name="settings_preview_handle_editing_desc">アクションのプレビューでタッチハンドルをドラッグして位置を変更します。</string>
+    <string name="settings_screenshot_rate_limit_title">スクリーンショットの上限</string>
+    <plurals name="settings_screenshot_rate_limit_item">
+        <item quantity="other">1分あたり %1$d 件</item>
+    </plurals>
+    <plurals name="settings_screenshot_rate_limit_item_default">
+        <item quantity="other">1分あたり %1$d 件（デフォルト）</item>
+    </plurals>
+    <string name="settings_screenshot_rate_limit_item_disabled">無制限</string>
+    <string name="settings_screenshot_rate_limit_dialog_title">スクリーンショットの上限</string>
+    <string name="settings_screenshot_rate_limit_dialog_desc">連続する1分間に保存できるスクリーンショットの最大数を入力します。0にすると上限が無効になります。</string>
+    <string name="settings_screenshot_rate_limit_dialog_label">1分あたりのスクリーンショット数</string>
+    <string name="settings_screenshot_rate_limit_invalid">0以上の有効な数値を入力してください</string>
     <string name="settings_section_advanced">高度な設定</string>
     <string name="settings_enable_advanced_title">高度な設定を有効にする</string>
     <string name="settings_enable_advanced_desc">実験的およびパワーユーザー向けの設定を表示します。</string>
@@ -166,12 +180,15 @@
     <string name="settings_toolbar_auto_hide_desc">操作がないときにツールバーを画面の端に収納します。</string>
     <string name="settings_toolbar_auto_hide_delay_title">自動非表示までの時間</string>
     <string name="settings_toolbar_auto_hide_delay_dialog_title">自動非表示までの時間</string>
-    <string name="settings_toolbar_auto_hide_delay_seconds">%1$d秒</string>
-    <string name="settings_toolbar_auto_hide_delay_seconds_default">%1$d秒（デフォルト）</string>
+    <plurals name="settings_toolbar_auto_hide_delay_seconds">
+        <item quantity="other">%1$d秒</item>
+    </plurals>
     <string name="settings_toolbar_auto_hide_delay_1_minute">1分</string>
-    <string name="settings_toolbar_auto_hide_delay_minutes">%1$d分</string>
-    <string name="settings_toolbar_auto_hide_delay_minutes_default">%1$d分（デフォルト）</string>
-    <string name="content_desc_tuck_toolbar">ツールバーを画面端に収納</string>
-    <string name="content_desc_expand_toolbar">ツールバーを展開</string>
+    <plurals name="settings_toolbar_auto_hide_delay_minutes">
+        <item quantity="other">%1$d分</item>
+    </plurals>
+    <plurals name="settings_toolbar_auto_hide_delay_minutes_default">
+        <item quantity="other">%1$d分（デフォルト）</item>
+    </plurals>
     <string name="toast_advanced_settings_restored_defaults">詳細設定がデフォルト値に復元されました。</string>
 </resources>

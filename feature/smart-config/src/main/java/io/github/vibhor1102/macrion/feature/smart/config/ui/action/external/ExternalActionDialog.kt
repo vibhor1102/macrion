@@ -22,7 +22,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import android.app.Dialog
-import android.net.Uri
+import androidx.core.net.toUri
 import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayDialog
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTextField
@@ -169,6 +169,6 @@ class ExternalActionDialog(
 }
 
 private const val TAG = "ExternalActionDialog"
-private val EXTERNAL_ACTION_DOCS_URI = Uri.parse(
+private val EXTERNAL_ACTION_DOCS_URI =
     "https://vibhor1102.github.io/macrion/documentation/actions/action-external#tasker-locale-plugin"
-)
+        .toUri()

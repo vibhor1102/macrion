@@ -35,8 +35,9 @@ internal fun ToggleEvent.getDescription(context: Context, inError: Boolean): Str
         null -> throw IllegalArgumentException("Invalid toggle event type")
     }
 
-    else -> context.getString(
-        R.string.item_toggle_event_details_manual,
+    else -> context.resources.getQuantityString(
+        R.plurals.item_toggle_event_details_manual,
+        eventToggles.size,
         eventToggles.size,
     )
 }

@@ -33,4 +33,6 @@
     <string name="message_total_diff">Tổng số:\n%1$sms</string>
     <string name="message_last_diff">Cuối cùng:\n%1$sms</string>
 
+
+    <!-- Added Vietnamese translations -->
 </resources>

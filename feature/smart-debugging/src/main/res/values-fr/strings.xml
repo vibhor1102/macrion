@@ -37,6 +37,7 @@
     <string name="item_desc_report_event_activity_empty">Aucun événement atteint</string>
     <plurals name="item_desc_report_event_activity_reached">
         <item quantity="one">%1$d événement atteint · %2$d occurrences au total</item>
+        <item quantity="many">%1$d événements atteints · %2$d occurrences au total</item>
         <item quantity="other">%1$d événements atteints · %2$d occurrences au total</item>
     </plurals>
     <string name="item_desc_report_event_activity_most_frequent">Le plus fréquent : %1$s · %2$d×</string>
@@ -61,10 +62,12 @@
     <string name="item_condition_performance_fulfilled">Remplie : %1$s %2$s sur %3$s %4$s</string>
     <plurals name="item_condition_performance_time">
         <item quantity="one">fois</item>
+        <item quantity="many">fois</item>
         <item quantity="other">fois</item>
     </plurals>
     <plurals name="item_condition_performance_check">
         <item quantity="one">vérification</item>
+        <item quantity="many">vérifications</item>
         <item quantity="other">vérifications</item>
     </plurals>
     <string name="item_condition_performance_average">Moyenne : %1$s ms par vérification</string>
@@ -81,12 +84,20 @@
     <string name="title_event_occurrence_filtered_empty">Aucun événement correspondant</string>
     <string name="desc_event_occurrence_filtered_empty">Aucun événement de la chronologie ne correspond aux filtres actuels.</string>
     <string name="button_clear_timeline_filters">Effacer les filtres</string>
-    <string name="content_desc_timeline_filters_active">%1$d catégories de filtres de chronologie actives</string>
+    <plurals name="content_desc_timeline_filters_active">
+        <item quantity="one">%1$d catégorie de filtres de la chronologie active</item>
+        <item quantity="many">%1$d catégories de filtres de la chronologie actives</item>
+        <item quantity="other">%1$d catégories de filtres de la chronologie actives</item>
+    </plurals>
     <string name="content_desc_timeline_fast_scroller">Défilement rapide de la chronologie</string>
     <string name="item_event_occurrence_frame_number">Écran #%1$d</string>
     <string name="item_event_occurrence_trigger">Déclencheur</string>
     <string name="item_event_occurrence_one_condition_fulfilled">Remplie: %1$s</string>
-    <string name="item_event_occurrence_several_condition_processed">%1$d conditions traitées</string>
+    <plurals name="item_event_occurrence_several_condition_processed">
+        <item quantity="one">%1$d condition traitée</item>
+        <item quantity="many">%1$d conditions traitées</item>
+        <item quantity="other">%1$d conditions traitées</item>
+    </plurals>
     <string name="item_event_occurrence_detecting_label">détection</string>
     <string name="item_event_occurrence_actions_label">actions</string>
     <string name="item_event_occurrence_detected_at">Détecté à %1$s</string>
@@ -106,7 +117,11 @@
     <string name="field_debug_filter_trigger_events_show_desc_off">Masquer toutes les occurrences d\'événements de déclencheur dans la chronologie</string>
 
     <string name="field_debug_filter_events_show_title">Filtres</string>
-    <string name="field_debug_filter_events_show_select_desc">%1$d évènements</string>
+    <plurals name="field_debug_filter_events_show_select_desc">
+        <item quantity="one">%1$d événement</item>
+        <item quantity="many">%1$d événements</item>
+        <item quantity="other">%1$d événements</item>
+    </plurals>
     <string name="field_debug_filter_events_show_select_desc_none">Aucun évènements</string>
 
 

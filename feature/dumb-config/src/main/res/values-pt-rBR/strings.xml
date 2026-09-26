@@ -43,7 +43,11 @@
     <string name="item_desc_dumb_click_on_position">Clique em %1$d, %2$d</string>
     <string name="item_desc_dumb_pause">Pausar a execução</string>
     <string name="item_desc_dumb_pause_details">Durante %1$s</string>
-    <string name="item_desc_dumb_repeat_count">Repetir %1$d vezes</string>
+    <plurals name="item_desc_dumb_repeat_count">
+        <item quantity="one">Repetir %1$d vez</item>
+        <item quantity="many">Repetir %1$d vezes</item>
+        <item quantity="other">Repetir %1$d vezes</item>
+    </plurals>
     <string name="item_desc_dumb_repeat_infinite">Repetição infinita</string>
     <string name="item_desc_dumb_swipe">Deslize de uma posição na tela para outra</string>
     <string name="item_desc_dumb_swipe_details">Durante %1$s de [%2$d, %3$d] para [%4$d, %5$d]</string>
@@ -100,4 +104,36 @@
     <string name="dialog_stop_confirmation_title">Parar o Macrion?</string>
     <string name="dialog_stop_confirmation_message">O cenário atual será interrompido.</string>
     <string name="dialog_stop_confirmation_stop">Parar</string>
+
+    <!-- Current feature translations -->
+    <string name="action_type_zoom">Multitoque</string>
+    <string name="item_desc_dumb_zoom">Execute dois ou mais cliques ou deslizes ao mesmo tempo.</string>
+    <string name="item_title_dumb_zoom">Multitoque</string>
+    <string name="action_combine_with_new_swipe">Combinar com novo deslize</string>
+    <string name="action_combine_with">Combinar com \"%1$s"</string>
+    <string name="action_unsplit">Separar em ações individuais</string>
+    <string name="action_edit_gestures">Configurar gestos</string>
+    <string name="action_edit_stroke">Editar %1$s</string>
+    <string name="dialog_title_split_action">Multitoque</string>
+    <string name="split_action_touch_actions_header">Toques</string>
+    <string name="split_action_add_swipe">Adicionar deslize</string>
+    <string name="split_action_add_click">Adicionar clique</string>
+    <string name="split_action_group_settings">Configurações de multitoque</string>
+    <string name="split_action_check_group_settings">Verificar configurações de multitoque</string>
+    <string name="split_action_click_coordinates">Em %1$d, %2$d</string>
+    <string name="split_action_swipe_coordinates">De %1$d, %2$d até %3$d, %4$d</string>
+    <string name="split_action_unsplit">Separar</string>
+    <string name="action_combine_with_new_click">Combinar com novo clique</string>
+    <string name="action_combine_with_existing">Combinar com ação existente…</string>
+    <plurals name="combined_touch_count">
+        <item quantity="one">%1$d ação de toque</item>
+        <item quantity="many">%1$d ações de toque</item>
+        <item quantity="other">%1$d ações de toque</item>
+    </plurals>
+    <string name="split_repeat_help">A repetição se aplica ao gesto inteiro. Cada toque é executado uma vez por repetição; as configurações de repetição individuais são restauradas ao separar.</string>
+    <string name="split_action_position_not_set">Posição não definida</string>
+    <string name="split_discard_title">Descartar alterações?</string>
+    <string name="split_discard_message">As alterações neste gesto e nos toques não foram salvas.</string>
+    <string name="split_discard_confirm">Descartar</string>
+    <string name="split_keep_editing">Continuar editando</string>
 </resources>

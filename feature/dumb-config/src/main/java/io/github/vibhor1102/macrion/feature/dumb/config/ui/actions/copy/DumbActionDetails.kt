@@ -131,4 +131,8 @@ private fun DumbAction.DumbPause.toPauseDetails(context: Context, withPositions:
 
 private fun Repeatable.getRepeatDisplayText(context: Context): String =
     if (isRepeatInfinite) context.getString(R.string.item_desc_dumb_repeat_infinite)
-    else context.getString(R.string.item_desc_dumb_repeat_count, repeatCount)
+    else context.resources.getQuantityString(
+        R.plurals.item_desc_dumb_repeat_count,
+        repeatCount,
+        repeatCount,
+    )

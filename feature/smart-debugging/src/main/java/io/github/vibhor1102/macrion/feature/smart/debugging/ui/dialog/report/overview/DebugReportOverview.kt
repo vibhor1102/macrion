@@ -111,7 +111,7 @@ private fun OverviewEntryRow(
 @Composable
 private fun eventActivityDescription(summary: EventActivitySummary): String {
     if (summary.reachedEventCount == 0) return stringResource(R.string.item_desc_report_event_activity_empty)
-    val resources = androidx.compose.ui.platform.LocalContext.current.resources
+    val resources = androidx.compose.ui.platform.LocalResources.current
     val counts = resources.getQuantityString(
         R.plurals.item_desc_report_event_activity_reached,
         summary.reachedEventCount,

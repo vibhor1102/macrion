@@ -78,6 +78,7 @@ class ScenarioDialog(
         }
     }
 
+    @Suppress("ModifierFactoryExtensionFunction")
     @Composable
     override fun navigationItemModifier(item: DialogNavigationItem): Modifier {
         return if (item.id == R.id.page_trigger_events) {

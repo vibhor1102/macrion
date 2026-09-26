@@ -87,12 +87,10 @@
     <string name="title_event_occurrence_filtered_empty">Немає відповідних подій</string>
     <string name="desc_event_occurrence_filtered_empty">Немає подій хронології, що відповідають поточним фільтрам.</string>
     <string name="button_clear_timeline_filters">Очистити фільтри</string>
-    <string name="content_desc_timeline_filters_active">Активних категорій фільтрів хронології: %1$d</string>
     <string name="content_desc_timeline_fast_scroller">Швидке прокручування хронології</string>
     <string name="item_event_occurrence_frame_number">Кадр № %1$d</string>
     <string name="item_event_occurrence_trigger">Тригер</string>
     <string name="item_event_occurrence_one_condition_fulfilled">Виконано: %1$s</string>
-    <string name="item_event_occurrence_several_condition_processed">%1$d умов оброблено</string>
     <string name="item_event_occurrence_detecting_label">виявлення</string>
     <string name="item_event_occurrence_actions_label">дії</string>
     <string name="item_event_occurrence_detected_at">Виявлено о %1$s</string>
@@ -112,7 +110,6 @@
     <string name="field_debug_filter_trigger_events_show_desc_off">Приховати всі випадки подій запуску на часовій шкалі</string>
 
     <string name="field_debug_filter_events_show_title">Фільтр</string>
-    <string name="field_debug_filter_events_show_select_desc">%1$d події</string>
     <string name="field_debug_filter_events_show_select_desc_none">Подій немає</string>
 
     <!-- Debug Report Event Occurrence dialog ====================================================================== -->
@@ -155,4 +152,22 @@
     <string name="label_trigger_intent_action">Дія Intent</string>
     <string name="label_trigger_timer_repeating">Повторюється після досягнення</string>
     <string name="label_trigger_timer_once">Запускається один раз</string>
+    <plurals name="content_desc_timeline_filters_active">
+        <item quantity="one">%1$d активна категорія фільтра хронології</item>
+        <item quantity="few">%1$d активні категорії фільтра хронології</item>
+        <item quantity="many">%1$d активних категорій фільтра хронології</item>
+        <item quantity="other">%1$d активної категорії фільтра хронології</item>
+    </plurals>
+    <plurals name="item_event_occurrence_several_condition_processed">
+        <item quantity="one">%1$d умову оброблено</item>
+        <item quantity="few">%1$d умови оброблено</item>
+        <item quantity="many">%1$d умов оброблено</item>
+        <item quantity="other">%1$d умови оброблено</item>
+    </plurals>
+    <plurals name="field_debug_filter_events_show_select_desc">
+        <item quantity="one">%1$d подія</item>
+        <item quantity="few">%1$d події</item>
+        <item quantity="many">%1$d подій</item>
+        <item quantity="other">%1$d події</item>
+    </plurals>
 </resources>

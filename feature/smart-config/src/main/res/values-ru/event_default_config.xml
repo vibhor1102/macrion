@@ -24,6 +24,8 @@
     <string name="default_swipe_name">Смахивание</string>
     <integer name="default_swipe_duration">500</integer>
 
+    <string name="default_zoom_name">Мультитач</string>
+
     <string name="default_pause_name">Бездействие</string>
     <integer name="default_pause_duration">50</integer>
 
@@ -36,10 +38,13 @@
     <integer name="default_condition_threshold">4</integer>
 
     <string name="default_change_counter_name">Счётчик изменений</string>
+    <string name="default_external_action_name">Внешнее действие</string>
 
     <string name="default_notification_name">Уведомление</string>
 
     <string name="default_system_action_name">Системное действие</string>
 
     <string name="default_set_text_name">Написать текст</string>
+    <string name="default_play_sound_name">Воспроизвести звук</string>
+    <string name="default_capture_screenshot_name">Сделать снимок экрана</string>
 </resources>

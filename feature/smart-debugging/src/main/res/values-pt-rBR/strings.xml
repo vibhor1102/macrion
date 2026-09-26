@@ -39,6 +39,7 @@
     <plurals name="item_desc_report_event_activity_reached">
         <item quantity="one">%1$d evento alcançado · %2$d ocorrências no total</item>
         <item quantity="other">%1$d eventos alcançados · %2$d ocorrências no total</item>
+        <item quantity="many">%1$d eventos alcançados · %2$d ocorrências no total</item>
     </plurals>
     <string name="item_desc_report_event_activity_most_frequent">Mais frequente: %1$s · %2$d×</string>
 
@@ -63,10 +64,12 @@
     <plurals name="item_condition_performance_time">
         <item quantity="one">vez</item>
         <item quantity="other">vezes</item>
+        <item quantity="many">vezes</item>
     </plurals>
     <plurals name="item_condition_performance_check">
         <item quantity="one">verificação</item>
         <item quantity="other">verificações</item>
+        <item quantity="many">verificações</item>
     </plurals>
     <string name="item_condition_performance_average">Média: %1$s ms por verificação</string>
     <string name="item_condition_performance_average_unavailable">Média: N/D</string>
@@ -82,12 +85,20 @@
     <string name="title_event_occurrence_filtered_empty">Nenhum evento correspondente</string>
     <string name="desc_event_occurrence_filtered_empty">Nenhum evento da linha do tempo corresponde aos filtros atuais.</string>
     <string name="button_clear_timeline_filters">Limpar filtros</string>
-    <string name="content_desc_timeline_filters_active">%1$d categorias de filtro da linha do tempo ativas</string>
+    <plurals name="content_desc_timeline_filters_active">
+        <item quantity="one">%1$d categoria de filtro da linha do tempo ativa</item>
+        <item quantity="many">%1$d categorias de filtro da linha do tempo ativas</item>
+        <item quantity="other">%1$d categorias de filtro da linha do tempo ativas</item>
+    </plurals>
     <string name="content_desc_timeline_fast_scroller">Rolagem rápida da linha do tempo</string>
     <string name="item_event_occurrence_frame_number">Quadro #%1$d</string>
     <string name="item_event_occurrence_trigger">Gatilho</string>
     <string name="item_event_occurrence_one_condition_fulfilled">Cumprido: %1$s</string>
-    <string name="item_event_occurrence_several_condition_processed">%1$d condições processadas</string>
+    <plurals name="item_event_occurrence_several_condition_processed">
+        <item quantity="one">%1$d condição processada</item>
+        <item quantity="many">%1$d condições processadas</item>
+        <item quantity="other">%1$d condições processadas</item>
+    </plurals>
     <string name="item_event_occurrence_detecting_label">detecção</string>
     <string name="item_event_occurrence_actions_label">ações</string>
     <string name="item_event_occurrence_detected_at">Detectado em %1$s</string>
@@ -107,7 +118,11 @@
     <string name="field_debug_filter_trigger_events_show_desc_off">Ocultar todas as ocorrências de eventos de acionamento na linha do tempo</string>
 
     <string name="field_debug_filter_events_show_title">Filtro</string>
-    <string name="field_debug_filter_events_show_select_desc">%1$d eventos</string>
+    <plurals name="field_debug_filter_events_show_select_desc">
+        <item quantity="one">%1$d evento</item>
+        <item quantity="many">%1$d eventos</item>
+        <item quantity="other">%1$d eventos</item>
+    </plurals>
     <string name="field_debug_filter_events_show_select_desc_none">Não há eventos</string>
 
 
@@ -151,4 +166,6 @@
     <string name="label_trigger_intent_action">Ação de intent</string>
     <string name="label_trigger_timer_repeating">Repete ao atingir</string>
     <string name="label_trigger_timer_once">Executa uma vez</string>
+
+    <!-- Current feature translations -->
 </resources>

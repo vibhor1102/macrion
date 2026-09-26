@@ -76,7 +76,14 @@
     <string name="item_toggle_event_details_enable_all">تمكين الكل</string>
     <string name="item_toggle_event_details_disable_all">تعطيل الكل</string>
     <string name="item_toggle_event_details_invert_all">عكس الكل</string>
-    <string name="item_toggle_event_details_manual">تغيير %1$d الأحداث</string>
+    <plurals name="item_toggle_event_details_manual">
+        <item quantity="zero">تغيير %1$d من الأحداث</item>
+        <item quantity="one">تغيير %1$d حدث</item>
+        <item quantity="two">تغيير %1$d حدثين</item>
+        <item quantity="few">تغيير %1$d أحداث</item>
+        <item quantity="many">تغيير %1$d حدثًا</item>
+        <item quantity="other">تغيير %1$d حدث</item>
+    </plurals>
     <string name="item_toggle_event_details_error">لم يتم العثور على الحدث المستهدف</string>
 
     <string name="item_intent_title">نية</string>
@@ -151,7 +158,14 @@
     <string name="dialog_title_action_type">نوع العمل</string>
     <string name="dialog_title_trigger_condition_type">نوع الزناد</string>
 
-    <string name="field_condition_selector_desc">%1$d الشروط</string>
+    <plurals name="field_condition_selector_desc">
+        <item quantity="zero">%1$d شروط</item>
+        <item quantity="one">شرط واحد (%1$d)</item>
+        <item quantity="two">شرطان (%1$d)</item>
+        <item quantity="few">%1$d شروط</item>
+        <item quantity="many">%1$d شرطًا</item>
+        <item quantity="other">%1$d شرط</item>
+    </plurals>
     <string name="message_empty_screen_condition_list_title">لا توجد شروط الشاشة!</string>
     <string name="message_empty_screen_condition_list_desc">حالة الشاشة هي جزء من لقطة الشاشة التي سيتم البحث عنها في كل الإطارات التي تعرضها شاشة هاتفك.</string>
     <string name="message_empty_trigger_condition_list_title">لا توجد شروط!</string>
@@ -304,7 +318,14 @@
     <string name="field_change_all_desc_invert_all">عكس حالة كافة الأحداث في هذا السيناريو</string>
     <string name="field_change_all_desc_disable_all">تعطيل كافة الأحداث في هذا السيناريو. عند تعطيل كافة الأحداث، يتم إيقاف السيناريو تلقائيًا.</string>
 
-    <string name="field_select_toggle_events_title">%1$d التغييرات</string>
+    <plurals name="field_select_toggle_events_title">
+        <item quantity="zero">%1$d تغييرات</item>
+        <item quantity="one">تغيير واحد (%1$d)</item>
+        <item quantity="two">تغييران (%1$d)</item>
+        <item quantity="few">%1$d تغييرات</item>
+        <item quantity="many">%1$d تغييرًا</item>
+        <item quantity="other">%1$d تغيير</item>
+    </plurals>
     <string name="field_select_toggle_events_title_empty">لا تغييرات</string>
     <string name="field_select_toggle_events_desc_empty">حدد حدثًا واحدًا على الأقل لتغيير حالته</string>
 
@@ -406,7 +427,14 @@
 
     <string name="field_counters_title">العدادات</string>
     <string name="field_counters_desc_empty">لا توجد عدادات محددة</string>
-    <string name="field_counters_desc">%1$d عدادات محددة</string>
+    <plurals name="field_counters_desc">
+        <item quantity="zero">%1$d عدادات معرّفة</item>
+        <item quantity="one">عداد واحد معرّف (%1$d)</item>
+        <item quantity="two">عدادان معرّفان (%1$d)</item>
+        <item quantity="few">%1$d عدادات معرّفة</item>
+        <item quantity="many">%1$d عدادًا معرّفًا</item>
+        <item quantity="other">%1$d عداد معرّف</item>
+    </plurals>
 
     <string name="dialog_title_screen_condition_type">نوع الشرط</string>
 
@@ -463,13 +491,41 @@
     <string name="message_empty_counter_name_list_title">لا يوجد عداد محدد</string>
     <string name="message_empty_counter_name_list_desc">خزن العداد قيمة رقمية يمكن تغييرها أو التحقق منها أو استخدامها في الإجراءات أو الشروط الخاصة بك</string>
     <string name="item_counter_desc_collapsed_no_reference">هذا العداد غير مستخدم. (%1$s)</string>
-    <string name="item_counter_desc_collapsed_referenced">يُشار إلى هذا العداد %1$d مرة. (%2$s)</string>
+    <plurals name="item_counter_desc_collapsed_referenced">
+        <item quantity="zero">تمت الإشارة إلى هذا العداد %1$d مرة. (%2$s)</item>
+        <item quantity="one">تمت الإشارة إلى هذا العداد %1$d مرة. (%2$s)</item>
+        <item quantity="two">تمت الإشارة إلى هذا العداد %1$d مرتين. (%2$s)</item>
+        <item quantity="few">تمت الإشارة إلى هذا العداد %1$d مرات. (%2$s)</item>
+        <item quantity="many">تمت الإشارة إلى هذا العداد %1$d مرة. (%2$s)</item>
+        <item quantity="other">تمت الإشارة إلى هذا العداد %1$d مرة. (%2$s)</item>
+    </plurals>
     <string name="item_counter_desc_expanded_no_reference">هذا العداد غير مستخدم.</string>
-    <string name="item_counter_desc_expanded_referenced">يُشار إلى هذا العداد %1$d مرة.</string>
+    <plurals name="item_counter_desc_expanded_referenced">
+        <item quantity="zero">تمت الإشارة إلى هذا العداد %1$d مرة.</item>
+        <item quantity="one">تمت الإشارة إلى هذا العداد %1$d مرة.</item>
+        <item quantity="two">تمت الإشارة إلى هذا العداد %1$d مرتين.</item>
+        <item quantity="few">تمت الإشارة إلى هذا العداد %1$d مرات.</item>
+        <item quantity="many">تمت الإشارة إلى هذا العداد %1$d مرة.</item>
+        <item quantity="other">تمت الإشارة إلى هذا العداد %1$d مرة.</item>
+    </plurals>
     <string name="field_label_counter_starting_value">القيمة الابتدائية</string>
-    <string name="button_text_counter_actions_references">%1$d كتابة</string>
+    <plurals name="button_text_counter_actions_references">
+        <item quantity="zero">%1$d كتابة</item>
+        <item quantity="one">%1$d كتابة</item>
+        <item quantity="two">%1$d كتابتان</item>
+        <item quantity="few">%1$d كتابات</item>
+        <item quantity="many">%1$d كتابة</item>
+        <item quantity="other">%1$d كتابة</item>
+    </plurals>
     <string name="button_text_counter_actions_no_reference">لم يتغير أبداً</string>
-    <string name="button_text_counter_conditions_references">%1$d قراءة</string>
+    <plurals name="button_text_counter_conditions_references">
+        <item quantity="zero">%1$d قراءة</item>
+        <item quantity="one">%1$d قراءة</item>
+        <item quantity="two">%1$d قراءتان</item>
+        <item quantity="few">%1$d قراءات</item>
+        <item quantity="many">%1$d قراءة</item>
+        <item quantity="other">%1$d قراءة</item>
+    </plurals>
     <string name="button_text_counter_conditions_no_reference">لم يُقرأ أبداً</string>
     <string name="button_text_counter_delete">حذف العداد</string>
     <string name="button_text_counter_delete_and_replace">استبدال وحذف</string>
@@ -523,4 +579,91 @@
     <string name="dialog_stop_confirmation_stop">إيقاف</string>
     <string name="action_move_event_up">تحريك الحدث للأعلى</string>
     <string name="action_move_event_down">تحريك الحدث للأسفل</string>
+    <!-- Added translations for the current feature set -->
+    <string name="content_desc_show_all_action_previews">عرض معاينات جميع الإجراءات</string>
+    <string name="action_previews_all_on">جميع الإجراءات</string>
+    <string name="action_previews_all_off">الإجراء الحالي فقط</string>
+    <string name="item_zoom_title">متعدد اللمس</string>
+    <string name="item_zoom_desc">نفّذ نقرتين أو أكثر أو حركات سحب معًا.</string>
+    <string name="item_zoom_details">نقرات وحركات سحب معًا</string>
+    <string name="item_play_sound_title">تشغيل صوت</string>
+    <string name="item_play_sound_desc">تشغيل صوت إشعار</string>
+    <string name="item_play_sound_details_text">الصوت: %1$s</string>
+    <string name="item_play_sound_details_none">لم يتم اختيار صوت</string>
+    <string name="dialog_title_play_sound">تشغيل صوت</string>
+    <string name="default_notification_sound">صوت الإشعار الافتراضي</string>
+    <string name="field_sound_selector_label">صوت الإشعار</string>
+    <string name="dialog_title_select_sound">اختيار صوت</string>
+    <string name="play_sound_tip_custom_files">تلميح: لاستخدام أصوات مخصصة، ضع ملفات الصوت في مجلد الإشعارات على هاتفك باستخدام مدير الملفات. ستظهر هنا تلقائيًا.</string>
+    <string name="item_capture_screenshot_title">التقاط لقطة شاشة</string>
+    <string name="item_capture_screenshot_desc">التقط الشاشة واحفظها في وحدة التخزين</string>
+    <string name="item_capture_screenshot_details_default">الموقع: الصور/Macrion</string>
+    <string name="item_capture_screenshot_details_custom">الموقع: %1$s</string>
+    <string name="dialog_title_capture_screenshot">التقاط لقطة شاشة</string>
+    <string name="capture_screenshot_location_label">مجلد الحفظ</string>
+    <string name="capture_screenshot_location_default">الصور/Macrion (افتراضي)</string>
+    <string name="capture_screenshot_button_choose_folder">اختيار مجلد</string>
+    <string name="capture_screenshot_button_reset_folder">إعادة التعيين إلى الافتراضي</string>
+    <string name="capture_screenshot_button_open_folder">فتح المجلد في الملفات</string>
+    <string name="capture_screenshot_storage_note">تُحفظ لقطات الشاشة بصيغة JPEG. يظهر المجلد الافتراضي تلقائيًا في تطبيقي المعرض والصور.</string>
+    <string name="field_condition_fps_limit_desc">حدّ من عدد مرات التحقق من هذا الشرط لتوفير البطارية والمعالج. سيكون الكشف أبطأ.</string>
+    <string name="click_offset_preview_label">معاينة %1$d/%2$d · %3$s</string>
+    <string name="click_offset_previous_condition">معاينة الشرط السابق</string>
+    <string name="click_offset_next_condition">معاينة الشرط التالي</string>
+    <string name="dialog_title_split_action">متعدد اللمس</string>
+    <string name="action_type_zoom">متعدد اللمس</string>
+    <string name="split_action_touch_actions_header">حركات اللمس</string>
+    <string name="split_action_add_swipe">إضافة سحب</string>
+    <string name="split_action_add_click">إضافة نقرة</string>
+    <string name="split_action_rename">إعادة تسمية متعدد اللمس</string>
+    <string name="split_action_name_required">أدخل اسمًا لمتعدد اللمس</string>
+    <string name="split_action_fixed_position">الموضع</string>
+    <string name="split_action_detected_condition">الشرط</string>
+    <string name="split_action_unsplit">فصل</string>
+    <string name="split_action_stroke_not_configured">لم يتم تحديد الموضع</string>
+    <string name="action_combine_title">دمج</string>
+    <string name="action_combine_with_new">دمج مع حركة سحب جديدة</string>
+    <string name="action_combine_with_existing">دمج مع إجراء موجود…</string>
+    <string name="action_unsplit_title">فصل</string>
+    <string name="dialog_screenshot_rate_limit_title">تم بلوغ حد لقطات الشاشة</string>
+    <plurals name="dialog_screenshot_rate_limit_message">
+        <item quantity="zero">تم إيقاف السيناريو مؤقتًا لأنه التقط أكثر من %1$d لقطة شاشة في الدقيقة. يحمي ذلك مساحة تخزين جهازك من الامتلاء.\n\nيمكنك ضبط هذا الحد في الإعدادات > الإعدادات المتقدمة، أو إضافة تأخيرات إلى السيناريو.</item>
+        <item quantity="one">تم إيقاف السيناريو مؤقتًا لأنه التقط أكثر من %1$d لقطة شاشة في الدقيقة. يحمي ذلك مساحة تخزين جهازك من الامتلاء.\n\nيمكنك ضبط هذا الحد في الإعدادات > الإعدادات المتقدمة، أو إضافة تأخيرات إلى السيناريو.</item>
+        <item quantity="two">تم إيقاف السيناريو مؤقتًا لأنه التقط أكثر من %1$d لقطتي شاشة في الدقيقة. يحمي ذلك مساحة تخزين جهازك من الامتلاء.\n\nيمكنك ضبط هذا الحد في الإعدادات > الإعدادات المتقدمة، أو إضافة تأخيرات إلى السيناريو.</item>
+        <item quantity="few">تم إيقاف السيناريو مؤقتًا لأنه التقط أكثر من %1$d لقطات شاشة في الدقيقة. يحمي ذلك مساحة تخزين جهازك من الامتلاء.\n\nيمكنك ضبط هذا الحد في الإعدادات > الإعدادات المتقدمة، أو إضافة تأخيرات إلى السيناريو.</item>
+        <item quantity="many">تم إيقاف السيناريو مؤقتًا لأنه التقط أكثر من %1$d لقطة شاشة في الدقيقة. يحمي ذلك مساحة تخزين جهازك من الامتلاء.\n\nيمكنك ضبط هذا الحد في الإعدادات > الإعدادات المتقدمة، أو إضافة تأخيرات إلى السيناريو.</item>
+        <item quantity="other">تم إيقاف السيناريو مؤقتًا لأنه التقط أكثر من %1$d لقطة شاشة في الدقيقة. يحمي ذلك مساحة تخزين جهازك من الامتلاء.\n\nيمكنك ضبط هذا الحد في الإعدادات > الإعدادات المتقدمة، أو إضافة تأخيرات إلى السيناريو.</item>
+    </plurals>
+    <string name="folder_ungrouped_label">غير مجمّع</string>
+    <string name="folder_action_new">مجلد جديد</string>
+    <string name="folder_action_create_event">إنشاء حدث</string>
+    <string name="folder_action_rename">إعادة تسمية المجلد</string>
+    <string name="folder_action_delete">حذف المجلد</string>
+    <string name="folder_menu_options">خيارات المجلد</string>
+    <string name="folder_delete_dialog_title">حذف المجلد</string>
+    <string name="folder_delete_dialog_message">ماذا تريد أن تفعل بالأحداث داخل «%1$s»؟</string>
+    <string name="folder_delete_keep_events">الاحتفاظ بالأحداث (إلغاء التجميع)</string>
+    <string name="folder_delete_all_events">حذف الأحداث</string>
+    <string name="folder_name_hint">اسم المجلد</string>
+    <string name="folder_collapse_all">طي الكل</string>
+    <string name="folder_reorder_disabled_hint">اطوِ جميع المجلدات لإعادة الترتيب</string>
+    <string name="generic_cancel">إلغاء</string>
+    <string name="generic_create">إنشاء</string>
+    <string name="action_combine_with_new_swipe">دمج مع حركة سحب جديدة</string>
+    <string name="action_combine_with">دمج مع ‎«%1$s»‎</string>
+    <string name="action_unsplit">فصل إلى إجراءات منفصلة</string>
+    <string name="action_edit_gestures">إعداد الإيماءات</string>
+    <string name="action_edit_stroke">تعديل %1$s</string>
+    <string name="action_combine_with_new_click">دمج مع نقرة جديدة</string>
+    <plurals name="combined_touch_count">
+        <item quantity="zero">%1$d من إجراءات اللمس</item>
+        <item quantity="one">إجراء لمس واحد (%1$d)</item>
+        <item quantity="two">إجراءا لمس (%1$d)</item>
+        <item quantity="few">%1$d من إجراءات اللمس</item>
+        <item quantity="many">%1$d من إجراء لمس</item>
+        <item quantity="other">%1$d من إجراءات اللمس</item>
+    </plurals>
+    <string name="split_repeat_help">ينطبق التكرار على الإيماءة كلها. تُنفّذ كل لمسة مرة واحدة في كل تكرار، وتُستعاد إعدادات التكرار الفردية عند فصلها.</string>
+    <string name="split_action_position_not_set">لم يتم تحديد الموضع</string>
+    <string name="split_action_detected_position">الموضع يتبع الشرط المكتشف</string>
 </resources>

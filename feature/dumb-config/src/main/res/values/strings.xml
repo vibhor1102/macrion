@@ -43,7 +43,10 @@
     <string name="item_desc_dumb_click_on_position">Click at %1$d, %2$d</string>
     <string name="item_desc_dumb_pause">Pause the execution</string>
     <string name="item_desc_dumb_pause_details">During %1$s</string>
-    <string name="item_desc_dumb_repeat_count">Repeat %1$d times</string>
+    <plurals name="item_desc_dumb_repeat_count">
+        <item quantity="one">Repeat %1$d time</item>
+        <item quantity="other">Repeat %1$d times</item>
+    </plurals>
     <string name="item_desc_dumb_repeat_infinite">Infinite repeat</string>
     <string name="item_desc_dumb_swipe">Swipe from a position on the screen to another</string>
     <string name="item_desc_dumb_swipe_details">During %1$s from [%2$d, %3$d] to [%4$d, %5$d]</string>
@@ -126,7 +129,10 @@
     <string name="split_action_unsplit">Unsplit</string>
     <string name="action_combine_with_new_click">Combine with new click</string>
     <string name="action_combine_with_existing">Combine with existing action…</string>
-    <string name="combined_touch_count">%1$d touch actions</string>
+    <plurals name="combined_touch_count">
+        <item quantity="one">%1$d touch action</item>
+        <item quantity="other">%1$d touch actions</item>
+    </plurals>
     <string name="split_repeat_help">Repetition applies to the whole gesture. Each touch runs once per repetition; its individual repeat settings are restored when you Unsplit.</string>
     <string name="split_action_position_not_set">Position not set</string>
     <string name="split_discard_title">Discard changes?</string>

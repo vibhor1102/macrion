@@ -19,7 +19,7 @@ package io.github.vibhor1102.macrion.feature.smart.config.ui.action.sound
 import android.content.Context
 import android.media.AudioAttributes
 import android.media.MediaPlayer
-import android.net.Uri
+import androidx.core.net.toUri
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -97,7 +97,7 @@ class PlaySoundViewModel @Inject constructor(
     private fun startPreview(uriString: String) {
         stopPreview()
         try {
-            val uri = Uri.parse(uriString)
+            val uri = uriString.toUri()
             val player = MediaPlayer().apply {
                 setAudioAttributes(
                     AudioAttributes.Builder()
@@ -142,7 +142,6 @@ class PlaySoundViewModel @Inject constructor(
     }
 
     override fun onCleared() {
-        super.onCleared()
         stopPreview()
     }
 
