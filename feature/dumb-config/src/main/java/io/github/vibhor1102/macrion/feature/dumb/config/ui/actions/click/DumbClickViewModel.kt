@@ -82,15 +82,34 @@ class DumbClickViewModel @Inject constructor(
     val repeatDelayError: Flow<Boolean> = editedDumbClick
         .map { !it.isRepeatDelayValid() }
 
+    /** Delay before starting the click. */
+    val waitBefore: Flow<String> = editedDumbClick
+        .map { it.waitBeforeMs?.toString() ?: "" }
+        .take(1)
+
+    /** Delay after finishing the click. */
+    val waitAfter: Flow<String> = editedDumbClick
+        .map { it.waitAfterMs?.toString() ?: "" }
+        .take(1)
+
     /** Subtext for the position selector. */
     val clickPositionText: Flow<String> = editedDumbClick
         .map { dumbClick ->
+            if (dumbClick.position.x < 0 || dumbClick.position.y < 0) return@map context.getString(R.string.split_action_position_not_set)
             context.getString(
                 R.string.item_desc_dumb_click_on_position,
                 dumbClick.position.x,
                 dumbClick.position.y,
             )
         }
+
+    fun setWaitBeforeMs(waitBefore: Long?) {
+        _editedDumbClick.value = _editedDumbClick.value?.copy(waitBeforeMs = waitBefore)
+    }
+
+    fun setWaitAfterMs(waitAfter: Long?) {
+        _editedDumbClick.value = _editedDumbClick.value?.copy(waitAfterMs = waitAfter)
+    }
 
     fun setEditedDumbClick(click: DumbAction.DumbClick) {
         _editedDumbClick.value = click.copy()

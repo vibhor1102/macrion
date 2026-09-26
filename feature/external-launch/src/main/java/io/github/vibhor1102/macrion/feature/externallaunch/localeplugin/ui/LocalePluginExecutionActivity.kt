@@ -161,8 +161,7 @@ class LocalePluginExecutionActivity : ComponentActivity() {
                         onFailure = {
                             directLaunchTracker.clearAwaitingProjection(currentRequestId)
                             currentRequestId?.let { directLaunchTracker.consumeAutoRun(it) }
-                            if (isCurrentRequest()) fail(R.string.locale_plugin_error_projection)
-                            else close()
+                            close()
                         },
                         onError = ::handleProjectionLaunchError,
                     )

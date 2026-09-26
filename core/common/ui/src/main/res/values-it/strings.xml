@@ -117,4 +117,50 @@
 
     <string name="content_desc_tuck_toolbar">Riduci la barra degli strumenti al bordo dello schermo</string>
     <string name="content_desc_expand_toolbar">Espandi la barra degli strumenti</string>
+    <string name="field_delays_title">Ritardi (facoltativi)</string>
+    <string name="field_wait_before_title">Prima (ms)</string>
+    <string name="field_wait_after_title">Dopo (ms)</string>
+    <string name="field_wait_before_summary">Prima: %1$s ms</string>
+    <string name="field_wait_after_summary">Dopo: %1$s ms</string>
+    <string name="field_delays_expanded">Espansi</string>
+    <string name="field_delays_collapsed">Compressi</string>
+    <string name="field_delays_check_values">Controlla i valori dei ritardi</string>
+    <string name="field_delay_range_error">Inserisci un valore tra 0 e %1$d ms</string>
+    <string name="field_delay_number_error">Inserisci un ritardo valido in millisecondi</string>
+    <string name="condition_operator_and">E</string>
+    <string name="condition_operator_or">O</string>
+    <string name="action_editor_more_options">Altre opzioni dell’azione</string>
+    <string name="action_combine_choose_existing">Scegli un’azione</string>
+    <string name="action_combine_choose_help">Scegli un’azione di clic, scorrimento o Multi-touch da eseguire insieme. Le azioni originali verranno sostituite al salvataggio.</string>
+    <string name="multi_touch_brief_default_name">Multi-touch</string>
+    <string name="multi_touch_brief_tap">Tocco</string>
+    <string name="multi_touch_brief_swipe">Scorrimento</string>
+    <string name="multi_touch_brief_touch">Contatto</string>
+    <string name="multi_touch_brief_needs_setup">Da configurare</string>
+    <string name="multi_touch_add_touch">Aggiungi contatto</string>
+    <string name="multi_touch_rename_touch">Rinomina contatto %1$d</string>
+    <string name="multi_touch_done_renaming">Termina rinomina del contatto %1$d</string>
+    <string name="multi_touch_touch_description">Contatto %1$d di %2$d: %3$s</string>
+    <string name="action_editor_delete_this_click">Elimina questo clic</string>
+    <string name="action_editor_delete_this_swipe">Elimina questo scorrimento</string>
+    <string name="action_editor_delete_this_action">Elimina questa azione</string>
+    <string name="action_editor_delete_multi_touch">Elimina Multi-touch</string>
+    <string name="action_editor_save_multi_touch">Salva Multi-touch</string>
+    <string name="action_editor_close_multi_touch">Chiudi Multi-touch</string>
+    <string name="multi_touch_brief_no_touches">Nessun contatto configurato</string>
+    <plurals name="multi_touch_brief_click_count">
+        <item quantity="one">%d clic</item>
+        <item quantity="other">%d clic</item>
+        <item quantity="many">%d clic</item>
+    </plurals>
+    <plurals name="multi_touch_brief_swipe_count">
+        <item quantity="one">%d scorrimento</item>
+        <item quantity="other">%d scorrimenti</item>
+        <item quantity="many">%d scorrimenti</item>
+    </plurals>
+    <plurals name="multi_touch_brief_setup_count">
+        <item quantity="one">%d da configurare</item>
+        <item quantity="other">%d da configurare</item>
+        <item quantity="many">%d da configurare</item>
+    </plurals>
 </resources>

@@ -10,7 +10,9 @@
     <string name="item_desc_dumb_click_on_position">%1$d, %2$d をタップ</string>
     <string name="item_desc_dumb_pause">実行を一時停止します</string>
     <string name="item_desc_dumb_pause_details">%1$s 間</string>
-    <string name="item_desc_dumb_repeat_count">%1$d 回繰り返す</string>
+    <plurals name="item_desc_dumb_repeat_count">
+        <item quantity="other">%1$d 回繰り返す</item>
+    </plurals>
     <string name="item_desc_dumb_repeat_infinite">無限に繰り返す</string>
     <string name="item_desc_dumb_swipe">画面上の一点から別の点へスワイプします</string>
     <string name="item_desc_dumb_swipe_details">[%2$d, %3$d] から [%4$d, %5$d] へ %1$s 間</string>
@@ -36,4 +38,32 @@
     <string name="dialog_stop_confirmation_title">Macrion を停止しますか？</string>
     <string name="dialog_stop_confirmation_message">現在のシナリオが停止します。</string>
     <string name="dialog_stop_confirmation_stop">停止</string>
+    <string name="action_type_zoom">マルチタッチ</string>
+    <string name="item_desc_dumb_zoom">2 つ以上のタップまたはスワイプを同時に実行します。</string>
+    <string name="item_title_dumb_zoom">マルチタッチ</string>
+    <string name="action_combine_with_new_swipe">新しいスワイプと組み合わせる</string>
+    <string name="action_combine_with">「%1$s」と組み合わせる</string>
+    <string name="action_unsplit">個別の操作に分割する</string>
+    <string name="action_edit_gestures">ジェスチャーを設定</string>
+    <string name="action_edit_stroke">%1$s を編集</string>
+    <string name="dialog_title_split_action">マルチタッチ</string>
+    <string name="split_action_touch_actions_header">タッチ操作</string>
+    <string name="split_action_add_swipe">スワイプを追加</string>
+    <string name="split_action_add_click">タップを追加</string>
+    <string name="split_action_group_settings">マルチタッチ設定</string>
+    <string name="split_action_check_group_settings">マルチタッチ設定を確認</string>
+    <string name="split_action_click_coordinates">%1$d, %2$d をタップ</string>
+    <string name="split_action_swipe_coordinates">%1$d, %2$d から %3$d, %4$d へスワイプ</string>
+    <string name="split_action_unsplit">分割解除</string>
+    <string name="action_combine_with_new_click">新しいタップと組み合わせる</string>
+    <string name="action_combine_with_existing">既存の操作と組み合わせる…</string>
+    <plurals name="combined_touch_count">
+        <item quantity="other">%1$d 個のタッチ操作</item>
+    </plurals>
+    <string name="split_repeat_help">繰り返しはジェスチャー全体に適用されます。各タッチは繰り返しごとに 1 回実行され、分割を解除すると個別の繰り返し設定が復元されます。</string>
+    <string name="split_action_position_not_set">位置が設定されていません</string>
+    <string name="split_discard_title">変更を破棄しますか？</string>
+    <string name="split_discard_message">このジェスチャーとタッチ操作への変更は保存されていません。</string>
+    <string name="split_discard_confirm">破棄</string>
+    <string name="split_keep_editing">編集を続ける</string>
 </resources>

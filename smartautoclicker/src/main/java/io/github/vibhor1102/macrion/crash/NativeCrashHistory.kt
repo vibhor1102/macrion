@@ -8,6 +8,7 @@ import android.app.ActivityManager
 import android.app.ApplicationExitInfo
 import android.content.Context
 import android.os.Build
+import android.annotation.SuppressLint
 import androidx.annotation.RequiresApi
 import io.github.vibhor1102.macrion.core.base.crash.CrashReportFactory
 import io.github.vibhor1102.macrion.core.base.crash.NativeExitData
@@ -27,6 +28,7 @@ data class HistoricalExit(
 data class HistoricalExitSelection(val checkpoint: Long, val nativeCrash: HistoricalExit?)
 
 object NativeCrashHistory {
+    @SuppressLint("InlinedApi")
     fun select(previousCheckpoint: Long?, exits: List<HistoricalExit>, now: Long): HistoricalExitSelection {
         val latestTimestamp = exits.maxOfOrNull { it.timestamp } ?: 0L
         if (previousCheckpoint == null) return HistoricalExitSelection(maxOf(now, latestTimestamp), null)

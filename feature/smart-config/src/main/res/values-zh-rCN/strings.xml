@@ -86,7 +86,9 @@
     <string name="item_toggle_event_details_enable_all">启用所有</string>
     <string name="item_toggle_event_details_disable_all">全部禁用</string>
     <string name="item_toggle_event_details_invert_all">全部反转</string>
-    <string name="item_toggle_event_details_manual">更改 %1$d 个事件</string>
+    <plurals name="item_toggle_event_details_manual">
+        <item quantity="other">更改 %1$d 个事件</item>
+    </plurals>
     <string name="item_change_counter_desc">更改数值以便稍后验证</string>
     <string name="item_change_counter_details">%1$s %2$s %3$s</string>
     <string name="item_broadcast_received_details">%1$s 收到</string>
@@ -111,7 +113,9 @@
     <string name="item_swipe_title">滑动</string>
     <string name="item_toggle_event_title">更改事件状态</string>
     <string name="field_select_toggle_events_title_empty">无变化</string>
-    <string name="field_select_toggle_events_title">%1$d 变化</string>
+    <plurals name="field_select_toggle_events_title">
+        <item quantity="other">%1$d 项变更</item>
+    </plurals>
     <string name="item_change_counter_title">更改计数器</string>
     <string name="item_timer_reached_title">达到计时器时</string>
     <string name="item_counter_reached_title">计数器达到时</string>
@@ -122,7 +126,9 @@
     <string name="item_copy_desc">从任何场景复制现有操作</string>
     <string name="item_image_condition_visible">可见</string>
     <string name="item_image_condition_not_visible">不可见</string>
-    <string name="field_condition_selector_desc">%1$d 个条件</string>
+    <plurals name="field_condition_selector_desc">
+        <item quantity="other">%1$d 个条件</item>
+    </plurals>
     <string name="item_intent_details_start_activity">启动 %1$s</string>
 
 
@@ -380,7 +386,9 @@
 
     <string name="field_counters_title">计数器</string>
     <string name="field_counters_desc_empty">未定义计数器</string>
-    <string name="field_counters_desc">已定义 %1$d 个计数器</string>
+    <plurals name="field_counters_desc">
+        <item quantity="other">已定义 %1$d 个计数器</item>
+    </plurals>
 
     <string name="dialog_title_screen_condition_type">条件类型</string>
 
@@ -437,13 +445,21 @@
     <string name="message_empty_counter_name_list_title">未定义计数器</string>
     <string name="message_empty_counter_name_list_desc">计数器用于存储一个数值，该数值可在您的操作或条件中进行修改、验证或使用</string>
     <string name="item_counter_desc_collapsed_no_reference">此计数器未被使用。(%1$s)</string>
-    <string name="item_counter_desc_collapsed_referenced">此计数器被引用了 %1$d 次。(%2$s)</string>
+    <plurals name="item_counter_desc_collapsed_referenced">
+        <item quantity="other">此计数器被引用 %1$d 次。（%2$s）</item>
+    </plurals>
     <string name="item_counter_desc_expanded_no_reference">此计数器未被使用。</string>
-    <string name="item_counter_desc_expanded_referenced">此计数器被引用了 %1$d 次。</string>
+    <plurals name="item_counter_desc_expanded_referenced">
+        <item quantity="other">此计数器被引用 %1$d 次。</item>
+    </plurals>
     <string name="field_label_counter_starting_value">初始值</string>
-    <string name="button_text_counter_actions_references">%1$d 次写入</string>
+    <plurals name="button_text_counter_actions_references">
+        <item quantity="other">%1$d 次写入</item>
+    </plurals>
     <string name="button_text_counter_actions_no_reference">从未更改</string>
-    <string name="button_text_counter_conditions_references">%1$d 次读取</string>
+    <plurals name="button_text_counter_conditions_references">
+        <item quantity="other">%1$d 次读取</item>
+    </plurals>
     <string name="button_text_counter_conditions_no_reference">从未读取</string>
     <string name="button_text_counter_delete">删除计数器</string>
     <string name="button_text_counter_delete_and_replace">替换并删除</string>
@@ -499,4 +515,80 @@
     <string name="dialog_stop_confirmation_stop">停止</string>
     <string name="action_move_event_up">上移事件</string>
     <string name="action_move_event_down">下移事件</string>
+    <string name="content_desc_show_all_action_previews">显示所有操作预览</string>
+    <string name="action_previews_all_on">所有操作</string>
+    <string name="action_previews_all_off">仅当前操作</string>
+    <string name="item_zoom_title">多点触控</string>
+    <string name="item_zoom_desc">同时执行两个或更多点击或滑动。</string>
+    <string name="item_zoom_details">同时点击和滑动</string>
+    <string name="item_play_sound_title">播放声音</string>
+    <string name="item_play_sound_desc">播放音频通知声音</string>
+    <string name="item_play_sound_details_text">声音：%1$s</string>
+    <string name="item_play_sound_details_none">未选择声音</string>
+    <string name="dialog_title_play_sound">播放声音</string>
+    <string name="default_notification_sound">默认通知声音</string>
+    <string name="field_sound_selector_label">通知声音</string>
+    <string name="dialog_title_select_sound">选择声音</string>
+    <string name="play_sound_tip_custom_files">提示：如需使用自定义声音，请使用文件管理器将音频文件放入手机的 Notifications 文件夹。文件会自动显示在此处。</string>
+    <string name="item_capture_screenshot_title">截取屏幕</string>
+    <string name="item_capture_screenshot_desc">截取屏幕并保存到存储空间</string>
+    <string name="item_capture_screenshot_details_default">位置：Pictures/Macrion</string>
+    <string name="item_capture_screenshot_details_custom">位置：%1$s</string>
+    <string name="dialog_title_capture_screenshot">截取屏幕</string>
+    <string name="capture_screenshot_location_label">保存位置</string>
+    <string name="capture_screenshot_location_default">Pictures/Macrion（默认）</string>
+    <string name="capture_screenshot_button_choose_folder">选择文件夹</string>
+    <string name="capture_screenshot_button_reset_folder">重置为默认值</string>
+    <string name="capture_screenshot_button_open_folder">在文件中打开文件夹</string>
+    <string name="capture_screenshot_storage_note">屏幕截图以 JPEG 格式保存。默认文件夹会自动显示在图库和照片应用中。</string>
+    <string name="field_condition_fps_limit_desc">限制此条件的检查频率，以节省电量和 CPU；检测速度会变慢。</string>
+    <string name="click_offset_preview_label">预览 %1$d/%2$d · %3$s</string>
+    <string name="click_offset_previous_condition">上一个条件预览</string>
+    <string name="click_offset_next_condition">下一个条件预览</string>
+    <string name="dialog_title_split_action">多点触控</string>
+    <string name="action_type_zoom">多点触控</string>
+    <string name="split_action_touch_actions_header">触摸笔划</string>
+    <string name="split_action_add_swipe">添加滑动</string>
+    <string name="split_action_add_click">添加点击</string>
+    <string name="split_action_rename">重命名多点触控</string>
+    <string name="split_action_name_required">请设置多点触控名称</string>
+    <string name="split_action_fixed_position">位置</string>
+    <string name="split_action_detected_condition">条件</string>
+    <string name="split_action_unsplit">拆分</string>
+    <string name="split_action_stroke_not_configured">尚未设置位置</string>
+    <string name="action_combine_title">合并</string>
+    <string name="action_combine_with_new">与新滑动合并</string>
+    <string name="action_combine_with_existing">与现有操作合并…</string>
+    <string name="action_unsplit_title">拆分</string>
+    <string name="dialog_screenshot_rate_limit_title">已达到屏幕截图上限</string>
+    <plurals name="dialog_screenshot_rate_limit_message">
+        <item quantity="other">由于每分钟截取的屏幕截图超过 %1$d 张，场景已暂停。这是为了防止设备存储空间耗尽。\n\n您可以在“设置”&gt;“高级设置”中调整此上限，也可以为场景添加延迟。</item>
+    </plurals>
+    <string name="folder_ungrouped_label">未分组</string>
+    <string name="folder_action_new">新建文件夹</string>
+    <string name="folder_action_create_event">创建事件</string>
+    <string name="folder_action_rename">重命名文件夹</string>
+    <string name="folder_action_delete">删除文件夹</string>
+    <string name="folder_menu_options">文件夹选项</string>
+    <string name="folder_delete_dialog_title">删除文件夹</string>
+    <string name="folder_delete_dialog_message">您想如何处理“%1$s”中的事件？</string>
+    <string name="folder_delete_keep_events">保留事件（取消分组）</string>
+    <string name="folder_delete_all_events">删除事件</string>
+    <string name="folder_name_hint">文件夹名称</string>
+    <string name="folder_collapse_all">全部收起</string>
+    <string name="folder_reorder_disabled_hint">请收起所有文件夹后再排序</string>
+    <string name="generic_cancel">取消</string>
+    <string name="generic_create">创建</string>
+    <string name="action_combine_with_new_swipe">与新滑动合并</string>
+    <string name="action_combine_with">与“%1$s”合并</string>
+    <string name="action_unsplit">拆分为独立操作</string>
+    <string name="action_edit_gestures">配置手势</string>
+    <string name="action_edit_stroke">编辑%1$s</string>
+    <string name="action_combine_with_new_click">与新点击合并</string>
+    <plurals name="combined_touch_count">
+        <item quantity="other">%1$d 个触摸操作</item>
+    </plurals>
+    <string name="split_repeat_help">重复次数应用于整个手势。每次重复时，每个触摸只运行一次；拆分后会还原各自的重复设置。</string>
+    <string name="split_action_position_not_set">尚未设置位置</string>
+    <string name="split_action_detected_position">位置由检测到的条件决定</string>
 </resources>

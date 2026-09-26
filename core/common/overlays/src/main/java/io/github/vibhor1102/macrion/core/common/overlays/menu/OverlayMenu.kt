@@ -313,13 +313,23 @@ abstract class OverlayMenu(
                     hideOverlayButton = view
                     setOverlayViewVisibility(isUserOverlayVisible)
                     view.setOnClickListener {
+                        if (lifecycle.currentState != Lifecycle.State.RESUMED) return@setOnClickListener
                         onUserInteraction()
                         onToggleOverlayVisibilityClicked()
                     }
                 }
-                else -> view.setDebouncedOnClickListener { v ->
-                    onUserInteraction()
-                    onMenuItemClicked(v.id)
+                else -> {
+                    val onClick: (View) -> Unit = { clickedView ->
+                        onUserInteraction()
+                        onMenuItemClicked(clickedView.id)
+                    }
+                    if (shouldDebounceMenuItemClick(view.id)) {
+                        view.setDebouncedOnClickListener(onClick)
+                    } else {
+                        view.setOnClickListener { clickedView ->
+                            if (lifecycle.currentState == Lifecycle.State.RESUMED) onClick(clickedView)
+                        }
+                    }
                 }
             }
         }
@@ -559,6 +569,9 @@ abstract class OverlayMenu(
      * @param viewId the pressed view identifier.
      */
     protected open fun onMenuItemClicked(@IdRes viewId: Int): Unit = Unit
+
+    /** Immediate, reversible toolbar toggles can opt out of the shared 500 ms action guard. */
+    protected open fun shouldDebounceMenuItemClick(@IdRes viewId: Int): Boolean = true
 
     /**
      * Called when the visibility of the screen overlay have changed.
@@ -845,8 +858,7 @@ abstract class OverlayMenu(
 
             MotionEvent.ACTION_UP -> {
                 if (!isTuckedDragging) {
-                    onUserInteraction()
-                    untuckMenu()
+                    host.performClick()
                 } else {
                     val wasDismissHovered = isDragToDismissEnabled && isTuckedHoveringDismiss
                     isTuckedDragging = false

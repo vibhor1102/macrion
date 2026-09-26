@@ -38,6 +38,7 @@ internal class LegacyNotificationBuilder(
         setContentTitle(context.getString(R.string.notification_title, initialState.scenarioName))
         setContentText(context.getString(R.string.notification_message))
         setContentIntent(ServiceNotificationAction.Config.getPendingIntent(context, appComponentsProvider))
+        setDeleteIntent(ServiceNotificationAction.Dismiss.getPendingIntent(context, appComponentsProvider))
         setSmallIcon(notificationIconResId())
         setCategory(Notification.CATEGORY_SERVICE)
         setOngoing(true)

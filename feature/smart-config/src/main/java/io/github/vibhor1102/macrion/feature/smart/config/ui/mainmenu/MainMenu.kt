@@ -179,11 +179,16 @@ class MainMenu(
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch { viewModel.isStartButtonEnabled.collect(::updatePlayPauseButtonEnabledState) }
+                launch { viewModel.requestedDetectionRunning.collect { requested ->
+                    isDetecting = requested
+                    resetAutoHideTimer()
+                } }
                 launch { viewModel.isSwitchButtonVisible.collect(::updateSwitchButtonVisibility) }
                 launch { viewModel.isMediaProjectionStarted.collect(::updateProjectionErrorBadge) }
-                launch { viewModel.detectionState.collect(::updateDetectionState) }
+                launch { viewModel.toolbarDetectionState.collect(::updateDetectionState) }
                 launch { viewModel.nativeLibError.collect(::showNativeLibErrorDialogIfNeeded) }
                 launch { viewModel.screenCaptureError.collect(::showScreenCaptureErrorDialogIfNeeded) }
+                launch { viewModel.screenshotRateLimitError.collect(::showScreenshotRateLimitErrorDialog) }
                 launch { debuggingViewModel.isDebugging.collect(::updateDebugOverlayViewVisibility) }
                 launch {
                     viewModel.isToolbarAutoHideEnabled.collect {
@@ -278,6 +283,8 @@ class MainMenu(
         }
     }
 
+    override fun shouldDebounceMenuItemClick(viewId: Int): Boolean = viewId != R.id.btn_play
+
     private fun onStopButtonClicked() {
         lifecycleScope.launch {
             if (!shouldConfirmStop()) {
@@ -316,10 +323,7 @@ class MainMenu(
 
     private fun onPlayPauseClicked() {
         // Stop is always valid while detecting; start-only prerequisites must not intercept Pause.
-        if (viewModel.detectionState.value is UiState.Detecting) {
-            viewModel.stopDetection()
-            return
-        }
+        if (viewModel.pauseIfRequested()) return
 
         if (viewModel.shouldDownloadModels()) {
             context.startActivity(AlphabetActivity.getStartIntent(context, AlphabetActivity.MODE_REQUIRED))
@@ -368,7 +372,6 @@ class MainMenu(
 
 
         viewBinding.btnPlay.tag = newState
-        isDetecting = newState is UiState.Detecting
         val isTutorial = viewModel.isTutorial
         when (newState) {
             UiState.Idle -> {
@@ -507,6 +510,19 @@ class MainMenu(
             message = R.string.error_dialog_message_screen_capture_unsupported,
             confirmLabel = android.R.string.ok,
             onConfirm = { onStopClicked() },
+        ).showAsOverlay()
+    }
+
+    private fun showScreenshotRateLimitErrorDialog(limit: Int) {
+        context.createMacrionMessageDialog(
+            title = context.getString(R.string.dialog_screenshot_rate_limit_title),
+            message = context.resources.getQuantityString(
+                R.plurals.dialog_screenshot_rate_limit_message,
+                limit,
+                limit,
+            ),
+            confirmLabel = android.R.string.ok,
+            onConfirm = {},
         ).showAsOverlay()
     }
 

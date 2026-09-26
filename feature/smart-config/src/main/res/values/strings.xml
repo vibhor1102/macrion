@@ -16,6 +16,9 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
 <resources>
+    <string name="content_desc_show_all_action_previews">Show all action previews</string>
+    <string name="action_previews_all_on">All actions</string>
+    <string name="action_previews_all_off">Current action only</string>
     <string name="content_desc_open_home">Stop scenario and open Macrion home</string>
 
     <!-- Generic =================================================================================================== -->
@@ -84,6 +87,10 @@
     <string name="item_swipe_desc">Swipe from a position on the screen to another</string>
     <string name="item_swipe_details">During %1$s</string>
 
+    <string name="item_zoom_title">Multi-touch</string>
+    <string name="item_zoom_desc">Run two or more clicks or swipes together.</string>
+    <string name="item_zoom_details">Clicks and swipes together</string>
+
     <string name="item_pause_title">Wait</string>
     <string name="item_pause_desc">Pause the detection execution</string>
     <string name="item_pause_details">During %1$s</string>
@@ -103,7 +110,10 @@
     <string name="item_toggle_event_details_enable_all">Enable all</string>
     <string name="item_toggle_event_details_disable_all">Disable all</string>
     <string name="item_toggle_event_details_invert_all">Invert all</string>
-    <string name="item_toggle_event_details_manual">Change %1$d events</string>
+    <plurals name="item_toggle_event_details_manual">
+        <item quantity="one">Change %1$d event</item>
+        <item quantity="other">Change %1$d events</item>
+    </plurals>
     <string name="item_toggle_event_details_error">Target event not found</string>
 
     <string name="item_intent_title">Intent</string>
@@ -124,6 +134,27 @@
     <string name="item_set_text_desc">Write a text in the currently focused view</string>
     <string name="item_set_text_details_text">%1$s</string>
     <string name="item_set_text_details_text_empty">Clear text</string>
+
+    <string name="item_play_sound_title">Play sound</string>
+    <string name="item_play_sound_desc">Play an audio notification sound</string>
+    <string name="item_play_sound_details_text">Sound: %1$s</string>
+    <string name="item_play_sound_details_none">No sound selected</string>
+    <string name="dialog_title_play_sound">Play sound</string>
+    <string name="default_notification_sound">Default notification sound</string>
+    <string name="field_sound_selector_label">Notification sound</string>
+    <string name="dialog_title_select_sound">Select sound</string>
+    <string name="play_sound_tip_custom_files">Tip: To use custom sounds, place your audio files in your phone\'s Notifications folder using a file manager. They will appear here automatically.</string>
+    <string name="item_capture_screenshot_title">Capture screenshot</string>
+    <string name="item_capture_screenshot_desc">Capture the screen and save to storage</string>
+    <string name="item_capture_screenshot_details_default">Location: Pictures/Macrion</string>
+    <string name="item_capture_screenshot_details_custom">Location: %1$s</string>
+    <string name="dialog_title_capture_screenshot">Capture screenshot</string>
+    <string name="capture_screenshot_location_label">Save destination</string>
+    <string name="capture_screenshot_location_default">Pictures/Macrion (Default)</string>
+    <string name="capture_screenshot_button_choose_folder">Choose folder</string>
+    <string name="capture_screenshot_button_reset_folder">Reset to default</string>
+    <string name="capture_screenshot_button_open_folder">Open folder in Files</string>
+    <string name="capture_screenshot_storage_note">Screenshots are saved as JPEGs. Default folder is automatically visible in Gallery and Photos.</string>
 
     <!-- Dialog Copy =============================================================================================== -->
 
@@ -166,6 +197,7 @@
     <string name="field_scenario_fps_rate_unit_label">Per</string>
     <string name="field_scenario_fps_dropdown_item_second">Second</string>
     <string name="field_scenario_fps_dropdown_item_minute">Minute</string>
+    <string name="field_condition_fps_limit_desc">Limit how often this condition is checked to save battery and CPU. Detection will be slower.</string>
 
     <string name="field_scenario_fps_limit_disable_rate" translatable="false">∞</string>
     <string name="field_scenario_quality_title">Detection resolution</string>
@@ -174,7 +206,10 @@
 
     <string name="field_counters_title">Counters</string>
     <string name="field_counters_desc_empty">No counters defined</string>
-    <string name="field_counters_desc">%1$d counters defined</string>
+    <plurals name="field_counters_desc">
+        <item quantity="one">%1$d counter defined</item>
+        <item quantity="other">%1$d counters defined</item>
+    </plurals>
 
     <string name="field_show_debug_view_title">Show debug view</string>
     <string name="field_show_debug_view_desc">Display the events triggered while detecting.</string>
@@ -194,7 +229,10 @@
     <string name="dialog_title_screen_condition_type">Condition type</string>
     <string name="dialog_title_trigger_condition_type">Trigger type</string>
 
-    <string name="field_condition_selector_desc">%1$d conditions</string>
+    <plurals name="field_condition_selector_desc">
+        <item quantity="one">%1$d condition</item>
+        <item quantity="other">%1$d conditions</item>
+    </plurals>
     <string name="message_empty_screen_condition_list_title">No screen conditions !</string>
     <string name="message_empty_screen_condition_list_desc">A screen condition is a part of a screenshot that will be searched on each frames displayed by your phone screen.</string>
     <string name="message_empty_trigger_condition_list_title">No conditions !</string>
@@ -363,6 +401,9 @@
     <string name="field_click_offset_desc" translatable="false">X=%1$d Y=%2$d</string>
     <string name="field_click_offset_x" translatable="false">X</string>
     <string name="field_click_offset_y" translatable="false">Y</string>
+    <string name="click_offset_preview_label">Preview %1$d/%2$d · %3$s</string>
+    <string name="click_offset_previous_condition">Previous condition preview</string>
+    <string name="click_offset_next_condition">Next condition preview</string>
 
 
     <!-- Dialog Action Swipe ======================================================================================= -->
@@ -376,6 +417,25 @@
     <!-- Dialog Action Pause ======================================================================================= -->
 
     <string name="dialog_title_pause">Wait</string>
+
+
+    <!-- Dialog Action Split ======================================================================================= -->
+
+    <string name="dialog_title_split_action">Multi-touch</string>
+    <string name="action_type_zoom">Multi-touch</string>
+    <string name="split_action_touch_actions_header">Touch Strokes</string>
+    <string name="split_action_add_swipe">Add Swipe</string>
+    <string name="split_action_add_click">Add Click</string>
+    <string name="split_action_rename">Rename MultiTouch</string>
+    <string name="split_action_name_required">Set a MultiTouch name</string>
+    <string name="split_action_fixed_position">Position</string>
+    <string name="split_action_detected_condition">Condition</string>
+    <string name="split_action_unsplit">Unsplit</string>
+    <string name="split_action_stroke_not_configured">Position not set</string>
+    <string name="action_combine_title">Combine</string>
+    <string name="action_combine_with_new">Combine with new swipe</string>
+    <string name="action_combine_with_existing">Combine with existing action…</string>
+    <string name="action_unsplit_title">Unsplit</string>
 
 
     <!-- Dialog Action Intent ====================================================================================== -->
@@ -469,7 +529,10 @@
     <string name="field_change_all_desc_invert_all">Invert the state of all events in this scenario</string>
     <string name="field_change_all_desc_disable_all">Disable all events in this scenario. When all events are disabled, the scenario is stopped automatically.</string>
 
-    <string name="field_select_toggle_events_title">%1$d changes</string>
+    <plurals name="field_select_toggle_events_title">
+        <item quantity="one">%1$d change</item>
+        <item quantity="other">%1$d changes</item>
+    </plurals>
     <string name="field_select_toggle_events_title_empty">No changes</string>
     <string name="field_select_toggle_events_desc_empty">Select at least one event to change to state of</string>
 
@@ -531,15 +594,27 @@
     <string name="message_empty_counter_name_list_desc">A Counter stores a numeric value that can be changed, verified or used in your Actions or Conditions</string>
 
     <string name="item_counter_desc_collapsed_no_reference">This counter is unused. (%1$s)</string>
-    <string name="item_counter_desc_collapsed_referenced">This counter is referenced %1$d times. (%2$s)</string>
+    <plurals name="item_counter_desc_collapsed_referenced">
+        <item quantity="one">This counter is referenced %1$d time. (%2$s)</item>
+        <item quantity="other">This counter is referenced %1$d times. (%2$s)</item>
+    </plurals>
     <string name="item_counter_desc_expanded_no_reference">This counter is unused.</string>
-    <string name="item_counter_desc_expanded_referenced">This counter is referenced %1$d times.</string>
+    <plurals name="item_counter_desc_expanded_referenced">
+        <item quantity="one">This counter is referenced %1$d time.</item>
+        <item quantity="other">This counter is referenced %1$d times.</item>
+    </plurals>
 
     <string name="field_label_counter_starting_value">Starting value</string>
 
-    <string name="button_text_counter_actions_references">%1$d write</string>
+    <plurals name="button_text_counter_actions_references">
+        <item quantity="one">%1$d write</item>
+        <item quantity="other">%1$d writes</item>
+    </plurals>
     <string name="button_text_counter_actions_no_reference">Never changed</string>
-    <string name="button_text_counter_conditions_references">%1$d read</string>
+    <plurals name="button_text_counter_conditions_references">
+        <item quantity="one">%1$d read</item>
+        <item quantity="other">%1$d reads</item>
+    </plurals>
     <string name="button_text_counter_conditions_no_reference">Never read</string>
 
     <string name="button_text_counter_delete">Delete counter</string>
@@ -576,6 +651,11 @@
     <string name="error_dialog_message_scenario_saving">Your scenario can\'t be saved due to an internal error.\nDo you want to modify it or cancel all your modifications ?</string>
     <string name="error_dialog_message_error_native_lib">Macrion is incorrectly installed and can\'t start the detection.\n\nIf you have installed it from a legitimate application store, please contact us on GitHub, as it will help us fix this issue.</string>
     <string name="error_dialog_message_screen_capture_unsupported">Your device\'s screen can\'t be read by Macrion due to a driver limitation.\n\nUnfortunately this is a hardware restriction that can\'t be worked around. Please contact us on GitHub with your device model so we can track affected devices.</string>
+    <string name="dialog_screenshot_rate_limit_title">Screenshot limit reached</string>
+    <plurals name="dialog_screenshot_rate_limit_message">
+        <item quantity="one">The scenario was paused because it captured more than %1$d screenshot in a minute. This protects your device storage from filling up.\n\nYou can adjust this limit in Settings &gt; Advanced Settings, or add delays to your scenario.</item>
+        <item quantity="other">The scenario was paused because it captured more than %1$d screenshots in a minute. This protects your device storage from filling up.\n\nYou can adjust this limit in Settings &gt; Advanced Settings, or add delays to your scenario.</item>
+    </plurals>
     <string name="dialog_stop_confirmation_title">Stop Macrion?</string>
     <string name="dialog_stop_confirmation_message">The current scenario will be stopped.</string>
     <string name="dialog_stop_confirmation_stop">Stop</string>
@@ -605,4 +685,36 @@
     <string name="scenario_switcher_retry">Retry</string>
     <string name="scenario_switcher_switching">Switching to %1$s</string>
 
+    <!-- Folders -->
+    <string name="folder_ungrouped_label">Ungrouped</string>
+    <string name="folder_action_new">New folder</string>
+    <string name="folder_action_create_event">Create event</string>
+    <string name="folder_action_rename">Rename folder</string>
+    <string name="folder_action_delete">Delete folder</string>
+    <string name="folder_menu_options">Folder options</string>
+    <string name="folder_delete_dialog_title">Delete Folder</string>
+    <string name="folder_delete_dialog_message">What would you like to do with the events inside \"%1$s\"?</string>
+    <string name="folder_delete_keep_events">Keep events (Ungroup)</string>
+    <string name="folder_delete_all_events">Delete events</string>
+    <string name="folder_name_hint">Folder name</string>
+    <string name="folder_collapse_all">Collapse all</string>
+    <string name="folder_reorder_disabled_hint">Collapse all folders to reorder</string>
+    <string name="generic_cancel">Cancel</string>
+    <string name="generic_create">Create</string>
+
+    <!-- Split and Combine Actions -->
+    <string name="action_combine_with_new_swipe">Combine with new swipe</string>
+    <string name="action_combine_with">Combine with \"%1$s\"</string>
+    <string name="action_unsplit">Unsplit into separate actions</string>
+    <string name="action_edit_gestures">Configure gestures</string>
+    <string name="action_edit_stroke">Edit %1$s</string>
+
+    <string name="action_combine_with_new_click">Combine with new click</string>
+    <plurals name="combined_touch_count">
+        <item quantity="one">%1$d touch action</item>
+        <item quantity="other">%1$d touch actions</item>
+    </plurals>
+    <string name="split_repeat_help">Repetition applies to the whole gesture. Each touch runs once per repetition; its individual repeat settings are restored when you Unsplit.</string>
+    <string name="split_action_position_not_set">Position not set</string>
+    <string name="split_action_detected_position">Position follows detected condition</string>
 </resources>

@@ -37,8 +37,10 @@ internal const val TUTORIAL_SUCCESS_TABLE = "tutorial_success_table"
 internal const val SCENARIO_USAGE_TABLE = "scenario_usage_table"
 internal const val COUNTERS_TABLE = "counters_table"
 
+internal const val SPLIT_ACTION_ITEM_TABLE = "split_action_item_table"
+
 /** DELETED but kept because referenced in migrations. */
 internal const val END_CONDITION_TABLE = "end_condition_table"
 
 /** Current version of the database. */
-const val DATABASE_VERSION = 26
+const val DATABASE_VERSION = 34

@@ -311,6 +311,7 @@ internal open class CompatDeserializer : Deserializer {
             detectionAreaTop = jsonCondition.getInt("detectionAreaTop"),
             detectionAreaRight = jsonCondition.getInt("detectionAreaRight"),
             detectionAreaBottom = jsonCondition.getInt("detectionAreaBottom"),
+            computeRate = jsonCondition.getDouble("computeRate") ?: 0.0,
         )
     }
 
@@ -346,6 +347,7 @@ internal open class CompatDeserializer : Deserializer {
             threshold = jsonCondition.getInt("threshold")
                 ?.coerceIn(CONDITION_THRESHOLD_LOWER_BOUND, CONDITION_THRESHOLD_UPPER_BOUND)
                 ?: CONDITION_THRESHOLD_DEFAULT_VALUE,
+            computeRate = jsonCondition.getDouble("computeRate") ?: 0.0,
         )
     }
 
@@ -388,6 +390,7 @@ internal open class CompatDeserializer : Deserializer {
             detectionAreaTop = area.top,
             detectionAreaRight = area.right,
             detectionAreaBottom = area.bottom,
+            computeRate = jsonCondition.getDouble("computeRate") ?: 0.0,
         )
     }
 
@@ -441,6 +444,7 @@ internal open class CompatDeserializer : Deserializer {
             detectionAreaRight = area.right,
             detectionAreaBottom = area.bottom,
             textAlphabet = jsonCondition.getString("textAlphabet") ?: "LATIN",
+            computeRate = jsonCondition.getDouble("computeRate") ?: 0.0,
         )
     }
 
@@ -487,6 +491,9 @@ internal open class CompatDeserializer : Deserializer {
             ActionType.NOTIFICATION -> deserializeActionNotification(jsonAction)
             ActionType.SYSTEM -> deserializeActionSystem(jsonAction)
             ActionType.TEXT -> deserializeActionSetText(jsonAction)
+            ActionType.PLAY_SOUND -> deserializeActionPlaySound(jsonAction)
+            ActionType.CAPTURE_SCREENSHOT -> deserializeActionCaptureScreenshot(jsonAction)
+            ActionType.SPLIT_ACTION -> deserializeActionSplit(jsonAction)
             null -> null
         }
 
@@ -715,6 +722,50 @@ internal open class CompatDeserializer : Deserializer {
             type = ActionType.TEXT,
             textValue = jsonSetText.getString("textValue") ?: "",
             textValidateInput = jsonSetText.getBoolean("textValidateInput") ?: false,
+        )
+    }
+
+    open fun deserializeActionPlaySound(jsonPlaySound: JsonObject): ActionEntity? {
+        val id = jsonPlaySound.getLong("id", true) ?: return null
+        val eventId = jsonPlaySound.getLong("eventId", true) ?: return null
+
+        return ActionEntity(
+            id = id,
+            eventId = eventId,
+            name = jsonPlaySound.getString("name") ?: "",
+            priority = jsonPlaySound.getInt("priority")?.coerceAtLeast(0) ?: 0,
+            type = ActionType.PLAY_SOUND,
+            soundUri = jsonPlaySound.getString("soundUri"),
+            soundTitle = jsonPlaySound.getString("soundTitle"),
+        )
+    }
+
+    open fun deserializeActionCaptureScreenshot(jsonCaptureScreenshot: JsonObject): ActionEntity? {
+        val id = jsonCaptureScreenshot.getLong("id", true) ?: return null
+        val eventId = jsonCaptureScreenshot.getLong("eventId", true) ?: return null
+
+        return ActionEntity(
+            id = id,
+            eventId = eventId,
+            name = jsonCaptureScreenshot.getString("name") ?: "",
+            priority = jsonCaptureScreenshot.getInt("priority")?.coerceAtLeast(0) ?: 0,
+            type = ActionType.CAPTURE_SCREENSHOT,
+            screenshotFolderUri = jsonCaptureScreenshot.getString("screenshotFolderUri"),
+            screenshotFolderName = jsonCaptureScreenshot.getString("screenshotFolderName"),
+        )
+    }
+
+    @VisibleForTesting(otherwise = VisibleForTesting.PROTECTED)
+    open fun deserializeActionSplit(jsonSplit: JsonObject): ActionEntity? {
+        val id = jsonSplit.getLong("id", true) ?: return null
+        val eventId = jsonSplit.getLong("eventId", true) ?: return null
+
+        return ActionEntity(
+            id = id,
+            eventId = eventId,
+            name = jsonSplit.getString("name") ?: "",
+            priority = jsonSplit.getInt("priority")?.coerceAtLeast(0) ?: 0,
+            type = ActionType.SPLIT_ACTION,
         )
     }
 

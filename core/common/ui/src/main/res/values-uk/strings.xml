@@ -119,4 +119,53 @@
 
     <string name="content_desc_tuck_toolbar">Згорнути панель інструментів до краю екрана</string>
     <string name="content_desc_expand_toolbar">Розгорнути панель інструментів</string>
+    <plurals name="multi_touch_brief_click_count">
+        <item quantity="one">%d натискання</item>
+        <item quantity="few">%d натискання</item>
+        <item quantity="many">%d натискань</item>
+        <item quantity="other">%d натискання</item>
+    </plurals>
+    <plurals name="multi_touch_brief_swipe_count">
+        <item quantity="one">%d свайп</item>
+        <item quantity="few">%d свайпи</item>
+        <item quantity="many">%d свайпів</item>
+        <item quantity="other">%d свайпа</item>
+    </plurals>
+    <plurals name="multi_touch_brief_setup_count">
+        <item quantity="one">%d потребує налаштування</item>
+        <item quantity="few">%d потребують налаштування</item>
+        <item quantity="many">%d потребують налаштування</item>
+        <item quantity="other">%d потребує налаштування</item>
+    </plurals>
+    <string name="action_combine_choose_existing">Виберіть дію</string>
+    <string name="action_combine_choose_help">Виберіть натискання, свайп або дію мультитач, які виконуватимуться разом. Після збереження початкові дії буде замінено.</string>
+    <string name="action_editor_close_multi_touch">Закрити мультитач</string>
+    <string name="action_editor_delete_multi_touch">Видалити мультитач</string>
+    <string name="action_editor_delete_this_action">Видалити цю дію</string>
+    <string name="action_editor_delete_this_click">Видалити це натискання</string>
+    <string name="action_editor_delete_this_swipe">Видалити цей свайп</string>
+    <string name="action_editor_more_options">Інші параметри дії</string>
+    <string name="action_editor_save_multi_touch">Зберегти мультитач</string>
+    <string name="condition_operator_and">І</string>
+    <string name="condition_operator_or">АБО</string>
+    <string name="field_delay_number_error">Введіть коректну затримку в мілісекундах</string>
+    <string name="field_delay_range_error">Введіть значення від 0 до %1$d мс</string>
+    <string name="field_delays_check_values">Перевірте значення затримок</string>
+    <string name="field_delays_collapsed">Згорнуто</string>
+    <string name="field_delays_expanded">Розгорнуто</string>
+    <string name="field_delays_title">Затримки (необов’язково)</string>
+    <string name="field_wait_after_summary">Після: %1$s мс</string>
+    <string name="field_wait_after_title">Після (мс)</string>
+    <string name="field_wait_before_summary">Перед: %1$s мс</string>
+    <string name="field_wait_before_title">Перед (мс)</string>
+    <string name="multi_touch_add_touch">Додати дотик</string>
+    <string name="multi_touch_brief_default_name">Мультитач</string>
+    <string name="multi_touch_brief_needs_setup">Потрібне налаштування</string>
+    <string name="multi_touch_brief_no_touches">Дотики не налаштовано</string>
+    <string name="multi_touch_brief_swipe">Свайп</string>
+    <string name="multi_touch_brief_tap">Натискання</string>
+    <string name="multi_touch_brief_touch">Дотик</string>
+    <string name="multi_touch_done_renaming">Перейменування дотику %1$d завершено</string>
+    <string name="multi_touch_rename_touch">Перейменувати дотик %1$d</string>
+    <string name="multi_touch_touch_description">Дотик %1$d із %2$d: %3$s</string>
 </resources>

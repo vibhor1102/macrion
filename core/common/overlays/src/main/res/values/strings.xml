@@ -24,6 +24,25 @@
     <string name="dialog_reorder_discard_message">You have unsaved changes. Are you sure you want to discard them?</string>
     <string name="dialog_reorder_discard_confirm">Discard</string>
     <string name="overlay_instructions_gesture_record">Recording gesture…</string>
+    <string name="swipe_position_record">Record gesture</string>
+    <string name="swipe_position_drag_instruction">Drag Start or End to adjust the swipe</string>
+    <string name="swipe_position_drag_node_instruction">Drag any handle to adjust the swipe</string>
+    <string name="swipe_position_record_instruction">Draw one swipe to set both positions</string>
+    <string name="swipe_position_short_gesture">Draw a swipe to set both positions</string>
+    <string name="swipe_position_multi_touch">A swipe uses one finger. Create a Multi-touch action for multiple fingers.</string>
+    <string name="swipe_position_record_failed">Couldn’t record the swipe. Try again.</string>
+    <string name="swipe_position_start">Start</string>
+    <string name="swipe_position_end">End</string>
+    <string name="swipe_position_node">Point %1$d</string>
+    <string name="swipe_position_move_left">Move %1$s left</string>
+    <string name="swipe_position_move_right">Move %1$s right</string>
+    <string name="swipe_position_move_up">Move %1$s up</string>
+    <string name="swipe_position_move_down">Move %1$s down</string>
+    <string name="brief_handle_moved_click">Moved click position</string>
+    <string name="brief_handle_moved_swipe_start">Moved swipe start</string>
+    <string name="brief_handle_moved_swipe_node">Moved swipe point</string>
+    <string name="brief_handle_moved_swipe_end">Moved swipe end</string>
+    <string name="brief_handle_undo">Undo</string>
 
     <string name="item_brief_items_count_port" translatable="false">%1$d/%2$d</string>
     <string name="item_brief_items_count_land" translatable="false">%1$d\n—\n%2$d</string>

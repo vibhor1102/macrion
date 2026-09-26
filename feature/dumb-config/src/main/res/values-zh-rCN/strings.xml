@@ -10,7 +10,9 @@
     <string name="item_desc_dumb_click_on_position">于 %1$d, %2$d 点击</string>
     <string name="item_desc_dumb_pause">暂停执行</string>
     <string name="item_desc_dumb_pause_details">持续 %1$s</string>
-    <string name="item_desc_dumb_repeat_count">重复 %1$d 次</string>
+    <plurals name="item_desc_dumb_repeat_count">
+        <item quantity="other">重复 %1$d 次</item>
+    </plurals>
     <string name="item_desc_dumb_repeat_infinite">无限重复</string>
     <string name="item_desc_dumb_swipe">从屏幕上一点滑动至另一点</string>
     <string name="item_desc_dumb_swipe_details">自 [%2$d, %3$d] 至 [%4$d, %5$d]，持续 %1$s</string>
@@ -36,4 +38,32 @@
     <string name="dialog_stop_confirmation_title">停止 Macrion？</string>
     <string name="dialog_stop_confirmation_message">当前方案将停止。</string>
     <string name="dialog_stop_confirmation_stop">停止</string>
+    <string name="action_type_zoom">多点触控</string>
+    <string name="item_desc_dumb_zoom">同时执行两个或更多点击或滑动。</string>
+    <string name="item_title_dumb_zoom">多点触控</string>
+    <string name="action_combine_with_new_swipe">与新滑动合并</string>
+    <string name="action_combine_with">与“%1$s”合并</string>
+    <string name="action_unsplit">拆分为独立操作</string>
+    <string name="action_edit_gestures">配置手势</string>
+    <string name="action_edit_stroke">编辑%1$s</string>
+    <string name="dialog_title_split_action">多点触控</string>
+    <string name="split_action_touch_actions_header">触摸笔划</string>
+    <string name="split_action_add_swipe">添加滑动</string>
+    <string name="split_action_add_click">添加点击</string>
+    <string name="split_action_group_settings">多点触控设置</string>
+    <string name="split_action_check_group_settings">检查多点触控设置</string>
+    <string name="split_action_click_coordinates">位置：%1$d，%2$d</string>
+    <string name="split_action_swipe_coordinates">从 %1$d，%2$d 到 %3$d，%4$d</string>
+    <string name="split_action_unsplit">拆分</string>
+    <string name="action_combine_with_new_click">与新点击合并</string>
+    <string name="action_combine_with_existing">与现有操作合并…</string>
+    <plurals name="combined_touch_count">
+        <item quantity="other">%1$d 个触摸操作</item>
+    </plurals>
+    <string name="split_repeat_help">重复次数应用于整个手势。每次重复时，每个触摸只运行一次；拆分后会还原各自的重复设置。</string>
+    <string name="split_action_position_not_set">尚未设置位置</string>
+    <string name="split_discard_title">放弃更改？</string>
+    <string name="split_discard_message">此手势及其触摸的更改尚未保存。</string>
+    <string name="split_discard_confirm">放弃</string>
+    <string name="split_keep_editing">继续编辑</string>
 </resources>

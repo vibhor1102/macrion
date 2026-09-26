@@ -23,6 +23,9 @@ import io.github.vibhor1102.macrion.core.domain.model.action.ToggleEvent
 import io.github.vibhor1102.macrion.core.domain.model.action.intent.toDomainIntentExtra
 import io.github.vibhor1102.macrion.core.domain.model.action.toggleevent.toDomain
 import io.github.vibhor1102.macrion.core.domain.model.action.ExternalAction
+import io.github.vibhor1102.macrion.core.domain.model.action.PlaySound
+import io.github.vibhor1102.macrion.core.domain.model.action.CaptureScreenshot
+import io.github.vibhor1102.macrion.core.domain.model.action.SplitAction
 
 /** Convert an Action entity into a Domain Action. */
 internal fun CompleteActionEntity.toDomain(cleanIds: Boolean = false): Action = when (action.type) {
@@ -36,6 +39,9 @@ internal fun CompleteActionEntity.toDomain(cleanIds: Boolean = false): Action = 
     ActionType.NOTIFICATION -> toDomainNotification(cleanIds)
     ActionType.SYSTEM -> toDomainSystem(cleanIds)
     ActionType.TEXT -> toDomainSetText(cleanIds)
+    ActionType.PLAY_SOUND -> toDomainPlaySound(cleanIds)
+    ActionType.CAPTURE_SCREENSHOT -> toDomainCaptureScreenshot(cleanIds)
+    ActionType.SPLIT_ACTION -> toDomainSplitAction(cleanIds)
 }
 
 private fun CompleteActionEntity.toDomainClick(cleanIds: Boolean = false) = Click(
@@ -49,7 +55,9 @@ private fun CompleteActionEntity.toDomainClick(cleanIds: Boolean = false) = Clic
     clickOnConditionId = action.clickOnConditionId?.let { Identifier(id = it, asTemporary = cleanIds) },
     clickOffset =
         if (action.clickOffsetX != null && action.clickOffsetY != null) Point(action.clickOffsetX!!, action.clickOffsetY!!)
-        else null
+        else null,
+    waitBeforeMs = action.waitBeforeMs,
+    waitAfterMs = action.waitAfterMs,
 )
 
 private fun CompleteActionEntity.toDomainSwipe(cleanIds: Boolean = false) = Swipe(
@@ -60,6 +68,9 @@ private fun CompleteActionEntity.toDomainSwipe(cleanIds: Boolean = false) = Swip
     swipeDuration = action.swipeDuration!!,
     from = getPositionIfValid(action.fromX, action.fromY),
     to = getPositionIfValid(action.toX, action.toY),
+    path = action.swipePath,
+    waitBeforeMs = action.waitBeforeMs,
+    waitAfterMs = action.waitAfterMs,
 )
 
 private fun CompleteActionEntity.toDomainPause(cleanIds: Boolean = false) = Pause(
@@ -141,6 +152,24 @@ private fun CompleteActionEntity.toDomainSetText(cleanIds: Boolean = false) = Se
     validateInput = action.textValidateInput ?: false,
 )
 
+private fun CompleteActionEntity.toDomainPlaySound(cleanIds: Boolean = false) = PlaySound(
+    id = Identifier(id = action.id, asTemporary = cleanIds),
+    eventId = Identifier(id = action.eventId, asTemporary = cleanIds),
+    name = action.name,
+    priority = action.priority,
+    soundUri = action.soundUri,
+    soundTitle = action.soundTitle,
+)
+
+private fun CompleteActionEntity.toDomainCaptureScreenshot(cleanIds: Boolean = false) = CaptureScreenshot(
+    id = Identifier(id = action.id, asTemporary = cleanIds),
+    eventId = Identifier(id = action.eventId, asTemporary = cleanIds),
+    name = action.name,
+    priority = action.priority,
+    screenshotFolderUri = action.screenshotFolderUri,
+    screenshotFolderName = action.screenshotFolderName,
+)
+
 private fun ClickPositionType.toDomain(): Click.PositionType =
     Click.PositionType.valueOf(name)
 
@@ -159,3 +188,51 @@ private fun String?.toComponentName(): ComponentName? = this?.let {
 
 private fun getPositionIfValid(x: Int?, y: Int?): Point? =
     if (x != null && y != null) Point(x, y) else null
+
+private fun CompleteActionEntity.toDomainSplitAction(cleanIds: Boolean = false) = SplitAction(
+    id = Identifier(id = action.id, asTemporary = cleanIds),
+    eventId = Identifier(id = action.eventId, asTemporary = cleanIds),
+    name = action.name,
+    priority = action.priority,
+    subActions = splitItems.sortedBy { it.priority }.map { item ->
+        when (item.type) {
+            ActionType.SWIPE -> Swipe(
+                id = Identifier(id = item.id, asTemporary = cleanIds),
+                eventId = Identifier(id = action.eventId, asTemporary = cleanIds),
+                name = item.name ?: "Swipe ${item.priority + 1}",
+                priority = item.priority,
+                swipeDuration = item.duration,
+                from = getPositionIfValid(item.fromX, item.fromY),
+                to = getPositionIfValid(item.toX, item.toY),
+                path = item.swipePath,
+                waitBeforeMs = item.startOffset.takeIf { it > 0 },
+                waitAfterMs = item.waitAfterMs,
+            )
+            ActionType.CLICK -> Click(
+                id = Identifier(id = item.id, asTemporary = cleanIds),
+                eventId = Identifier(id = action.eventId, asTemporary = cleanIds),
+                name = item.name ?: "Click ${item.priority + 1}",
+                priority = item.priority,
+                pressDuration = item.duration ?: 50L,
+                positionType = item.clickPositionType?.let { Click.PositionType.valueOf(it.name) } ?: Click.PositionType.USER_SELECTED,
+                clickOnConditionId = item.clickOnConditionId?.let { Identifier(id = it, asTemporary = cleanIds) },
+                clickOffset = getPositionIfValid(item.clickOffsetX, item.clickOffsetY),
+                position = getPositionIfValid(item.fromX, item.fromY),
+                waitBeforeMs = item.startOffset.takeIf { it > 0 },
+                waitAfterMs = item.waitAfterMs,
+            )
+            else -> Swipe(
+                id = Identifier(id = item.id, asTemporary = cleanIds),
+                eventId = Identifier(id = action.eventId, asTemporary = cleanIds),
+                name = item.name ?: "Swipe ${item.priority + 1}",
+                priority = item.priority,
+                swipeDuration = item.duration,
+                from = getPositionIfValid(item.fromX, item.fromY),
+                to = getPositionIfValid(item.toX, item.toY),
+                path = item.swipePath,
+                waitBeforeMs = item.startOffset.takeIf { it > 0 },
+                waitAfterMs = item.waitAfterMs,
+            )
+        }
+    }
+)

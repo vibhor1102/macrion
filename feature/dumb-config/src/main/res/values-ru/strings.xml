@@ -43,7 +43,6 @@
     <string name="item_desc_dumb_click_on_position">Нажать в точке %1$d, %2$d</string>
     <string name="item_desc_dumb_pause">Приостановить выполнение</string>
     <string name="item_desc_dumb_pause_details">Длительность: %1$s</string>
-    <string name="item_desc_dumb_repeat_count">Всего повторений: %1$d</string>
     <string name="item_desc_dumb_repeat_infinite">Повторяется бесконечно</string>
     <string name="item_desc_dumb_swipe">Смахивать с одной позиции на экране до другой</string>
     <string name="item_desc_dumb_swipe_details">Движется %1$s из точки [%2$d, %3$d] 
@@ -105,4 +104,47 @@
     <string name="dialog_stop_confirmation_title">Остановить Macrion?</string>
     <string name="dialog_stop_confirmation_message">Текущий сценарий будет остановлен.</string>
     <string name="dialog_stop_confirmation_stop">Остановить</string>
+
+    <!-- Added Russian translations -->
+    <string name="action_type_zoom">Мультитач</string>
+    <string name="item_desc_dumb_zoom">Выполняйте два или более нажатия или смахивания одновременно.</string>
+    <string name="item_title_dumb_zoom">Мультитач</string>
+    <string name="action_combine_with_new_swipe">Объединить с новым смахиванием</string>
+    <string name="action_combine_with">Объединить с «%1$s»</string>
+    <string name="action_unsplit">Разделить на отдельные действия</string>
+    <string name="action_edit_gestures">Настроить жесты</string>
+    <string name="action_edit_stroke">Изменить: %1$s</string>
+    <string name="dialog_title_split_action">Мультитач</string>
+    <string name="split_action_touch_actions_header">Траектории касаний</string>
+    <string name="split_action_add_swipe">Добавить смахивание</string>
+    <string name="split_action_add_click">Добавить нажатие</string>
+    <string name="split_action_group_settings">Настройки мультитач</string>
+    <string name="split_action_check_group_settings">Проверить настройки мультитач</string>
+    <string name="split_action_click_coordinates">В точке %1$d, %2$d</string>
+    <string name="split_action_swipe_coordinates">От %1$d, %2$d до %3$d, %4$d</string>
+    <string name="split_action_unsplit">Разделить</string>
+    <string name="action_combine_with_new_click">Объединить с новым нажатием</string>
+    <string name="action_combine_with_existing">Объединить с существующим действием…</string>
+    <plurals name="combined_touch_count">
+        <item quantity="one">%1$d действие касания</item>
+        <item quantity="few">%1$d действия касания</item>
+        <item quantity="many">%1$d действий касания</item>
+        <item quantity="other">%1$d действия касания</item>
+    </plurals>
+
+    <plurals name="item_desc_dumb_repeat_count">
+        <item quantity="one">Повторить %1$d раз</item>
+        <item quantity="few">Повторить %1$d раза</item>
+        <item quantity="many">Повторить %1$d раз</item>
+        <item quantity="other">Повторить %1$d раза</item>
+    </plurals>
+
+
+    <string name="split_repeat_help">Повтор применяется ко всему жесту. Каждое касание выполняется один раз за повтор; при разделении восстанавливаются индивидуальные настройки повторов.</string>
+    <string name="split_action_position_not_set">Положение не задано</string>
+    <string name="split_discard_title">Отменить изменения?</string>
+    <string name="split_discard_message">Изменения этого жеста и его касаний не сохранены.</string>
+    <string name="split_discard_confirm">Отменить</string>
+    <string name="split_keep_editing">Продолжить редактирование</string>
+
 </resources>

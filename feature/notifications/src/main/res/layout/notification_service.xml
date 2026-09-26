@@ -61,7 +61,8 @@
         android:layout_width="36dp"
         android:layout_height="36dp"
         android:layout_marginHorizontal="8dp"
-        android:src="@drawable/ic_notification_play_arrow"/>
+        android:src="@drawable/ic_notification_play_arrow"
+        android:contentDescription="@string/notification_button_play" />
 
     <ImageButton
         android:id="@+id/button_show_hide"
@@ -69,6 +70,7 @@
         android:layout_width="36dp"
         android:layout_height="36dp"
         android:layout_marginStart="8dp"
-        android:src="@drawable/ic_notification_visible_on"/>
+        android:src="@drawable/ic_notification_visible_on"
+        android:contentDescription="@string/notification_button_show" />
 
 </LinearLayout>

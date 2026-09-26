@@ -50,12 +50,16 @@
     <string name="title_event_occurrence_filtered_empty">一致するイベントなし</string>
     <string name="desc_event_occurrence_filtered_empty">現在のフィルターに一致するタイムラインイベントはありません。</string>
     <string name="button_clear_timeline_filters">フィルターをクリア</string>
-    <string name="content_desc_timeline_filters_active">有効なタイムラインフィルターのカテゴリ：%1$d 件</string>
+    <plurals name="content_desc_timeline_filters_active">
+        <item quantity="other">有効なタイムラインフィルターのカテゴリ：%1$d 件</item>
+    </plurals>
     <string name="content_desc_timeline_fast_scroller">タイムラインの高速スクロール</string>
     <string name="item_event_occurrence_frame_number">フレーム #%1$d</string>
     <string name="item_event_occurrence_trigger">トリガー</string>
     <string name="item_event_occurrence_one_condition_fulfilled">成立：%1$s</string>
-    <string name="item_event_occurrence_several_condition_processed">条件を %1$d 件処理</string>
+    <plurals name="item_event_occurrence_several_condition_processed">
+        <item quantity="other">%1$d 件の条件を処理</item>
+    </plurals>
     <string name="item_event_occurrence_detecting_label">検出</string>
     <string name="item_event_occurrence_actions_label">アクション</string>
     <string name="item_event_occurrence_detected_at">検出時刻 %1$s</string>
@@ -87,7 +91,9 @@
     <string name="field_debug_filter_trigger_events_show_desc_on">タイムラインにトリガー イベントの発生を表示する</string>
     <string name="field_debug_filter_trigger_events_show_desc_off">タイムラインのトリガー イベントの発生をすべて非表示にする</string>
     <string name="field_debug_filter_events_show_title">フィルター</string>
-    <string name="field_debug_filter_events_show_select_desc">%1$d 件のイベント</string>
+    <plurals name="field_debug_filter_events_show_select_desc">
+        <item quantity="other">%1$d 件のイベント</item>
+    </plurals>
     <string name="field_debug_filter_events_show_select_desc_none">イベントなし</string>
     <string name="content_desc_condition_preview">条件プレビュー</string>
     <string name="content_desc_close_condition_preview">プレビューを閉じる</string>

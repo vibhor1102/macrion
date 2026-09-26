@@ -24,4 +24,23 @@
     <string name="dialog_reorder_discard_title">Ignorare le modifiche?</string>
     <string name="dialog_reorder_discard_message">Ci sono modifiche non salvate. Sei sicuro di volerle ignorare?</string>
     <string name="dialog_reorder_discard_confirm">Ignora</string>
+    <string name="swipe_position_record">Registra gesto</string>
+    <string name="swipe_position_drag_instruction">Trascina Inizio o Fine per regolare lo scorrimento</string>
+    <string name="swipe_position_drag_node_instruction">Trascina un punto qualsiasi per regolare lo scorrimento</string>
+    <string name="swipe_position_record_instruction">Disegna un gesto di scorrimento per impostare entrambe le posizioni</string>
+    <string name="swipe_position_short_gesture">Disegna un gesto di scorrimento per impostare entrambe le posizioni</string>
+    <string name="swipe_position_multi_touch">Un gesto di scorrimento usa un dito. Crea un’azione Multi-touch per usare più dita.</string>
+    <string name="swipe_position_record_failed">Impossibile registrare il gesto di scorrimento. Riprova.</string>
+    <string name="swipe_position_start">Inizio</string>
+    <string name="swipe_position_end">Fine</string>
+    <string name="swipe_position_node">Punto %1$d</string>
+    <string name="swipe_position_move_left">Sposta %1$s a sinistra</string>
+    <string name="swipe_position_move_right">Sposta %1$s a destra</string>
+    <string name="swipe_position_move_up">Sposta %1$s in alto</string>
+    <string name="swipe_position_move_down">Sposta %1$s in basso</string>
+    <string name="brief_handle_moved_click">Posizione del clic spostata</string>
+    <string name="brief_handle_moved_swipe_start">Inizio dello scorrimento spostato</string>
+    <string name="brief_handle_moved_swipe_node">Punto dello scorrimento spostato</string>
+    <string name="brief_handle_moved_swipe_end">Fine dello scorrimento spostata</string>
+    <string name="brief_handle_undo">Annulla</string>
 </resources>

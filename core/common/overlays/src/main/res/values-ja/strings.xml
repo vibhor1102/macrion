@@ -8,4 +8,23 @@
     <string name="dialog_reorder_discard_title">変更を破棄しますか？</string>
     <string name="dialog_reorder_discard_message">保存されていない変更があります。破棄してもよろしいですか？</string>
     <string name="dialog_reorder_discard_confirm">破棄</string>
+    <string name="swipe_position_record">ジェスチャを記録</string>
+    <string name="swipe_position_drag_instruction">開始点または終了点をドラッグしてスワイプを調整します</string>
+    <string name="swipe_position_drag_node_instruction">ハンドルをドラッグしてスワイプを調整します</string>
+    <string name="swipe_position_record_instruction">1 回スワイプして開始位置と終了位置を設定します</string>
+    <string name="swipe_position_short_gesture">スワイプして開始位置と終了位置を設定します</string>
+    <string name="swipe_position_multi_touch">スワイプで使える指は 1 本です。複数の指を使うにはマルチタッチ操作を作成してください。</string>
+    <string name="swipe_position_record_failed">スワイプを記録できませんでした。もう一度お試しください。</string>
+    <string name="swipe_position_start">開始</string>
+    <string name="swipe_position_end">終了</string>
+    <string name="swipe_position_node">ポイント %1$d</string>
+    <string name="swipe_position_move_left">%1$s を左へ移動</string>
+    <string name="swipe_position_move_right">%1$s を右へ移動</string>
+    <string name="swipe_position_move_up">%1$s を上へ移動</string>
+    <string name="swipe_position_move_down">%1$s を下へ移動</string>
+    <string name="brief_handle_moved_click">タップ位置を移動しました</string>
+    <string name="brief_handle_moved_swipe_start">スワイプの開始位置を移動しました</string>
+    <string name="brief_handle_moved_swipe_node">スワイプのポイントを移動しました</string>
+    <string name="brief_handle_moved_swipe_end">スワイプの終了位置を移動しました</string>
+    <string name="brief_handle_undo">元に戻す</string>
 </resources>

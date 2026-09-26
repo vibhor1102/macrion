@@ -13,6 +13,8 @@ import android.graphics.Bitmap
 import android.graphics.PointF
 import android.graphics.Rect
 import android.graphics.drawable.Drawable
+import io.github.vibhor1102.macrion.core.base.gesture.SwipePath
+import io.github.vibhor1102.macrion.core.base.gesture.SwipePoint
 import androidx.annotation.ColorInt
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.ItemBriefDescription
 
@@ -24,12 +26,17 @@ data class ClickDescription(
     val pressDurationMs: Long = MINIMAL_CLICK_ANIMATION_DURATION_MS,
     val position: PointF? = null,
     val imageConditionBitmap: Bitmap? = null,
+    val startOffsetMs: Long = 0L,
 ) : ItemBriefDescription
 
 data class SwipeDescription(
     val swipeDurationMs: Long = MINIMAL_SWIPE_ANIMATION_DURATION_MS,
     val from: PointF? = null,
     val to: PointF? = null,
+    val startOffsetMs: Long = 0L,
+    val path: SwipePath? = null,
+    /** Transient recording preview, never persisted in an action. */
+    val previewTrace: List<SwipePoint>? = null,
 ) : ItemBriefDescription
 
 data class PauseDescription(
@@ -61,4 +68,22 @@ data class TextConditionDescription(
 
 data class DefaultDescription(
     val icon: Drawable? = null,
+) : ItemBriefDescription
+
+data class SplitDescription(
+    val subDescriptions: List<ItemBriefDescription> = emptyList(),
+    /** Original child indexes when a preview omits children without fixed screen positions. */
+    val sourceIndices: List<Int> = subDescriptions.indices.toList(),
+) : ItemBriefDescription
+
+/** Screen positions belonging to cards in an action carousel. [order] is the card's 1-based index. */
+data class NumberedActionPreview(
+    val order: Int,
+    val description: ItemBriefDescription,
+)
+
+data class ActionCarouselDescription(
+    val previews: List<NumberedActionPreview>,
+    val focusedOrder: Int,
+    val focusedFallback: ItemBriefDescription? = null,
 ) : ItemBriefDescription

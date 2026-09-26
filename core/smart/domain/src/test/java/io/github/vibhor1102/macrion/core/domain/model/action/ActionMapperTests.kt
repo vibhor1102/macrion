@@ -192,4 +192,52 @@ class ActionMapperTests {
             ActionTestsData.getNewExternalActionEntity(eventId = ActionTestsData.ACTION_EVENT_ID).toDomain(),
         )
     }
+
+    @Test
+    fun playSound_toEntity() {
+        assertEquals(
+            ActionTestsData.getNewPlaySoundEntity(eventId = ActionTestsData.ACTION_EVENT_ID).action,
+            ActionTestsData.getNewPlaySound(eventId = ActionTestsData.ACTION_EVENT_ID).toEntity(),
+        )
+    }
+
+    @Test
+    fun playSound_toDomain() {
+        assertEquals(
+            ActionTestsData.getNewPlaySound(eventId = ActionTestsData.ACTION_EVENT_ID),
+            ActionTestsData.getNewPlaySoundEntity(eventId = ActionTestsData.ACTION_EVENT_ID).toDomain(),
+        )
+    }
+
+    @Test
+    fun captureScreenshot_toEntity() {
+        assertEquals(
+            ActionTestsData.getNewCaptureScreenshotEntity(eventId = ActionTestsData.ACTION_EVENT_ID).action,
+            ActionTestsData.getNewCaptureScreenshot(eventId = ActionTestsData.ACTION_EVENT_ID).toEntity(),
+        )
+    }
+
+    @Test
+    fun captureScreenshot_toDomain() {
+        assertEquals(
+            ActionTestsData.getNewCaptureScreenshot(eventId = ActionTestsData.ACTION_EVENT_ID),
+            ActionTestsData.getNewCaptureScreenshotEntity(eventId = ActionTestsData.ACTION_EVENT_ID).toDomain(),
+        )
+    }
+
+    @Test
+    fun splitAction_toEntity() {
+        assertEquals(
+            ActionTestsData.getNewSplitActionEntity(eventId = ActionTestsData.ACTION_EVENT_ID).action,
+            ActionTestsData.getNewSplitAction(eventId = ActionTestsData.ACTION_EVENT_ID).toEntity(),
+        )
+    }
+
+    @Test
+    fun splitAction_toDomain() {
+        assertEquals(
+            ActionTestsData.getNewSplitAction(eventId = ActionTestsData.ACTION_EVENT_ID),
+            ActionTestsData.getNewSplitActionEntity(eventId = ActionTestsData.ACTION_EVENT_ID).toDomain(),
+        )
+    }
 }

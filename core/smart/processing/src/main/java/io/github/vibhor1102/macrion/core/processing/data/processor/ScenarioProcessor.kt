@@ -59,6 +59,7 @@ internal class ScenarioProcessor(
     androidExecutor: AndroidActionExecutor,
     unblockWorkaroundEnabled: Boolean = false,
     private val onStopRequested: () -> Unit,
+    private val onScreenshotRateLimitExceeded: (() -> Unit)? = null,
     private val progressListener: SmartProcessingListener?,
     private val debugReportTimingListener: DebugReportTimingListener? = null,
     private val reportSessionStartNs: Long? = null,
@@ -87,6 +88,7 @@ internal class ScenarioProcessor(
         processingState = processingState,
         randomize = randomize,
         unblockWorkaroundEnabled = unblockWorkaroundEnabled,
+        onScreenshotRateLimitExceeded = onScreenshotRateLimitExceeded,
     )
 
     fun onScenarioStart(context: Context) {
@@ -152,7 +154,9 @@ internal class ScenarioProcessor(
 
             progressListener?.onEventProcessingCompleted(triggerEvent, results.fulfilled == true, results.getAllTriggerConditionsResults())
             if (results.fulfilled  == true) {
-                actionExecutor.executeActions(triggerEvent, results)
+                val executed = actionExecutor.executeActions(triggerEvent, results)
+                if (!executed) break
+                processingState.invalidateConditionResults(triggerEvent.conditions.map { it.getValidId() })
                 progressListener?.onEventActionsExecuted(
                     event = triggerEvent,
                     results = results.getAllTriggerConditionsResults(),
@@ -187,8 +191,10 @@ internal class ScenarioProcessor(
 
                 progressListener?.onEventProcessingCompleted(screenEvent, results.fulfilled == true, results.getAllScreenConditionsResults())
                 if (results.fulfilled == true) {
-                    actionExecutor.executeActions(screenEvent, results)
+                    val executed = actionExecutor.executeActions(screenEvent, results)
+                    if (!executed) break
                     processingState.startCooldownIfNeeded(screenEvent)
+                    processingState.invalidateConditionResults(screenEvent.conditions.map { it.getValidId() })
                     progressListener?.onEventActionsExecuted(
                         event = screenEvent,
                         results = results.getAllScreenConditionsResults(),

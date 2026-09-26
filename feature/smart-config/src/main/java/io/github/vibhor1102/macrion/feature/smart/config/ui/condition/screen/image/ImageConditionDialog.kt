@@ -72,27 +72,27 @@ class ImageConditionDialog(private val listener: OnConditionConfigCompleteListen
     }
 
     @Composable private fun Content() {
-        val initialName by viewModel.name.collectAsStateWithLifecycle(null)
-        val nameError by viewModel.nameError.collectAsStateWithLifecycle(false)
-        val bitmap by viewModel.conditionBitmap.collectAsStateWithLifecycle(null)
-        val visible by viewModel.shouldBeDetected.collectAsStateWithLifecycle(false)
-        val detection by viewModel.detectionType.collectAsStateWithLifecycle(null)
-        val threshold by viewModel.threshold.collectAsStateWithLifecycle(0)
-        val saveEnabled by viewModel.conditionCanBeSaved.collectAsStateWithLifecycle(false)
-        var name by rememberSaveable { mutableStateOf("") }
-        LaunchedEffect(initialName) { initialName?.let { name = it } }
+        val state by viewModel.uiState.collectAsStateWithLifecycle()
+        val ui = state ?: return
+        var name by rememberSaveable(ui.id) { mutableStateOf(ui.name) }
         Surface(
             shape = OverlayDialogShape,
             modifier = Modifier.fillMaxWidth().heightIn(max = 600.dp), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
             Column {
-                TopBar(saveEnabled)
+                TopBar(ui.canBeSaved)
                 Column(Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState())
                     .padding(horizontal = 16.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     MacrionTextField(name, { name = it; viewModel.setName(it) }, context.getString(R.string.generic_name),
-                        isError = nameError, maxLength = context.resources.getInteger(R.integer.name_max_length))
-                    PreviewCard(bitmap, visible)
-                    detection?.let { DetectionCard(it) }
-                    ThresholdCard(threshold)
+                        isError = ui.nameError, maxLength = context.resources.getInteger(R.integer.name_max_length))
+                    PreviewCard(ui.bitmap, ui.shouldBeDetected)
+                    DetectionCard(ui.detectionType)
+                    ThresholdCard(ui.threshold)
+                    io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.component.ConditionExecutionLimiterCard(
+                        state = ui.computeRateState,
+                        onToggle = viewModel::toggleLimiter,
+                        onRateChanged = viewModel::setComputeRate,
+                        onUnitChanged = viewModel::setComputeRateUnit,
+                    )
                 }
             }
         }

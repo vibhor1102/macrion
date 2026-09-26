@@ -45,4 +45,44 @@
     <string name="content_desc_go_back">前のダイアログに戻ります</string>
     <string name="content_desc_tuck_toolbar">ツールバーを画面端に収納</string>
     <string name="content_desc_expand_toolbar">ツールバーを展開</string>
+    <string name="field_delays_title">遅延（任意）</string>
+    <string name="field_wait_before_title">前（ミリ秒）</string>
+    <string name="field_wait_after_title">後（ミリ秒）</string>
+    <string name="field_wait_before_summary">前：%1$s ミリ秒</string>
+    <string name="field_wait_after_summary">後：%1$s ミリ秒</string>
+    <string name="field_delays_expanded">展開済み</string>
+    <string name="field_delays_collapsed">折りたたみ済み</string>
+    <string name="field_delays_check_values">遅延の値を確認してください</string>
+    <string name="field_delay_range_error">0～%1$d ミリ秒を入力してください</string>
+    <string name="field_delay_number_error">有効な遅延時間をミリ秒で入力してください</string>
+    <string name="action_editor_more_options">その他の操作オプション</string>
+    <string name="action_combine_choose_existing">操作を選択</string>
+    <string name="action_combine_choose_help">同時に実行するタップ、スワイプ、またはマルチタッチ操作を選択してください。保存すると元の操作は置き換えられます。</string>
+    <string name="multi_touch_brief_default_name">マルチタッチ</string>
+    <string name="multi_touch_brief_tap">タップ</string>
+    <string name="multi_touch_brief_swipe">スワイプ</string>
+    <string name="multi_touch_brief_touch">タッチ</string>
+    <string name="multi_touch_brief_needs_setup">設定が必要</string>
+    <string name="multi_touch_add_touch">タッチを追加</string>
+    <string name="multi_touch_rename_touch">タッチ %1$d の名前を変更</string>
+    <string name="multi_touch_done_renaming">タッチ %1$d の名前変更を完了</string>
+    <string name="multi_touch_touch_description">%2$d 個中 %1$d 個目のタッチ：%3$s</string>
+    <string name="action_editor_delete_this_click">このタップを削除</string>
+    <string name="action_editor_delete_this_swipe">このスワイプを削除</string>
+    <string name="action_editor_delete_this_action">この操作を削除</string>
+    <string name="action_editor_delete_multi_touch">マルチタッチを削除</string>
+    <string name="action_editor_save_multi_touch">マルチタッチを保存</string>
+    <string name="action_editor_close_multi_touch">マルチタッチを閉じる</string>
+    <string name="multi_touch_brief_no_touches">タッチが設定されていません</string>
+    <plurals name="multi_touch_brief_click_count">
+        <item quantity="other">タップ %d 回</item>
+    </plurals>
+    <plurals name="multi_touch_brief_swipe_count">
+        <item quantity="other">スワイプ %d 回</item>
+    </plurals>
+    <plurals name="multi_touch_brief_setup_count">
+        <item quantity="other">%d 件の設定が必要</item>
+    </plurals>
+    <string name="condition_operator_and">かつ</string>
+    <string name="condition_operator_or">または</string>
 </resources>

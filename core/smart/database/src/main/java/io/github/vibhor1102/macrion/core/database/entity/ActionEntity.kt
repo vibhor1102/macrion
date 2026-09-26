@@ -18,6 +18,8 @@
 package io.github.vibhor1102.macrion.core.database.entity
 
 import androidx.room.*
+import io.github.vibhor1102.macrion.core.base.gesture.SwipePath
+import io.github.vibhor1102.macrion.core.base.gesture.SwipePathRoomConverter
 
 import io.github.vibhor1102.macrion.core.base.interfaces.EntityWithId
 import io.github.vibhor1102.macrion.core.database.ACTION_TABLE
@@ -91,6 +93,11 @@ import kotlinx.serialization.Serializable
  * @param textValidateInput [ActionType.TEXT] only: the type of system action to execute.
  *
  * @param externalActionName [ActionType.EXTERNAL_ACTION] only: the global name fired to automation plugins.
+ *
+ * @param soundUri [ActionType.PLAY_SOUND] only: the URI of the sound to play.
+ * @param soundTitle [ActionType.PLAY_SOUND] only: the user-visible title of the sound.
+ * @param screenshotFolderUri [ActionType.CAPTURE_SCREENSHOT] only: the optional custom folder URI for screenshots.
+ * @param screenshotFolderName [ActionType.CAPTURE_SCREENSHOT] only: the user-visible display name of the custom folder.
  */
 @Entity(
     tableName = ACTION_TABLE,
@@ -110,6 +117,7 @@ import kotlinx.serialization.Serializable
         ),
     ]
 )
+@TypeConverters(SwipePathRoomConverter::class)
 @Serializable
 data class ActionEntity(
     @PrimaryKey(autoGenerate = true) override var id: Long,
@@ -133,6 +141,7 @@ data class ActionEntity(
     @ColumnInfo(name = "toX") val toX: Int? = null,
     @ColumnInfo(name = "toY") val toY: Int? = null,
     @ColumnInfo(name = "swipeDuration") val swipeDuration: Long? = null,
+    @ColumnInfo(name = "swipe_path") val swipePath: SwipePath? = null,
 
     // ActionType.PAUSE
     @ColumnInfo(name = "pauseDuration") val pauseDuration: Long? = null,
@@ -168,6 +177,18 @@ data class ActionEntity(
 
     // ActionType.EXTERNAL_ACTION
     @ColumnInfo(name = "external_action_name") val externalActionName: String? = null,
+
+    // ActionType.PLAY_SOUND
+    @ColumnInfo(name = "sound_uri") val soundUri: String? = null,
+    @ColumnInfo(name = "sound_title") val soundTitle: String? = null,
+
+    // ActionType.CAPTURE_SCREENSHOT
+    @ColumnInfo(name = "screenshot_folder_uri") val screenshotFolderUri: String? = null,
+    @ColumnInfo(name = "screenshot_folder_name") val screenshotFolderName: String? = null,
+
+    // Delays (Optional)
+    @ColumnInfo(name = "wait_before_ms") val waitBeforeMs: Long? = null,
+    @ColumnInfo(name = "wait_after_ms") val waitAfterMs: Long? = null,
 ) : EntityWithId
 
 /**
@@ -183,10 +204,15 @@ data class CompleteActionEntity(
         parentColumn = "id",
         entityColumn = "action_id"
     )
-    val intentExtras: List<IntentExtraEntity>,
+    val intentExtras: List<IntentExtraEntity> = emptyList(),
     @Relation(
         parentColumn = "id",
         entityColumn = "action_id"
     )
-    val eventsToggle: List<EventToggleEntity>,
+    val eventsToggle: List<EventToggleEntity> = emptyList(),
+    @Relation(
+        parentColumn = "id",
+        entityColumn = "action_id"
+    )
+    val splitItems: List<SplitActionItemEntity> = emptyList(),
 )

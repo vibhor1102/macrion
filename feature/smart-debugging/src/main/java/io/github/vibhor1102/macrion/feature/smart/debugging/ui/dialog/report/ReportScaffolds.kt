@@ -32,6 +32,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -145,7 +146,7 @@ internal fun ReportFastScroller(
     var dragging by remember { mutableStateOf(false) }
     var draggedThumbTop by remember { mutableFloatStateOf(0f) }
     var thumbVisible by remember { mutableStateOf(true) }
-    val layoutInfo = state.layoutInfo
+    val layoutInfo by remember(state) { derivedStateOf { state.layoutInfo } }
     val itemCount = layoutInfo.totalItemsCount
     val visibleCount = layoutInfo.visibleItemsInfo.size
     val trackColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f)
@@ -179,8 +180,12 @@ internal fun ReportFastScroller(
         availableHeight * viewportHeight / estimatedRange,
     ).coerceAtMost(availableHeight)
     val thumbTravel = (availableHeight - thumbHeight).coerceAtLeast(1f)
-    val currentOffset = (state.firstVisibleItemIndex * averageItemHeight + state.firstVisibleItemScrollOffset)
-        .coerceIn(0f, scrollableRange)
+    val currentOffset by remember(state, averageItemHeight, scrollableRange) {
+        derivedStateOf {
+            (state.firstVisibleItemIndex * averageItemHeight + state.firstVisibleItemScrollOffset)
+                .coerceIn(0f, scrollableRange)
+        }
+    }
     val thumbTop = marginPx + thumbTravel * currentOffset / scrollableRange
     // The list's pixel offset is necessarily estimated for variable-height rows.  While
     // dragging, retain the exact thumb position separately so that estimate changes can't

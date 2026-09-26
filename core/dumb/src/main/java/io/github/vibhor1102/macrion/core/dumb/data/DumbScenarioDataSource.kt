@@ -30,6 +30,7 @@ import io.github.vibhor1102.macrion.core.dumb.domain.model.DumbAction
 import io.github.vibhor1102.macrion.core.dumb.domain.model.DumbScenario
 import io.github.vibhor1102.macrion.core.dumb.domain.model.toDomain
 import io.github.vibhor1102.macrion.core.dumb.domain.model.toEntity
+import io.github.vibhor1102.macrion.core.dumb.domain.model.toSplitItemEntity
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -88,7 +89,7 @@ class DumbScenarioDataSource @Inject constructor(
                 )
             )
 
-            dumbScenarioDao.addDumbActions(
+            val actionIds = dumbScenarioDao.addDumbActions(
                 scenarioWithActions.dumbActions.map { dumbAction ->
                     dumbAction.copy(
                         id = DATABASE_ID_INSERTION,
@@ -96,6 +97,18 @@ class DumbScenarioDataSource @Inject constructor(
                     )
                 }
             )
+
+            val newActionIdsByOriginalId = scenarioWithActions.dumbActions.map { it.id }.zip(actionIds).toMap()
+            scenarioWithActions.dumbActionsWithSubActions.forEach { actionWithSub ->
+                if (actionWithSub.splitItems.isNotEmpty()) {
+                    val newActionId = newActionIdsByOriginalId[actionWithSub.action.id] ?: return@forEach
+                    dumbScenarioDao.addSplitActionItems(
+                        actionWithSub.splitItems.map { item ->
+                            item.copy(id = DATABASE_ID_INSERTION, actionId = newActionId)
+                        }
+                    )
+                }
+            }
 
             scenarioId
         } catch (ex: Exception) {
@@ -141,12 +154,36 @@ class DumbScenarioDataSource @Inject constructor(
             mappingClosure = { action -> action.toEntity(scenarioDbId = scenarioDbId) }
         )
 
-        Log.d(TAG, "Dumb actions updater: $dumbActionsUpdater")
+        Log.d(TAG, "Dumb actions updater: $updater")
 
         updater.executeUpdate(
             addList = dumbScenarioDao::addDumbActions,
             updateList = dumbScenarioDao::updateDumbActions,
             removeList = dumbScenarioDao::deleteDumbActions,
+        )
+
+        val currentDbActions = dumbScenarioDao.getDumbActions(scenarioDbId)
+        actions.filterIsInstance<DumbAction.DumbSplitAction>().forEach { splitAction ->
+            val matchingEntity = currentDbActions.find { it.priority == splitAction.priority && it.type == io.github.vibhor1102.macrion.core.dumb.data.database.DumbActionType.SPLIT_ACTION }
+                ?: return@forEach
+            updateDumbSplitActionItems(matchingEntity.id, splitAction.subActions)
+        }
+    }
+
+    private suspend fun updateDumbSplitActionItems(actionDbId: Long, newSubActions: List<DumbAction>) {
+        val updater = DatabaseListUpdater<DumbAction, io.github.vibhor1102.macrion.core.dumb.data.database.DumbSplitActionItemEntity>()
+        updater.refreshUpdateValues(
+            currentEntities = dumbScenarioDao.getSplitActionItems(actionDbId),
+            newItems = newSubActions,
+            mappingClosure = { item ->
+                val priority = newSubActions.indexOf(item)
+                item.toSplitItemEntity(actionDbId, priority)
+            }
+        )
+        updater.executeUpdate(
+            addList = dumbScenarioDao::addSplitActionItems,
+            updateList = dumbScenarioDao::updateSplitActionItems,
+            removeList = dumbScenarioDao::deleteSplitActionItems,
         )
     }
 

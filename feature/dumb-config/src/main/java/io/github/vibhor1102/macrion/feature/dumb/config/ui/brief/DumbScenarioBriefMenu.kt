@@ -32,6 +32,7 @@ import io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.bri
 import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.MoveToDialog
 import io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.brief.ItemBrief
+import io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.brief.BriefHandleMove
 import io.github.vibhor1102.macrion.core.dumb.domain.model.DumbAction
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.ItemBriefDescription
 import io.github.vibhor1102.macrion.feature.dumb.config.R
@@ -39,6 +40,7 @@ import io.github.vibhor1102.macrion.feature.dumb.config.di.DumbConfigViewModelsE
 import io.github.vibhor1102.macrion.feature.dumb.config.ui.createDumbBriefOverlayToolbar
 import io.github.vibhor1102.macrion.feature.dumb.config.ui.actions.DumbActionCreator
 import io.github.vibhor1102.macrion.feature.dumb.config.ui.actions.DumbActionUiFlowListener
+import io.github.vibhor1102.macrion.feature.dumb.config.ui.actions.DumbCombinationOptions
 import io.github.vibhor1102.macrion.feature.dumb.config.ui.actions.startDumbActionCreationUiFlow
 import io.github.vibhor1102.macrion.feature.dumb.config.ui.actions.startDumbActionEditionUiFlow
 import io.github.vibhor1102.macrion.feature.dumb.config.ui.actions.copy.DumbActionDetails
@@ -56,6 +58,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
 
 class DumbScenarioBriefMenu(
@@ -72,6 +76,8 @@ class DumbScenarioBriefMenu(
     )
 
     private lateinit var menuView: ViewGroup
+    private var isRecording = false
+    private var isReplaying = false
     private val backButton get() = menuView.findOverlayView<View>(R.id.btn_back)
     private val recordButton get() = menuView.findOverlayView<View>(R.id.btn_record)
     private val addButton get() = menuView.findOverlayView<View>(R.id.btn_add)
@@ -105,17 +111,42 @@ class DumbScenarioBriefMenu(
             createNewDumbClick = { position -> viewModel.createNewDumbClick(context, position) },
             createNewDumbSwipe = { from, to -> viewModel.createNewDumbSwipe(context, from, to) },
             createNewDumbPause = { viewModel.createNewDumbPause(context) },
+            createNewDumbZoomInOut = { viewModel.createNewDumbZoomInOut(context) },
             createDumbActionCopy = viewModel::createDumbActionCopy,
         )
         createCopyActionUiFlowListener = DumbActionUiFlowListener(
             onDumbActionSaved = { action -> viewModel.addNewDumbAction(action, getFocusedItemIndex() + 1) },
             onDumbActionDeleted = {},
             onDumbActionCreationCancelled = {},
+            onDumbActionUnsplit = { split -> viewModel.unsplitAction(split) },
         )
         updateActionUiFlowListener = DumbActionUiFlowListener(
             onDumbActionSaved = viewModel::updateDumbAction,
             onDumbActionDeleted = viewModel::deleteDumbAction,
             onDumbActionCreationCancelled = {},
+            onDumbActionUnsplit = { split -> viewModel.unsplitAction(split) },
+            combinationOptionsFor = { source ->
+                viewModel.combinableActionsFor(source)?.let { others ->
+                    DumbCombinationOptions(
+                        existingActions = others,
+                        onNewClick = { draft ->
+                            viewModel.combineWithNewClick(draft)?.let {
+                                showCombinationEditor(it, setOf(draft.id))
+                            }
+                        },
+                        onNewSwipe = { draft ->
+                            viewModel.combineWithNewSwipe(draft)?.let {
+                                showCombinationEditor(it, setOf(draft.id))
+                            }
+                        },
+                        onExisting = { draft, other ->
+                            viewModel.combineActions(draft, other)?.let {
+                                showCombinationEditor(it, setOf(draft.id, other.id))
+                            }
+                        },
+                    )
+                }
+            },
         )
 
         menuView = createDumbBriefOverlayToolbar(context)
@@ -124,7 +155,12 @@ class DumbScenarioBriefMenu(
 
     @androidx.compose.runtime.Composable
     override fun ItemBriefContent(item: ItemBrief, orientation: Int, onClick: () -> Unit) {
-        DumbActionBriefItem(item.data as DumbActionDetails, orientation, onClick)
+        val details = item.data as DumbActionDetails
+        DumbActionBriefItem(
+            details = details,
+            orientation = orientation,
+            onClick = onClick,
+        )
     }
 
     override fun onScreenOverlayVisibilityChanged(isVisible: Boolean) {
@@ -177,6 +213,9 @@ class DumbScenarioBriefMenu(
     override fun onDeleteItemClicked(index: Int) {
         viewModel.deleteDumbAction(index)
     }
+
+    override fun onHandleMoved(move: BriefHandleMove): (() -> Boolean)? =
+        viewModel.moveHandle(move)
 
     override fun onPlayItemClicked(index: Int) {
         updateReplayingState(true)
@@ -269,6 +308,8 @@ class DumbScenarioBriefMenu(
     }
 
     private fun updateRecordingState(isRecording: Boolean) {
+        this.isRecording = isRecording
+        briefViewBinding.setHandleEditingEnabled(!isRecording && !isReplaying)
         if (isRecording) {
             setMenuItemViewEnabled(backButton, true)
             setMenuItemViewEnabled(addButton, false)
@@ -285,6 +326,8 @@ class DumbScenarioBriefMenu(
     }
 
     private fun updateReplayingState(isReplaying: Boolean) {
+        this.isReplaying = isReplaying
+        briefViewBinding.setHandleEditingEnabled(!isRecording && !isReplaying)
         setOverlayViewVisibility(!isReplaying && isUserOverlayVisible)
         setMenuItemViewEnabled(backButton, true)
         setMenuItemViewEnabled(addButton, !isReplaying)
@@ -300,11 +343,24 @@ class DumbScenarioBriefMenu(
             listener = createCopyActionUiFlowListener,
         )
 
+    private fun showCombinationEditor(
+        split: DumbAction.DumbSplitAction,
+        sourceIds: Set<io.github.vibhor1102.macrion.core.base.identifier.Identifier>,
+    ) {
+        overlayManager.startDumbActionEditionUiFlow(context, split, DumbActionUiFlowListener(
+            onDumbActionSaved = { viewModel.saveCombination(it as DumbAction.DumbSplitAction, sourceIds) },
+            onDumbActionDeleted = {},
+            onDumbActionCreationCancelled = {},
+            closeSourceEditorOnSave = true,
+        ))
+    }
+
     private fun showDumbActionEditionUiFlow(action: DumbAction): Unit =
         overlayManager.startDumbActionEditionUiFlow(
             context = context,
             dumbAction = action,
             listener = updateActionUiFlowListener,
         )
+
 
 }

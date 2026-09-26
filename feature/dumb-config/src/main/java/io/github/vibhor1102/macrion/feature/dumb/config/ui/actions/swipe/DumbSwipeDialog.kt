@@ -15,17 +15,25 @@ import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayDialog
 import io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.PositionSelectorMenu
 import io.github.vibhor1102.macrion.core.dumb.domain.model.DumbAction
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionGestureEditor
+import io.github.vibhor1102.macrion.core.ui.compose.ExistingActionPicker
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.SwipeDescription
 import io.github.vibhor1102.macrion.feature.dumb.config.R
 import io.github.vibhor1102.macrion.feature.dumb.config.di.DumbConfigViewModelsEntryPoint
+import io.github.vibhor1102.macrion.feature.dumb.config.ui.actions.DumbCombinationOptions
+import io.github.vibhor1102.macrion.feature.dumb.config.ui.actions.DumbActionHeaderMenu
+import io.github.vibhor1102.macrion.feature.dumb.config.ui.actions.toPickerOptions
 
 class DumbSwipeDialog(
     private val dumbSwipe: DumbAction.DumbSwipe,
     private val onConfirmClicked: (DumbAction.DumbSwipe) -> Unit,
     private val onDeleteClicked: (DumbAction.DumbSwipe) -> Unit,
     private val onDismissClicked: () -> Unit,
+    private val isCombinedChild: Boolean = false,
+    private val canDelete: Boolean = true,
+    private val combinationOptions: DumbCombinationOptions? = null,
 ) : OverlayDialog(R.style.AppTheme) {
+    private var showingExistingPicker by mutableStateOf(false)
     private val viewModel: DumbSwipeViewModel by viewModels(
         entryPoint = DumbConfigViewModelsEntryPoint::class.java,
         creator = { dumbSwipeViewModel() },
@@ -40,21 +48,47 @@ class DumbSwipeDialog(
     }
 
 @Composable private fun Content() {
+        if (showingExistingPicker) {
+            ExistingActionPicker(combinationOptions?.existingActions.orEmpty().toPickerOptions(),
+                onBack = { showingExistingPicker = false }) { other ->
+                val source = viewModel.getEditedDumbSwipe() ?: return@ExistingActionPicker
+                combinationOptions?.onExisting?.invoke(source, other)
+            }
+            return
+        }
         val initialName by viewModel.name.collectAsStateWithLifecycle(initialValue = null)
         val initialDuration by viewModel.swipeDuration.collectAsStateWithLifecycle(initialValue = null)
         val initialCount by viewModel.repeatCount.collectAsStateWithLifecycle(initialValue = null)
         val initialDelay by viewModel.repeatDelay.collectAsStateWithLifecycle(initialValue = null)
+        val initialWaitBefore by viewModel.waitBefore.collectAsStateWithLifecycle(initialValue = null)
+        val initialWaitAfter by viewModel.waitAfter.collectAsStateWithLifecycle(initialValue = null)
         var name by remember { mutableStateOf("") }
         var duration by remember { mutableStateOf("") }
         var count by remember { mutableStateOf("") }
         var delay by remember { mutableStateOf("") }
+        var waitBefore by remember { mutableStateOf("") }
+        var waitAfter by remember { mutableStateOf("") }
         LaunchedEffect(initialName) { initialName?.let { name = it } }
         LaunchedEffect(initialDuration) { initialDuration?.let { duration = it } }
         LaunchedEffect(initialCount) { initialCount?.let { count = it } }
         LaunchedEffect(initialDelay) { initialDelay?.let { delay = it } }
+        LaunchedEffect(initialWaitBefore) { initialWaitBefore?.let { waitBefore = it } }
+        LaunchedEffect(initialWaitAfter) { initialWaitAfter?.let { waitAfter = it } }
         MacrionGestureEditor(
+            headerActions = combinationOptions?.let { options ->
+                { DumbActionHeaderMenu(
+                    showNewOptions = true,
+                    canAdd = true,
+                    canCombineExisting = options.existingActions.isNotEmpty(),
+                    onNewClick = { viewModel.getEditedDumbSwipe()?.let(options.onNewClick) },
+                    onNewSwipe = { viewModel.getEditedDumbSwipe()?.let(options.onNewSwipe) },
+                    onExisting = { showingExistingPicker = true },
+                ) }
+            },
+            deleteEnabled = canDelete,
             title = context.getString(R.string.item_title_dumb_swipe), name = name, duration = duration,
             repeatCount = count, repeatDelay = delay,
+            showRepetition = !isCombinedChild,
             positionTitle = context.getString(R.string.field_swipe_positions_title),
             positionDescription = viewModel.swipePositionText.collectAsStateWithLifecycle("").value,
             nameLabel = context.getString(R.string.input_field_label_name),
@@ -69,11 +103,15 @@ class DumbSwipeDialog(
             saveEnabled = viewModel.isValidDumbSwipe.collectAsStateWithLifecycle(false).value,
             maxNameLength = context.resources.getInteger(R.integer.name_max_length),
             infiniteRepeatIcon = R.drawable.ic_infinite,
+            waitBefore = waitBefore,
+            waitAfter = waitAfter,
             onNameChanged = { name = it; viewModel.setName(it) },
             onDurationChanged = { duration = it; viewModel.setPressDurationMs(it.toLongOrNull() ?: 0) },
             onRepeatCountChanged = { count = it; viewModel.setRepeatCount(it.toIntOrNull() ?: 0) },
             onRepeatDelayChanged = { delay = it; viewModel.setRepeatDelay(it.toLongOrNull() ?: 0) },
             onInfiniteRepeatChanged = viewModel::toggleInfiniteRepeat,
+            onWaitBeforeChanged = { waitBefore = it; viewModel.setWaitBeforeMs(it.takeIf { it.isNotBlank() }?.let { it.toLongOrNull() ?: -1L }) },
+            onWaitAfterChanged = { waitAfter = it; viewModel.setWaitAfterMs(it.takeIf { it.isNotBlank() }?.let { it.toLongOrNull() ?: -1L }) },
             onPositionClicked = ::onPositionCardClicked,
             onDismiss = { onDismissClicked(); back() },
             onDelete = { viewModel.getEditedDumbSwipe()?.let(onDeleteClicked); back() },
@@ -88,13 +126,18 @@ class DumbSwipeDialog(
                     swipeDurationMs = swipe.swipeDurationMs,
                     from = swipe.fromPosition.toEditionPosition(),
                     to = swipe.toPosition.toEditionPosition(),
+                    path = swipe.path,
                 ),
                 onConfirm = { description -> (description as? SwipeDescription)?.let {
-                    viewModel.setPositions(it.from?.toPoint(), it.to?.toPoint())
+                    viewModel.setPositions(it.from?.toPoint(), it.to?.toPoint(), it.path)
                 } },
             ), hideCurrent = true)
         }
     }
 
-    private fun Point.toEditionPosition(): PointF? = if (x == 0 && y == 0) null else toPointF()
+    override fun back() {
+        if (showingExistingPicker) showingExistingPicker = false else super.back()
+    }
+
+    private fun Point.toEditionPosition(): PointF? = if (x < 0 || y < 0) null else toPointF()
 }

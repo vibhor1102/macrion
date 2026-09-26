@@ -30,6 +30,7 @@ import io.github.vibhor1102.macrion.core.domain.model.AND
 import io.github.vibhor1102.macrion.core.domain.model.EXACT
 import io.github.vibhor1102.macrion.core.domain.model.OR
 import io.github.vibhor1102.macrion.core.domain.model.action.Action
+import io.github.vibhor1102.macrion.core.domain.model.action.CaptureScreenshot
 import io.github.vibhor1102.macrion.core.domain.model.action.Click
 import io.github.vibhor1102.macrion.core.domain.model.action.Pause
 import io.github.vibhor1102.macrion.core.domain.model.action.Swipe
@@ -41,6 +42,7 @@ import io.github.vibhor1102.macrion.core.processing.data.processor.state.Process
 import io.github.vibhor1102.macrion.core.processing.utils.anyNotNull
 import io.github.vibhor1102.macrion.core.processing.domain.model.ProcessedConditionResult
 import io.github.vibhor1102.macrion.core.domain.model.action.ExternalAction
+import io.github.vibhor1102.macrion.core.domain.model.action.SplitAction
 
 import kotlinx.coroutines.*
 import kotlinx.coroutines.test.*
@@ -258,6 +260,57 @@ class ActionExecutorTests {
     }
 
     @Test
+    fun execute_oneCaptureScreenshot() = runTest {
+        mockWhen(mockAndroidExecutor.captureScreenshot(anyOrNull(), anyOrNull())).thenReturn(true)
+        val screenshotAction = CaptureScreenshot(
+            id = Identifier(databaseId = 1L),
+            eventId = TEST_EVENT_ID,
+            name = TEST_NAME,
+            priority = 0,
+            screenshotFolderUri = "content://custom/uri",
+            screenshotFolderName = "CustomFolder",
+        )
+
+        val result = actionExecutor.executeActions(
+            event = getNewDefaultEvent(actions = listOf(screenshotAction)),
+            results = ConditionsResults(),
+        )
+
+        assertTrue(result)
+        verify(mockAndroidExecutor).captureScreenshot("content://custom/uri", "CustomFolder")
+        verify(mockAndroidExecutor, never()).dispatchGesture(anyNotNull())
+    }
+
+    @Test
+    fun execute_oneCaptureScreenshot_rateLimitExceeded() = runTest {
+        mockWhen(mockAndroidExecutor.captureScreenshot(anyOrNull(), anyOrNull())).thenReturn(false)
+        var rateLimitExceeded = false
+        val rateLimitExecutor = ActionExecutor(
+            androidExecutor = mockAndroidExecutor,
+            processingState = mockProcessingState,
+            randomize = false,
+            onScreenshotRateLimitExceeded = { rateLimitExceeded = true },
+        )
+        val screenshotAction = CaptureScreenshot(
+            id = Identifier(databaseId = 1L),
+            eventId = TEST_EVENT_ID,
+            name = TEST_NAME,
+            priority = 0,
+            screenshotFolderUri = null,
+            screenshotFolderName = null,
+        )
+
+        val result = rateLimitExecutor.executeActions(
+            event = getNewDefaultEvent(actions = listOf(screenshotAction)),
+            results = ConditionsResults(),
+        )
+
+        assertFalse(result)
+        assertTrue(rateLimitExceeded)
+        verify(mockAndroidExecutor).captureScreenshot(null, null)
+    }
+
+    @Test
     fun execute_mixed() = runTest {
         val click = getNewDefaultClickUserPos(1)
         val pause = getNewDefaultPause(2)
@@ -297,4 +350,47 @@ class ActionExecutorTests {
             assertTrue("Action execution have not completed yet", isCompleted)
         }.join()
     }
+
+    @Test
+    fun execute_oneSplitAction() = runTest {
+        val swipe1 = getNewDefaultSwipe(1)
+        val swipe2 = getNewDefaultSwipe(2)
+        val splitAction = SplitAction(
+            id = Identifier(databaseId = 10L),
+            eventId = TEST_EVENT_ID,
+            name = "Zoom",
+            priority = 0,
+            subActions = listOf(swipe1, swipe2),
+        )
+        val gestureCaptor = argumentCaptor<GestureDescription>()
+
+        actionExecutor.executeActions(
+            event = getNewDefaultEvent(actions = listOf(splitAction)),
+            results = ConditionsResults(),
+        )
+
+        verify(mockAndroidExecutor, times(1)).dispatchGesture(gestureCaptor.capture())
+        assertEquals(2, gestureCaptor.firstValue.strokeCount)
+    }
+    @Test
+    fun splitWaitAfterStartsAtItsOwnFingerRelease() = runTest {
+        val click = getNewDefaultClickUserPos(1, duration = 100).copy(waitAfterMs = 1200)
+        val swipe = getNewDefaultSwipe(2).copy(swipeDuration = 800, waitBeforeMs = 200)
+        val split = SplitAction(Identifier(databaseId = 10), TEST_EVENT_ID, "Combined", 0, listOf(click, swipe))
+        val gesture = argumentCaptor<GestureDescription>()
+        actionExecutor.executeActions(getNewDefaultEvent(actions = listOf(split)))
+        verify(mockAndroidExecutor).dispatchGesture(gesture.capture())
+        assertEquals(200L, gesture.firstValue.getStroke(1).startTime)
+        // Dispatch is mocked; only the 300ms tail beyond the last finger is delayed here.
+        assertEquals(300L, currentTime)
+    }
+
+    @Test
+    fun splitRejectsInvalidChildrenInsteadOfExecutingPartialGesture() = runTest {
+        val split = SplitAction(Identifier(databaseId = 10), TEST_EVENT_ID, "Combined", 0,
+            listOf(getNewDefaultSwipe(1), getNewDefaultSwipe(2).copy(from = null)))
+        actionExecutor.executeActions(getNewDefaultEvent(actions = listOf(split)))
+        verify(mockAndroidExecutor, never()).dispatchGesture(anyNotNull())
+    }
+
 }

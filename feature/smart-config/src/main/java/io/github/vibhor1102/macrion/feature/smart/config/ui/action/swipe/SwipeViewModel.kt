@@ -21,6 +21,7 @@ import android.content.SharedPreferences
 
 import androidx.core.content.edit
 import android.graphics.Point
+import io.github.vibhor1102.macrion.core.base.gesture.SwipePath
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -103,9 +104,9 @@ class SwipeViewModel @Inject constructor(
      * @param from the new start position.
      * @param to the new end position.
      */
-    fun setPositions(from: Point, to: Point) {
+    fun setPositions(from: Point, to: Point, path: SwipePath? = null) {
         editionRepository.editionState.getEditedAction<Swipe>()?.let { swipe ->
-            editionRepository.updateEditedAction(swipe.copy(from = from, to = to))
+            editionRepository.updateEditedAction(swipe.copy(from = from, to = to, path = path))
         }
     }
 
@@ -116,6 +117,18 @@ class SwipeViewModel @Inject constructor(
     fun setSwipeDuration(durationMs: Long?) {
         editionRepository.editionState.getEditedAction<Swipe>()?.let { swipe ->
             editionRepository.updateEditedAction(swipe.copy(swipeDuration = durationMs))
+        }
+    }
+
+    fun setWaitBeforeMs(waitBeforeMs: Long?) {
+        editionRepository.editionState.getEditedAction<Swipe>()?.let { swipe ->
+            editionRepository.updateEditedAction(swipe.copy(waitBeforeMs = waitBeforeMs))
+        }
+    }
+
+    fun setWaitAfterMs(waitAfterMs: Long?) {
+        editionRepository.editionState.getEditedAction<Swipe>()?.let { swipe ->
+            editionRepository.updateEditedAction(swipe.copy(waitAfterMs = waitAfterMs))
         }
     }
 
@@ -143,6 +156,8 @@ class SwipeViewModel @Inject constructor(
             else
                 context.getString(R.string.generic_select_the_position),
             positionsError = !hasPositions,
+            waitBeforeMs = waitBeforeMs?.toString(),
+            waitAfterMs = waitAfterMs?.toString(),
         )
     }
 }

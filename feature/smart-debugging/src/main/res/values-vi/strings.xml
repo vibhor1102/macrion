@@ -30,7 +30,9 @@
     <string name="item_event_occurrence_frame_number">Khung #%1$d</string>
     <string name="item_event_occurrence_trigger">Bộ kích hoạt</string>
     <string name="item_event_occurrence_one_condition_fulfilled">Đã hoàn thành: %1$s</string>
-    <string name="item_event_occurrence_several_condition_processed">%1$d Điều kiện đã xử lý</string>
+    <plurals name="item_event_occurrence_several_condition_processed">
+        <item quantity="other">Đã xử lý %1$d điều kiện</item>
+    </plurals>
     <string name="dialog_overlay_title_timeline_filters">Bộ lọc dòng thời gian</string>
     <string name="field_debug_filter_image_events_title">Sự kiện hình ảnh</string>
     <string name="field_debug_filter_image_events_show_desc_on">Hiển thị các lần xuất hiện Sự kiện Hình ảnh trong dòng thời gian</string>
@@ -39,7 +41,9 @@
     <string name="field_debug_filter_trigger_events_show_desc_on">Hiển thị các lần xuất hiện Sự kiện kích hoạt trong dòng thời gian</string>
     <string name="field_debug_filter_trigger_events_show_desc_off">Ẩn tất cả các lần xuất hiện Sự kiện kích hoạt trong dòng thời gian</string>
     <string name="field_debug_filter_events_show_title">Bộ lọc</string>
-    <string name="field_debug_filter_events_show_select_desc">%1$d Sự kiện</string>
+    <plurals name="field_debug_filter_events_show_select_desc">
+        <item quantity="other">%1$d sự kiện</item>
+    </plurals>
     <string name="field_debug_filter_events_show_select_desc_none">Không có Sự kiện</string>
     <string name="menu_item_debug_event_occurrence_conditions">Các điều kiện</string>
     <string name="menu_item_debug_event_occurrence_counters">Bộ đếm</string>
@@ -64,7 +68,6 @@
     <string name="item_title_report_event_activity">Hoạt động sự kiện</string>
     <string name="item_desc_report_event_activity_empty">Không có sự kiện nào được đạt tới</string>
     <plurals name="item_desc_report_event_activity_reached">
-        <item quantity="one">Đã đạt tới %1$d sự kiện · tổng %2$d lần xuất hiện</item>
         <item quantity="other">Đã đạt tới %1$d sự kiện · tổng %2$d lần xuất hiện</item>
     </plurals>
     <string name="item_desc_report_event_activity_most_frequent">Thường xuyên nhất: %1$s · %2$d×</string>
@@ -84,11 +87,9 @@
     <string name="item_condition_performance_total_time">Tổng thời gian: %1$s giây</string>
     <string name="item_condition_performance_fulfilled">Đạt: %1$s %2$s trên %3$s %4$s</string>
     <plurals name="item_condition_performance_time">
-        <item quantity="one">lần</item>
         <item quantity="other">lần</item>
     </plurals>
     <plurals name="item_condition_performance_check">
-        <item quantity="one">lần kiểm tra</item>
         <item quantity="other">lần kiểm tra</item>
     </plurals>
     <string name="item_condition_performance_average">Trung bình: %1$s ms mỗi lần kiểm tra</string>
@@ -101,7 +102,9 @@
     <string name="title_event_occurrence_filtered_empty">Không có sự kiện phù hợp</string>
     <string name="desc_event_occurrence_filtered_empty">Không có sự kiện Dòng thời gian nào khớp với bộ lọc hiện tại.</string>
     <string name="button_clear_timeline_filters">Xóa bộ lọc</string>
-    <string name="content_desc_timeline_filters_active">Đang hoạt động %1$d loại bộ lọc Dòng thời gian</string>
+    <plurals name="content_desc_timeline_filters_active">
+        <item quantity="other">%1$d loại bộ lọc dòng thời gian đang hoạt động</item>
+    </plurals>
     <string name="content_desc_timeline_fast_scroller">Thanh cuộn nhanh Dòng thời gian</string>
     <string name="item_event_occurrence_detecting_label">đang phát hiện</string>
     <string name="item_event_occurrence_actions_label">hành động</string>
@@ -119,4 +122,6 @@
     <string name="label_trigger_intent_action">Hành động intent</string>
     <string name="label_trigger_timer_repeating">Lặp lại khi đạt đến</string>
     <string name="label_trigger_timer_once">Chạy một lần</string>
+
+    <!-- Added Vietnamese translations -->
 </resources>

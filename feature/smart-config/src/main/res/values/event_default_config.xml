@@ -25,6 +25,8 @@
     <string name="default_swipe_name">Swipe</string>
     <integer name="default_swipe_duration">500</integer>
 
+    <string name="default_zoom_name">Multi-touch</string>
+
     <string name="default_pause_name">Wait</string>
     <integer name="default_pause_duration">50</integer>
 
@@ -44,4 +46,6 @@
     <string name="default_system_action_name">System action</string>
 
     <string name="default_set_text_name">Write text</string>
+    <string name="default_play_sound_name">Play sound</string>
+    <string name="default_capture_screenshot_name">Capture screenshot</string>
 </resources>

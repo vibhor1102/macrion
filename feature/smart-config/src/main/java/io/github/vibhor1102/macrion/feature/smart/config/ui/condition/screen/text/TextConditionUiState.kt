@@ -16,7 +16,10 @@
  */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.text
 
+import io.github.vibhor1102.macrion.core.base.identifier.Identifier
+
 data class TextConditionUiState(
+    val id: Identifier,
     val canBeSaved: Boolean,
     val name: String,
     val nameError: Boolean,
@@ -26,4 +29,5 @@ data class TextConditionUiState(
     val detectionAreaError: Boolean,
     val detectionThreshold: Int,
     val alphabetDesc: String,
+    val computeRateState: io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.config.ComputeRateLimitUiState,
 )

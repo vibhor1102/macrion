@@ -179,6 +179,8 @@ class MoveToDialog(
 
         isShown = true
         dialog?.show()
+        // Overlay dialogs still rely on this deprecated window flag to resize above the IME.
+        @Suppress("DEPRECATION")
         dialog?.window?.setSoftInputMode(
             WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE or
                 WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE,

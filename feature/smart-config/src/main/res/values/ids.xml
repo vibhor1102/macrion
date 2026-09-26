@@ -10,6 +10,7 @@
     <item name="btn_back" type="id" />
     <item name="btn_record" type="id" />
     <item name="btn_add_other" type="id" />
+    <item name="btn_show_all_action_previews" type="id" />
     <item name="btn_play" type="id" />
     <item name="btn_stop" type="id" />
     <item name="btn_click_list" type="id" />

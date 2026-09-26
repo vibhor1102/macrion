@@ -21,7 +21,6 @@ import androidx.annotation.StringRes
 import io.github.vibhor1102.macrion.core.domain.model.event.ScreenEvent
 import io.github.vibhor1102.macrion.feature.smart.config.R
 
-
 data class UiImageEvent(
     override val event: ScreenEvent,
     val name: String,
@@ -30,7 +29,9 @@ data class UiImageEvent(
     @field:StringRes val enabledOnStartTextRes: Int,
     @field:DrawableRes val enabledOnStartIconRes: Int,
     val haveError: Boolean,
-) : UiEvent()
+) : UiEvent() {
+    val folder: String? get() = event.folder
+}
 
 fun ScreenEvent.toUiImageEvent(inError: Boolean): UiImageEvent {
     @StringRes val enabledOnStartTextRes: Int

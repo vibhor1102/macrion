@@ -434,6 +434,141 @@ internal object ActionTestsData {
         eventId: Long,
     ) = ExternalAction(id.asIdentifier(), eventId.asIdentifier(), name, priority, externalActionName)
 
+    /* ------- Play Sound Data ------- */
+
+    private const val PLAY_SOUND_ID = 61L
+    private const val PLAY_SOUND_NAME = "Play sound name"
+    private const val PLAY_SOUND_URI = "content://settings/system/notification_sound"
+    private const val PLAY_SOUND_TITLE = "Chime"
+
+    fun getNewPlaySoundEntity(
+        id: Long = PLAY_SOUND_ID,
+        name: String = PLAY_SOUND_NAME,
+        priority: Int = 0,
+        soundUri: String? = PLAY_SOUND_URI,
+        soundTitle: String? = PLAY_SOUND_TITLE,
+        eventId: Long,
+    ) = CompleteActionEntity(
+        action = ActionEntity(
+            id, eventId, priority, name, ActionType.PLAY_SOUND,
+            soundUri = soundUri,
+            soundTitle = soundTitle,
+        ),
+        intentExtras = emptyList(),
+        eventsToggle = emptyList(),
+    )
+
+    fun getNewPlaySound(
+        id: Long = PLAY_SOUND_ID,
+        name: String? = PLAY_SOUND_NAME,
+        priority: Int = 0,
+        soundUri: String? = PLAY_SOUND_URI,
+        soundTitle: String? = PLAY_SOUND_TITLE,
+        eventId: Long,
+    ) = PlaySound(id.asIdentifier(), eventId.asIdentifier(), name, priority, soundUri, soundTitle)
+
+    /* ------- Capture Screenshot Action Data ------- */
+
+    private const val CAPTURE_SCREENSHOT_ID = 23L
+    private const val CAPTURE_SCREENSHOT_NAME = "Capture screenshot name"
+    private const val CAPTURE_SCREENSHOT_FOLDER_URI = "content://com.android.externalstorage.documents/tree/primary%3APictures"
+    private const val CAPTURE_SCREENSHOT_FOLDER_NAME = "Pictures"
+
+    fun getNewCaptureScreenshotEntity(
+        id: Long = CAPTURE_SCREENSHOT_ID,
+        name: String = CAPTURE_SCREENSHOT_NAME,
+        priority: Int = 0,
+        screenshotFolderUri: String? = CAPTURE_SCREENSHOT_FOLDER_URI,
+        screenshotFolderName: String? = CAPTURE_SCREENSHOT_FOLDER_NAME,
+        eventId: Long,
+    ) = CompleteActionEntity(
+        action = ActionEntity(
+            id, eventId, priority, name, ActionType.CAPTURE_SCREENSHOT,
+            screenshotFolderUri = screenshotFolderUri,
+            screenshotFolderName = screenshotFolderName,
+        ),
+        intentExtras = emptyList(),
+        eventsToggle = emptyList(),
+    )
+
+    fun getNewCaptureScreenshot(
+        id: Long = CAPTURE_SCREENSHOT_ID,
+        name: String? = CAPTURE_SCREENSHOT_NAME,
+        priority: Int = 0,
+        screenshotFolderUri: String? = CAPTURE_SCREENSHOT_FOLDER_URI,
+        screenshotFolderName: String? = CAPTURE_SCREENSHOT_FOLDER_NAME,
+        eventId: Long,
+    ) = CaptureScreenshot(id.asIdentifier(), eventId.asIdentifier(), name, priority, screenshotFolderUri, screenshotFolderName)
+
+    /* ------- Split Action Data ------- */
+
+    private const val SPLIT_ACTION_ID = 88L
+    private const val SPLIT_ACTION_NAME = "Zoom"
+
+    fun getNewSplitActionEntity(
+        id: Long = SPLIT_ACTION_ID,
+        name: String = SPLIT_ACTION_NAME,
+        priority: Int = 0,
+        eventId: Long,
+        splitItems: List<io.github.vibhor1102.macrion.core.database.entity.SplitActionItemEntity> = listOf(
+            io.github.vibhor1102.macrion.core.database.entity.SplitActionItemEntity(
+                id = 1L,
+                actionId = id,
+                priority = 0,
+                type = ActionType.SWIPE,
+                fromX = 100,
+                fromY = 200,
+                toX = 300,
+                toY = 400,
+                duration = 350L,
+            ),
+            io.github.vibhor1102.macrion.core.database.entity.SplitActionItemEntity(
+                id = 2L,
+                actionId = id,
+                priority = 1,
+                type = ActionType.SWIPE,
+                fromX = 500,
+                fromY = 600,
+                toX = 700,
+                toY = 800,
+                duration = 350L,
+            ),
+        ),
+    ) = CompleteActionEntity(
+        action = ActionEntity(
+            id, eventId, priority, name, ActionType.SPLIT_ACTION,
+        ),
+        splitItems = splitItems,
+        intentExtras = emptyList(),
+        eventsToggle = emptyList(),
+    )
+
+    fun getNewSplitAction(
+        id: Long = SPLIT_ACTION_ID,
+        name: String? = SPLIT_ACTION_NAME,
+        priority: Int = 0,
+        eventId: Long,
+        subActions: List<Action> = listOf(
+            Swipe(
+                id = 1L.asIdentifier(),
+                eventId = eventId.asIdentifier(),
+                name = "Swipe 1",
+                priority = 0,
+                from = Point(100, 200),
+                to = Point(300, 400),
+                swipeDuration = 350L,
+            ),
+            Swipe(
+                id = 2L.asIdentifier(),
+                eventId = eventId.asIdentifier(),
+                name = "Swipe 2",
+                priority = 1,
+                from = Point(500, 600),
+                to = Point(700, 800),
+                swipeDuration = 350L,
+            ),
+        ),
+    ) = SplitAction(id.asIdentifier(), eventId.asIdentifier(), name, priority, subActions)
 
     fun getNewEventToggleExtra(
         id: Long = EVENT_TOGGLE_ID,

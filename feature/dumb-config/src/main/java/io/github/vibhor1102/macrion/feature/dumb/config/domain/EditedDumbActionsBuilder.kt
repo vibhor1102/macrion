@@ -39,6 +39,8 @@ class EditedDumbActionsBuilder {
         dumbScenarioId = null
     }
 
+    fun generateNewIdentifier(): Identifier = dumbActionsIdCreator.generateNewIdentifier()
+
     fun createNewDumbClick(context: Context, position: Point): DumbAction.DumbClick =
         DumbAction.DumbClick(
             id = dumbActionsIdCreator.generateNewIdentifier(),
@@ -72,6 +74,23 @@ class EditedDumbActionsBuilder {
             pauseDurationMs = context.getDefaultDumbPauseDurationMs(),
         )
 
+    fun createNewDumbZoomInOut(context: Context): DumbAction.DumbSplitAction {
+        val swipe1 = createNewDumbSwipe(context, Point(-1, -1), Point(-1, -1)).copy(
+            name = "Swipe 1",
+            priority = 0,
+        )
+        val swipe2 = createNewDumbSwipe(context, Point(-1, -1), Point(-1, -1)).copy(
+            name = "Swipe 2",
+            priority = 1,
+        )
+        return DumbAction.DumbSplitAction(
+            id = dumbActionsIdCreator.generateNewIdentifier(),
+            scenarioId = getEditedScenarioIdOrThrow(),
+            name = context.getString(io.github.vibhor1102.macrion.feature.dumb.config.R.string.action_type_zoom),
+            subActions = listOf(swipe1, swipe2),
+        )
+    }
+
     fun createNewDumbActionFrom(from: DumbAction): DumbAction =
         when (from) {
             is DumbAction.DumbClick -> from.copy(
@@ -85,6 +104,11 @@ class EditedDumbActionsBuilder {
             is DumbAction.DumbPause -> from.copy(
                 id = dumbActionsIdCreator.generateNewIdentifier(),
                 scenarioId = getEditedScenarioIdOrThrow(),
+            )
+            is DumbAction.DumbSplitAction -> from.copy(
+                id = dumbActionsIdCreator.generateNewIdentifier(),
+                scenarioId = getEditedScenarioIdOrThrow(),
+                subActions = from.subActions.map { createNewDumbActionFrom(it) },
             )
         }
 

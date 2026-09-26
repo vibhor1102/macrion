@@ -29,6 +29,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
@@ -38,10 +39,13 @@ private val AUTO_HIDE_DELAY_STOPS = listOf(3, 5, 10, 15, 30, 60, 120, 180, 300, 
 
 @Composable
 internal fun formatAutoHideDelay(seconds: Int): String = when {
-    seconds == 120 -> stringResource(R.string.settings_toolbar_auto_hide_delay_minutes_default, 2)
+    seconds == 120 -> pluralStringResource(R.plurals.settings_toolbar_auto_hide_delay_minutes_default, 2, 2)
     seconds == 60 -> stringResource(R.string.settings_toolbar_auto_hide_delay_1_minute)
-    seconds >= 60 && seconds % 60 == 0 -> stringResource(R.string.settings_toolbar_auto_hide_delay_minutes, seconds / 60)
-    else -> stringResource(R.string.settings_toolbar_auto_hide_delay_seconds, seconds)
+    seconds >= 60 && seconds % 60 == 0 -> {
+        val minutes = seconds / 60
+        pluralStringResource(R.plurals.settings_toolbar_auto_hide_delay_minutes, minutes, minutes)
+    }
+    else -> pluralStringResource(R.plurals.settings_toolbar_auto_hide_delay_seconds, seconds, seconds)
 }
 
 @Composable

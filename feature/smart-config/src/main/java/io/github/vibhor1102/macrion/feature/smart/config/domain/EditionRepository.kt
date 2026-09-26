@@ -23,6 +23,7 @@ import android.util.Log
 import io.github.vibhor1102.macrion.core.bitmaps.BitmapRepository
 import io.github.vibhor1102.macrion.core.domain.IRepository
 import io.github.vibhor1102.macrion.core.domain.model.action.Action
+import io.github.vibhor1102.macrion.core.domain.model.action.SplitAction
 import io.github.vibhor1102.macrion.core.domain.model.action.intent.IntentExtra
 import io.github.vibhor1102.macrion.core.domain.model.condition.Condition
 import io.github.vibhor1102.macrion.core.domain.model.condition.ScreenCondition
@@ -104,8 +105,9 @@ class EditionRepository @Inject constructor(
     suspend fun saveEditions(): Boolean {
         Log.d(TAG, "Save editions")
 
+        val scenario = scenarioEditor.editedScenario.value ?: return false
         val updateResult = repository.updateScenario(
-            scenario = scenarioEditor.editedScenario.value ?: return false,
+            scenario = scenario,
             events = scenarioEditor.getAllEditedEvents(),
             counters = scenarioEditor.allEditedCounters.value ?: emptyList(),
         )
@@ -135,6 +137,10 @@ class EditionRepository @Inject constructor(
             newEvents.mapIndexed { index, event -> event.copy(priority = index) }
         )
     }
+
+    fun deleteScreenEvents(events: List<ScreenEvent>) = scenarioEditor.deleteScreenEvents(events)
+
+    fun getScreenEvents(): List<ScreenEvent> = scenarioEditor.getScreenEvents()
 
     fun addNewCounter(counter: Counter) {
         scenarioEditor.addCounter(counter)
@@ -195,6 +201,8 @@ class EditionRepository @Inject constructor(
 
     fun startActionEdition(action: Action) =
         scenarioEditor.currentEventEditor.value?.actionsEditor?.startItemEdition(action)
+    fun startSubActionEdition(parent: SplitAction, subIndex: Int) =
+        scenarioEditor.currentEventEditor.value?.actionsEditor?.startSubActionEdition(parent, subIndex)
     fun updateEditedAction(action: Action) =
         scenarioEditor.currentEventEditor.value?.actionsEditor?.updateEditedItem(action)
     fun upsertEditedAction() =
@@ -203,6 +211,24 @@ class EditionRepository @Inject constructor(
         scenarioEditor.currentEventEditor.value?.actionsEditor?.deleteEditedItem()
     fun stopActionEdition() =
         scenarioEditor.currentEventEditor.value?.actionsEditor?.stopItemEdition()
+    fun addSubAction(newSubAction: Action) =
+        scenarioEditor.currentEventEditor.value?.actionsEditor?.addSubAction(newSubAction)
+    fun removeSubAction(subIndex: Int) =
+        scenarioEditor.currentEventEditor.value?.actionsEditor?.removeSubAction(subIndex)
+    fun unsplitAction(splitAction: SplitAction) =
+        scenarioEditor.currentEventEditor.value?.actionsEditor?.unsplitAction(splitAction) {
+            editedItemsBuilder.actionsIdCreator.generateNewIdentifier()
+        }
+    fun combineActions(actionA: Action, actionB: Action): SplitAction? =
+        scenarioEditor.currentEventEditor.value?.actionsEditor?.combineActions(
+            actionA, actionB, editedItemsBuilder.actionsIdCreator.generateNewIdentifier(),
+            editedItemsBuilder.actionsIdCreator::generateNewIdentifier
+        )
+    fun combineActionWithNew(action: Action, newSubAction: Action): SplitAction? =
+        scenarioEditor.currentEventEditor.value?.actionsEditor?.combineActionWithNew(
+            action, newSubAction, editedItemsBuilder.actionsIdCreator.generateNewIdentifier(),
+            editedItemsBuilder.actionsIdCreator::generateNewIdentifier
+        )
 
 
     // --- INTENT EXTRA

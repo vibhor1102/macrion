@@ -39,6 +39,7 @@ internal fun DetectorState.toDetectionState(): DetectionState? = when (this) {
     DetectorState.RECORDING -> DetectionState.RECORDING
     DetectorState.DETECTING -> DetectionState.DETECTING
     DetectorState.TRANSITIONING -> null // Return null to avoid notifying state change when transitioning
+    DetectorState.STARTING_DETECTION, DetectorState.STOPPING_DETECTION -> null
     DetectorState.ERROR_NATIVE_DETECTOR_LIB_NOT_FOUND -> DetectionState.ERROR_NO_NATIVE_LIB
     DetectorState.ERROR_OCR_MODEL_NOT_FOUND -> DetectionState.ERROR_OCR_MODEL_NOT_FOUND
     DetectorState.ERROR_SCREEN_IMAGE_CAPTURE_FAILED -> DetectionState.ERROR_SCREEN_IMAGE_CAPTURE_FAILED

@@ -81,7 +81,11 @@ class DebugReportTimelineContent(appContext: Context) : NavBarDialogContent(appC
     private fun updateFiltersBadge(count: Int) {
         dialogController.floatingActionButtons.setBadge(
             text = count.takeIf { it > 0 }?.toString(),
-            description = context.getString(R.string.content_desc_timeline_filters_active, count),
+            description = context.resources.getQuantityString(
+                R.plurals.content_desc_timeline_filters_active,
+                count,
+                count,
+            ),
         )
     }
 

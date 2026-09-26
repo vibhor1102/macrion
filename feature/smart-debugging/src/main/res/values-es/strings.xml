@@ -37,6 +37,7 @@
     <string name="item_desc_report_event_activity_empty">No se alcanzó ningún evento</string>
     <plurals name="item_desc_report_event_activity_reached">
         <item quantity="one">%1$d evento alcanzado · %2$d ocurrencias totales</item>
+        <item quantity="many">%1$d eventos alcanzados · %2$d ocurrencias totales</item>
         <item quantity="other">%1$d eventos alcanzados · %2$d ocurrencias totales</item>
     </plurals>
     <string name="item_desc_report_event_activity_most_frequent">Más frecuente: %1$s · %2$d×</string>
@@ -61,10 +62,12 @@
     <string name="item_condition_performance_fulfilled">Cumplida: %1$s %2$s de %3$s %4$s</string>
     <plurals name="item_condition_performance_time">
         <item quantity="one">vez</item>
+        <item quantity="many">veces</item>
         <item quantity="other">veces</item>
     </plurals>
     <plurals name="item_condition_performance_check">
         <item quantity="one">comprobación</item>
+        <item quantity="many">comprobaciones</item>
         <item quantity="other">comprobaciones</item>
     </plurals>
     <string name="item_condition_performance_average">Media: %1$s ms por comprobación</string>
@@ -81,13 +84,11 @@
     <string name="title_event_occurrence_filtered_empty">No hay eventos coincidentes</string>
     <string name="desc_event_occurrence_filtered_empty">Ningún evento de la línea de tiempo coincide con los filtros actuales.</string>
     <string name="button_clear_timeline_filters">Borrar filtros</string>
-    <string name="content_desc_timeline_filters_active">%1$d categorías de filtro de la línea de tiempo activas</string>
-    <string name="content_desc_timeline_fast_scroller">Desplazamiento rápido de la línea de tiempo</string>
+<string name="content_desc_timeline_fast_scroller">Desplazamiento rápido de la línea de tiempo</string>
     <string name="item_event_occurrence_frame_number">Marco #%1$d</string>
     <string name="item_event_occurrence_trigger">Desencadenar</string>
     <string name="item_event_occurrence_one_condition_fulfilled">Cumplido: %1$s</string>
-    <string name="item_event_occurrence_several_condition_processed">%1$d condiciones procesadas</string>
-    <string name="item_event_occurrence_detecting_label">detección</string>
+<string name="item_event_occurrence_detecting_label">detección</string>
     <string name="item_event_occurrence_actions_label">acciones</string>
     <string name="item_event_occurrence_detected_at">Detectado a las %1$s</string>
     <string name="item_event_occurrence_recorded_at">Registrado a las %1$s</string>
@@ -106,8 +107,7 @@
     <string name="field_debug_filter_trigger_events_show_desc_off">Ocultar todas las ocurrencias de eventos desencadenantes en la línea de tiempo</string>
 
     <string name="field_debug_filter_events_show_title">Filtros</string>
-    <string name="field_debug_filter_events_show_select_desc">%1$d eventos</string>
-    <string name="field_debug_filter_events_show_select_desc_none">Sin eventos</string>
+<string name="field_debug_filter_events_show_select_desc_none">Sin eventos</string>
 
 
     <!-- Debug Report Event Occurrence dialog ====================================================================== -->
@@ -151,4 +151,19 @@
     <string name="label_trigger_intent_action">Acción de intent</string>
     <string name="label_trigger_timer_repeating">Se repite al alcanzarse</string>
     <string name="label_trigger_timer_once">Se ejecuta una vez</string>
+    <plurals name="content_desc_timeline_filters_active">
+        <item quantity="one">%1$d categoría de filtro de la línea de tiempo activa</item>
+        <item quantity="many">%1$d categorías de filtro de la línea de tiempo activas</item>
+        <item quantity="other">%1$d categorías de filtro de la línea de tiempo activas</item>
+    </plurals>
+    <plurals name="item_event_occurrence_several_condition_processed">
+        <item quantity="one">%1$d condición procesada</item>
+        <item quantity="many">%1$d condiciones procesadas</item>
+        <item quantity="other">%1$d condiciones procesadas</item>
+    </plurals>
+    <plurals name="field_debug_filter_events_show_select_desc">
+        <item quantity="one">%1$d evento</item>
+        <item quantity="many">%1$d eventos</item>
+        <item quantity="other">%1$d eventos</item>
+    </plurals>
 </resources>

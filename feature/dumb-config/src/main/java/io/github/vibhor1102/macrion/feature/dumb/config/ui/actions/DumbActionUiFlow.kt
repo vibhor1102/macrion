@@ -32,6 +32,7 @@ import io.github.vibhor1102.macrion.feature.dumb.config.R
 import io.github.vibhor1102.macrion.feature.dumb.config.ui.actions.click.DumbClickDialog
 import io.github.vibhor1102.macrion.feature.dumb.config.ui.actions.copy.DumbActionCopyDialog
 import io.github.vibhor1102.macrion.feature.dumb.config.ui.actions.pause.DumbPauseDialog
+import io.github.vibhor1102.macrion.feature.dumb.config.ui.actions.split.DumbSplitActionDialog
 import io.github.vibhor1102.macrion.feature.dumb.config.ui.actions.swipe.DumbSwipeDialog
 
 internal fun OverlayManager.startDumbActionCreationUiFlow(
@@ -52,6 +53,14 @@ internal fun OverlayManager.startDumbActionCreationUiFlow(
                     DumbActionTypeChoice.Copy -> onCopyDumbActionSelected(context, creator, listener)
                     DumbActionTypeChoice.Click -> onDumbClickCreationSelected(context, creator, listener)
                     DumbActionTypeChoice.Swipe -> onDumbSwipeCreationSelected(context, creator, listener)
+                    DumbActionTypeChoice.Zoom -> {
+                        val zoom = creator.createNewDumbZoomInOut?.invoke()
+                        if (zoom != null) {
+                            startDumbSplitActionEditionUiFlow(context, zoom, listener)
+                        } else {
+                            listener.onDumbActionCreationCancelled()
+                        }
+                    }
                     DumbActionTypeChoice.Pause -> startDumbPauseEditionFlow(
                         context,
                         creator.createNewDumbPause(),
@@ -75,7 +84,30 @@ internal fun OverlayManager.startDumbActionEditionUiFlow(
         is DumbAction.DumbClick -> startDumbClickEditionUiFlow(context, dumbAction, listener)
         is DumbAction.DumbSwipe -> startDumbSwipeEditionFlow(context, dumbAction, listener)
         is DumbAction.DumbPause -> startDumbPauseEditionFlow(context, dumbAction, listener)
+        is DumbAction.DumbSplitAction -> startDumbSplitActionEditionUiFlow(context, dumbAction, listener)
     }
+}
+
+internal fun OverlayManager.startDumbSplitActionEditionUiFlow(
+    context: Context,
+    dumbSplitAction: DumbAction.DumbSplitAction,
+    listener: DumbActionUiFlowListener,
+) {
+    Log.d(TAG, "Starting dumb split action edition ui flow: $dumbSplitAction")
+
+    navigateTo(
+        context = context,
+        newOverlay = DumbSplitActionDialog(
+            dumbSplitAction = dumbSplitAction,
+            onConfirmClicked = listener.onDumbActionSaved,
+            onDeleteClicked = listener.onDumbActionDeleted,
+            onDismissClicked = listener.onDumbActionCreationCancelled,
+            onUnsplitClicked = listener.onDumbActionUnsplit,
+            combinationOptions = listener.combinationOptionsFor?.invoke(dumbSplitAction),
+            closeSourceEditorOnSave = listener.closeSourceEditorOnSave,
+        ),
+        hideCurrent = true,
+    )
 }
 
 private fun OverlayManager.startDumbClickEditionUiFlow(
@@ -97,6 +129,7 @@ private fun OverlayManager.startDumbClickEditionUiFlow(
             onConfirmClicked = listener.onDumbActionSaved,
             onDeleteClicked = listener.onDumbActionDeleted,
             onDismissClicked = listener.onDumbActionCreationCancelled,
+            combinationOptions = listener.combinationOptionsFor?.invoke(dumbClick),
         ),
         hideCurrent = true,
     )
@@ -170,6 +203,7 @@ private fun OverlayManager.startDumbSwipeEditionFlow(
             onConfirmClicked = listener.onDumbActionSaved,
             onDeleteClicked = listener.onDumbActionDeleted,
             onDismissClicked = listener.onDumbActionCreationCancelled,
+            combinationOptions = listener.combinationOptionsFor?.invoke(dumbSwipe),
         ),
         hideCurrent = true,
     )
@@ -186,6 +220,7 @@ private fun OverlayManager.onDumbSwipeCreationSelected(
         context = context,
         newOverlay = PositionSelectorMenu(
             itemBriefDescription = SwipeDescription(),
+            useRecordedSwipeDuration = true,
             onConfirm = { description ->
                 (description as? SwipeDescription)?.let { swipeDesc ->
                     if (swipeDesc.from == null || swipeDesc.to == null) {
@@ -198,7 +233,7 @@ private fun OverlayManager.onDumbSwipeCreationSelected(
                         dumbSwipe = creator.createNewDumbSwipe(
                             swipeDesc.from?.toPoint()!!,
                             swipeDesc.to?.toPoint()!!,
-                        ),
+                        ).copy(path = swipeDesc.path, swipeDurationMs = swipeDesc.swipeDurationMs),
                         listener = listener,
                     )
                 }
@@ -234,12 +269,16 @@ internal class DumbActionUiFlowListener(
     val onDumbActionSaved: (dumbAction: DumbAction) -> Unit,
     val onDumbActionDeleted: (dumbAction: DumbAction) -> Unit,
     val onDumbActionCreationCancelled: () -> Unit,
+    val onDumbActionUnsplit: ((DumbAction.DumbSplitAction) -> Unit)? = null,
+    val combinationOptionsFor: ((DumbAction) -> DumbCombinationOptions?)? = null,
+    val closeSourceEditorOnSave: Boolean = false,
 )
 
 internal class DumbActionCreator(
     val createNewDumbClick: (position: Point) -> DumbAction.DumbClick,
     val createNewDumbSwipe: (from: Point, to: Point) -> DumbAction.DumbSwipe,
     val createNewDumbPause: () -> DumbAction.DumbPause,
+    val createNewDumbZoomInOut: (() -> DumbAction.DumbSplitAction)? = null,
     val createDumbActionCopy: ((DumbAction) -> DumbAction)? = null,
 )
 

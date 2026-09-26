@@ -45,4 +45,44 @@
     <string name="content_desc_go_back">返回上一对话框</string>
     <string name="content_desc_tuck_toolbar">将工具栏收起至屏幕边缘</string>
     <string name="content_desc_expand_toolbar">展开工具栏</string>
+    <plurals name="multi_touch_brief_click_count">
+        <item quantity="other">%d 次点击</item>
+    </plurals>
+    <plurals name="multi_touch_brief_swipe_count">
+        <item quantity="other">%d 次滑动</item>
+    </plurals>
+    <plurals name="multi_touch_brief_setup_count">
+        <item quantity="other">%d 个需要设置</item>
+    </plurals>
+    <string name="field_delays_title">延迟（可选）</string>
+    <string name="field_wait_before_title">之前（毫秒）</string>
+    <string name="field_wait_after_title">之后（毫秒）</string>
+    <string name="field_wait_before_summary">之前：%1$s 毫秒</string>
+    <string name="field_wait_after_summary">之后：%1$s 毫秒</string>
+    <string name="field_delays_expanded">已展开</string>
+    <string name="field_delays_collapsed">已收起</string>
+    <string name="field_delays_check_values">检查延迟数值</string>
+    <string name="field_delay_range_error">请输入 0–%1$d 毫秒</string>
+    <string name="field_delay_number_error">请输入有效的毫秒延迟</string>
+    <string name="action_editor_more_options">更多操作选项</string>
+    <string name="action_combine_choose_existing">选择一个操作</string>
+    <string name="action_combine_choose_help">选择一个要同时运行的点击、滑动或多点触控操作。保存后，原操作将被替换。</string>
+    <string name="multi_touch_brief_default_name">多点触控</string>
+    <string name="multi_touch_brief_tap">点击</string>
+    <string name="multi_touch_brief_swipe">滑动</string>
+    <string name="multi_touch_brief_touch">触摸</string>
+    <string name="multi_touch_brief_needs_setup">需要设置</string>
+    <string name="multi_touch_add_touch">添加触摸</string>
+    <string name="multi_touch_rename_touch">重命名触摸 %1$d</string>
+    <string name="multi_touch_done_renaming">完成触摸 %1$d 的重命名</string>
+    <string name="multi_touch_touch_description">第 %1$d 个触摸，共 %2$d 个：%3$s</string>
+    <string name="action_editor_delete_this_click">删除此点击</string>
+    <string name="action_editor_delete_this_swipe">删除此滑动</string>
+    <string name="action_editor_delete_this_action">删除此操作</string>
+    <string name="action_editor_delete_multi_touch">删除多点触控</string>
+    <string name="action_editor_save_multi_touch">保存多点触控</string>
+    <string name="action_editor_close_multi_touch">关闭多点触控</string>
+    <string name="multi_touch_brief_no_touches">未配置触摸</string>
+    <string name="condition_operator_and">且</string>
+    <string name="condition_operator_or">或</string>
 </resources>

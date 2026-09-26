@@ -19,6 +19,7 @@ package io.github.vibhor1102.macrion.feature.smart.config.ui.action.brief
 
 import android.content.Context
 import android.graphics.Bitmap
+import io.github.vibhor1102.macrion.core.base.gesture.SwipePoint
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import androidx.core.graphics.toPoint
@@ -28,23 +29,31 @@ import androidx.lifecycle.viewModelScope
 
 import io.github.vibhor1102.macrion.core.bitmaps.BitmapRepository
 import io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.brief.ItemBrief
+import io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.brief.BriefHandleKind
+import io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.brief.BriefHandleMove
+import io.github.vibhor1102.macrion.core.display.config.DisplayConfigManager
 import io.github.vibhor1102.macrion.core.domain.ext.getConditionBitmap
 import io.github.vibhor1102.macrion.core.domain.model.action.Action
 import io.github.vibhor1102.macrion.core.domain.model.action.Click
 import io.github.vibhor1102.macrion.core.domain.model.action.Pause
+import io.github.vibhor1102.macrion.core.domain.model.action.SplitAction
 import io.github.vibhor1102.macrion.core.domain.model.action.Swipe
+import io.github.vibhor1102.macrion.core.domain.model.OR
 import io.github.vibhor1102.macrion.core.domain.model.condition.ScreenCondition
 import io.github.vibhor1102.macrion.core.domain.model.event.Event
+import io.github.vibhor1102.macrion.core.domain.model.event.ScreenEvent
 import io.github.vibhor1102.macrion.core.processing.domain.SmartProcessingRepository
 import io.github.vibhor1102.macrion.core.processing.domain.model.DetectionState
-import io.github.vibhor1102.macrion.core.settings.domain.SettingsRepository
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.TutorialRepository
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.state.TutorialState
 import io.github.vibhor1102.macrion.core.ui.utils.createColorIndicatorDrawable
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.ItemBriefDescription
+import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.ActionCarouselDescription
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.ClickDescription
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.DefaultDescription
+import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.NumberedActionPreview
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.PauseDescription
+import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.SplitDescription
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.SwipeDescription
 import io.github.vibhor1102.macrion.feature.smart.config.R
 import io.github.vibhor1102.macrion.feature.smart.config.domain.EditionRepository
@@ -57,17 +66,22 @@ import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.action.
 
 import dagger.hilt.android.qualifiers.ApplicationContext
 
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 import java.util.Collections
@@ -75,22 +89,38 @@ import javax.inject.Inject
 
 
 class SmartActionsBriefViewModel @Inject constructor(
-    @ApplicationContext context: Context,
+    @ApplicationContext private val context: Context,
     isActionCopyAvailableUseCase: IsActionCopyAvailableUseCase,
     private val bitmapRepository: BitmapRepository,
     private val editionRepository: EditionRepository,
     private val smartProcessingRepository: SmartProcessingRepository,
     tutorialRepository: TutorialRepository,
-    settingsRepository: SettingsRepository,
+    private val displayConfigManager: DisplayConfigManager,
 ) : ViewModel(), ActionConfigurator {
 
-    private val isLegacyUiEnabled: Flow<Boolean> = settingsRepository.isLegacyActionUiEnabledFlow
+    private var actionTestJob: Job? = null
+    private var actionTestGeneration = 0
+    private val actionTestPending = MutableStateFlow(false)
 
     private val editedActions: Flow<EditedListState<Action>> = editionRepository.editionState.editedEventActionsState
     private val editedEvent: Flow<Event> = editionRepository.editionState.editedEventState.mapNotNull { it.value }
 
     private val briefVisualizationState: MutableStateFlow<BriefVisualizationState> =
-        MutableStateFlow(BriefVisualizationState(0, false))
+        MutableStateFlow(BriefVisualizationState(0, false, true))
+
+    private val initialCanCompareActionPreviews = editionRepository.editionState
+        .getEditedEventActions<Action>().orEmpty().hasMultipleSpatialPreviews()
+
+    /** Multiple cards with fixed screen positions are needed for a comparison preview. */
+    val canCompareActionPreviews: StateFlow<Boolean> = editedActions
+        .map { it.value.orEmpty().hasMultipleSpatialPreviews() }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, initialCanCompareActionPreviews)
+
+    val showAllActionPreviews: StateFlow<Boolean> = combine(
+        briefVisualizationState, canCompareActionPreviews,
+    ) { state, canCompare -> state.showAllPreviews && canCompare }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, initialCanCompareActionPreviews)
 
     val isGestureCaptureStarted: StateFlow<Boolean> = briefVisualizationState
         .map { it.gestureCaptureStarted }
@@ -104,29 +134,65 @@ class SmartActionsBriefViewModel @Inject constructor(
             }
         }
 
-    val isTestingAction: Flow<Boolean> = smartProcessingRepository.detectionState
-        .map { state -> state == DetectionState.DETECTING }
+    val isTestingAction: Flow<Boolean> = combine(
+        smartProcessingRepository.detectionState, actionTestPending,
+    ) { state, pending -> pending || state == DetectionState.DETECTING }
+        .distinctUntilChanged()
 
-    private val focusedAction: Flow<Pair<Action?, Boolean>> =
-        combine(briefVisualizationState, editedActions) { visualizationState, actions ->
-            val filterUpdates = visualizationState.gestureCaptureStarted
-            val actionList = actions.value ?: return@combine null to filterUpdates
-            if (visualizationState.focusedIndex !in actionList.indices) return@combine null to filterUpdates
-            actionList[visualizationState.focusedIndex] to filterUpdates
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val actionVisualization: Flow<ItemBriefDescription?> =
+        combine(briefVisualizationState, editedActions, editedEvent) { state, actions, event ->
+            if (state.gestureCaptureStarted) null else Triple(state, actions.value.orEmpty(), event)
         }
-
-    val actionVisualization: Flow<ItemBriefDescription?> = focusedAction
-        .filter { !it.second }
-        .map { (action, _) -> action?.toActionDescription(context) }
+            .filterNotNull()
+            .mapLatest { (state, actions, event) ->
+                val focusedOrder = state.focusedIndex + 1
+                if (state.showAllPreviews && actions.hasMultipleSpatialPreviews()) {
+                    val focusedAction = actions.getOrNull(state.focusedIndex)
+                    val focusedSpatial = focusedAction?.toSpatialDescription()
+                    val focusedFallback = when {
+                        focusedAction == null -> null
+                        focusedSpatial == null -> focusedAction.toActionDescription(context, event)
+                        focusedAction is SplitAction && focusedAction.subActions.any {
+                            it is Click && it.positionType == Click.PositionType.ON_DETECTED_CONDITION
+                        } -> {
+                            val fullSplit = focusedAction.toActionDescription(context, event) as SplitDescription
+                            fullSplit.subDescriptions.filterIsInstance<ClickDescription>()
+                                .filter { it.position == null && it.imageConditionBitmap != null }
+                                .takeIf { it.isNotEmpty() }?.let(::SplitDescription)
+                        }
+                        else -> null
+                    }
+                    ActionCarouselDescription(
+                        previews = actions.mapIndexedNotNull { index, action ->
+                            val spatial = if (index == state.focusedIndex) focusedSpatial else action.toSpatialDescription()
+                            spatial?.let { NumberedActionPreview(index + 1, it) }
+                        },
+                        focusedOrder = focusedOrder,
+                        focusedFallback = focusedFallback,
+                    )
+                } else {
+                    val focusedAction = actions.getOrNull(state.focusedIndex) ?: return@mapLatest null
+                    val focusedDescription = focusedAction.toActionDescription(context, event)
+                    when (focusedDescription) {
+                        is ClickDescription, is SwipeDescription, is SplitDescription -> ActionCarouselDescription(
+                            previews = listOf(NumberedActionPreview(focusedOrder, focusedDescription)),
+                            focusedOrder = focusedOrder,
+                        )
+                        else -> focusedDescription
+                    }
+                }
+            }
 
     val canCopyActions: Flow<Boolean> = isActionCopyAvailableUseCase()
 
     val actionTypeChoices: StateFlow<List<ActionTypeChoice>> =
-        combine(canCopyActions, isLegacyUiEnabled) { canCopy, legacyEnabled ->
+        canCopyActions.map { canCopy ->
             buildList {
-                if (!legacyEnabled && canCopy) add(ActionTypeChoice.Copy)
+                if (canCopy) add(ActionTypeChoice.Copy)
                 add(ActionTypeChoice.Click)
                 add(ActionTypeChoice.Swipe)
+                add(ActionTypeChoice.Zoom)
                 add(ActionTypeChoice.Pause)
                 add(ActionTypeChoice.SetText)
                 add(ActionTypeChoice.System)
@@ -134,6 +200,8 @@ class SmartActionsBriefViewModel @Inject constructor(
                 add(ActionTypeChoice.ExternalAction)
                 add(ActionTypeChoice.ToggleEvent)
                 add(ActionTypeChoice.Notification)
+                add(ActionTypeChoice.PlaySound)
+                add(ActionTypeChoice.CaptureScreenshot)
                 add(ActionTypeChoice.Intent)
             }
         }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
@@ -147,6 +215,7 @@ class SmartActionsBriefViewModel @Inject constructor(
     }
 
     fun endGestureCaptureState(context: Context, gesture: ItemBriefDescription) {
+        briefVisualizationState.value = briefVisualizationState.value.copy(gestureCaptureStarted = false)
         val action = gesture.toAction(context) ?: return
         editionRepository.apply {
             startActionEdition(action)
@@ -160,10 +229,17 @@ class SmartActionsBriefViewModel @Inject constructor(
     }
 
     fun setFocusedActionIndex(index: Int) {
-        briefVisualizationState.value = BriefVisualizationState(
+        briefVisualizationState.value = briefVisualizationState.value.copy(
             focusedIndex = index,
             gestureCaptureStarted = false,
         )
+    }
+
+    fun toggleShowAllActionPreviews() {
+        if (!canCompareActionPreviews.value) return
+        briefVisualizationState.update { state ->
+            state.copy(showAllPreviews = !state.showAllPreviews)
+        }
     }
 
     override fun getActionTypeChoices(): List<ActionTypeChoice> =
@@ -172,6 +248,7 @@ class SmartActionsBriefViewModel @Inject constructor(
     override fun createAction(context: Context, choice: ActionTypeChoice): Action = when (choice) {
         ActionTypeChoice.Click -> editionRepository.editedItemsBuilder.createNewClick(context)
         ActionTypeChoice.Swipe -> editionRepository.editedItemsBuilder.createNewSwipe(context)
+        ActionTypeChoice.Zoom -> editionRepository.editedItemsBuilder.createNewZoomInOut(context)
         ActionTypeChoice.Pause -> editionRepository.editedItemsBuilder.createNewPause(context)
         ActionTypeChoice.Intent -> editionRepository.editedItemsBuilder.createNewIntent(context)
         ActionTypeChoice.ToggleEvent -> editionRepository.editedItemsBuilder.createNewToggleEvent(context)
@@ -180,11 +257,17 @@ class SmartActionsBriefViewModel @Inject constructor(
         ActionTypeChoice.Notification -> editionRepository.editedItemsBuilder.createNewNotification(context)
         ActionTypeChoice.System -> editionRepository.editedItemsBuilder.createNewSystemAction(context)
         ActionTypeChoice.SetText -> editionRepository.editedItemsBuilder.createNewSetText(context)
+        ActionTypeChoice.PlaySound -> editionRepository.editedItemsBuilder.createNewPlaySound(context)
+        ActionTypeChoice.CaptureScreenshot -> editionRepository.editedItemsBuilder.createNewCaptureScreenshot(context)
         ActionTypeChoice.Copy -> throw IllegalArgumentException("Unsupported action type for creation $choice")
     }
 
     override fun startActionEdition(action: Action) {
         editionRepository.startActionEdition(action)
+    }
+
+    override fun startSubActionEdition(parent: SplitAction, subIndex: Int) {
+        editionRepository.startSubActionEdition(parent, subIndex)
     }
 
     override fun upsertEditedAction() {
@@ -204,17 +287,28 @@ class SmartActionsBriefViewModel @Inject constructor(
         val actions = editionRepository.editionState.getEditedEventActions<Action>()?.toMutableList()
         if (scenario == null || actions == null || index !in actions.indices) return
 
-        viewModelScope.launch {
-            delay(500)
-            smartProcessingRepository.tryAction(context, scenario, actions[index])
+        actionTestJob?.cancel()
+        val generation = ++actionTestGeneration
+        actionTestPending.value = true
+        actionTestJob = viewModelScope.launch {
+            try {
+                delay(500)
+                smartProcessingRepository.tryAction(context, scenario, actions[index])
+            } finally {
+                if (actionTestGeneration == generation) actionTestPending.value = false
+            }
         }
     }
 
     fun stopAction(): Boolean {
-        if (!smartProcessingRepository.isRunning()) return false
-
-        smartProcessingRepository.stopDetection()
-        return true
+        val pending = actionTestJob?.isActive == true
+        actionTestJob?.cancel()
+        actionTestJob = null
+        actionTestGeneration++
+        actionTestPending.value = false
+        val detecting = smartProcessingRepository.isDetectionActive()
+        if (detecting) smartProcessingRepository.stopDetection()
+        return pending || detecting
     }
 
     fun swapActions(i: Int, j: Int) {
@@ -252,6 +346,100 @@ class SmartActionsBriefViewModel @Inject constructor(
         }
     }
 
+    /** Apply one position edit to the current event draft; return its guarded undo operation. */
+    fun moveHandle(move: BriefHandleMove): (() -> Boolean)? {
+        val actions = editionRepository.editionState.getEditedEventActions<Action>() ?: return null
+        val before = actions.firstOrNull { it.id == move.actionId } ?: return null
+        val bounds = displayConfigManager.displayConfig.sizePx
+        if (!move.newPosition.x.isFinite() || !move.newPosition.y.isFinite() ||
+            move.newPosition.x !in 0f..bounds.x.toFloat() ||
+            move.newPosition.y !in 0f..bounds.y.toFloat()
+        ) return null
+        val after = before.withMovedHandle(move) ?: return null
+        if (after == before) return null
+        editionRepository.startActionEdition(before)
+        editionRepository.updateEditedAction(after)
+        editionRepository.upsertEditedAction()
+        return {
+            val current = editionRepository.editionState.getEditedEventActions<Action>()
+                ?.firstOrNull { it.id == move.actionId }
+            if (current != after) false
+            else {
+                editionRepository.startActionEdition(current)
+                editionRepository.updateEditedAction(before)
+                editionRepository.upsertEditedAction()
+                true
+            }
+        }
+    }
+
+    private fun Action.withMovedHandle(move: BriefHandleMove): Action? {
+        fun moveTouch(action: Action): Action? {
+            return when (action) {
+                is Click -> {
+                    if (move.handle.kind != BriefHandleKind.CLICK ||
+                        action.positionType != Click.PositionType.USER_SELECTED ||
+                        action.position != move.handle.position.toPoint()
+                    ) null else action.copy(position = move.newPosition.toPoint())
+                }
+                is Swipe -> {
+                    val index = move.handle.nodeIndex ?: return null
+                    val lastIndex = action.path?.nodes?.lastIndex ?: 1
+                    if (index !in 0..lastIndex) return null
+                    val old = action.path?.nodes?.get(index)?.position
+                        ?: when (index) {
+                            0 -> action.from?.let(::SwipePoint)
+                            1 -> action.to?.let(::SwipePoint)
+                            else -> null
+                        }
+                    if (old != SwipePoint(move.handle.position)) return null
+                    val path = action.path?.moveNode(index, SwipePoint(move.newPosition))
+                    if (path != null && !path.isValid()) return null
+                    action.copy(
+                        from = if (index == 0) move.newPosition.toPoint() else action.from,
+                        to = if (index == lastIndex) move.newPosition.toPoint() else action.to,
+                        path = path,
+                    )
+                }
+                else -> null
+            }
+        }
+        return if (this is SplitAction) {
+            val index = move.handle.sourceChildIndex ?: return null
+            val child = subActions.getOrNull(index) ?: return null
+            val changed = moveTouch(child) ?: return null
+            copy(subActions = subActions.toMutableList().apply { set(index, changed) })
+        } else if (move.handle.sourceChildIndex == null) moveTouch(this) else null
+    }
+
+    override fun isExistingTopLevelAction(action: Action): Boolean =
+        editionRepository.editionState.getEditedEventActions<Action>()?.any { it.id == action.id } == true
+
+    override fun combinableActions(source: Action): List<Action> {
+        val currentCount = (source as? SplitAction)?.subActions?.size ?: 1
+        return editionRepository.editionState.getEditedEventActions<Action>().orEmpty()
+            .filter { other ->
+                other.id != source.id && (other is Click || other is Swipe || other is SplitAction) &&
+                    currentCount + ((other as? SplitAction)?.subActions?.size ?: 1) <= 10
+            }
+    }
+
+    override fun combineWithNewClick(source: Action): SplitAction? =
+        editionRepository.combineActionWithNew(source, editionRepository.editedItemsBuilder.createNewClick(context))
+
+    override fun combineWithNewSwipe(source: Action): SplitAction? {
+        val newSwipe = editionRepository.editedItemsBuilder.createNewSwipe(context)
+        return editionRepository.combineActionWithNew(source, newSwipe)
+    }
+
+    override fun combineActions(source: Action, other: Action): SplitAction? {
+        return editionRepository.combineActions(source, other)
+    }
+
+    fun unsplitAction(splitAction: SplitAction) {
+        editionRepository.unsplitAction(splitAction)
+    }
+
     private fun ItemBriefDescription.toAction(context: Context): Action? =
         when (this) {
             is ClickDescription -> editionRepository.editedItemsBuilder.createNewClick(context)
@@ -265,22 +453,59 @@ class SmartActionsBriefViewModel @Inject constructor(
                 .copy(
                     from = from?.toPoint(),
                     to = to?.toPoint(),
+                    path = path,
                     swipeDuration = swipeDurationMs,
                 )
+
+            is SplitDescription -> {
+                val subActions = subDescriptions.mapIndexedNotNull { index, desc ->
+                    when (desc) {
+                        is ClickDescription -> editionRepository.editedItemsBuilder.createNewClick(context)
+                            .copy(
+                                position = desc.position?.toPoint(),
+                                pressDuration = desc.pressDurationMs,
+                                waitBeforeMs = desc.startOffsetMs,
+                                positionType = Click.PositionType.USER_SELECTED,
+                                priority = index,
+                            )
+                        is SwipeDescription -> editionRepository.editedItemsBuilder.createNewSwipe(context)
+                            .copy(
+                                from = desc.from?.toPoint(),
+                                to = desc.to?.toPoint(),
+                                path = desc.path,
+                                swipeDuration = desc.swipeDurationMs,
+                                waitBeforeMs = desc.startOffsetMs,
+                                priority = index,
+                            )
+                        else -> null
+                    }
+                }
+                if (subActions.isEmpty()) null
+                else SplitAction(
+                    id = editionRepository.editedItemsBuilder.actionsIdCreator.generateNewIdentifier(),
+                    eventId = subActions.firstOrNull()?.eventId ?: editionRepository.editedItemsBuilder.actionsIdCreator.generateNewIdentifier(),
+                    name = context.getString(R.string.action_type_zoom),
+                    priority = 0,
+                    subActions = subActions,
+                )
+            }
 
             else -> null
         }
 
-    private suspend fun Action.toActionDescription(context: Context): ItemBriefDescription = when (this) {
+    private suspend fun Action.toActionDescription(context: Context, event: Event): ItemBriefDescription = when (this) {
         is Click -> ClickDescription(
-            position = position?.toPointF(),
+            // Switching to a detected-condition target can retain the former fixed position.
+            // Runtime ignores it, so the preview must ignore it too.
+            position = position?.takeIf { positionType == Click.PositionType.USER_SELECTED }?.toPointF(),
             pressDurationMs = pressDuration ?: 1,
-            imageConditionBitmap = findClickOnConditionBitmap(context),
+            imageConditionBitmap = findClickOnConditionBitmap(context, event),
         )
 
         is Swipe -> SwipeDescription(
             from = from?.toPointF(),
             to = to?.toPointF(),
+            path = path,
             swipeDurationMs = swipeDuration ?: 1,
         )
 
@@ -288,13 +513,51 @@ class SmartActionsBriefViewModel @Inject constructor(
             pauseDurationMs = pauseDuration ?: 1,
         )
 
+        is SplitAction -> SplitDescription(
+            subDescriptions = subActions.map { child ->
+                when (val desc = child.toActionDescription(context, event)) {
+                    is SwipeDescription -> desc.copy(startOffsetMs = (child as Swipe).waitBeforeMs ?: 0L)
+                    is ClickDescription -> desc.copy(startOffsetMs = (child as Click).waitBeforeMs ?: 0L)
+                    else -> desc
+                }
+            }
+        )
+
         else -> DefaultDescription(
             icon = ContextCompat.getDrawable(context, getIconRes())
         )
     }
 
-    private suspend fun Click.findClickOnConditionBitmap(context: Context): Bitmap? {
+    private fun List<Action>.hasMultipleSpatialPreviews(): Boolean =
+        count { it.toSpatialDescription() != null } >= 2
+
+    /** Only fixed screen positions belong in the combined overlay. Condition-target clicks have no fixed point. */
+    private fun Action.toSpatialDescription(): ItemBriefDescription? = when (this) {
+        is Click -> position?.takeIf { positionType == Click.PositionType.USER_SELECTED }?.let {
+            ClickDescription(position = it.toPointF(), pressDurationMs = pressDuration ?: 1L)
+        }
+        is Swipe -> if (from != null || to != null) SwipeDescription(
+            from = from?.toPointF(),
+            to = to?.toPointF(),
+            path = path,
+            swipeDurationMs = swipeDuration ?: 1L,
+        ) else null
+        is SplitAction -> subActions.mapIndexedNotNull { index, child ->
+            when (val description = child.toSpatialDescription()) {
+                is ClickDescription -> description.copy(startOffsetMs = (child as Click).waitBeforeMs ?: 0L)
+                is SwipeDescription -> description.copy(startOffsetMs = (child as Swipe).waitBeforeMs ?: 0L)
+                else -> null
+            }?.let { index to it }
+        }.takeIf { it.isNotEmpty() }?.let { children ->
+            SplitDescription(children.map { it.second }, children.map { it.first })
+        }
+        else -> null
+    }
+
+    private suspend fun Click.findClickOnConditionBitmap(context: Context, event: Event): Bitmap? {
         if (positionType != Click.PositionType.ON_DETECTED_CONDITION) return null
+        // OR clicks use whichever condition fulfills the event first, regardless of any saved ID.
+        if (event is ScreenEvent && event.conditionOperator == OR) return null
 
         return editionRepository.editionState.getEditedEventConditions<ScreenCondition>()
             ?.find { it.id == clickOnConditionId }
@@ -312,4 +575,5 @@ class SmartActionsBriefViewModel @Inject constructor(
 private data class BriefVisualizationState(
     val focusedIndex: Int,
     val gestureCaptureStarted: Boolean,
+    val showAllPreviews: Boolean,
 )

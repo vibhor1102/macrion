@@ -170,7 +170,11 @@ class ToggleEventViewModel @Inject constructor(
 
     private fun Context.getEventToggleListName(toggleEventAction: ToggleEvent): String =
         if (toggleEventAction.eventToggles.isEmpty()) getString(R.string.field_select_toggle_events_title_empty)
-        else getString(R.string.field_select_toggle_events_title, toggleEventAction.eventToggles.size)
+        else resources.getQuantityString(
+            R.plurals.field_select_toggle_events_title,
+            toggleEventAction.eventToggles.size,
+            toggleEventAction.eventToggles.size,
+        )
 
 }
 

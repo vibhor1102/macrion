@@ -136,7 +136,11 @@ private fun List<ScenarioListUiState.Item.ScenarioItem>.filterByName(
 
 private fun Repeatable.getRepeatDisplayText(context: Context): String =
     if (isRepeatInfinite) context.getString(R.string.item_desc_dumb_scenario_repeat_infinite)
-    else context.getString(R.string.item_desc_dumb_scenario_repeat_count, repeatCount)
+    else context.resources.getQuantityString(
+        R.plurals.item_desc_dumb_scenario_repeat_count,
+        repeatCount,
+        repeatCount,
+    )
 
 private fun DumbScenario.getMaxDurationDisplayText(context: Context): String =
     if (isDurationInfinite) context.getString(R.string.item_desc_dumb_scenario_max_duration_infinite)

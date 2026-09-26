@@ -1,0 +1,38 @@
+/*
+ * Copyright (C) 2026 Vibhor Goel
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ */
+package io.github.vibhor1102.macrion.feature.smart.config.ui.action.split
+
+import androidx.annotation.DrawableRes
+import io.github.vibhor1102.macrion.core.domain.model.action.Action
+import io.github.vibhor1102.macrion.core.domain.model.event.Event
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.condition.UiScreenCondition
+import io.github.vibhor1102.macrion.feature.smart.config.ui.action.click.ClickPositionUiState
+
+data class SubActionItemUiState(
+    val index: Int,
+    val name: String,
+    val details: String,
+    @DrawableRes val icon: Int,
+    val isComplete: Boolean,
+    val action: Action,
+    val clickPositionState: ClickPositionUiState? = null,
+)
+
+data class SplitActionUiState(
+    val name: String,
+    val nameError: Boolean,
+    val canBeSaved: Boolean,
+    val hasUnsavedModifications: Boolean,
+    val subActions: List<SubActionItemUiState>,
+    val durationMs: Long,
+    val canDeleteSubAction: Boolean,
+    val canUnsplit: Boolean,
+    val event: Event?,
+    val availableConditions: List<UiScreenCondition>,
+)

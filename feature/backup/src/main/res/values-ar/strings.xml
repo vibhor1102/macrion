@@ -45,8 +45,15 @@
     <string name="message_backup_create_error">حدث خطأ وتم إلغاء تصدير النسخة الاحتياطية</string>
     <string name="message_backup_import_progress">استيراد النسخة الاحتياطية: %1$d</string>
     <string name="message_backup_import_verification">التحقق من البيانات</string>
-    <string name="message_backup_import_completed">اكتمل الاستيراد\n%1$d تم استيراد السيناريو</string>
-    <string name="message_backup_import_completed_with_error">اكتمل الاستيراد\n%1$d السيناريوهات المستوردة\n%2$d أخطاء</string>
+    <plurals name="message_backup_import_completed">
+        <item quantity="zero">اكتمل الاستيراد\nلم يتم استيراد أي سيناريو (%1$d)</item>
+        <item quantity="one">اكتمل الاستيراد\nتم استيراد %1$d سيناريو</item>
+        <item quantity="two">اكتمل الاستيراد\nتم استيراد %1$d سيناريوهين</item>
+        <item quantity="few">اكتمل الاستيراد\nتم استيراد %1$d سيناريوهات</item>
+        <item quantity="many">اكتمل الاستيراد\nتم استيراد %1$d سيناريو</item>
+        <item quantity="other">اكتمل الاستيراد\nتم استيراد %1$d سيناريو</item>
+    </plurals>
+    <string name="message_backup_import_completed_with_error">اكتمل الاستيراد\n%1$s\n%2$s</string>
     <string name="message_backup_import_error">حدث خطأ وتم إلغاء استيراد النسخة الاحتياطية</string>
     <string name="message_backup_import_compatibility">تم إنشاء بعض السيناريوهات المستوردة من جهاز بشاشة مختلفة وقد يتسبب هذا في حدوث مشكلات في إحداثيات الكشف والإجراء.\n\nلإصلاح هذه المشكلة، يتعين عليك التقاط لقطات شاشة جديدة لظروفك وتحديث مواضع النقر/التمرير.</string>
     <string name="message_backup_error_no_zip_app">لم يتم العثور على تطبيق على الجهاز للتعامل مع حفظ/تحميل ملف مضغوط.</string>
@@ -66,4 +73,22 @@
     <string name="message_backup_klickr_compatibility_review">هدف التوافق: %1$s\n\nالمكونات التي ستُزال: %2$d\nالسيناريوهات التي لا يمكن تصديرها: %3$d\n\nتابع لاختيار مكان حفظ النسخة الاحتياطية، أو ألغِ دون إنشاء ملف.</string>
     <string name="message_backup_create_klickr_compatible_completed">اكتمل إنشاء نسخة احتياطية متوافقة مع Klick’r. مكونات Macrion التي أُزيلت: %1$d.</string>
     <string name="message_backup_create_klickr_compatible_completed_without_loss">اكتمل إنشاء نسخة احتياطية متوافقة مع Klick’r. لم تكن هناك حاجة لإزالة أي ميزات خاصة بـ Macrion.</string>
+    <!-- Added translations for the current feature set -->
+    <string name="message_backup_klickr_curved_swipes_excluded">حركات السحب المنحنية المستبعدة: %1$d. استخدم نسخة احتياطية أصلية من Macrion للاحتفاظ بمساراتها كاملة.</string>
+    <plurals name="message_backup_import_scenarios">
+        <item quantity="zero">لم يتم استيراد أي سيناريو (%1$d)</item>
+        <item quantity="one">تم استيراد %1$d سيناريو</item>
+        <item quantity="two">تم استيراد %1$d سيناريوهين</item>
+        <item quantity="few">تم استيراد %1$d سيناريوهات</item>
+        <item quantity="many">تم استيراد %1$d سيناريو</item>
+        <item quantity="other">تم استيراد %1$d سيناريو</item>
+    </plurals>
+    <plurals name="message_backup_import_errors">
+        <item quantity="zero">%1$d أخطاء</item>
+        <item quantity="one">%1$d خطأ</item>
+        <item quantity="two">%1$d خطآن</item>
+        <item quantity="few">%1$d أخطاء</item>
+        <item quantity="many">%1$d خطأ</item>
+        <item quantity="other">%1$d خطأ</item>
+    </plurals>
 </resources>

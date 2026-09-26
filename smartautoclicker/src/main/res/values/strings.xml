@@ -70,7 +70,10 @@
     <string name="item_desc_dumb_scenario">The regular auto clicker experience.\nSimply place clicks and swipes on the screen.</string>
     <string name="item_desc_dumb_scenario_max_duration">Stop after %1$s</string>
     <string name="item_desc_dumb_scenario_max_duration_infinite">No max duration</string>
-    <string name="item_desc_dumb_scenario_repeat_count">Repeat %1$d times</string>
+    <plurals name="item_desc_dumb_scenario_repeat_count">
+        <item quantity="one">Repeat %1$d time</item>
+        <item quantity="other">Repeat %1$d times</item>
+    </plurals>
     <string name="item_desc_dumb_scenario_repeat_infinite">Infinite repeat</string>
     <string name="item_desc_smart_scenario">Use image detection to create complex use cases.</string>
     <string name="item_desc_smart_scenario_pro_mode">Requires to watch an ad or buy pro mode</string>
@@ -103,7 +106,6 @@
       - TextButton content.
       - Should be short and concise.
       -->
-    <string name="button_text_create_scenario">Create a scenario</string>
 
     <!--
       - Content description texts.
@@ -122,6 +124,7 @@
     <string name="activity_settings_title">Settings</string>
     <string name="content_desc_back">Navigate back</string>
     <string name="settings_section_scenario_list">Scenario list</string>
+    <string name="settings_section_scenario_editing">Scenario editing</string>
     <string name="settings_section_overlay">Overlay controls</string>
     <string name="settings_section_compatibility">Compatibility</string>
     <string name="settings_section_device_compatibility">Device compatibility</string>
@@ -137,9 +140,9 @@
     <string name="field_home_button_desc">Adds a toolbar button that stops the scenario and opens Macrion’s home screen.</string>
     <string name="field_stop_confirmation_title">Confirm before stopping</string>
     <string name="field_stop_confirmation_desc">Ask before stopping Macrion from the overlay toolbar.</string>
+    <string name="settings_preview_handle_editing_title">Edit touch positions in preview</string>
+    <string name="settings_preview_handle_editing_desc">Drag touch handles in the action preview to reposition them.</string>
 
-    <string name="field_legacy_action_ui_title">Legacy Action UI</string>
-    <string name="field_legacy_action_ui_desc">Change the action display by a list. Useful for complex scenarios.</string>
 
     <string name="field_legacy_notification_ui_title">Legacy Notification UI</string>
     <string name="field_legacy_notification_ui_desc">Use the system buttons instead of icon buttons in the notification.</string>
@@ -163,7 +166,10 @@
     <string name="dialog_condition_migration_title">Migration</string>
 
     <string name="message_condition_migration_desc">Macrion images format have changed and your scenario needs to be updated.         This can take a few minutes depending on the number of conditions to migrate.</string>
-    <string name="message_condition_migration_count">%1$d Image Conditions to migrate.</string>
+    <plurals name="message_condition_migration_count">
+        <item quantity="one">%1$d image condition to migrate.</item>
+        <item quantity="other">%1$d image conditions to migrate.</item>
+    </plurals>
     <string name="message_condition_migration_success">All Image Conditions migrated.</string>
     <string name="message_condition_migration_error">Some conditions could not be migrated. Please check your scenarios.</string>
 
@@ -177,8 +183,6 @@
     <string name="button_import">Import</string>
     <string name="button_export">Export</string>
 
-    <string name="field_tutorial_title">Tutorial</string>
-    <string name="field_tutorial_desc">Learn how to use Macrion</string>
 
     <!-- Crash reporting -->
     <string name="crash_reports_title">Local crash reports</string>
@@ -223,12 +227,32 @@
     <string name="settings_toolbar_auto_hide_desc">Tuck the toolbar against the screen edge when inactive.</string>
     <string name="settings_toolbar_auto_hide_delay_title">Auto-hide delay</string>
     <string name="settings_toolbar_auto_hide_delay_dialog_title">Auto-hide delay</string>
-    <string name="settings_toolbar_auto_hide_delay_seconds">%1$d seconds</string>
-    <string name="settings_toolbar_auto_hide_delay_seconds_default">%1$d seconds (Default)</string>
+    <plurals name="settings_toolbar_auto_hide_delay_seconds">
+        <item quantity="one">%1$d second</item>
+        <item quantity="other">%1$d seconds</item>
+    </plurals>
     <string name="settings_toolbar_auto_hide_delay_1_minute">1 minute</string>
-    <string name="settings_toolbar_auto_hide_delay_minutes">%1$d minutes</string>
-    <string name="settings_toolbar_auto_hide_delay_minutes_default">%1$d minutes (Default)</string>
-    <string name="content_desc_tuck_toolbar">Tuck toolbar to screen edge</string>
-    <string name="content_desc_expand_toolbar">Expand toolbar</string>
+    <plurals name="settings_toolbar_auto_hide_delay_minutes">
+        <item quantity="one">%1$d minute</item>
+        <item quantity="other">%1$d minutes</item>
+    </plurals>
+    <plurals name="settings_toolbar_auto_hide_delay_minutes_default">
+        <item quantity="one">%1$d minute (Default)</item>
+        <item quantity="other">%1$d minutes (Default)</item>
+    </plurals>
     <string name="toast_advanced_settings_restored_defaults">Advanced settings have been restored to default values.</string>
+    <string name="settings_screenshot_rate_limit_title">Screenshot rate limit</string>
+    <plurals name="settings_screenshot_rate_limit_item">
+        <item quantity="one">%1$d per minute</item>
+        <item quantity="other">%1$d per minute</item>
+    </plurals>
+    <plurals name="settings_screenshot_rate_limit_item_default">
+        <item quantity="one">%1$d per minute (Default)</item>
+        <item quantity="other">%1$d per minute (Default)</item>
+    </plurals>
+    <string name="settings_screenshot_rate_limit_item_disabled">Disabled (unlimited)</string>
+    <string name="settings_screenshot_rate_limit_dialog_title">Screenshot rate limit</string>
+    <string name="settings_screenshot_rate_limit_dialog_desc">Enter the maximum number of screenshots allowed per rolling minute. Enter 0 to disable the limit.</string>
+    <string name="settings_screenshot_rate_limit_dialog_label">Screenshots per minute</string>
+    <string name="settings_screenshot_rate_limit_invalid">Please enter a valid number (0 or greater)</string>
 </resources>

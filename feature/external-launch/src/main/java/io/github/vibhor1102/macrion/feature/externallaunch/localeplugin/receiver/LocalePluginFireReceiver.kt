@@ -219,7 +219,16 @@ class LocalePluginFireReceiver : BroadcastReceiver() {
             Log.w(TAG, "Can't directly open Locale plugin execution activity", throwable)
         }.isSuccess
 
+    @Suppress("DEPRECATION") // Android 14–15 require this compatibility mode; Android 16 uses ALLOW_ALWAYS.
     private fun backgroundActivityStartOptions(): Bundle? {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA) {
+            return ActivityOptions.makeBasic().apply {
+                setPendingIntentBackgroundActivityStartMode(
+                    ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOW_ALWAYS,
+                )
+            }.toBundle()
+        }
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             return ActivityOptions.makeBasic().apply {
                 setPendingIntentBackgroundActivityStartMode(

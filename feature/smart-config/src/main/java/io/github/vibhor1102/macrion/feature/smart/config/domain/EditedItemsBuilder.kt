@@ -20,9 +20,13 @@ package io.github.vibhor1102.macrion.feature.smart.config.domain
 import android.app.NotificationManager
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.Point
 import android.graphics.Rect
+import android.provider.Settings
 import androidx.annotation.ColorInt
+import io.github.vibhor1102.macrion.core.domain.model.action.SplitAction
 
+import io.github.vibhor1102.macrion.feature.smart.config.R
 import io.github.vibhor1102.macrion.code.smart.detectionmodels.text.domain.OCRAlphabet
 import io.github.vibhor1102.macrion.core.base.identifier.Identifier
 import io.github.vibhor1102.macrion.core.base.identifier.IdentifierCreator
@@ -37,6 +41,8 @@ import io.github.vibhor1102.macrion.core.domain.model.action.Click.PositionType
 import io.github.vibhor1102.macrion.core.domain.model.action.Intent
 import io.github.vibhor1102.macrion.core.domain.model.action.Notification
 import io.github.vibhor1102.macrion.core.domain.model.action.Pause
+import io.github.vibhor1102.macrion.core.domain.model.action.PlaySound
+import io.github.vibhor1102.macrion.core.domain.model.action.CaptureScreenshot
 import io.github.vibhor1102.macrion.core.domain.model.action.SetText
 import io.github.vibhor1102.macrion.core.domain.model.action.Swipe
 import io.github.vibhor1102.macrion.core.domain.model.action.SystemAction
@@ -56,10 +62,10 @@ class EditedItemsBuilder internal constructor(
     private val editor: ScenarioEditor,
 ) {
 
-    private val defaultValues = EditionDefaultValues()
+    internal val defaultValues = EditionDefaultValues()
     private val eventsIdCreator = IdentifierCreator()
     private val conditionsIdCreator = IdentifierCreator()
-    private val actionsIdCreator = IdentifierCreator()
+    internal val actionsIdCreator = IdentifierCreator()
     private val intentExtrasIdCreator = IdentifierCreator()
     private val eventTogglesIdCreator = IdentifierCreator()
     private val endConditionsIdCreator = IdentifierCreator()
@@ -321,6 +327,39 @@ class EditedItemsBuilder internal constructor(
             priority = 0,
         )
 
+    fun createNewZoomInOut(context: Context): SplitAction {
+        val eventId = getEditedEventIdOrThrow()
+        val duration = defaultValues.swipeDuration(context)
+
+        val swipe1 = Swipe(
+            id = actionsIdCreator.generateNewIdentifier(),
+            eventId = eventId,
+            name = context.getString(R.string.item_swipe_title) + " 1",
+            from = null,
+            to = null,
+            swipeDuration = duration,
+            priority = 0,
+        )
+
+        val swipe2 = Swipe(
+            id = actionsIdCreator.generateNewIdentifier(),
+            eventId = eventId,
+            name = context.getString(R.string.item_swipe_title) + " 2",
+            from = null,
+            to = null,
+            swipeDuration = duration,
+            priority = 1,
+        )
+
+        return SplitAction(
+            id = actionsIdCreator.generateNewIdentifier(),
+            eventId = eventId,
+            name = context.getString(R.string.default_zoom_name),
+            priority = 0,
+            subActions = listOf(swipe1, swipe2),
+        )
+    }
+
     fun createNewPause(context: Context): Pause =
         Pause(
             id = actionsIdCreator.generateNewIdentifier(),
@@ -419,6 +458,26 @@ class EditedItemsBuilder internal constructor(
             priority = 0,
         )
 
+    fun createNewPlaySound(context: Context): PlaySound =
+        PlaySound(
+            id = actionsIdCreator.generateNewIdentifier(),
+            eventId = getEditedEventIdOrThrow(),
+            name = defaultValues.playSoundName(context),
+            soundUri = Settings.System.DEFAULT_NOTIFICATION_URI.toString(),
+            soundTitle = context.getString(R.string.default_notification_sound),
+            priority = 0,
+        )
+
+    fun createNewCaptureScreenshot(context: Context): CaptureScreenshot =
+        CaptureScreenshot(
+            id = actionsIdCreator.generateNewIdentifier(),
+            eventId = getEditedEventIdOrThrow(),
+            name = defaultValues.captureScreenshotName(context),
+            screenshotFolderUri = null,
+            screenshotFolderName = null,
+            priority = 0,
+        )
+
     fun createNewActionFrom(from: Action, eventId: Identifier = getEditedEventIdOrThrow()): Action = when (from) {
         is Click -> createNewClickFrom(from, eventId)
         is Swipe -> createNewSwipeFrom(from, eventId)
@@ -430,7 +489,18 @@ class EditedItemsBuilder internal constructor(
         is Notification -> createNewNotificationFrom(from, eventId)
         is SystemAction -> createNewSystemActionFrom(from, eventId)
         is SetText -> createNewSetTextFrom(from, eventId)
+        is PlaySound -> createNewPlaySoundFrom(from, eventId)
+        is CaptureScreenshot -> createNewCaptureScreenshotFrom(from, eventId)
+        is SplitAction -> createNewSplitActionFrom(from, eventId)
     }
+
+    private fun createNewSplitActionFrom(from: SplitAction, eventId: Identifier): SplitAction =
+        from.copy(
+            id = actionsIdCreator.generateNewIdentifier(),
+            eventId = eventId,
+            name = "" + from.name,
+            subActions = from.subActions.map { createNewActionFrom(it, eventId) },
+        )
 
     private fun createNewClickFrom(from: Click, eventId: Identifier): Click {
         val conditionId =
@@ -552,6 +622,30 @@ class EditedItemsBuilder internal constructor(
             name = "" + from.name,
             text = from.text,
             validateInput = from.validateInput,
+        )
+    }
+
+    private fun createNewPlaySoundFrom(from: PlaySound, eventId: Identifier): PlaySound {
+        val actionId = actionsIdCreator.generateNewIdentifier()
+
+        return from.copy(
+            id = actionId,
+            eventId = eventId,
+            name = "" + from.name,
+            soundUri = from.soundUri,
+            soundTitle = from.soundTitle,
+        )
+    }
+
+    private fun createNewCaptureScreenshotFrom(from: CaptureScreenshot, eventId: Identifier): CaptureScreenshot {
+        val actionId = actionsIdCreator.generateNewIdentifier()
+
+        return from.copy(
+            id = actionId,
+            eventId = eventId,
+            name = "" + from.name,
+            screenshotFolderUri = from.screenshotFolderUri,
+            screenshotFolderName = from.screenshotFolderName,
         )
     }
 

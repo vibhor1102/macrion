@@ -42,7 +42,8 @@ internal object EventTestsData {
         scenarioId: Long,
         priority: Int = 0,
         cooldownMs: Long = 0,
-    ) = EventEntity(id, scenarioId, name, conditionOperator, priority, enabledOnStart, EventType.IMAGE_EVENT, detectionCooldownMs = cooldownMs, keepDetecting = false)
+        folderName: String? = null,
+    ) = EventEntity(id, scenarioId, name, conditionOperator, priority, enabledOnStart, EventType.IMAGE_EVENT, detectionCooldownMs = cooldownMs, keepDetecting = false, folderName = folderName)
 
     fun getNewTriggerEventEntity(
         id: Long = EVENT_ID,
@@ -62,7 +63,8 @@ internal object EventTestsData {
         scenarioId: Long,
         priority: Int = 0,
         cooldownMs: Long = 0,
-    ) = ScreenEvent(id.asIdentifier(), scenarioId.asIdentifier(), name, conditionOperator, actions, conditions, enabledOnStart, priority, cooldownMs = cooldownMs, keepDetecting = false)
+        folder: String? = null,
+    ) = ScreenEvent(id.asIdentifier(), scenarioId.asIdentifier(), name, conditionOperator, actions, conditions, enabledOnStart, priority, cooldownMs = cooldownMs, keepDetecting = false, folder = folder)
 
     fun getNewTriggerEvent(
         id: Long = EVENT_ID,

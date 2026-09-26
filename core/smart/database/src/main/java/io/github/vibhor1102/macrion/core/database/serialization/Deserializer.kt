@@ -40,6 +40,9 @@ object DeserializerFactory {
             databaseVersion < VERSION_DETECTION_QUALITY_UPDATE -> CompatV11Deserializer()
             databaseVersion < VERSION_ADVANCED_AUTOMATION_UPDATE -> CompatV13Deserializer()
             databaseVersion < VERSION_COUNTER_TYPE_UPDATE -> CompatV20Deserializer()
+            // These versions already use the current complete-action JSON structure.
+            // Kotlin defaults fill newly added columns without dropping split children or delays.
+            databaseVersion in 31 until VERSION_UP_TO_DATE -> KotlinDeserializer()
             databaseVersion < VERSION_UP_TO_DATE -> CompatDeserializer()
             databaseVersion == VERSION_UP_TO_DATE -> KotlinDeserializer()
 

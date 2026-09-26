@@ -26,6 +26,8 @@ import io.github.vibhor1102.macrion.core.domain.model.action.Click
 import io.github.vibhor1102.macrion.core.domain.model.action.Intent
 import io.github.vibhor1102.macrion.core.domain.model.action.Notification
 import io.github.vibhor1102.macrion.core.domain.model.action.Pause
+import io.github.vibhor1102.macrion.core.domain.model.action.PlaySound
+import io.github.vibhor1102.macrion.core.domain.model.action.CaptureScreenshot
 import io.github.vibhor1102.macrion.core.domain.model.action.SetText
 import io.github.vibhor1102.macrion.core.domain.model.action.Swipe
 import io.github.vibhor1102.macrion.core.domain.model.action.SystemAction
@@ -36,6 +38,7 @@ import io.github.vibhor1102.macrion.feature.smart.config.domain.EditionRepositor
 import io.github.vibhor1102.macrion.feature.smart.config.domain.usecase.copy.model.ItemWithMissingReferences
 import io.github.vibhor1102.macrion.feature.smart.config.domain.usecase.copy.model.MissingCopyReference
 import io.github.vibhor1102.macrion.core.domain.model.action.ExternalAction
+import io.github.vibhor1102.macrion.core.domain.model.action.SplitAction
 
 import javax.inject.Inject
 
@@ -70,8 +73,11 @@ class GetActionMissingReferencesUseCase @Inject constructor(
             is ExternalAction,
             is Intent,
             is Pause,
+            is PlaySound,
+            is CaptureScreenshot,
             is Swipe,
             is SystemAction -> emptyList()
+            is SplitAction -> action.subActions.flatMap { invoke(it, eventsToCopy).missingReferences }
         }
 
         return ItemWithMissingReferences.ActionItem(

@@ -23,6 +23,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
@@ -89,11 +91,12 @@ class TriggerEventListContent(appContext: Context) : NavBarDialogContent(appCont
     }
 
     @Composable private fun Content() {
-        val items = viewModel.triggerEvents.collectAsStateWithLifecycle(null).value
+        val items by viewModel.triggerEvents.collectAsStateWithLifecycle(null)
+        val currentItems = items
         Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
             when {
-                items == null -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
-                items.isEmpty() -> Column(Modifier.fillMaxSize().padding(24.dp), verticalArrangement = Arrangement.Center,
+                currentItems == null -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+                currentItems.isEmpty() -> Column(Modifier.fillMaxSize().padding(24.dp), verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(context.getString(R.string.message_empty_trigger_event_list_title), style = MaterialTheme.typography.headlineSmall)
                     Spacer(Modifier.height(8.dp))
@@ -101,7 +104,11 @@ class TriggerEventListContent(appContext: Context) : NavBarDialogContent(appCont
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 else -> LazyColumn(Modifier.fillMaxSize()) {
-                    items(items, key = { it.event.id.toLazyListKey() }) { item ->
+                    items(
+                        items = currentItems,
+                        key = { it.event.id.toLazyListKey() },
+                        contentType = { "trigger_event_item" },
+                    ) { item ->
                         EventListRow(
                             name = item.name,
                             conditionsCount = item.conditionsCountText,

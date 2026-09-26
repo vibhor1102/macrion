@@ -17,11 +17,13 @@
 package io.github.vibhor1102.macrion.feature.smart.config.ui.action.brief
 
 import io.github.vibhor1102.macrion.core.common.overlays.menu.findOverlayView
+import io.github.vibhor1102.macrion.core.common.overlays.menu.OverlayMenuButtonView
 
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.ViewCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -31,6 +33,7 @@ import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.MoveToDialog
 import io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.brief.ItemBrief
 import io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.brief.ItemBriefMenu
+import io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.brief.BriefHandleMove
 import io.github.vibhor1102.macrion.core.domain.model.action.Action
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.ItemBriefDescription
 import io.github.vibhor1102.macrion.feature.smart.config.R
@@ -40,6 +43,8 @@ import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.action.
 
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredOverlayType
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredViewType
@@ -72,6 +77,9 @@ class SmartActionsBriefMenu(initialItemIndex: Int) : ItemBriefMenu(
     )
 
     private lateinit var menuView: ViewGroup
+    private var canCompareActionPreviews = false
+    private var isRecording = false
+    private var isReplaying = false
 
     /**
      * Tells if this service has handled onKeyEvent with ACTION_DOWN for a key in order to return
@@ -86,8 +94,10 @@ class SmartActionsBriefMenu(initialItemIndex: Int) : ItemBriefMenu(
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch { viewModel.isGestureCaptureStarted.collect(::updateRecordingState) }
-                launch { viewModel.actionBriefList.collect(::updateItemList) }
+                launch { viewModel.actionBriefList.collect(::updateActions) }
+                launch { viewModel.canCompareActionPreviews.collect(::updatePreviewToggleVisibility) }
                 launch { viewModel.actionVisualization.collect(::updateActionVisualisation) }
+                launch { viewModel.showAllActionPreviews.collect(::updatePreviewMode) }
                 launch { viewModel.isTutorialModeEnabled.collect(::updateTutorialModeState) }
                 launch { viewModel.isTestingAction.collect(::updateReplayingState) }
             }
@@ -111,14 +121,24 @@ class SmartActionsBriefMenu(initialItemIndex: Int) : ItemBriefMenu(
                 }
             },
         )
+        canCompareActionPreviews = viewModel.canCompareActionPreviews.value
+        menuView.findOverlayView<OverlayMenuButtonView>(R.id.btn_show_all_action_previews).visibility =
+            if (canCompareActionPreviews) View.VISIBLE else View.GONE
+        updatePreviewMode(viewModel.showAllActionPreviews.value)
         return menuView
     }
 
     @androidx.compose.runtime.Composable
     override fun ItemBriefContent(item: ItemBrief, orientation: Int, onClick: () -> Unit) {
-        SmartActionBriefItem(item.data as UiAction, orientation, onClick)
+        val uiAction = item.data as UiAction
+        SmartActionBriefItem(
+            details = uiAction,
+            orientation = orientation,
+            onClick = onClick,
+        )
     }
 
+    @Suppress("ModifierFactoryExtensionFunction")
     @Composable
     override fun firstBriefItemModifier(): Modifier =
         Modifier.tutorialAnchor(MonitoredViewType.ACTIONS_BRIEF_FIRST_ITEM)
@@ -154,8 +174,12 @@ class SmartActionsBriefMenu(initialItemIndex: Int) : ItemBriefMenu(
             R.id.btn_back -> onBackClicked()
             R.id.btn_record -> onRecordClicked()
             R.id.btn_add_other -> showNewActionDialog()
+            R.id.btn_show_all_action_previews -> viewModel.toggleShowAllActionPreviews()
         }
     }
+
+    override fun shouldDebounceMenuItemClick(viewId: Int): Boolean =
+        viewId != R.id.btn_show_all_action_previews
 
     override fun onScreenOverlayVisibilityChanged(isVisible: Boolean) {
         super.onScreenOverlayVisibilityChanged(isVisible)
@@ -203,6 +227,9 @@ class SmartActionsBriefMenu(initialItemIndex: Int) : ItemBriefMenu(
         viewModel.deleteAction(index)
     }
 
+    override fun onHandleMoved(move: BriefHandleMove): (() -> Boolean)? =
+        viewModel.moveHandle(move)
+
     override fun onPlayItemClicked(index: Int) {
         viewModel.playAction(context, index)
     }
@@ -239,7 +266,11 @@ class SmartActionsBriefMenu(initialItemIndex: Int) : ItemBriefMenu(
 
         viewModel.startGestureCaptureState()
         startGestureCapture { gesture, isFinished ->
-            if (gesture == null || !isFinished) return@startGestureCapture
+            if (!isFinished) return@startGestureCapture
+            if (gesture == null) {
+                viewModel.cancelGestureCaptureState()
+                return@startGestureCapture
+            }
             viewModel.endGestureCaptureState(context, gesture)
         }
     }
@@ -250,6 +281,8 @@ class SmartActionsBriefMenu(initialItemIndex: Int) : ItemBriefMenu(
     }
 
     private fun updateRecordingState(isRecording: Boolean) {
+        this.isRecording = isRecording
+        briefViewBinding.setHandleEditingEnabled(!isRecording && !isReplaying)
         if (isRecording) {
             setMenuItemViewEnabled(menuView.findOverlayView(R.id.btn_back), true)
             setMenuItemViewEnabled(menuView.findOverlayView(R.id.btn_add_other), false)
@@ -263,15 +296,53 @@ class SmartActionsBriefMenu(initialItemIndex: Int) : ItemBriefMenu(
             setMenuItemViewEnabled(menuView.findOverlayView(R.id.btn_move), true)
             setMenuItemViewEnabled(menuView.findOverlayView(R.id.btn_record), true)
         }
+        updatePreviewToggleAvailability()
     }
 
     private fun updateReplayingState(isReplaying: Boolean) {
+        this.isReplaying = isReplaying
+        briefViewBinding.setHandleEditingEnabled(!isRecording && !isReplaying)
         setOverlayViewVisibility(!isReplaying && isUserOverlayVisible)
         setMenuItemViewEnabled(menuView.findOverlayView(R.id.btn_back), !isReplaying)
         setMenuItemViewEnabled(menuView.findOverlayView(R.id.btn_add_other), !isReplaying)
         setMenuItemViewEnabled(menuView.findOverlayView(R.id.btn_hide_overlay), !isReplaying)
         setMenuItemViewEnabled(menuView.findOverlayView(R.id.btn_move), !isReplaying)
         setMenuItemViewEnabled(menuView.findOverlayView(R.id.btn_record), !isReplaying)
+        updatePreviewToggleAvailability()
+    }
+
+    private fun updateActions(items: List<ItemBrief>) {
+        updateItemList(items)
+    }
+
+    private fun updatePreviewToggleVisibility(canCompare: Boolean) {
+        canCompareActionPreviews = canCompare
+        updatePreviewToggleAvailability()
+    }
+
+    private fun updatePreviewToggleAvailability() {
+        if (this::menuView.isInitialized) {
+            val button = menuView.findOverlayView<OverlayMenuButtonView>(R.id.btn_show_all_action_previews)
+            setMenuItemVisibility(button, canCompareActionPreviews)
+            setMenuItemViewEnabled(
+                button,
+                canCompareActionPreviews && !isRecording && !isReplaying,
+            )
+        }
+    }
+
+    private fun updatePreviewMode(showAll: Boolean) {
+        if (!this::menuView.isInitialized) return
+        val button = menuView.findOverlayView<OverlayMenuButtonView>(R.id.btn_show_all_action_previews)
+        button.isSelected = showAll
+        button.setImageResource(if (showAll) R.drawable.ic_action_preview_all else R.drawable.ic_action_preview_current)
+        ViewCompat.setStateDescription(button, context.getString(
+            if (showAll) R.string.action_previews_all_on else R.string.action_previews_all_off,
+        ))
+        ViewCompat.setTooltipText(
+            button,
+            context.getString(R.string.content_desc_show_all_action_previews),
+        )
     }
 
     private fun updateActionVisualisation(visualization: ItemBriefDescription?) {

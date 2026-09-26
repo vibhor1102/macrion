@@ -18,6 +18,7 @@ package io.github.vibhor1102.macrion.feature.dumb.config.ui.brief
 
 import android.content.Context
 import android.graphics.Point
+import io.github.vibhor1102.macrion.core.base.gesture.SwipePoint
 import androidx.core.graphics.toPoint
 
 import androidx.core.graphics.toPointF
@@ -27,11 +28,14 @@ import io.github.vibhor1102.macrion.core.base.di.Dispatcher
 import io.github.vibhor1102.macrion.core.base.di.HiltCoroutineDispatchers.Main
 
 import io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.brief.ItemBrief
+import io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.brief.BriefHandleKind
+import io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.brief.BriefHandleMove
 import io.github.vibhor1102.macrion.core.dumb.domain.model.DumbAction
 import io.github.vibhor1102.macrion.core.dumb.engine.DumbEngine
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.ItemBriefDescription
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.ClickDescription
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.PauseDescription
+import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.SplitDescription
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.SwipeDescription
 import io.github.vibhor1102.macrion.feature.dumb.config.domain.DumbEditionRepository
 import io.github.vibhor1102.macrion.feature.dumb.config.ui.actions.copy.DumbActionDetails
@@ -57,7 +61,7 @@ import javax.inject.Inject
 
 
 class DumbScenarioBriefViewModel @Inject constructor(
-    @ApplicationContext context: Context,
+    @ApplicationContext private val context: Context,
     @param:Dispatcher(Main) private val mainDispatcher: CoroutineDispatcher,
     private val dumbEditionRepository: DumbEditionRepository,
     private val dumbEngine: DumbEngine,
@@ -84,6 +88,18 @@ class DumbScenarioBriefViewModel @Inject constructor(
             }
         }
         .filterNotNull()
+
+    fun combinableActionsFor(source: DumbAction): List<DumbActionDetails>? {
+        val actions = dumbEditionRepository.editedDumbScenario.value?.dumbActions ?: return null
+        if (actions.none { it.id == source.id }) return null
+        val sourceCount = (source as? DumbAction.DumbSplitAction)?.subActions?.size ?: 1
+        return actions.asSequence()
+            .filter { it.id != source.id }
+            .filter { it is DumbAction.DumbClick || it is DumbAction.DumbSwipe || it is DumbAction.DumbSplitAction }
+            .filter { sourceCount + ((it as? DumbAction.DumbSplitAction)?.subActions?.size ?: 1) <= 10 }
+            .map { it.toDumbActionDetails(context, withPositions = false) }
+            .toList()
+    }
 
     private val focusedAction: Flow<Pair<DumbAction?, Boolean>> =
         combine(briefVisualizationState, dumbEditionRepository.editedDumbScenario) { visualizationState, scenario ->
@@ -148,6 +164,32 @@ class DumbScenarioBriefViewModel @Inject constructor(
     fun createNewDumbPause(context: Context, ): DumbAction.DumbPause =
         dumbEditionRepository.dumbActionBuilder.createNewDumbPause(context)
 
+    fun createNewDumbZoomInOut(context: Context): DumbAction.DumbSplitAction =
+        dumbEditionRepository.dumbActionBuilder.createNewDumbZoomInOut(context)
+
+    fun combineWithNewSwipe(action: DumbAction): DumbAction.DumbSplitAction? {
+        val newSwipe = dumbEditionRepository.dumbActionBuilder.createNewDumbSwipe(
+            context = context,
+            from = Point(-1, -1),
+            to = Point(-1, -1),
+        ).copy(name = "Swipe 2")
+        return dumbEditionRepository.combineActionWithNew(action, newSwipe)
+    }
+
+    fun saveCombination(split: DumbAction.DumbSplitAction, sourceIds: Set<io.github.vibhor1102.macrion.core.base.identifier.Identifier>) =
+        dumbEditionRepository.saveCombination(split, sourceIds)
+
+    fun combineWithNewClick(action: DumbAction): DumbAction.DumbSplitAction? =
+        dumbEditionRepository.combineActionWithNew(action,
+            dumbEditionRepository.dumbActionBuilder.createNewDumbClick(context, Point(-1, -1)))
+
+    fun combineActions(actionA: DumbAction, actionB: DumbAction): DumbAction.DumbSplitAction? =
+        dumbEditionRepository.combineActions(actionA, actionB)
+
+    fun unsplitAction(splitAction: DumbAction.DumbSplitAction) {
+        dumbEditionRepository.unsplitAction(splitAction)
+    }
+
     fun createDumbActionCopy(actionToCopy: DumbAction): DumbAction =
         dumbEditionRepository.dumbActionBuilder.createNewDumbActionFrom(actionToCopy)
 
@@ -160,6 +202,61 @@ class DumbScenarioBriefViewModel @Inject constructor(
 
     fun updateDumbAction(dumbAction: DumbAction) {
         dumbEditionRepository.updateDumbAction(dumbAction)
+    }
+
+    fun moveHandle(move: BriefHandleMove): (() -> Boolean)? {
+        val before = dumbEditionRepository.editedDumbScenario.value?.dumbActions
+            ?.firstOrNull { it.id == move.actionId } ?: return null
+        val after = before.withMovedHandle(move) ?: return null
+        if (after == before) return null
+        dumbEditionRepository.updateDumbAction(after)
+        return {
+            val current = dumbEditionRepository.editedDumbScenario.value?.dumbActions
+                ?.firstOrNull { it.id == move.actionId }
+            if (current != after) false
+            else {
+                dumbEditionRepository.updateDumbAction(before)
+                true
+            }
+        }
+    }
+
+    private fun DumbAction.withMovedHandle(move: BriefHandleMove): DumbAction? {
+        fun moveTouch(action: DumbAction): DumbAction? {
+            return when (action) {
+                is DumbAction.DumbClick -> {
+                    if (move.handle.kind != BriefHandleKind.CLICK ||
+                        action.position != move.handle.position.toPoint()
+                    ) null else action.copy(position = move.newPosition.toPoint())
+                }
+                is DumbAction.DumbSwipe -> {
+                    val index = move.handle.nodeIndex ?: return null
+                    val lastIndex = action.path?.nodes?.lastIndex ?: 1
+                    if (index !in 0..lastIndex) return null
+                    val old = action.path?.nodes?.get(index)?.position
+                        ?: when (index) {
+                            0 -> SwipePoint(action.fromPosition)
+                            1 -> SwipePoint(action.toPosition)
+                            else -> null
+                        }
+                    if (old != SwipePoint(move.handle.position)) return null
+                    val path = action.path?.moveNode(index, SwipePoint(move.newPosition))
+                    if (path != null && !path.isValid()) return null
+                    action.copy(
+                        fromPosition = if (index == 0) move.newPosition.toPoint() else action.fromPosition,
+                        toPosition = if (index == lastIndex) move.newPosition.toPoint() else action.toPosition,
+                        path = path,
+                    )
+                }
+                else -> null
+            }
+        }
+        return if (this is DumbAction.DumbSplitAction) {
+            val index = move.handle.sourceChildIndex ?: return null
+            val child = subActions.getOrNull(index) ?: return null
+            val changed = moveTouch(child) ?: return null
+            copy(subActions = subActions.toMutableList().apply { set(index, changed) })
+        } else if (move.handle.sourceChildIndex == null) moveTouch(this) else null
     }
 
     fun swapDumbActions(i: Int, j: Int) {
@@ -198,14 +295,25 @@ class DumbScenarioBriefViewModel @Inject constructor(
         when (this) {
             is ClickDescription -> createNewDumbClick(
                 context = context,
-                position = position?.toPoint() ?: Point(0, 0),
-            )
+                position = position?.toPoint() ?: Point(-1, -1),
+            ).copy(pressDurationMs = pressDurationMs, waitBeforeMs = startOffsetMs,
+                repeatCount = 1, isRepeatInfinite = false)
 
             is SwipeDescription -> createNewDumbSwipe(
                 context = context,
-                from = from?.toPoint() ?: Point(0, 0),
-                to = to?.toPoint() ?: Point(0, 0),
-            )
+                from = from?.toPoint() ?: Point(-1, -1),
+                to = to?.toPoint() ?: Point(-1, -1),
+            ).copy(swipeDurationMs = swipeDurationMs, waitBeforeMs = startOffsetMs, path = path,
+                repeatCount = 1, isRepeatInfinite = false)
+
+            is SplitDescription -> {
+                val subDumbActions = subDescriptions.mapNotNull { it.toDumbAction(context) }
+                if (subDumbActions.isNotEmpty()) {
+                    dumbEditionRepository.dumbActionBuilder.createNewDumbZoomInOut(context).copy(
+                        subActions = subDumbActions
+                    )
+                } else null
+            }
 
             else -> null
         }
@@ -221,10 +329,21 @@ class DumbScenarioBriefViewModel @Inject constructor(
                 from = fromPosition.toPointF(),
                 to = toPosition.toPointF(),
                 swipeDurationMs = swipeDurationMs,
+                path = path,
             )
 
             is DumbAction.DumbPause -> PauseDescription(
                 pauseDurationMs = pauseDurationMs,
+            )
+
+            is DumbAction.DumbSplitAction -> SplitDescription(
+                subDescriptions = subActions.map { child ->
+                    when (val desc = child.toBriefDescription()) {
+                        is SwipeDescription -> desc.copy(startOffsetMs = (child as DumbAction.DumbSwipe).waitBeforeMs ?: 0L)
+                        is ClickDescription -> desc.copy(startOffsetMs = (child as DumbAction.DumbClick).waitBeforeMs ?: 0L)
+                        else -> desc
+                    }
+                }
             )
         }
 }

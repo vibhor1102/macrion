@@ -113,11 +113,26 @@ internal class ScenarioEditor {
     fun updateScreenConditionsOrder(screenConditions: List<ScreenCondition>) =
         currentEventEditor.value?.conditionsEditor?.updateList(screenConditions)
 
-    fun upsertEditedEvent() =
+    fun upsertEditedEvent() = preservingFolderPositions {
         currentEventEditor.value?.upsertEditedItem()
+    }
 
-    fun deleteEditedEvent() =
+    fun deleteEditedEvent() = preservingFolderPositions {
         currentEventEditor.value?.deleteEditedItem()
+    }
+
+    private inline fun preservingFolderPositions(update: () -> Unit) {
+        val before = getScreenEvents()
+        update()
+        val scenario = _editedScenario.value ?: return
+        val layout = reconcileEventLayout(before, scenario.folders, getScreenEvents())
+        imageEventsEditor.updateList(layout.events)
+        _editedScenario.value = scenario.copy(folders = layout.folders)
+    }
+
+    fun deleteScreenEvents(events: List<ScreenEvent>) = preservingFolderPositions {
+        events.forEach(::deleteAllReferencesToEvent)
+    }
 
     fun stopEventEdition() {
         currentEventEditor.value?.stopItemEdition()
@@ -160,6 +175,9 @@ internal class ScenarioEditor {
     fun updateImageEventsOrder(newEvents: List<ScreenEvent>) {
         imageEventsEditor.updateList(newEvents)
     }
+
+    fun getScreenEvents(): List<ScreenEvent> =
+        imageEventsEditor.editedList.value ?: emptyList()
 
     fun getAllEditedEvents(): List<Event> = buildList {
         imageEventsEditor.editedList.value?.let { addAll(it) }

@@ -19,7 +19,6 @@ package io.github.vibhor1102.macrion.settings
 
 import android.os.Bundle
 import android.content.Intent
-import android.net.Uri
 import android.os.Build
 import io.github.vibhor1102.macrion.crash.CrashReportsActivity
 import io.github.vibhor1102.macrion.core.base.crash.CrashDiagnostics
@@ -28,6 +27,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.core.net.toUri
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -54,10 +54,10 @@ class SettingsActivity : ComponentActivity() {
     }
 
     private fun openUrl(url: String) {
-        startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+        startActivity(Intent(Intent.ACTION_VIEW, url.toUri()))
     }
 
-    private fun createBugReportUrl(): String = Uri.parse(BUG_REPORT_URL).buildUpon()
+    private fun createBugReportUrl(): String = BUG_REPORT_URL.toUri().buildUpon()
         .appendQueryParameter("template", BUG_REPORT_TEMPLATE)
         .appendQueryParameter("app-version", BuildConfig.VERSION_NAME)
         .appendQueryParameter("device-type", "${Build.MANUFACTURER} ${Build.MODEL}".trim())

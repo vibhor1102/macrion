@@ -65,20 +65,29 @@ internal class ConditionsVerifier(
     suspend fun verifyConditions(@ConditionOperator operator: Int, conditions: List<Condition>): ConditionsResults {
         verificationResults.reset()
         currentVerificationTsMs = System.currentTimeMillis()
+        val currentTsNs = SystemClock.elapsedRealtimeNanos()
 
         var verificationResult: ProcessedConditionResult
         for (condition in conditions) {
-            verificationResult = debugReportTimingListener?.let { timingListener ->
-                val startTimestampNs = SystemClock.elapsedRealtimeNanos()
-                val result = verifyCondition(condition)
-                timingListener.onConditionChecked(
-                    conditionId = condition.getValidId(),
-                    durationNs = SystemClock.elapsedRealtimeNanos() - startTimestampNs,
-                    fulfilled = result.isFulfilled,
-                )
-                result
-            } ?: verifyCondition(condition)
-            verificationResults.addResult(condition.getValidId(), verificationResult)
+            val conditionId = condition.getValidId()
+            if (!state.isConditionEligible(conditionId, condition.computeRate, currentTsNs)) {
+                verificationResult = state.getCachedConditionResult(conditionId)
+                    ?: condition.toUnfulfilledConditionResult()
+            } else {
+                verificationResult = debugReportTimingListener?.let { timingListener ->
+                    val startTimestampNs = SystemClock.elapsedRealtimeNanos()
+                    val result = verifyCondition(condition)
+                    timingListener.onConditionChecked(
+                        conditionId = conditionId,
+                        durationNs = SystemClock.elapsedRealtimeNanos() - startTimestampNs,
+                        fulfilled = result.isFulfilled,
+                    )
+                    result
+                } ?: verifyCondition(condition)
+
+                state.recordConditionRun(conditionId, currentTsNs, verificationResult)
+            }
+            verificationResults.addResult(conditionId, verificationResult)
 
             if (operator == OR && verificationResult.isFulfilled) {
                 verificationResults.setFulfilledState(true)
@@ -291,6 +300,12 @@ internal class ConditionsVerifier(
             isFulfilled = positive,
             condition = this,
         )
+
+    private fun Condition.toUnfulfilledConditionResult(): ProcessedConditionResult =
+        when (this) {
+            is ScreenCondition -> toInvalidConditionResult()
+            is TriggerCondition -> toConditionResult(false)
+        }
 }
 
 private fun DomainNumberFormatType.toDetectionNumberFormatType(): DetectionNumberFormatType =

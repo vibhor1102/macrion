@@ -29,10 +29,13 @@ import io.github.vibhor1102.macrion.core.domain.model.action.Click
 import io.github.vibhor1102.macrion.core.domain.model.action.Intent
 import io.github.vibhor1102.macrion.core.domain.model.action.Notification
 import io.github.vibhor1102.macrion.core.domain.model.action.Pause
+import io.github.vibhor1102.macrion.core.domain.model.action.PlaySound
+import io.github.vibhor1102.macrion.core.domain.model.action.CaptureScreenshot
 import io.github.vibhor1102.macrion.core.domain.model.action.SetText
 import io.github.vibhor1102.macrion.core.domain.model.action.Swipe
 import io.github.vibhor1102.macrion.core.domain.model.action.SystemAction
 import io.github.vibhor1102.macrion.core.domain.model.action.ToggleEvent
+import io.github.vibhor1102.macrion.core.domain.model.action.SplitAction
 import io.github.vibhor1102.macrion.core.domain.model.condition.Condition
 import io.github.vibhor1102.macrion.core.domain.model.event.ScreenEvent
 import io.github.vibhor1102.macrion.core.domain.model.event.TriggerEvent
@@ -210,7 +213,11 @@ class DebugReportTimelineViewModel @Inject constructor(
                 R.string.item_event_occurrence_one_condition_fulfilled,
                 conditions.findWithId(first().conditionId)?.name ?: "",
             )
-            else -> context.getString(R.string.item_event_occurrence_several_condition_processed, size)
+            else -> context.resources.getQuantityString(
+                R.plurals.item_event_occurrence_several_condition_processed,
+                size,
+                size,
+            )
         }
 
     @DrawableRes
@@ -224,7 +231,10 @@ class DebugReportTimelineViewModel @Inject constructor(
             is ChangeCounter -> R.drawable.ic_change_counter
             is ExternalAction -> R.drawable.ic_external_action
             is Notification -> R.drawable.ic_action_notification
+            is PlaySound -> R.drawable.ic_action_play_sound
+            is CaptureScreenshot -> R.drawable.ic_action_screenshot
             is SetText -> R.drawable.ic_action_set_text
             is SystemAction -> R.drawable.ic_action_system
+            is SplitAction -> io.github.vibhor1102.macrion.core.ui.R.drawable.ic_simultaneous_touch
         }
 }

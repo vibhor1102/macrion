@@ -16,6 +16,7 @@
  */
 package io.github.vibhor1102.macrion.core.domain.model.action
 
+import io.github.vibhor1102.macrion.core.base.gesture.isTouchTimingValid
 import android.graphics.Point
 import io.github.vibhor1102.macrion.core.base.identifier.Identifier
 import io.github.vibhor1102.macrion.core.database.entity.ClickPositionType
@@ -43,6 +44,8 @@ data class Click(
     val position: Point? = null,
     val clickOnConditionId: Identifier? = null,
     val clickOffset: Point? = null,
+    val waitBeforeMs: Long? = null,
+    val waitAfterMs: Long? = null,
 ) : Action() {
 
     /**
@@ -63,11 +66,12 @@ data class Click(
     }
 
     override fun isComplete(): Boolean =
-        super.isComplete() && pressDuration != null && isPositionValid()
+        super.isComplete() && isTouchTimingValid(pressDuration, waitBeforeMs, waitAfterMs) && isPositionValid()
 
     override fun hashCodeNoIds(): Int =
         name.hashCode() + pressDuration.hashCode() + positionType.hashCode() + position.hashCode() +
-                clickOnConditionId.hashCode() + clickOffset.hashCode()
+                clickOnConditionId.hashCode() + clickOffset.hashCode() +
+                waitBeforeMs.hashCode() + waitAfterMs.hashCode()
 
 
     override fun deepCopy(): Click = copy(name = "" + name)
@@ -75,6 +79,4 @@ data class Click(
     private fun isPositionValid(): Boolean =
         (positionType == PositionType.USER_SELECTED && position != null) || positionType == PositionType.ON_DETECTED_CONDITION
 
-    fun isClickOnConditionValid(): Boolean =
-        (positionType == PositionType.ON_DETECTED_CONDITION && clickOnConditionId != null) || positionType == PositionType.USER_SELECTED
 }

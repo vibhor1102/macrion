@@ -25,6 +25,8 @@ import io.github.vibhor1102.macrion.core.domain.model.action.Click
 import io.github.vibhor1102.macrion.core.domain.model.action.Intent
 import io.github.vibhor1102.macrion.core.domain.model.action.Notification
 import io.github.vibhor1102.macrion.core.domain.model.action.Pause
+import io.github.vibhor1102.macrion.core.domain.model.action.PlaySound
+import io.github.vibhor1102.macrion.core.domain.model.action.CaptureScreenshot
 import io.github.vibhor1102.macrion.core.domain.model.action.SetText
 import io.github.vibhor1102.macrion.core.domain.model.action.Swipe
 import io.github.vibhor1102.macrion.core.domain.model.action.SystemAction
@@ -33,6 +35,7 @@ import io.github.vibhor1102.macrion.core.domain.model.counter.CounterOperationVa
 import io.github.vibhor1102.macrion.core.domain.model.event.Event
 import io.github.vibhor1102.macrion.feature.smart.config.domain.EditionRepository
 import io.github.vibhor1102.macrion.core.domain.model.action.ExternalAction
+import io.github.vibhor1102.macrion.core.domain.model.action.SplitAction
 
 import javax.inject.Inject
 
@@ -56,10 +59,13 @@ class IsActionRelatedToUnreachableItemUseCase @Inject constructor(
 
             // Nothing is referenced in those actions
             is Pause,
+            is PlaySound,
+            is CaptureScreenshot,
             is Swipe,
             is ExternalAction,
             is Intent,
             is SystemAction -> false
+            is SplitAction -> action.subActions.any { invoke(it, eventsToCopy) }
         }
     }
 

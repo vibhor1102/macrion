@@ -55,8 +55,6 @@ internal class SettingsDataSource @Inject constructor(
             booleanPreferencesKey("isHomeButtonEnabled")
         val KEY_IS_STOP_CONFIRMATION_ENABLED: Preferences.Key<Boolean> =
             booleanPreferencesKey("isStopConfirmationEnabled")
-        val KEY_IS_LEGACY_ACTION_UI: Preferences.Key<Boolean> =
-            booleanPreferencesKey("isLegacyActionUiEnabled")
         val KEY_IS_LEGACY_NOTIFICATION_UI: Preferences.Key<Boolean> =
             booleanPreferencesKey("isLegacyNotificationUiEnabled")
         val KEY_FORCE_ENTIRE_SCREEN: Preferences.Key<Boolean> =
@@ -71,8 +69,12 @@ internal class SettingsDataSource @Inject constructor(
             intPreferencesKey("maxToleratedDifference")
         val KEY_IS_TOOLBAR_AUTO_HIDE_ENABLED: Preferences.Key<Boolean> =
             booleanPreferencesKey("isToolbarAutoHideEnabled")
+        val KEY_ALLOW_PREVIEW_HANDLE_EDITING: Preferences.Key<Boolean> =
+            booleanPreferencesKey("allowPreviewHandleEditing")
         val KEY_TOOLBAR_AUTO_HIDE_DELAY_SECONDS: Preferences.Key<Int> =
             intPreferencesKey("toolbarAutoHideDelaySeconds")
+        val KEY_SCREENSHOT_RATE_LIMIT_PER_MINUTE: Preferences.Key<Int> =
+            intPreferencesKey("screenshotRateLimitPerMinute")
     }
 
     private val dataStore: PreferencesDataStore =
@@ -113,14 +115,6 @@ internal class SettingsDataSource @Inject constructor(
     internal suspend fun toggleStopConfirmation() =
         dataStore.edit { preferences ->
             preferences[KEY_IS_STOP_CONFIRMATION_ENABLED] = !(preferences[KEY_IS_STOP_CONFIRMATION_ENABLED] ?: false)
-        }
-
-    internal fun isLegacyActionUiEnabled(): Flow<Boolean> =
-        dataStore.data.map { preferences -> preferences[KEY_IS_LEGACY_ACTION_UI] ?: false }
-
-    internal suspend fun toggleLegacyActionUi() =
-        dataStore.edit { preferences ->
-            preferences[KEY_IS_LEGACY_ACTION_UI] = !(preferences[KEY_IS_LEGACY_ACTION_UI] ?: false)
         }
 
     internal fun isLegacyNotificationUiEnabled(): Flow<Boolean> =
@@ -189,11 +183,28 @@ internal class SettingsDataSource @Inject constructor(
             preferences[KEY_IS_TOOLBAR_AUTO_HIDE_ENABLED] = enabled
         }
 
+    internal fun allowPreviewHandleEditing(): Flow<Boolean> =
+        dataStore.data.map { preferences -> preferences[KEY_ALLOW_PREVIEW_HANDLE_EDITING] ?: true }
+
+    internal suspend fun togglePreviewHandleEditing() =
+        dataStore.edit { preferences ->
+            preferences[KEY_ALLOW_PREVIEW_HANDLE_EDITING] =
+                !(preferences[KEY_ALLOW_PREVIEW_HANDLE_EDITING] ?: true)
+        }
+
     internal fun toolbarAutoHideDelaySeconds(): Flow<Int> =
         dataStore.data.map { preferences -> preferences[KEY_TOOLBAR_AUTO_HIDE_DELAY_SECONDS] ?: 120 }
 
     internal suspend fun setToolbarAutoHideDelaySeconds(seconds: Int) =
         dataStore.edit { preferences ->
             preferences[KEY_TOOLBAR_AUTO_HIDE_DELAY_SECONDS] = seconds
+        }
+
+    internal fun screenshotRateLimitPerMinute(): Flow<Int> =
+        dataStore.data.map { preferences -> preferences[KEY_SCREENSHOT_RATE_LIMIT_PER_MINUTE] ?: 10 }
+
+    internal suspend fun setScreenshotRateLimitPerMinute(limit: Int) =
+        dataStore.edit { preferences ->
+            preferences[KEY_SCREENSHOT_RATE_LIMIT_PER_MINUTE] = limit.coerceAtLeast(0)
         }
 }

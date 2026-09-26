@@ -50,7 +50,7 @@ abstract class BuildParametersPluginExtension : BuildParameters()
 internal fun <T : Any> Project.getPropertyStringValue(parameterName: String, defaultValue: T): String =
     if (rootProject.hasProperty(parameterName)) {
         // Check in gradle command line arguments
-        val gradleArg = rootProject.properties[parameterName] as? String
+        val gradleArg = rootProject.findProperty(parameterName) as? String
         gradleArg?.sanitizeGradleCommandLineArgument() ?: gradleArg
     } else {
         // Check in local properties file

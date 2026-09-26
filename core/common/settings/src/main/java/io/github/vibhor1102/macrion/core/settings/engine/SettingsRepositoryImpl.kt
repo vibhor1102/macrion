@@ -49,10 +49,6 @@ internal class SettingsRepositoryImpl @Inject constructor(
 
     private val coroutineScope: CoroutineScope = CoroutineScope(ioDispatcher + SupervisorJob())
 
-    private val _isLegacyActionUiEnabledFlow: StateFlow<Boolean> = dataSource.isLegacyActionUiEnabled()
-        .stateIn(coroutineScope, SharingStarted.Eagerly, false)
-    override val isLegacyActionUiEnabledFlow: Flow<Boolean> = _isLegacyActionUiEnabledFlow
-
     private val _isLegacyNotificationUiEnabledFlow: StateFlow<Boolean> = dataSource.isLegacyNotificationUiEnabled()
         .stateIn(coroutineScope, SharingStarted.Eagerly, false)
     override val isLegacyNotificationUiEnabledFlow: Flow<Boolean> = _isLegacyNotificationUiEnabledFlow
@@ -142,6 +138,22 @@ internal class SettingsRepositoryImpl @Inject constructor(
         }
     }
 
+    private val _screenshotRateLimitPerMinuteFlow: StateFlow<Int> = combine(
+        dataSource.areAdvancedSettingsEnabled(),
+        dataSource.screenshotRateLimitPerMinute(),
+    ) { areAdvancedEnabled, limit ->
+        if (areAdvancedEnabled) limit else 10
+    }.stateIn(coroutineScope, SharingStarted.Eagerly, 10)
+    override val screenshotRateLimitPerMinuteFlow: Flow<Int> = _screenshotRateLimitPerMinuteFlow
+
+    override fun getScreenshotRateLimitPerMinute(): Int = _screenshotRateLimitPerMinuteFlow.value
+
+    override fun setScreenshotRateLimitPerMinute(limit: Int) {
+        coroutineScope.launch {
+            dataSource.setScreenshotRateLimitPerMinute(limit)
+        }
+    }
+
     private val _isToolbarAutoHideEnabledFlow: StateFlow<Boolean> = dataSource.isToolbarAutoHideEnabled()
         .stateIn(coroutineScope, SharingStarted.Eagerly, true)
     override val isToolbarAutoHideEnabledFlow: Flow<Boolean> = _isToolbarAutoHideEnabledFlow
@@ -158,6 +170,13 @@ internal class SettingsRepositoryImpl @Inject constructor(
         coroutineScope.launch {
             dataSource.setToolbarAutoHideEnabled(!_isToolbarAutoHideEnabledFlow.value)
         }
+    }
+
+    override val allowPreviewHandleEditingFlow: Flow<Boolean> =
+        dataSource.allowPreviewHandleEditing()
+
+    override fun togglePreviewHandleEditing() {
+        coroutineScope.launch { dataSource.togglePreviewHandleEditing() }
     }
 
     private val _toolbarAutoHideDelaySecondsFlow: StateFlow<Int> = dataSource.toolbarAutoHideDelaySeconds()
@@ -197,15 +216,6 @@ internal class SettingsRepositoryImpl @Inject constructor(
     override fun toggleStopConfirmation() {
         coroutineScope.launch {
             dataSource.toggleStopConfirmation()
-        }
-    }
-
-    override fun isLegacyActionUiEnabled(): Boolean =
-        _isLegacyActionUiEnabledFlow.value
-
-    override fun toggleLegacyActionUi() {
-        coroutineScope.launch {
-            dataSource.toggleLegacyActionUi()
         }
     }
 

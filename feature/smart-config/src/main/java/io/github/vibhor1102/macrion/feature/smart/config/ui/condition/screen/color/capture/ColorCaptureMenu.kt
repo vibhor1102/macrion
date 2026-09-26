@@ -25,6 +25,7 @@ import android.graphics.PointF
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import io.github.vibhor1102.macrion.core.common.overlays.menu.OverlayMenuButtonView
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.awaitEachGesture
@@ -124,7 +125,9 @@ class ColorCaptureMenu (
 
         when (viewId) {
             R.id.btn_confirm -> when (captureStep) {
-                ColorCaptureMenuStep.SCREENSHOT_SELECTION -> viewModel.captureScreen(initialPosition)
+                ColorCaptureMenuStep.SCREENSHOT_SELECTION -> viewModel.captureScreen(initialPosition) {
+                    Toast.makeText(context, R.string.toast_capture_failed, Toast.LENGTH_LONG).show()
+                }
                 ColorCaptureMenuStep.PIXEL_SELECTION -> {
                     viewModel.getPixelSelection()?.let { (position, color) ->
                         back()

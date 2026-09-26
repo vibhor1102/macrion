@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+
     <string name="activity_tutorial_name">チュートリアル</string>
     <string name="message_score">プレイヤー: %1$d</string>
     <string name="message_high_score">ベスト: %1$d</string>

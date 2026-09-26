@@ -22,11 +22,10 @@ import io.github.vibhor1102.macrion.core.base.interfaces.Completable
 import io.github.vibhor1102.macrion.core.base.interfaces.Identifiable
 import io.github.vibhor1102.macrion.core.base.interfaces.Prioritizable
 import io.github.vibhor1102.macrion.core.base.interfaces.areComplete
-import io.github.vibhor1102.macrion.core.domain.model.AND
 import io.github.vibhor1102.macrion.core.domain.model.action.Action
 import io.github.vibhor1102.macrion.core.domain.model.condition.ScreenCondition
 import io.github.vibhor1102.macrion.core.domain.model.ConditionOperator
-import io.github.vibhor1102.macrion.core.domain.model.action.Click
+import io.github.vibhor1102.macrion.core.domain.model.action.isValidForEvent
 import io.github.vibhor1102.macrion.core.domain.model.condition.Condition
 import io.github.vibhor1102.macrion.core.domain.model.condition.TriggerCondition
 
@@ -84,17 +83,13 @@ data class ScreenEvent(
     override var priority: Int,
     val keepDetecting: Boolean,
     val cooldownMs: Long,
+    val folder: String? = null,
 ): Event(), Prioritizable {
 
     /** Tells if this event is complete and valid for save. */
     override fun isComplete(): Boolean {
         if (!super.isComplete()) return false
-
-        actions.forEach { action ->
-            if (conditionOperator == AND && action is Click && !action.isClickOnConditionValid()) return false
-        }
-
-        return true
+        return actions.all { it.isValidForEvent(this) }
     }
 }
 
@@ -111,22 +106,6 @@ data class TriggerEvent(
 
     override fun isComplete(): Boolean {
         if (!super.isComplete()) return false
-
-        actions.forEach { action ->
-            if (!action.isValidForTrigger()) return false
-        }
-
-        return true
-    }
-
-    private fun Action.isValidForTrigger(): Boolean {
-        if (!isComplete()) return false
-
-        return when (this) {
-            is Click -> positionType == Click.PositionType.USER_SELECTED
-                    && clickOnConditionId == null
-
-            else -> true
-        }
+        return actions.all { it.isValidForEvent(this) }
     }
 }

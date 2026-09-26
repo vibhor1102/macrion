@@ -15,7 +15,8 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <application>
 
@@ -116,19 +117,23 @@
             </intent-filter>
         </activity>
 
+        <!-- Locale/Tasker-compatible hosts must be able to send this public plugin action. -->
         <receiver
             android:name=".localeplugin.receiver.LocalePluginFireReceiver"
             android:exported="true"
-            android:label="@string/locale_plugin_launch_name">
+            android:label="@string/locale_plugin_launch_name"
+            tools:ignore="ExportedReceiver">
             <intent-filter>
                 <action android:name="com.twofortyfouram.locale.intent.action.FIRE_SETTING" />
             </intent-filter>
         </receiver>
 
+        <!-- Locale/Tasker-compatible hosts must be able to query this public plugin condition. -->
         <receiver
             android:name=".localeplugin.receiver.LocalePluginConditionQueryReceiver"
             android:exported="true"
-            android:label="@string/external_action_event_plugin_name">
+            android:label="@string/external_action_event_plugin_name"
+            tools:ignore="ExportedReceiver">
             <intent-filter>
                 <action android:name="com.twofortyfouram.locale.intent.action.QUERY_CONDITION" />
             </intent-filter>

@@ -246,7 +246,10 @@ class BackupViewModel @Inject constructor(
                 plan.profile?.displayName.orEmpty(),
                 plan.omittedComponentCount,
                 plan.excludedScenarioCount,
-            )
+            ) + if (plan.omittedCurvedSwipeCount > 0) "\n\n" + context.getString(
+                R.string.message_backup_klickr_curved_swipes_excluded,
+                plan.omittedCurvedSwipeCount,
+            ) else ""
         },
     )
 
@@ -329,13 +332,25 @@ class BackupViewModel @Inject constructor(
                 }
             !isImport -> context.getString(R.string.message_backup_create_completed)
             backup.failureCount == 0 ->
-                context.getString(R.string.message_backup_import_completed, backup.successCount)
+                context.resources.getQuantityString(
+                    R.plurals.message_backup_import_completed,
+                    backup.successCount,
+                    backup.successCount,
+                )
             else -> {
                 iconStatus = R.drawable.ic_warning
                 context.getString(
                     R.string.message_backup_import_completed_with_error,
-                    backup.successCount,
-                    backup.failureCount
+                    context.resources.getQuantityString(
+                        R.plurals.message_backup_import_scenarios,
+                        backup.successCount,
+                        backup.successCount,
+                    ),
+                    context.resources.getQuantityString(
+                        R.plurals.message_backup_import_errors,
+                        backup.failureCount,
+                        backup.failureCount,
+                    ),
                 )
             }
         }

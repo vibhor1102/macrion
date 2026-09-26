@@ -63,10 +63,15 @@ internal class DumbBackupDataSource(
     ): DumbScenarioBackup =
         DumbScenarioBackup(
             format = if (format == BackupArchiveFormat.MACRION_NATIVE) MACRION_FORMAT_NAME else null,
-            dumbScenario = scenario,
+            dumbScenario = if (format == BackupArchiveFormat.MACRION_NATIVE) {
+                scenario.copy(dumbActionsWithSubActions = scenario.dumbActionsWithSubActions.filter { it.splitItems.isNotEmpty() })
+            } else {
+                scenario.copy(dumbActionsWithSubActions = emptyList())
+            },
             screenWidth = screenSize.x,
             screenHeight = screenSize.y,
-            version = DUMB_DATABASE_VERSION,
+            // Keep the previously emitted portable version; the new path column is native-only.
+            version = if (format == BackupArchiveFormat.MACRION_NATIVE) DUMB_DATABASE_VERSION else 5,
         )
 
     override fun verifyExtractedBackup(backup: DumbScenarioBackup, screenSize: Point): DumbScenarioWithActions? {

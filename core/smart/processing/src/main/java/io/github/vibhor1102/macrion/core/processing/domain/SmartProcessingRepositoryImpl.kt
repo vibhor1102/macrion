@@ -39,7 +39,9 @@ import io.github.vibhor1102.macrion.core.domain.model.scenario.Scenario
 import io.github.vibhor1102.macrion.core.processing.data.DetectorEngine
 import io.github.vibhor1102.macrion.core.processing.data.DetectorState
 import io.github.vibhor1102.macrion.core.processing.domain.model.DetectionState
+import io.github.vibhor1102.macrion.core.processing.domain.model.DetectionPhase
 import io.github.vibhor1102.macrion.core.processing.domain.model.toDetectionState
+import io.github.vibhor1102.macrion.core.processing.domain.model.toDetectionPhase
 import io.github.vibhor1102.macrion.core.processing.domain.trying.ActionTry
 import io.github.vibhor1102.macrion.core.processing.domain.trying.ScreenConditionTry
 import io.github.vibhor1102.macrion.core.processing.domain.trying.ImageEventTry
@@ -62,6 +64,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -99,12 +102,21 @@ internal class SmartProcessingRepositoryImpl @Inject constructor(
 
     /** Stop the detection automatically after selected delay */
     private var autoStopJob: Job? = null
+    private val detectionSessionLock = Any()
+    private var detectionSessionId = 0L
 
     private val _scenarioId: MutableStateFlow<Identifier?> = MutableStateFlow(null)
     override val scenarioId: StateFlow<Identifier?> = _scenarioId
 
     override val detectionState: Flow<DetectionState> = detectorEngine.state
         .mapNotNull { it.toDetectionState() }
+
+    override val detectionPhase: Flow<DetectionPhase> = detectorEngine.state
+        .map { it.toDetectionPhase() }
+
+    override val detectionStopSequence: StateFlow<Long> = detectorEngine.detectionStopSequence
+
+    override val screenshotRateLimitError: Flow<Int> = detectorEngine.screenshotRateLimitError
 
     private val shouldKeepScreenOn: Flow<Boolean> = _scenarioId
         .combine(detectionState) { id, state ->
@@ -159,6 +171,10 @@ internal class SmartProcessingRepositoryImpl @Inject constructor(
     override fun isRunning(): Boolean =
         detectorEngine.state.value == DetectorState.DETECTING
 
+    override fun isDetectionActive(): Boolean =
+        detectorEngine.state.value == DetectorState.STARTING_DETECTION ||
+            detectorEngine.state.value == DetectorState.DETECTING
+
     override fun isScreenRecordActive(): Boolean =
         detectorEngine.state.value == DetectorState.RECORDING ||
             detectorEngine.state.value == DetectorState.DETECTING
@@ -171,33 +187,60 @@ internal class SmartProcessingRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun startDetection(context: Context, liveDebugging: Boolean, generateReport: Boolean, autoStopDuration: Duration?) {
-        val id = scenarioId.value?.databaseId ?: return
-        val scenario = scenarioRepository.getScenario(id) ?: return
+    override suspend fun startDetection(context: Context, liveDebugging: Boolean, generateReport: Boolean, autoStopDuration: Duration?): Boolean {
+        val id = scenarioId.value?.databaseId ?: return false
+        val scenario = scenarioRepository.getScenario(id) ?: return false
         val events = scenarioRepository.getScreenEvents(id)
         val triggerEvents = scenarioRepository.getTriggerEvents(id)
         val counters = scenarioRepository.getCounters(id)
 
-        detectorEngine.startDetection(
-            context = context,
-            scenario = scenario,
-            screenEvents = events,
-            triggerEvents = triggerEvents,
-            counters = counters,
-            liveDebugging = liveDebugging,
-            generateReport = generateReport,
-        )
+        return synchronized(detectionSessionLock) {
+            if (scenarioId.value?.databaseId != id) false else detectorEngine.startDetection(
+                context = context,
+                scenario = scenario,
+                screenEvents = events,
+                triggerEvents = triggerEvents,
+                counters = counters,
+                liveDebugging = liveDebugging,
+                generateReport = generateReport,
+            ).also { started ->
+                if (started) {
+                    detectionSessionId++
+                    autoStopJob?.cancel()
+                    autoStopJob = null
+                    scheduleAutoStopLocked(autoStopDuration, detectionSessionId)
+                }
+            }
+        }
+    }
 
-        autoStopDuration?.let { duration ->
-            autoStopJob?.cancel()
-            autoStopJob = coroutineScopeIo.launch {
-                delay(duration)
-                stopDetection()
+    override fun scheduleAutoStop(duration: Duration?) {
+        synchronized(detectionSessionLock) {
+            if (detectorEngine.state.value == DetectorState.DETECTING) {
+                scheduleAutoStopLocked(duration, detectionSessionId)
+            }
+        }
+    }
+
+    private fun scheduleAutoStopLocked(duration: Duration?, session: Long) {
+        if (duration == null) return
+        autoStopJob?.cancel()
+        autoStopJob = coroutineScopeIo.launch {
+            delay(duration)
+            synchronized(detectionSessionLock) {
+                if (session == detectionSessionId && detectorEngine.state.value == DetectorState.DETECTING) {
+                    stopDetectionLocked()
+                }
             }
         }
     }
 
     override fun stopDetection() {
+        synchronized(detectionSessionLock) { stopDetectionLocked() }
+    }
+
+    private fun stopDetectionLocked() {
+        detectionSessionId++
         detectorEngine.stopDetection()
         autoStopJob?.cancel()
         autoStopJob = null
@@ -205,7 +248,12 @@ internal class SmartProcessingRepositoryImpl @Inject constructor(
 
     override fun stopScreenRecord() {
         projectionErrorHandler = null
-        detectorEngine.stopScreenRecord()
+        synchronized(detectionSessionLock) {
+            detectionSessionId++
+            autoStopJob?.cancel()
+            autoStopJob = null
+            detectorEngine.stopScreenRecord()
+        }
 
         _scenarioId.value = null
     }

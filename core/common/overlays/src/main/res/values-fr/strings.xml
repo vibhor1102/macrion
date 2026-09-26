@@ -24,4 +24,24 @@
     <string name="dialog_reorder_discard_title">Ignorer les modifications ?</string>
     <string name="dialog_reorder_discard_message">Vous avez des modifications non enregistrées. Voulez-vous vraiment les ignorer ?</string>
     <string name="dialog_reorder_discard_confirm">Ignorer</string>
+
+    <string name="swipe_position_record">Enregistrer le geste</string>
+    <string name="swipe_position_drag_instruction">Faites glisser Début ou Fin pour ajuster le geste glissé</string>
+    <string name="swipe_position_drag_node_instruction">Faites glisser une poignée pour ajuster le geste glissé</string>
+    <string name="swipe_position_record_instruction">Tracez un geste glissé pour définir les deux positions</string>
+    <string name="swipe_position_short_gesture">Tracez un geste glissé pour définir les deux positions</string>
+    <string name="swipe_position_multi_touch">Un geste glissé utilise un doigt. Créez une action multi-touch pour utiliser plusieurs doigts.</string>
+    <string name="swipe_position_record_failed">Impossible d’enregistrer le geste glissé. Réessayez.</string>
+    <string name="swipe_position_start">Début</string>
+    <string name="swipe_position_end">Fin</string>
+    <string name="swipe_position_node">Point %1$d</string>
+    <string name="swipe_position_move_left">Déplacer %1$s vers la gauche</string>
+    <string name="swipe_position_move_right">Déplacer %1$s vers la droite</string>
+    <string name="swipe_position_move_up">Déplacer %1$s vers le haut</string>
+    <string name="swipe_position_move_down">Déplacer %1$s vers le bas</string>
+    <string name="brief_handle_moved_click">Position du clic déplacée</string>
+    <string name="brief_handle_moved_swipe_start">Début du geste glissé déplacé</string>
+    <string name="brief_handle_moved_swipe_node">Point du geste glissé déplacé</string>
+    <string name="brief_handle_moved_swipe_end">Fin du geste glissé déplacée</string>
+    <string name="brief_handle_undo">Annuler</string>
 </resources>

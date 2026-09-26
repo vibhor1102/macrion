@@ -19,6 +19,7 @@ package io.github.vibhor1102.macrion.core.common.overlays.di
 import io.github.vibhor1102.macrion.core.common.overlays.manager.OverlayManager
 import io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.common.OverlayMenuPositionDataSource
 import io.github.vibhor1102.macrion.core.common.overlays.scale.OverlayScaleProvider
+import io.github.vibhor1102.macrion.core.settings.domain.SettingsRepository
 
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
@@ -31,4 +32,5 @@ interface OverlaysEntryPoint {
     fun overlayManager(): OverlayManager
     fun overlayMenuPositionDataSource(): OverlayMenuPositionDataSource
     fun overlayScaleProvider(): OverlayScaleProvider
+    fun settingsRepository(): SettingsRepository
 }

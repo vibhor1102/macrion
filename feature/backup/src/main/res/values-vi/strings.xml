@@ -27,8 +27,10 @@
     <string name="message_backup_create_error">Đã xảy ra lỗi và quá trình xuất bản sao lưu đã bị hủy</string>
     <string name="message_backup_import_progress">Đang nhập bản sao lưu: %1$d</string>
     <string name="message_backup_import_verification">Xác minh dữ liệu</string>
-    <string name="message_backup_import_completed">Đã nhập xong\nĐã nhập %1$d kịch bản</string>
-    <string name="message_backup_import_completed_with_error">Đã nhập xong\nĐã nhập %1$d kịch bản\n%2$d lỗi</string>
+    <plurals name="message_backup_import_completed">
+        <item quantity="other">Đã nhập xong\nĐã nhập %1$d kịch bản</item>
+    </plurals>
+    <string name="message_backup_import_completed_with_error">Đã nhập xong\n%1$s\n%2$s</string>
     <string name="message_backup_import_error">Đã xảy ra lỗi và quá trình nhập bản sao lưu đã bị hủy</string>
     <string name="message_backup_import_compatibility">Một số kịch bản được nhập vào đã được tạo từ thiết bị có kích thước màn hình khác, điều này có thể gây ra lỗi nhận diện và lệch tọa độ hành động.\n\nĐể khắc phục, bạn cần chụp lại ảnh màn hình mới cho các điều kiện và cập nhật lại vị trí nhấp/vuốt của mình.</string>
     <string name="message_backup_error_no_zip_app">Không tìm thấy ứng dụng nào trên thiết bị để xử lý việc lưu/tải tệp zip.</string>
@@ -43,4 +45,13 @@
     <string name="message_backup_create_klickr_compatible_completed">Đã hoàn thành bản sao lưu tương thích Klick’r. Các thành phần chỉ có ở Macrion đã bị xóa: %1$d.</string>
     <string name="message_backup_create_klickr_compatible_completed_without_loss">Đã hoàn thành bản sao lưu tương thích Klick’r. Không cần xóa tính năng chỉ có ở Macrion nào.</string>
 
+
+    <!-- Added Vietnamese translations -->
+    <string name="message_backup_klickr_curved_swipes_excluded">Đã loại trừ %1$d thao tác vuốt cong. Hãy dùng bản sao lưu Macrion gốc để giữ nguyên đường đi đầy đủ.</string>
+    <plurals name="message_backup_import_scenarios">
+        <item quantity="other">%1$d kịch bản đã nhập</item>
+    </plurals>
+    <plurals name="message_backup_import_errors">
+        <item quantity="other">%1$d lỗi</item>
+    </plurals>
 </resources>

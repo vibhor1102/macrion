@@ -38,6 +38,7 @@
     <plurals name="item_desc_report_event_activity_reached">
         <item quantity="one">%1$d evento raggiunto · %2$d occorrenze totali</item>
         <item quantity="other">%1$d eventi raggiunti · %2$d occorrenze totali</item>
+        <item quantity="many">%1$d eventi raggiunti · %2$d occorrenze totali</item>
     </plurals>
     <string name="item_desc_report_event_activity_most_frequent">Più frequente: %1$s · %2$d×</string>
 
@@ -62,10 +63,12 @@
     <plurals name="item_condition_performance_time">
         <item quantity="one">volta</item>
         <item quantity="other">volte</item>
+        <item quantity="many">volte</item>
     </plurals>
     <plurals name="item_condition_performance_check">
         <item quantity="one">controllo</item>
         <item quantity="other">controlli</item>
+        <item quantity="many">controlli</item>
     </plurals>
     <string name="item_condition_performance_average">Media: %1$s ms per controllo</string>
     <string name="item_condition_performance_average_unavailable">Media: N/D</string>
@@ -81,12 +84,20 @@
     <string name="title_event_occurrence_filtered_empty">Nessun evento corrispondente</string>
     <string name="desc_event_occurrence_filtered_empty">Nessun evento della cronologia corrisponde ai filtri correnti.</string>
     <string name="button_clear_timeline_filters">Cancella filtri</string>
-    <string name="content_desc_timeline_filters_active">%1$d categorie di filtri della cronologia attive</string>
+    <plurals name="content_desc_timeline_filters_active">
+        <item quantity="one">%1$d categoria di filtri della cronologia attiva</item>
+        <item quantity="other">%1$d categorie di filtri della cronologia attive</item>
+        <item quantity="many">%1$d categorie di filtri della cronologia attive</item>
+    </plurals>
     <string name="content_desc_timeline_fast_scroller">Scorrimento rapido della cronologia</string>
     <string name="item_event_occurrence_frame_number">Fotogramma #%1$d</string>
     <string name="item_event_occurrence_trigger">Innesco</string>
     <string name="item_event_occurrence_one_condition_fulfilled">Soddisfatto: %1$s</string>
-    <string name="item_event_occurrence_several_condition_processed">%1$d condizioni elaborate</string>
+    <plurals name="item_event_occurrence_several_condition_processed">
+        <item quantity="one">%1$d condizione elaborata</item>
+        <item quantity="other">%1$d condizioni elaborate</item>
+        <item quantity="many">%1$d condizioni elaborate</item>
+    </plurals>
     <string name="item_event_occurrence_detecting_label">rilevamento</string>
     <string name="item_event_occurrence_actions_label">azioni</string>
     <string name="item_event_occurrence_detected_at">Rilevato a %1$s</string>
@@ -106,7 +117,11 @@
     <string name="field_debug_filter_trigger_events_show_desc_off">Nascondi tutte le occorrenze degli eventi trigger nella timeline</string>
 
     <string name="field_debug_filter_events_show_title">Filtri</string>
-    <string name="field_debug_filter_events_show_select_desc">%1$d eventi</string>
+    <plurals name="field_debug_filter_events_show_select_desc">
+        <item quantity="one">%1$d evento</item>
+        <item quantity="other">%1$d eventi</item>
+        <item quantity="many">%1$d eventi</item>
+    </plurals>
     <string name="field_debug_filter_events_show_select_desc_none">Nessun evento</string>
 
 

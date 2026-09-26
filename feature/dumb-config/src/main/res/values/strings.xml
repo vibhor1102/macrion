@@ -43,7 +43,10 @@
     <string name="item_desc_dumb_click_on_position">Click at %1$d, %2$d</string>
     <string name="item_desc_dumb_pause">Pause the execution</string>
     <string name="item_desc_dumb_pause_details">During %1$s</string>
-    <string name="item_desc_dumb_repeat_count">Repeat %1$d times</string>
+    <plurals name="item_desc_dumb_repeat_count">
+        <item quantity="one">Repeat %1$d time</item>
+        <item quantity="other">Repeat %1$d times</item>
+    </plurals>
     <string name="item_desc_dumb_repeat_infinite">Infinite repeat</string>
     <string name="item_desc_dumb_swipe">Swipe from a position on the screen to another</string>
     <string name="item_desc_dumb_swipe_details">During %1$s from [%2$d, %3$d] to [%4$d, %5$d]</string>
@@ -106,4 +109,34 @@
       - DO NOT TRANSLATE.
       -->
     <string name="title_action_count" translatable="false">%1$d/%2$d</string>
+
+    <string name="action_type_zoom">Multi-touch</string>
+    <string name="item_desc_dumb_zoom">Run two or more clicks or swipes together.</string>
+    <string name="item_title_dumb_zoom">Multi-touch</string>
+    <string name="action_combine_with_new_swipe">Combine with new swipe</string>
+    <string name="action_combine_with">Combine with \"%1$s\"</string>
+    <string name="action_unsplit">Unsplit into separate actions</string>
+    <string name="action_edit_gestures">Configure gestures</string>
+    <string name="action_edit_stroke">Edit %1$s</string>
+    <string name="dialog_title_split_action">Multi-touch</string>
+    <string name="split_action_touch_actions_header">Touch Strokes</string>
+    <string name="split_action_add_swipe">Add Swipe</string>
+    <string name="split_action_add_click">Add Click</string>
+    <string name="split_action_group_settings">MultiTouch settings</string>
+    <string name="split_action_check_group_settings">Check MultiTouch settings</string>
+    <string name="split_action_click_coordinates">At %1$d, %2$d</string>
+    <string name="split_action_swipe_coordinates">From %1$d, %2$d to %3$d, %4$d</string>
+    <string name="split_action_unsplit">Unsplit</string>
+    <string name="action_combine_with_new_click">Combine with new click</string>
+    <string name="action_combine_with_existing">Combine with existing action…</string>
+    <plurals name="combined_touch_count">
+        <item quantity="one">%1$d touch action</item>
+        <item quantity="other">%1$d touch actions</item>
+    </plurals>
+    <string name="split_repeat_help">Repetition applies to the whole gesture. Each touch runs once per repetition; its individual repeat settings are restored when you Unsplit.</string>
+    <string name="split_action_position_not_set">Position not set</string>
+    <string name="split_discard_title">Discard changes?</string>
+    <string name="split_discard_message">Changes to this gesture and its touches have not been saved.</string>
+    <string name="split_discard_confirm">Discard</string>
+    <string name="split_keep_editing">Keep editing</string>
 </resources>

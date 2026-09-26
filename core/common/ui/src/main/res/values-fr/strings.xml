@@ -18,6 +18,8 @@
 <resources>
     <string name="yes">Oui</string>
     <string name="no">Non</string>
+    <string name="condition_operator_and">ET</string>
+    <string name="condition_operator_or">"OU "</string>
 
     <!--
       - Titles for the dialogs displayed as overlay.
@@ -115,4 +117,49 @@
     <string name="content_desc_go_back">Retour au dialog</string>
     <string name="content_desc_tuck_toolbar">Replier la barre d\'outils sur le bord de l\'écran</string>
     <string name="content_desc_expand_toolbar">Développer la barre d\'outils</string>
+
+    <string name="field_delays_title">Délais (facultatif)</string>
+    <string name="field_wait_before_title">Avant (ms)</string>
+    <string name="field_wait_after_title">Après (ms)</string>
+    <string name="field_wait_before_summary">Avant : %1$s ms</string>
+    <string name="field_wait_after_summary">Après : %1$s ms</string>
+    <string name="field_delays_expanded">Développé</string>
+    <string name="field_delays_collapsed">Réduit</string>
+    <string name="field_delays_check_values">Vérifier les valeurs des délais</string>
+    <string name="field_delay_range_error">Saisissez une valeur entre 0 et %1$d ms</string>
+    <string name="field_delay_number_error">Saisissez un délai valide en millisecondes</string>
+    <string name="action_editor_more_options">Plus d’options pour l’action</string>
+    <string name="action_combine_choose_existing">Choisir une action</string>
+    <string name="action_combine_choose_help">Choisissez un clic, un geste glissé ou une action multi-touch à exécuter simultanément. Les actions d’origine seront remplacées à l’enregistrement.</string>
+    <string name="multi_touch_brief_default_name">Multi-touch</string>
+    <string name="multi_touch_brief_tap">Toucher</string>
+    <string name="multi_touch_brief_swipe">Geste glissé</string>
+    <string name="multi_touch_brief_touch">Contact</string>
+    <string name="multi_touch_brief_needs_setup">Configuration requise</string>
+    <string name="multi_touch_add_touch">Ajouter un contact</string>
+    <string name="multi_touch_rename_touch">Renommer le contact %1$d</string>
+    <string name="multi_touch_done_renaming">Renommage du contact %1$d terminé</string>
+    <string name="multi_touch_touch_description">Contact %1$d sur %2$d : %3$s</string>
+    <string name="action_editor_delete_this_click">Supprimer ce clic</string>
+    <string name="action_editor_delete_this_swipe">Supprimer ce geste glissé</string>
+    <string name="action_editor_delete_this_action">Supprimer cette action</string>
+    <string name="action_editor_delete_multi_touch">Supprimer le multi-touch</string>
+    <string name="action_editor_save_multi_touch">Enregistrer le multi-touch</string>
+    <string name="action_editor_close_multi_touch">Fermer le multi-touch</string>
+    <string name="multi_touch_brief_no_touches">Aucun contact configuré</string>
+    <plurals name="multi_touch_brief_click_count">
+        <item quantity="one">%d clic</item>
+        <item quantity="many">%d clics</item>
+        <item quantity="other">%d clics</item>
+    </plurals>
+    <plurals name="multi_touch_brief_swipe_count">
+        <item quantity="one">%d geste glissé</item>
+        <item quantity="many">%d gestes glissés</item>
+        <item quantity="other">%d gestes glissés</item>
+    </plurals>
+    <plurals name="multi_touch_brief_setup_count">
+        <item quantity="one">%d configuration requise</item>
+        <item quantity="many">%d configurations requises</item>
+        <item quantity="other">%d configurations requises</item>
+    </plurals>
 </resources>

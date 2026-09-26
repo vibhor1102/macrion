@@ -28,6 +28,8 @@ data class ClickUiState(
     val pressDurationError: Boolean,
     val positionState: ClickPositionUiState?,
     val availableConditions: List<UiScreenCondition>,
+    val waitBeforeMs: String? = null,
+    val waitAfterMs: String? = null,
 )
 
 data class ClickPositionUiState(

@@ -17,28 +17,46 @@
 package io.github.vibhor1102.macrion.core.ui.views.gesturerecord
 
 import android.graphics.PointF
+import io.github.vibhor1102.macrion.core.base.gesture.SwipePath
+import io.github.vibhor1102.macrion.core.base.gesture.SwipePoint
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.ItemBriefDescription
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.ClickDescription
+import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.SplitDescription
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.SwipeDescription
 
 
 sealed class RecordedGesture {
     abstract val durationMs: Long
+    open val startOffsetMs: Long = 0L
 
     data class Click(
         val position: PointF,
         override val durationMs: Long,
+        override val startOffsetMs: Long = 0L,
     ) : RecordedGesture()
 
     data class Swipe(
         val from: PointF,
         val to: PointF,
         override val durationMs: Long,
+        override val startOffsetMs: Long = 0L,
+        val path: SwipePath? = null,
+        /** The live finger trace; only the fitted [path] is saved when recording ends. */
+        val previewTrace: List<SwipePoint>? = null,
+    ) : RecordedGesture()
+
+    data class Split(
+        val subGestures: List<RecordedGesture>,
+        override val durationMs: Long,
+        override val startOffsetMs: Long = 0L,
     ) : RecordedGesture()
 }
 
 fun RecordedGesture.toActionDescription(): ItemBriefDescription =
     when (this) {
-        is RecordedGesture.Click -> ClickDescription(pressDurationMs = durationMs, position = position)
-        is RecordedGesture.Swipe -> SwipeDescription(swipeDurationMs = durationMs, from = from, to = to)
+        is RecordedGesture.Click -> ClickDescription(pressDurationMs = durationMs, position = position, startOffsetMs = startOffsetMs)
+        is RecordedGesture.Swipe -> SwipeDescription(swipeDurationMs = durationMs, from = from, to = to, startOffsetMs = startOffsetMs, path = path, previewTrace = previewTrace)
+        is RecordedGesture.Split -> SplitDescription(
+            subDescriptions = subGestures.map { it.toActionDescription() }
+        )
     }

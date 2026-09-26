@@ -93,12 +93,26 @@
     <string name="title_event_occurrence_filtered_empty">لا توجد أحداث مطابقة</string>
     <string name="desc_event_occurrence_filtered_empty">لا توجد أحداث في الجدول الزمني تطابق عوامل التصفية الحالية.</string>
     <string name="button_clear_timeline_filters">مسح عوامل التصفية</string>
-    <string name="content_desc_timeline_filters_active">فئات عوامل تصفية الجدول الزمني النشطة: %1$d</string>
+    <plurals name="content_desc_timeline_filters_active">
+        <item quantity="zero">عدد فئات عوامل تصفية المخطط الزمني النشطة: %1$d</item>
+        <item quantity="one">فئة واحدة من عوامل تصفية المخطط الزمني نشطة (%1$d)</item>
+        <item quantity="two">فئتان من عوامل تصفية المخطط الزمني نشطتان (%1$d)</item>
+        <item quantity="few">%1$d فئات من عوامل تصفية المخطط الزمني نشطة</item>
+        <item quantity="many">%1$d فئة من عوامل تصفية المخطط الزمني نشطة</item>
+        <item quantity="other">%1$d فئة من عوامل تصفية المخطط الزمني نشطة</item>
+    </plurals>
     <string name="content_desc_timeline_fast_scroller">شريط التمرير السريع للجدول الزمني</string>
     <string name="item_event_occurrence_frame_number">الإطار #%1$d</string>
     <string name="item_event_occurrence_trigger">مشغل</string>
     <string name="item_event_occurrence_one_condition_fulfilled">مستوفاة: %1$s</string>
-    <string name="item_event_occurrence_several_condition_processed">تمت معالجة الشروط %1$d</string>
+    <plurals name="item_event_occurrence_several_condition_processed">
+        <item quantity="zero">تمت معالجة %1$d شروط</item>
+        <item quantity="one">تمت معالجة شرط واحد (%1$d)</item>
+        <item quantity="two">تمت معالجة شرطين (%1$d)</item>
+        <item quantity="few">تمت معالجة %1$d شروط</item>
+        <item quantity="many">تمت معالجة %1$d شرطًا</item>
+        <item quantity="other">تمت معالجة %1$d شرط</item>
+    </plurals>
     <string name="item_event_occurrence_detecting_label">اكتشاف</string>
     <string name="item_event_occurrence_actions_label">إجراءات</string>
     <string name="item_event_occurrence_detected_at">تم الاكتشاف عند %1$s</string>
@@ -118,7 +132,14 @@
     <string name="field_debug_filter_trigger_events_show_desc_off">إخفاء كافة أحداث Trigger Events في المخطط الزمني</string>
 
     <string name="field_debug_filter_events_show_title">المرشحات</string>
-    <string name="field_debug_filter_events_show_select_desc">%1$d الأحداث</string>
+    <plurals name="field_debug_filter_events_show_select_desc">
+        <item quantity="zero">%1$d أحداث</item>
+        <item quantity="one">حدث واحد (%1$d)</item>
+        <item quantity="two">حدثان (%1$d)</item>
+        <item quantity="few">%1$d أحداث</item>
+        <item quantity="many">%1$d حدثًا</item>
+        <item quantity="other">%1$d حدث</item>
+    </plurals>
     <string name="field_debug_filter_events_show_select_desc_none">لا توجد أحداث</string>
 
 

@@ -122,6 +122,7 @@ class ScreenConditionsBriefMenu(
         ScreenConditionBriefItem(item.data as UiScreenCondition, orientation, onClick)
     }
 
+    @Suppress("ModifierFactoryExtensionFunction")
     @Composable
     override fun firstBriefItemModifier(): Modifier =
         Modifier.tutorialAnchor(MonitoredViewType.CONDITIONS_BRIEF_FIRST_ITEM)

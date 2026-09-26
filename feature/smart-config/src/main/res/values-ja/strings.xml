@@ -42,7 +42,9 @@
     <string name="item_toggle_event_details_enable_all">すべて有効にする</string>
     <string name="item_toggle_event_details_disable_all">すべて無効にする</string>
     <string name="item_toggle_event_details_invert_all">すべてを反転</string>
-    <string name="item_toggle_event_details_manual">%1$d イベントを変更する</string>
+    <plurals name="item_toggle_event_details_manual">
+        <item quantity="other">%1$d 個のイベントを変更</item>
+    </plurals>
     <string name="item_toggle_event_details_error">対象のイベントが見つかりません</string>
     <string name="item_intent_title">インテント</string>
     <string name="item_intent_desc">別のアプリケーションと対話する</string>
@@ -90,7 +92,9 @@
     <string name="dialog_title_trigger_event">トリガー</string>
     <string name="dialog_title_action_type">アクションの種類</string>
     <string name="dialog_title_trigger_condition_type">トリガータイプ</string>
-    <string name="field_condition_selector_desc">%1$d 条件</string>
+    <plurals name="field_condition_selector_desc">
+        <item quantity="other">%1$d 件の条件</item>
+    </plurals>
     <string name="message_empty_screen_condition_list_title">画面条件なし!</string>
     <string name="message_empty_screen_condition_list_desc">画面条件は、携帯電話の画面に表示される各フレームで検索されるスクリーンショットの一部です。</string>
     <string name="message_empty_trigger_condition_list_title">条件なし！</string>
@@ -171,7 +175,9 @@
     <string name="field_change_all_desc_enable_all">このシナリオですべてのイベントを有効にする</string>
     <string name="field_change_all_desc_invert_all">このシナリオのすべてのイベントの状態を反転します</string>
     <string name="field_change_all_desc_disable_all">このシナリオではすべてのイベントを無効にします。すべてのイベントが無効になると、シナリオは自動的に停止します。</string>
-    <string name="field_select_toggle_events_title">%1$d の変更</string>
+    <plurals name="field_select_toggle_events_title">
+        <item quantity="other">%1$d 件の変更</item>
+    </plurals>
     <string name="field_select_toggle_events_title_empty">変更なし</string>
     <string name="field_select_toggle_events_desc_empty">状態を変更するイベントを少なくとも 1 つ選択してください</string>
     <string name="dialog_title_notification">通知</string>
@@ -244,7 +250,9 @@
 
     <string name="field_counters_title">カウンター</string>
     <string name="field_counters_desc_empty">カウンターが未定義です</string>
-    <string name="field_counters_desc">%1$d 個のカウンターが定義済み</string>
+    <plurals name="field_counters_desc">
+        <item quantity="other">%1$d 個のカウンターが定義済み</item>
+    </plurals>
 
     <string name="dialog_title_screen_condition_type">条件タイプ</string>
 
@@ -301,13 +309,21 @@
     <string name="message_empty_counter_name_list_title">カウンターが未定義です</string>
     <string name="message_empty_counter_name_list_desc">カウンターには数値が格納され、アクションや条件式内でその値を変更、検証、または使用することができます</string>
     <string name="item_counter_desc_collapsed_no_reference">このカウンターは未使用です。(%1$s)</string>
-    <string name="item_counter_desc_collapsed_referenced">このカウンターは %1$d 回参照されています。(%2$s)</string>
+    <plurals name="item_counter_desc_collapsed_referenced">
+        <item quantity="other">このカウンターは %1$d 回参照されています。(%2$s)</item>
+    </plurals>
     <string name="item_counter_desc_expanded_no_reference">このカウンターは未使用です。</string>
-    <string name="item_counter_desc_expanded_referenced">このカウンターは %1$d 回参照されています。</string>
+    <plurals name="item_counter_desc_expanded_referenced">
+        <item quantity="other">このカウンターは %1$d 回参照されています。</item>
+    </plurals>
     <string name="field_label_counter_starting_value">初期値</string>
-    <string name="button_text_counter_actions_references">%1$d 書き込み</string>
+    <plurals name="button_text_counter_actions_references">
+        <item quantity="other">%1$d 件の書き込み</item>
+    </plurals>
     <string name="button_text_counter_actions_no_reference">変更なし</string>
-    <string name="button_text_counter_conditions_references">%1$d 読み込み</string>
+    <plurals name="button_text_counter_conditions_references">
+        <item quantity="other">%1$d 件の読み込み</item>
+    </plurals>
     <string name="button_text_counter_conditions_no_reference">読み取りなし</string>
     <string name="button_text_counter_delete">カウンターを削除</string>
     <string name="button_text_counter_delete_and_replace">置換して削除</string>
@@ -355,10 +371,86 @@
     <string name="message_empty_external_action_list_title">外部アクションがありません</string>
     <string name="message_empty_external_action_list_desc">先にスマートシナリオで新しい外部アクション名を入力してください。</string>
     <string name="content_desc_switch_scenario">シナリオを切り替え</string>
-    <string name="default_external_action_name">外部アクション</string>
     <string name="dialog_stop_confirmation_title">Macrion を停止しますか？</string>
     <string name="dialog_stop_confirmation_message">現在のシナリオが停止します。</string>
     <string name="dialog_stop_confirmation_stop">停止</string>
     <string name="action_move_event_up">イベントを上に移動</string>
     <string name="action_move_event_down">イベントを下に移動</string>
+
+    <string name="content_desc_show_all_action_previews">すべてのアクションのプレビューを表示</string>
+    <string name="action_previews_all_on">すべてのアクション</string>
+    <string name="action_previews_all_off">現在のアクションのみ</string>
+    <string name="item_zoom_title">マルチタッチ</string>
+    <string name="item_zoom_desc">2つ以上のクリックやスワイプを同時に実行します。</string>
+    <string name="item_zoom_details">クリックとスワイプを同時に実行</string>
+    <string name="item_play_sound_title">サウンドを再生</string>
+    <string name="item_play_sound_desc">通知音を再生します</string>
+    <string name="item_play_sound_details_text">サウンド: %1$s</string>
+    <string name="item_play_sound_details_none">サウンドが選択されていません</string>
+    <string name="dialog_title_play_sound">サウンドを再生</string>
+    <string name="default_notification_sound">デフォルトの通知音</string>
+    <string name="field_sound_selector_label">通知音</string>
+    <string name="dialog_title_select_sound">サウンドを選択</string>
+    <string name="play_sound_tip_custom_files">ヒント: 独自のサウンドを使うには、ファイルマネージャーで音声ファイルをスマートフォンの Notifications フォルダーに配置してください。ここに自動的に表示されます。</string>
+    <string name="item_capture_screenshot_title">スクリーンショットを撮影</string>
+    <string name="item_capture_screenshot_desc">画面を撮影してストレージに保存します</string>
+    <string name="item_capture_screenshot_details_default">保存先: Pictures/Macrion</string>
+    <string name="item_capture_screenshot_details_custom">保存先: %1$s</string>
+    <string name="dialog_title_capture_screenshot">スクリーンショットを撮影</string>
+    <string name="capture_screenshot_location_label">保存先</string>
+    <string name="capture_screenshot_location_default">Pictures/Macrion（デフォルト）</string>
+    <string name="capture_screenshot_button_choose_folder">フォルダーを選択</string>
+    <string name="capture_screenshot_button_reset_folder">デフォルトに戻す</string>
+    <string name="capture_screenshot_button_open_folder">Files でフォルダーを開く</string>
+    <string name="capture_screenshot_storage_note">スクリーンショットは JPEG 形式で保存されます。デフォルトのフォルダーはギャラリーや Google フォトに自動的に表示されます。</string>
+    <string name="field_condition_fps_limit_desc">バッテリーと CPU の消費を抑えるため、この条件を確認する頻度を制限します。検出が遅くなります。</string>
+    <string name="click_offset_preview_label">プレビュー %1$d/%2$d · %3$s</string>
+    <string name="click_offset_previous_condition">前の条件のプレビュー</string>
+    <string name="click_offset_next_condition">次の条件のプレビュー</string>
+    <string name="dialog_title_split_action">マルチタッチ</string>
+    <string name="action_type_zoom">マルチタッチ</string>
+    <string name="split_action_touch_actions_header">タッチ操作</string>
+    <string name="split_action_add_swipe">スワイプを追加</string>
+    <string name="split_action_add_click">クリックを追加</string>
+    <string name="split_action_rename">マルチタッチの名前を変更</string>
+    <string name="split_action_name_required">マルチタッチの名前を設定</string>
+    <string name="split_action_fixed_position">位置</string>
+    <string name="split_action_detected_condition">条件</string>
+    <string name="split_action_unsplit">分割を解除</string>
+    <string name="split_action_stroke_not_configured">位置が設定されていません</string>
+    <string name="action_combine_title">結合</string>
+    <string name="action_combine_with_new">新しいスワイプと結合</string>
+    <string name="action_combine_with_existing">既存のアクションと結合…</string>
+    <string name="action_unsplit_title">分割を解除</string>
+    <string name="dialog_screenshot_rate_limit_title">スクリーンショットの上限に達しました</string>
+    <plurals name="dialog_screenshot_rate_limit_message">
+        <item quantity="other">1分間に %1$d 枚を超えるスクリーンショットが撮影されたため、シナリオを一時停止しました。これにより、デバイスのストレージがいっぱいになるのを防ぎます。\n\nこの上限は、設定 &gt; 詳細設定で変更するか、シナリオに待機時間を追加できます。</item>
+    </plurals>
+    <string name="folder_ungrouped_label">未分類</string>
+    <string name="folder_action_new">新しいフォルダー</string>
+    <string name="folder_action_create_event">イベントを作成</string>
+    <string name="folder_action_rename">フォルダー名を変更</string>
+    <string name="folder_action_delete">フォルダーを削除</string>
+    <string name="folder_menu_options">フォルダーのオプション</string>
+    <string name="folder_delete_dialog_title">フォルダーを削除</string>
+    <string name="folder_delete_dialog_message">"%1$s" 内のイベントをどうしますか？</string>
+    <string name="folder_delete_keep_events">イベントを保持（グループ解除）</string>
+    <string name="folder_delete_all_events">イベントを削除</string>
+    <string name="folder_name_hint">フォルダー名</string>
+    <string name="folder_collapse_all">すべてのフォルダーを折りたたむ</string>
+    <string name="folder_reorder_disabled_hint">並べ替えるには、すべてのフォルダーを折りたたんでください</string>
+    <string name="generic_cancel">キャンセル</string>
+    <string name="generic_create">作成</string>
+    <string name="action_combine_with_new_swipe">新しいスワイプと結合</string>
+    <string name="action_combine_with">"%1$s" と結合</string>
+    <string name="action_unsplit">個別のアクションに分割</string>
+    <string name="action_edit_gestures">ジェスチャーを設定</string>
+    <string name="action_edit_stroke">%1$s を編集</string>
+    <string name="action_combine_with_new_click">新しいクリックと結合</string>
+    <plurals name="combined_touch_count">
+        <item quantity="other">%1$d 個のタッチ操作</item>
+    </plurals>
+    <string name="split_repeat_help">繰り返しはジェスチャー全体に適用されます。繰り返しごとに各タッチが1回実行されます。分割を解除すると、個々の繰り返し設定が復元されます。</string>
+    <string name="split_action_position_not_set">位置が設定されていません</string>
+    <string name="split_action_detected_position">位置は検出された条件に従います</string>
 </resources>

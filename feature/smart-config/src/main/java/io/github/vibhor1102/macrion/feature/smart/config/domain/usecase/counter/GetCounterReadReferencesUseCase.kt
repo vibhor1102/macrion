@@ -24,6 +24,8 @@ import io.github.vibhor1102.macrion.core.domain.model.action.Click
 import io.github.vibhor1102.macrion.core.domain.model.action.Intent
 import io.github.vibhor1102.macrion.core.domain.model.action.Notification
 import io.github.vibhor1102.macrion.core.domain.model.action.Pause
+import io.github.vibhor1102.macrion.core.domain.model.action.PlaySound
+import io.github.vibhor1102.macrion.core.domain.model.action.CaptureScreenshot
 import io.github.vibhor1102.macrion.core.domain.model.action.SetText
 import io.github.vibhor1102.macrion.core.domain.model.action.Swipe
 import io.github.vibhor1102.macrion.core.domain.model.action.SystemAction
@@ -36,6 +38,7 @@ import io.github.vibhor1102.macrion.core.domain.model.event.Event
 import io.github.vibhor1102.macrion.feature.smart.config.domain.EditionRepository
 import io.github.vibhor1102.macrion.feature.smart.config.domain.usecase.counter.model.CounterReference
 import io.github.vibhor1102.macrion.core.domain.model.action.ExternalAction
+import io.github.vibhor1102.macrion.core.domain.model.action.SplitAction
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -117,8 +120,11 @@ class GetCounterReadReferencesUseCase @Inject constructor(
                     is ExternalAction,
                     is Intent,
                     is Pause,
+                    is PlaySound,
+                    is CaptureScreenshot,
                     is SystemAction,
                     is Swipe,
+                    is SplitAction,
                     is ToggleEvent -> Unit
                 }
             }

@@ -251,9 +251,24 @@ class DetectorEngineDetectionOrientationTests {
         }
     }
 
+    @Test
+    fun `immediate pause during detector setup releases resources and returns to recording`() = runTest {
+        val (engine, _) = startDetectionAndCaptureOrientationListener(advanceToDetecting = false)
+        assertEquals(DetectorState.STARTING_DETECTION, engine.state.value)
+
+        engine.stopDetection()
+        assertEquals(DetectorState.STOPPING_DETECTION, engine.state.value)
+        advanceTimeBy(1)
+
+        assertEquals(DetectorState.RECORDING, engine.state.value)
+        verify(exactly = 1) { mockImageDetector.close() }
+    }
+
     // ---- helpers ----
 
-    private fun TestScope.startDetectionAndCaptureOrientationListener(): Pair<DetectorEngine, (Context) -> Unit> {
+    private fun TestScope.startDetectionAndCaptureOrientationListener(
+        advanceToDetecting: Boolean = true,
+    ): Pair<DetectorEngine, (Context) -> Unit> {
         val engine = DetectorEngine(
             ioDispatcher = StandardTestDispatcher(testScheduler),
             displayConfigManager = mockDisplayConfigManager,
@@ -291,10 +306,11 @@ class DetectorEngineDetectionOrientationTests {
         )
         // 1 ms: runs startDetection setup (no internal delays), enters processScreenImages,
         // emits DETECTING, then suspends on the first null-image delay.
-        advanceTimeBy(1)
-
-        check(engine.state.value == DetectorState.DETECTING) {
-            "Expected DETECTING after startDetection, got ${engine.state.value}"
+        if (advanceToDetecting) {
+            advanceTimeBy(1)
+            check(engine.state.value == DetectorState.DETECTING) {
+                "Expected DETECTING after startDetection, got ${engine.state.value}"
+            }
         }
 
         return engine to checkNotNull(capturedListener) { "Orientation listener was not registered" }

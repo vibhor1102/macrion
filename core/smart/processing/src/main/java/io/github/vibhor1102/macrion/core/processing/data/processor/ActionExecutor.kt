@@ -22,6 +22,7 @@ import io.github.vibhor1102.macrion.core.base.crash.CrashDiagnostics
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.GestureDescription
 import android.content.Intent as AndroidIntent
+import io.github.vibhor1102.macrion.core.base.gesture.combinedTouchTailDelay
 import android.graphics.Path
 import android.graphics.Point
 import android.util.Log
@@ -29,9 +30,11 @@ import android.util.Log
 import io.github.vibhor1102.macrion.core.base.workarounds.UnblockGestureScheduler
 import io.github.vibhor1102.macrion.core.base.workarounds.buildUnblockGesture
 import io.github.vibhor1102.macrion.core.common.actions.AndroidActionExecutor
+import io.github.vibhor1102.macrion.core.common.actions.gesture.addStroke
 import io.github.vibhor1102.macrion.core.common.actions.gesture.buildSingleStroke
 import io.github.vibhor1102.macrion.core.common.actions.gesture.line
 import io.github.vibhor1102.macrion.core.common.actions.gesture.moveTo
+import io.github.vibhor1102.macrion.core.common.actions.gesture.toGesturePath
 import io.github.vibhor1102.macrion.core.common.actions.model.ActionNotificationRequest
 import io.github.vibhor1102.macrion.core.common.actions.text.findCounterReferences
 import io.github.vibhor1102.macrion.core.common.actions.text.replaceCounterReferences
@@ -52,6 +55,9 @@ import io.github.vibhor1102.macrion.core.domain.model.event.Event
 import io.github.vibhor1102.macrion.core.domain.model.event.ScreenEvent
 import io.github.vibhor1102.macrion.core.processing.data.processor.state.ProcessingState
 import io.github.vibhor1102.macrion.core.domain.model.action.ExternalAction
+import io.github.vibhor1102.macrion.core.domain.model.action.PlaySound
+import io.github.vibhor1102.macrion.core.domain.model.action.CaptureScreenshot
+import io.github.vibhor1102.macrion.core.domain.model.action.SplitAction
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -70,6 +76,7 @@ internal class ActionExecutor(
     private val processingState: ProcessingState,
     randomize: Boolean,
     unblockWorkaroundEnabled: Boolean = false,
+    private val onScreenshotRateLimitExceeded: (() -> Unit)? = null,
 ) {
 
     init { androidExecutor.resetState() }
@@ -93,8 +100,8 @@ internal class ActionExecutor(
         }
     }
 
-    suspend fun executeActions(event: Event, results: ConditionsResults? = null) {
-        event.actions.forEach { action ->
+    suspend fun executeActions(event: Event, results: ConditionsResults? = null): Boolean {
+        for (action in event.actions) {
             CrashDiagnostics.record(when (action) {
                 is Click -> CrashDiagnostics.Event.CLICK
                 is Swipe -> CrashDiagnostics.Event.SWIPE
@@ -106,6 +113,9 @@ internal class ActionExecutor(
                 is Notification -> CrashDiagnostics.Event.NOTIFICATION
                 is SystemAction -> CrashDiagnostics.Event.SYSTEM_ACTION
                 is SetText -> CrashDiagnostics.Event.SET_TEXT
+                is PlaySound -> CrashDiagnostics.Event.PLAY_SOUND
+                is CaptureScreenshot -> CrashDiagnostics.Event.CAPTURE_SCREENSHOT
+                is SplitAction -> CrashDiagnostics.Event.SPLIT_ACTION
             })
             try {
                 when (action) {
@@ -119,12 +129,22 @@ internal class ActionExecutor(
                     is Notification -> executeNotification(event, action)
                     is SystemAction -> executeSystemAction(action)
                     is SetText -> executeSetText(action)
+                    is PlaySound -> executePlaySound(action)
+                    is SplitAction -> executeSplitAction(event, action, results)
+                    is CaptureScreenshot -> {
+                        val allowed = executeCaptureScreenshot(action)
+                        if (!allowed) {
+                            onScreenshotRateLimitExceeded?.invoke()
+                            return false
+                        }
+                    }
                 }
             } catch (error: Exception) {
                 if (error !is kotlinx.coroutines.CancellationException) CrashDiagnostics.recordFailure(error)
                 throw error
             }
         }
+        return true
     }
 
     private suspend fun executeClick(event: Event, click: Click, results: ConditionsResults?) {
@@ -139,6 +159,8 @@ internal class ActionExecutor(
                 getOnConditionClickPath(event, click, results)
         } ?: return
 
+        click.waitBeforeMs?.takeIf { it > 0 }?.let { delay(it) }
+
         val clickGesture = GestureDescription.Builder().buildSingleStroke(
             path = clickPath,
             durationMs = click.pressDuration!!,
@@ -148,6 +170,8 @@ internal class ActionExecutor(
         withContext(Dispatchers.Main) {
             androidExecutor.dispatchGesture(clickGesture)
         }
+
+        click.waitAfterMs?.takeIf { it > 0 }?.let { delay(it) }
     }
 
     private fun getOnConditionClickPath(event: Event, click: Click, results: ConditionsResults?): Path? {
@@ -180,16 +204,87 @@ internal class ActionExecutor(
      * @param swipe the swipe to be executed.
      */
     private suspend fun executeSwipe(swipe: Swipe) {
+        if (swipe.from == null || swipe.to == null) return
+
+        swipe.waitBeforeMs?.takeIf { it > 0 }?.let { delay(it) }
+
         val swipeGesture = GestureDescription.Builder().buildSingleStroke(
-            path =
-                if (swipe.from == null || swipe.to == null) return
-                else Path().apply { line(swipe.from, swipe.to, random) },
+            path = swipe.path?.toGesturePath(random) ?: Path().apply { line(swipe.from, swipe.to, random) },
             durationMs = swipe.swipeDuration!!,
             random = random,
         )
 
         withContext(Dispatchers.Main) {
             androidExecutor.dispatchGesture(swipeGesture)
+        }
+
+        swipe.waitAfterMs?.takeIf { it > 0 }?.let { delay(it) }
+    }
+
+    /**
+     * Execute the provided split action simultaneously.
+     * @param splitAction the split action containing sub-actions to execute in one gesture.
+     */
+    private suspend fun executeSplitAction(event: Event, splitAction: SplitAction, results: ConditionsResults?) {
+        if (!splitAction.isComplete()) return
+
+        val builder = GestureDescription.Builder()
+        var hasValidStroke = false
+
+        for (subAction in splitAction.subActions) {
+            when (subAction) {
+                is Swipe -> {
+                    if (subAction.from != null && subAction.to != null && subAction.swipeDuration != null) {
+                        val path = subAction.path?.toGesturePath(random)
+                            ?: Path().apply { line(subAction.from, subAction.to, random) }
+                        builder.addStroke(
+                            path = path,
+                            durationMs = subAction.swipeDuration!!,
+                            startTime = subAction.waitBeforeMs ?: 0L,
+                            random = random,
+                        )
+                        hasValidStroke = true
+                    }
+                }
+                is Click -> {
+                    if (subAction.pressDuration != null) {
+                        val path = when (subAction.positionType) {
+                            Click.PositionType.USER_SELECTED -> subAction.position?.let { position ->
+                                Path().apply { moveTo(position, random) }
+                            }
+                            Click.PositionType.ON_DETECTED_CONDITION -> getOnConditionClickPath(event, subAction, results)
+                        } ?: return
+                        builder.addStroke(
+                            path = path,
+                            durationMs = subAction.pressDuration!!,
+                            startTime = subAction.waitBeforeMs ?: 0L,
+                            random = random,
+                        )
+                        hasValidStroke = true
+                    }
+                }
+                else -> Unit
+            }
+        }
+
+        if (hasValidStroke) {
+            val gesture = builder.build()
+            withContext(Dispatchers.Main) {
+                androidExecutor.dispatchGesture(gesture)
+            }
+            val maxWaitAfter = combinedTouchTailDelay(
+                (0 until gesture.strokeCount).map { gesture.getStroke(it).let { stroke -> stroke.startTime + stroke.duration } },
+                splitAction.subActions.map {
+                when (it) {
+                    is Swipe -> it.waitAfterMs ?: 0L
+                    is Click -> it.waitAfterMs ?: 0L
+                    else -> 0L
+                }
+                },
+            )
+            if (maxWaitAfter > 0L) {
+                delay(maxWaitAfter)
+            }
         }
     }
 
@@ -329,6 +424,15 @@ internal class ActionExecutor(
                 validate = action.validateInput,
             )
         }
+    }
+
+    private fun executePlaySound(action: PlaySound) {
+        val soundUri = action.soundUri ?: return
+        androidExecutor.playSound(soundUri)
+    }
+
+    private suspend fun executeCaptureScreenshot(action: CaptureScreenshot): Boolean {
+        return androidExecutor.captureScreenshot(action.screenshotFolderUri, action.screenshotFolderName)
     }
 }
 

@@ -46,14 +46,26 @@
     <string name="message_backup_create_error">An error has occurred and the backup export has been cancelled</string>
     <string name="message_backup_import_progress">Importing backup: %1$d</string>
     <string name="message_backup_import_verification">Data verification</string>
-    <string name="message_backup_import_completed">Import completed\n%1$d scenario imported</string>
-    <string name="message_backup_import_completed_with_error">Import completed\n%1$d scenarios imported\n%2$d errors</string>
+    <plurals name="message_backup_import_completed">
+        <item quantity="one">Import completed\n%1$d scenario imported</item>
+        <item quantity="other">Import completed\n%1$d scenarios imported</item>
+    </plurals>
+    <string name="message_backup_import_completed_with_error">Import completed\n%1$s\n%2$s</string>
+    <plurals name="message_backup_import_scenarios">
+        <item quantity="one">%1$d scenario imported</item>
+        <item quantity="other">%1$d scenarios imported</item>
+    </plurals>
+    <plurals name="message_backup_import_errors">
+        <item quantity="one">%1$d error</item>
+        <item quantity="other">%1$d errors</item>
+    </plurals>
     <string name="message_backup_import_error">An error has occurred and the backup import has been cancelled</string>
     <string name="message_backup_import_malformed">This backup appears to be malformed or mixes Macrion and Klick’r backup formats.</string>
     <string name="message_backup_klickr_compatibility_loss">Macrion-only features will be removed from this backup so that Klick’r can import it.</string>
     <string name="message_backup_klickr_compatibility_analysis">Checking the selected scenarios for Klick’r compatibility…</string>
     <string name="message_backup_klickr_compatibility_review_without_loss">Compatibility target: %1$s\n\nNo Macrion-only components need to be removed. Continue to choose where to save the backup.</string>
     <string name="message_backup_klickr_compatibility_review">Compatibility target: %1$s\n\nComponents that will be removed: %2$d\nScenarios that cannot be exported: %3$d\n\nContinue to choose where to save the backup, or cancel without creating a file.</string>
+    <string name="message_backup_klickr_curved_swipes_excluded">Curved swipes excluded: %1$d. Use a native Macrion backup to keep their full paths.</string>
     <string name="message_backup_create_klickr_compatible_completed">Klick’r-compatible backup completed. Macrion-only components removed: %1$d.</string>
     <string name="message_backup_create_klickr_compatible_completed_without_loss">Klick’r-compatible backup completed. No Macrion-only features needed to be removed.</string>
     <string name="message_backup_import_compatibility">Some of the imported scenarios have been generated from a device with a different screen and this might cause issues with the detection and action coordinates.\n\nTo fix it, you need to take new screenshots for your conditions and update your click/swipe positions.</string>

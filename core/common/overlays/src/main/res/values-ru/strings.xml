@@ -24,4 +24,26 @@
     <string name="dialog_reorder_discard_title">Отменить изменения?</string>
     <string name="dialog_reorder_discard_message">У вас есть несохраненные изменения. Вы уверены, что хотите отменить их?</string>
     <string name="dialog_reorder_discard_confirm">Отменить</string>
+
+    <!-- Added Russian translations -->
+    <string name="swipe_position_record">Записать жест</string>
+    <string name="swipe_position_drag_instruction">Перетащите начало или конец, чтобы изменить смахивание</string>
+    <string name="swipe_position_drag_node_instruction">Перетащите любой маркер, чтобы изменить смахивание</string>
+    <string name="swipe_position_record_instruction">Нарисуйте смахивание, чтобы задать обе позиции</string>
+    <string name="swipe_position_short_gesture">Нарисуйте смахивание, чтобы задать обе позиции</string>
+    <string name="swipe_position_multi_touch">Для смахивания используется один палец. Чтобы задействовать несколько пальцев, создайте мультитач-действие.</string>
+    <string name="swipe_position_record_failed">Не удалось записать смахивание. Попробуйте ещё раз.</string>
+    <string name="swipe_position_start">Начало</string>
+    <string name="swipe_position_end">Конец</string>
+    <string name="swipe_position_node">Точка %1$d</string>
+    <string name="swipe_position_move_left">Переместить «%1$s» влево</string>
+    <string name="swipe_position_move_right">Переместить «%1$s» вправо</string>
+    <string name="swipe_position_move_up">Переместить «%1$s» вверх</string>
+    <string name="swipe_position_move_down">Переместить «%1$s» вниз</string>
+    <string name="brief_handle_moved_click">Положение нажатия изменено</string>
+    <string name="brief_handle_moved_swipe_start">Начало смахивания изменено</string>
+    <string name="brief_handle_moved_swipe_node">Точка смахивания изменена</string>
+    <string name="brief_handle_moved_swipe_end">Конец смахивания изменён</string>
+    <string name="brief_handle_undo">Отменить</string>
+
 </resources>

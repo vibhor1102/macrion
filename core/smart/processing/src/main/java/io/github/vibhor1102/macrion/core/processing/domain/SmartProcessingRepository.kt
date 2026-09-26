@@ -26,6 +26,7 @@ import io.github.vibhor1102.macrion.core.domain.model.condition.ScreenCondition
 import io.github.vibhor1102.macrion.core.domain.model.event.ScreenEvent
 import io.github.vibhor1102.macrion.core.domain.model.scenario.Scenario
 import io.github.vibhor1102.macrion.core.processing.domain.model.DetectionState
+import io.github.vibhor1102.macrion.core.processing.domain.model.DetectionPhase
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import kotlin.time.Duration
@@ -45,12 +46,24 @@ interface SmartProcessingRepository : Dumpable {
     /** State of the scenario processing.*/
     val detectionState: Flow<DetectionState>
 
+    /** Includes detector startup and cleanup so UI requests can wait for a safe transition. */
+    val detectionPhase: Flow<DetectionPhase>
+
+    /** Advances whenever an active detection is told to stop, including scenario and projection stops. */
+    val detectionStopSequence: StateFlow<Long>
+
+    /** Emits the screenshot rate limit whenever execution is paused due to exceeding it. */
+    val screenshotRateLimitError: Flow<Int>
+
 
     /** @return the unique identifier of the scenario that will be/is processed. */
     fun getScenarioId(): Identifier?
 
     /** @return true if the processing is currently running ([DetectionState.DETECTING]), false if not. */
     fun isRunning(): Boolean
+
+    /** @return true while detection is starting or running and can be stopped. */
+    fun isDetectionActive(): Boolean
 
     /** @return true if screen capture is currently active, whether detection is running or only loaded. */
     fun isScreenRecordActive(): Boolean
@@ -99,12 +112,16 @@ interface SmartProcessingRepository : Dumpable {
      * @param liveDebugging true if the session should generate live debugging events.
      * @param generateReport true if the session should generate a debugging report.
      * @param autoStopDuration the duration after which the detection will be stopped.
+     * @return true if detector setup was accepted; detection begins asynchronously.
      */
-    suspend fun startDetection(context: Context, liveDebugging: Boolean, generateReport: Boolean, autoStopDuration: Duration? = null)
+    suspend fun startDetection(context: Context, liveDebugging: Boolean, generateReport: Boolean, autoStopDuration: Duration? = null): Boolean
+
+    /** Begin an auto-stop countdown for the detection session that is currently running. */
+    fun scheduleAutoStop(duration: Duration?)
 
     /**
      * Stop the processing for the current [Scenario].
-     * Ignored if the state is different than [DetectionState.DETECTING].
+     * Ignored unless detection is starting or running.
      */
     fun stopDetection()
 

@@ -23,10 +23,6 @@ import kotlinx.coroutines.flow.Flow
 
 interface SettingsRepository {
 
-    val isLegacyActionUiEnabledFlow: Flow<Boolean>
-    fun isLegacyActionUiEnabled(): Boolean
-    fun toggleLegacyActionUi()
-
     val isLegacyNotificationUiEnabledFlow: Flow<Boolean>
     fun isLegacyNotificationUiEnabled(): Boolean
     fun toggleLegacyNotificationUi()
@@ -70,10 +66,17 @@ interface SettingsRepository {
     fun getMaxToleratedDifference(): Int
     fun setMaxToleratedDifference(difference: Int)
 
+    val screenshotRateLimitPerMinuteFlow: Flow<Int>
+    fun getScreenshotRateLimitPerMinute(): Int
+    fun setScreenshotRateLimitPerMinute(limit: Int)
+
     val isToolbarAutoHideEnabledFlow: Flow<Boolean>
     fun isToolbarAutoHideEnabled(): Boolean
     fun setToolbarAutoHideEnabled(enabled: Boolean)
     fun toggleToolbarAutoHide()
+
+    val allowPreviewHandleEditingFlow: Flow<Boolean>
+    fun togglePreviewHandleEditing()
 
     val toolbarAutoHideDelaySecondsFlow: Flow<Int>
     fun getToolbarAutoHideDelaySeconds(): Int

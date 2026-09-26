@@ -10,8 +10,16 @@
     <string name="message_backup_create_error">エラーが発生し、バックアップのエクスポートは中止されました</string>
     <string name="message_backup_import_progress">バックアップをインポート中：%1$d</string>
     <string name="message_backup_import_verification">データの検証</string>
-    <string name="message_backup_import_completed">インポートが完了しました\nシナリオを %1$d 件インポートしました</string>
-    <string name="message_backup_import_completed_with_error">インポートが完了しました\nシナリオを %1$d 件インポート\nエラー %2$d 件</string>
+    <plurals name="message_backup_import_completed">
+        <item quantity="other">インポートが完了しました\nシナリオを %1$d 件インポートしました</item>
+    </plurals>
+    <plurals name="message_backup_import_scenarios">
+        <item quantity="other">シナリオを %1$d 件インポートしました</item>
+    </plurals>
+    <plurals name="message_backup_import_errors">
+        <item quantity="other">エラー %1$d 件</item>
+    </plurals>
+    <string name="message_backup_import_completed_with_error">インポートが完了しました\n%1$s\n%2$s</string>
     <string name="message_backup_import_error">エラーが発生し、バックアップのインポートは中止されました</string>
     <string name="message_backup_import_compatibility">インポートしたシナリオの一部は画面サイズの異なる端末で作成されたため、検出や操作座標に影響する場合があります。\n\n条件のスクリーンショットを取り直し、タップ／スワイプ位置を更新してください。</string>
     <string name="message_backup_error_no_zip_app">Zip ファイルの保存／読み込みを行えるアプリが見つかりません。</string>
@@ -24,4 +32,5 @@
     <string name="message_backup_klickr_compatibility_review">互換性の対象: %1$s\n\n削除されるコンポーネント: %2$d\nエクスポートできないシナリオ: %3$d\n\n続行してバックアップの保存先を選択するか、ファイルを作成せずにキャンセルしてください。</string>
     <string name="message_backup_create_klickr_compatible_completed">Klick’r 互換バックアップが完了しました。削除された Macrion 専用コンポーネント: %1$d。</string>
     <string name="message_backup_create_klickr_compatible_completed_without_loss">Klick’r 互換バックアップが完了しました。削除が必要な Macrion 専用機能はありませんでした。</string>
+    <string name="message_backup_klickr_curved_swipes_excluded">曲線スワイプを %1$d 件除外しました。完全な軌跡を保持するには、Macrion ネイティブのバックアップを使用してください。</string>
 </resources>

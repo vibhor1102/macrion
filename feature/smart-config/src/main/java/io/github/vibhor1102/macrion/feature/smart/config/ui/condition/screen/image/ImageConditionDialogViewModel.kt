@@ -34,6 +34,14 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
+import io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.config.ComputeRateLimitUiState
+import io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.config.ComputeRateUnitDropdownItem
+import io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.config.FRAME_LIMIT_DEFAULT_VALUE
+import io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.config.FRAME_LIMIT_MAX_VALUE
+import io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.config.FRAME_LIMIT_MIN_VALUE
+import io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.config.getInitialComputeRateUnitItem
+import io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.config.toComputeRateLimitUiState
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.Flow
@@ -71,37 +79,62 @@ class ImageConditionViewModel @Inject constructor(
             .map { it.hasChanged }
             .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
+    private val userComputeRateUnit: MutableStateFlow<ComputeRateUnitDropdownItem?> =
+        MutableStateFlow(editionRepository.editionState.getEditedCondition<ScreenCondition.Image>()?.computeRate?.let { getInitialComputeRateUnitItem(it) })
+
+    private var cachedComputeRate: Double = editionRepository.editionState.getEditedCondition<ScreenCondition.Image>()?.computeRate?.takeIf { it > 0.0 } ?: FRAME_LIMIT_DEFAULT_VALUE
+
+    val computeRateState: StateFlow<ComputeRateLimitUiState> =
+        kotlinx.coroutines.flow.combine(configuredCondition, userComputeRateUnit) { condition, unit ->
+            toComputeRateLimitUiState(condition.computeRate, unit, cachedComputeRate)
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), toComputeRateLimitUiState(0.0, null, cachedComputeRate))
+
     /** Tells if the user is currently editing a condition. If that's not the case, dialog should be closed. */
     val isEditingCondition: Flow<Boolean> = editionRepository.isEditingCondition
         .distinctUntilChanged()
         .debounce(1000)
 
-    /** The type of detection currently selected by the user. */
-    val name: Flow<String?> = configuredCondition.map { it.name }.take(1)
-    /** Tells if the condition name is valid or not. */
-    val nameError: Flow<Boolean> = configuredCondition.map { it.name.isEmpty() }
+    private val initialCondition = editionRepository.editionState.getEditedCondition<ScreenCondition.Image>()
 
-    /** Tells if the condition should be present or not on the screen. */
-    val shouldBeDetected: Flow<Boolean> = configuredCondition
-        .map { condition -> condition.shouldBeDetected }
-
-    /** The type of detection currently selected by the user. */
-    val detectionType: Flow<DetectionTypeState> = configuredCondition
-        .map { condition ->
-            context.getDetectionTypeState(condition.detectionType, condition.detectionArea ?: condition.area)
-        }
-        .filterNotNull()
-
-    /** The condition threshold value currently edited by the user. */
-    val threshold: Flow<Int> = configuredCondition.mapNotNull { it.threshold }
-    /** The bitmap for the configured condition. */
     val conditionBitmap: Flow<Bitmap?> = configuredCondition.map { condition ->
         bitmapRepository.getConditionBitmap(condition)
     }.flowOn(Dispatchers.IO)
-    /** Tells if the configured condition is valid and can be saved. */
-    val conditionCanBeSaved: Flow<Boolean> = editionRepository.editionState.editedScreenConditionState.map { condition ->
-        condition.canBeSaved
-    }
+
+    val uiState: StateFlow<ImageConditionUiState?> = kotlinx.coroutines.flow.combine(
+        editionRepository.editionState.editedScreenConditionState,
+        userComputeRateUnit,
+        conditionBitmap,
+    ) { editedState, unit, bitmap ->
+        val condition = editedState.value as? ScreenCondition.Image ?: return@combine null
+        ImageConditionUiState(
+            id = condition.id,
+            name = condition.name,
+            nameError = condition.name.isEmpty(),
+            bitmap = bitmap,
+            shouldBeDetected = condition.shouldBeDetected,
+            detectionType = context.getDetectionTypeState(condition.detectionType, condition.detectionArea ?: condition.area),
+            threshold = condition.threshold,
+            computeRateState = toComputeRateLimitUiState(condition.computeRate, unit, cachedComputeRate),
+            canBeSaved = editedState.canBeSaved,
+        )
+    }.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5000),
+        initialCondition?.let { condition ->
+            ImageConditionUiState(
+                id = condition.id,
+                name = condition.name,
+                nameError = condition.name.isEmpty(),
+                bitmap = null,
+                shouldBeDetected = condition.shouldBeDetected,
+                detectionType = context.getDetectionTypeState(condition.detectionType, condition.detectionArea ?: condition.area),
+                threshold = condition.threshold,
+                computeRateState = toComputeRateLimitUiState(condition.computeRate, userComputeRateUnit.value, cachedComputeRate),
+                canBeSaved = true,
+            )
+        },
+    )
 
     fun hasUnsavedModifications(): Boolean =
         editedConditionHasChanged.value
@@ -151,6 +184,26 @@ class ImageConditionViewModel @Inject constructor(
 
     fun isConditionRelatedToClick(): Boolean =
         editionRepository.editionState.isEditedConditionReferencedByClick()
+
+    fun toggleLimiter() {
+        editionRepository.editionState.getEditedCondition<ScreenCondition.Image>()?.let { condition ->
+            val newRate = if (condition.computeRate != 0.0) 0.0 else cachedComputeRate
+            updateEditedCondition { it.copy(computeRate = newRate) }
+        }
+    }
+
+    fun setComputeRateUnit(unit: io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.config.ComputeRateUnitDropdownItem) {
+        userComputeRateUnit.value = unit
+    }
+
+    fun setComputeRate(value: Double) {
+        if (value <= io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.config.FRAME_LIMIT_MIN_VALUE) return
+        val unit = userComputeRateUnit.value ?: io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.config.ComputeRateUnitDropdownItem.Second
+        val newValue = if (unit is io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.config.ComputeRateUnitDropdownItem.Minute) value / 60 else value
+        if (newValue > io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.config.FRAME_LIMIT_MAX_VALUE) return
+        cachedComputeRate = newValue
+        updateEditedCondition { it.copy(computeRate = newValue) }
+    }
 
 
 

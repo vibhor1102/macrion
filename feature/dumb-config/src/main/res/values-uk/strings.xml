@@ -92,7 +92,6 @@
       - Descriptions for repeat actions.
       - Indicate the number of repetitions or if it's infinite.
       -->
-    <string name="item_desc_dumb_repeat_count">Повторити %1$d разів</string>
     <string name="item_desc_dumb_repeat_infinite">Нескінченне повторення</string>
 
     <!--
@@ -117,4 +116,41 @@
     <string name="dialog_stop_confirmation_title">Зупинити Macrion?</string>
     <string name="dialog_stop_confirmation_message">Поточний сценарій буде зупинено.</string>
     <string name="dialog_stop_confirmation_stop">Зупинити</string>
+    <string name="action_combine_with">Об’єднати з «%1$s»</string>
+    <string name="action_combine_with_existing">Об’єднати з наявною дією…</string>
+    <string name="action_combine_with_new_click">Об’єднати з новим натисканням</string>
+    <string name="action_combine_with_new_swipe">Об’єднати з новим свайпом</string>
+    <string name="action_edit_gestures">Налаштувати жести</string>
+    <string name="action_edit_stroke">Редагувати: %1$s</string>
+    <string name="action_type_zoom">Мультитач</string>
+    <string name="action_unsplit">Розділити на окремі дії</string>
+    <string name="dialog_title_split_action">Мультитач</string>
+    <string name="item_desc_dumb_zoom">Виконати кілька натискань або свайпів одночасно.</string>
+    <string name="item_title_dumb_zoom">Мультитач</string>
+    <string name="split_action_add_click">Додати натискання</string>
+    <string name="split_action_add_swipe">Додати свайп</string>
+    <string name="split_action_check_group_settings">Перевірте параметри мультитач</string>
+    <string name="split_action_click_coordinates">У точці %1$d, %2$d</string>
+    <string name="split_action_group_settings">Параметри мультитач</string>
+    <string name="split_action_position_not_set">Позицію не задано</string>
+    <string name="split_action_swipe_coordinates">Від %1$d, %2$d до %3$d, %4$d</string>
+    <string name="split_action_touch_actions_header">Дії дотику</string>
+    <string name="split_action_unsplit">Розділити</string>
+    <string name="split_discard_confirm">Відкинути</string>
+    <string name="split_discard_message">Зміни цього жесту та його дотиків не збережено.</string>
+    <string name="split_discard_title">Відкинути зміни?</string>
+    <string name="split_keep_editing">Продовжити редагування</string>
+    <string name="split_repeat_help">Повторення застосовується до всього жесту. Кожен дотик виконується один раз за повтор; після розділення відновлюються індивідуальні параметри повторення.</string>
+    <plurals name="item_desc_dumb_repeat_count">
+        <item quantity="one">Повторити %1$d раз</item>
+        <item quantity="few">Повторити %1$d рази</item>
+        <item quantity="many">Повторити %1$d разів</item>
+        <item quantity="other">Повторити %1$d разу</item>
+    </plurals>
+    <plurals name="combined_touch_count">
+        <item quantity="one">%1$d дія дотику</item>
+        <item quantity="few">%1$d дії дотику</item>
+        <item quantity="many">%1$d дій дотику</item>
+        <item quantity="other">%1$d дії дотику</item>
+    </plurals>
 </resources>

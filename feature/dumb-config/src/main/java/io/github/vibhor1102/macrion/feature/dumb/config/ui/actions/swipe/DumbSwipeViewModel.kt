@@ -18,6 +18,7 @@ package io.github.vibhor1102.macrion.feature.dumb.config.ui.actions.swipe
 
 import android.content.Context
 import android.graphics.Point
+import io.github.vibhor1102.macrion.core.base.gesture.SwipePath
 
 import androidx.core.content.edit
 import androidx.lifecycle.ViewModel
@@ -82,9 +83,20 @@ class DumbSwipeViewModel @Inject constructor(
     val repeatDelayError: Flow<Boolean> = editedDumbSwipe
         .map { !it.isRepeatDelayValid() }
 
+    /** Delay before starting the swipe. */
+    val waitBefore: Flow<String> = editedDumbSwipe
+        .map { it.waitBeforeMs?.toString() ?: "" }
+        .take(1)
+
+    /** Delay after finishing the swipe. */
+    val waitAfter: Flow<String> = editedDumbSwipe
+        .map { it.waitAfterMs?.toString() ?: "" }
+        .take(1)
+
     /** Subtext for the position selector. */
     val swipePositionText: Flow<String> = editedDumbSwipe
         .map { dumbSwipe ->
+            if (dumbSwipe.fromPosition.x < 0 || dumbSwipe.fromPosition.y < 0) return@map context.getString(R.string.split_action_position_not_set)
             context.getString(
                 R.string.item_desc_dumb_swipe_positions,
                 dumbSwipe.fromPosition.x,
@@ -93,6 +105,14 @@ class DumbSwipeViewModel @Inject constructor(
                 dumbSwipe.toPosition.y,
             )
         }
+
+    fun setWaitBeforeMs(waitBefore: Long?) {
+        _editedDumbSwipe.value = _editedDumbSwipe.value?.copy(waitBeforeMs = waitBefore)
+    }
+
+    fun setWaitAfterMs(waitAfter: Long?) {
+        _editedDumbSwipe.value = _editedDumbSwipe.value?.copy(waitAfterMs = waitAfter)
+    }
 
     fun setEditedDumbSwipe(swipe: DumbAction.DumbSwipe) {
         _editedDumbSwipe.value = swipe.copy()
@@ -122,9 +142,9 @@ class DumbSwipeViewModel @Inject constructor(
         _editedDumbSwipe.value = _editedDumbSwipe.value?.copy(repeatDelayMs = delayMs)
     }
 
-    fun setPositions(from: Point?, to: Point?) {
+    fun setPositions(from: Point?, to: Point?, path: SwipePath? = null) {
         if (from == null || to == null) return
-        _editedDumbSwipe.value = _editedDumbSwipe.value?.copy(fromPosition = from, toPosition = to)
+        _editedDumbSwipe.value = _editedDumbSwipe.value?.copy(fromPosition = from, toPosition = to, path = path)
     }
 
     fun saveLastConfig(context: Context) {

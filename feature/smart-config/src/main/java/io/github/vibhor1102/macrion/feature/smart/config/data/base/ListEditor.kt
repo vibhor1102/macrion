@@ -64,7 +64,7 @@ internal open class ListEditor<Item , Parent>(
         EditedListState(edit, itemValidity, hasChanged, canBeSaved)
     }
 
-    private val referenceEditedItem: MutableStateFlow<Item?> = MutableStateFlow(null)
+    protected val referenceEditedItem: MutableStateFlow<Item?> = MutableStateFlow(null)
     private val _editedItem: MutableStateFlow<Item?> = MutableStateFlow(null)
     val editedItem: StateFlow<Item?> = _editedItem
     val editedItemState: Flow<EditedElementState<Item>> = combine(referenceEditedItem, _editedItem, parentItem) { ref, edit, parent ->
@@ -93,10 +93,17 @@ internal open class ListEditor<Item , Parent>(
 
     @CallSuper
     open fun startItemEdition(item: Item) {
-        _editedList.value ?: return
+        val currentList = _editedList.value ?: return
+        val currentItem = currentList.find { it.id == item.id } ?: item
 
-        referenceEditedItem.value = item
-        _editedItem.value = item
+        referenceEditedItem.value = currentItem
+        _editedItem.value = currentItem
+    }
+
+    /** Resume an editor draft without looking up IDs in the top-level list. */
+    protected fun restoreItemEdition(reference: Item, draft: Item) {
+        referenceEditedItem.value = reference
+        _editedItem.value = draft
     }
 
     @CallSuper
@@ -105,7 +112,7 @@ internal open class ListEditor<Item , Parent>(
         _editedItem.value = null
     }
 
-    fun stopEdition() {
+    open fun stopEdition() {
         stopItemEdition()
         referenceList.value = null
         _editedList.value = null
@@ -117,7 +124,7 @@ internal open class ListEditor<Item , Parent>(
     }
 
     /** Update/Insert a new item to the list. */
-    fun upsertEditedItem() {
+    open fun upsertEditedItem() {
         val newItem = _editedItem.value ?: return
         val newItems = _editedList.value?.toMutableList() ?: return
         val itemIndex = newItems.indexOfItem(newItem)
@@ -164,7 +171,7 @@ internal open class ListEditor<Item , Parent>(
     private fun List<Item>.indexOfItem(item: Item): Int =
         indexOfFirst { it.id == item.id }
 
-    private fun buildAllItemList(editedList: List<Item>?, editedItem: Item?): List<Item> =
+    protected open fun buildAllItemList(editedList: List<Item>?, editedItem: Item?): List<Item> =
         buildList {
             val items = editedList ?: emptyList()
             if (editedItem == null) {

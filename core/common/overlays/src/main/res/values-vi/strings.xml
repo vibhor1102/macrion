@@ -26,4 +26,25 @@
     <string name="dialog_reorder_discard_title">Hủy thay đổi?</string>
     <string name="dialog_reorder_discard_message">Bạn có thay đổi chưa lưu. Bạn có chắc chắn muốn hủy chúng không?</string>
     <string name="dialog_reorder_discard_confirm">Hủy</string>
+
+    <!-- Added Vietnamese translations -->
+    <string name="swipe_position_record">Ghi cử chỉ</string>
+    <string name="swipe_position_drag_instruction">Kéo Điểm đầu hoặc Điểm cuối để điều chỉnh thao tác vuốt</string>
+    <string name="swipe_position_drag_node_instruction">Kéo tay nắm bất kỳ để điều chỉnh thao tác vuốt</string>
+    <string name="swipe_position_record_instruction">Vẽ một thao tác vuốt để đặt cả hai vị trí</string>
+    <string name="swipe_position_short_gesture">Vẽ thao tác vuốt để đặt cả hai vị trí</string>
+    <string name="swipe_position_multi_touch">Thao tác vuốt dùng một ngón tay. Hãy tạo hành động Chạm đa điểm để dùng nhiều ngón tay.</string>
+    <string name="swipe_position_record_failed">Không thể ghi thao tác vuốt. Hãy thử lại.</string>
+    <string name="swipe_position_start">Điểm đầu</string>
+    <string name="swipe_position_end">Điểm cuối</string>
+    <string name="swipe_position_node">Điểm %1$d</string>
+    <string name="swipe_position_move_left">Di chuyển %1$s sang trái</string>
+    <string name="swipe_position_move_right">Di chuyển %1$s sang phải</string>
+    <string name="swipe_position_move_up">Di chuyển %1$s lên trên</string>
+    <string name="swipe_position_move_down">Di chuyển %1$s xuống dưới</string>
+    <string name="brief_handle_moved_click">Đã di chuyển vị trí nhấp</string>
+    <string name="brief_handle_moved_swipe_start">Đã di chuyển điểm đầu thao tác vuốt</string>
+    <string name="brief_handle_moved_swipe_node">Đã di chuyển điểm trên thao tác vuốt</string>
+    <string name="brief_handle_moved_swipe_end">Đã di chuyển điểm cuối thao tác vuốt</string>
+    <string name="brief_handle_undo">Hoàn tác</string>
 </resources>

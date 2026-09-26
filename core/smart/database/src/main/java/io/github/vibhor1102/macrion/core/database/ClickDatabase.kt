@@ -28,6 +28,7 @@ import io.github.vibhor1102.macrion.core.database.entity.EventToggleEntity
 import io.github.vibhor1102.macrion.core.database.entity.IntentExtraEntity
 import io.github.vibhor1102.macrion.core.database.entity.ScenarioEntity
 import io.github.vibhor1102.macrion.core.database.entity.ScenarioStatsEntity
+import io.github.vibhor1102.macrion.core.database.entity.SplitActionItemEntity
 import io.github.vibhor1102.macrion.core.database.migrations.*
 
 import javax.inject.Singleton
@@ -43,6 +44,7 @@ import javax.inject.Singleton
         EventToggleEntity::class,
         ScenarioStatsEntity::class,
         CountersEntity::class,
+        SplitActionItemEntity::class,
     ],
     version = DATABASE_VERSION,
     exportSchema = true,
@@ -59,6 +61,14 @@ import javax.inject.Singleton
         AutoMigration (from = 20, to = 21),
         AutoMigration (from = 22, to = 23),
         AutoMigration (from = 24, to = 25),
+        AutoMigration (from = 26, to = 27),
+        AutoMigration (from = 27, to = 28),
+        AutoMigration (from = 28, to = 29),
+        AutoMigration (from = 29, to = 30),
+        AutoMigration (from = 30, to = 31),
+        AutoMigration (from = 31, to = 32),
+        AutoMigration (from = 32, to = 33),
+        AutoMigration (from = 33, to = 34),
     ]
 )
 abstract class ClickDatabase : ScenarioDatabase()

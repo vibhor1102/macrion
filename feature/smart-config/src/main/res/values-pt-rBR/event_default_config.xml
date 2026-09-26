@@ -19,6 +19,7 @@
     <string name="default_event_name">Evento Padrão</string>
     <string name="default_click_name">Clique</string>
     <string name="default_swipe_name">Deslizar</string>
+    <string name="default_zoom_name">Multitoque</string>
     <string name="default_pause_name">Espere</string>
     <string name="default_intent_name">Intent</string>
     <string name="default_toggle_event_name">Alternar evento</string>
@@ -27,4 +28,6 @@
     <string name="default_notification_name">Notificação</string>
     <string name="default_system_action_name">Ação do sistema</string>
     <string name="default_set_text_name">Escreva o texto</string>
+    <string name="default_play_sound_name">Reproduzir som</string>
+    <string name="default_capture_screenshot_name">Capturar tela</string>
 </resources>

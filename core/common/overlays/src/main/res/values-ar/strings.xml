@@ -25,4 +25,24 @@
     <string name="dialog_reorder_discard_title">تجاهل التغييرات؟</string>
     <string name="dialog_reorder_discard_message">لديك تغييرات غير محفوظة. هل أنت متأكد من رغبتك في تجاهلها؟</string>
     <string name="dialog_reorder_discard_confirm">تجاهل</string>
+    <!-- Added translations for the current feature set -->
+    <string name="swipe_position_record">تسجيل الإيماءة</string>
+    <string name="swipe_position_drag_instruction">اسحب نقطة البداية أو النهاية لضبط مسار السحب</string>
+    <string name="swipe_position_drag_node_instruction">اسحب أي مقبض لضبط مسار السحب</string>
+    <string name="swipe_position_record_instruction">ارسم حركة سحب واحدة لتحديد الموضعين</string>
+    <string name="swipe_position_short_gesture">ارسم حركة سحب لتحديد الموضعين</string>
+    <string name="swipe_position_multi_touch">تستخدم حركة السحب إصبعًا واحدًا. أنشئ إجراءً متعدد اللمس لاستخدام عدة أصابع.</string>
+    <string name="swipe_position_record_failed">تعذّر تسجيل حركة السحب. حاول مرة أخرى.</string>
+    <string name="swipe_position_start">البداية</string>
+    <string name="swipe_position_end">النهاية</string>
+    <string name="swipe_position_node">النقطة %1$d</string>
+    <string name="swipe_position_move_left">حرّك %1$s إلى اليسار</string>
+    <string name="swipe_position_move_right">حرّك %1$s إلى اليمين</string>
+    <string name="swipe_position_move_up">حرّك %1$s إلى الأعلى</string>
+    <string name="swipe_position_move_down">حرّك %1$s إلى الأسفل</string>
+    <string name="brief_handle_moved_click">تم نقل موضع النقر</string>
+    <string name="brief_handle_moved_swipe_start">تم نقل بداية السحب</string>
+    <string name="brief_handle_moved_swipe_node">تم نقل نقطة السحب</string>
+    <string name="brief_handle_moved_swipe_end">تم نقل نهاية السحب</string>
+    <string name="brief_handle_undo">تراجع</string>
 </resources>

@@ -63,4 +63,46 @@
 
     <string name="content_desc_tuck_toolbar">Thu gọn thanh công cụ vào cạnh màn hình</string>
     <string name="content_desc_expand_toolbar">Mở rộng thanh công cụ</string>
+
+    <!-- Added Vietnamese translations -->
+    <string name="field_delays_title">Thời gian chờ (Tùy chọn)</string>
+    <string name="field_wait_before_title">Trước (ms)</string>
+    <string name="field_wait_after_title">Sau (ms)</string>
+    <string name="field_wait_before_summary">Trước: %1$s ms</string>
+    <string name="field_wait_after_summary">Sau: %1$s ms</string>
+    <string name="field_delays_expanded">Đã mở rộng</string>
+    <string name="field_delays_collapsed">Đã thu gọn</string>
+    <string name="field_delays_check_values">Kiểm tra giá trị thời gian chờ</string>
+    <string name="field_delay_range_error">Nhập giá trị từ 0–%1$d ms</string>
+    <string name="field_delay_number_error">Nhập thời gian chờ hợp lệ bằng mili giây</string>
+    <string name="condition_operator_and">VÀ</string>
+    <string name="condition_operator_or">HOẶC </string>
+    <string name="action_editor_more_options">Thêm tùy chọn hành động</string>
+    <string name="action_combine_choose_existing">Chọn một hành động</string>
+    <string name="action_combine_choose_help">Chọn hành động nhấp, vuốt hoặc chạm đa điểm để chạy đồng thời. Các hành động ban đầu sẽ được thay thế khi bạn lưu.</string>
+    <string name="multi_touch_brief_default_name">Chạm đa điểm</string>
+    <string name="multi_touch_brief_tap">Chạm</string>
+    <string name="multi_touch_brief_swipe">Vuốt</string>
+    <string name="multi_touch_brief_touch">Chạm</string>
+    <string name="multi_touch_brief_needs_setup">Cần thiết lập</string>
+    <string name="multi_touch_add_touch">Thêm lần chạm</string>
+    <string name="multi_touch_rename_touch">Đổi tên lần chạm %1$d</string>
+    <string name="multi_touch_done_renaming">Đổi tên lần chạm %1$d xong</string>
+    <string name="multi_touch_touch_description">Lần chạm %1$d trên %2$d: %3$s</string>
+    <string name="action_editor_delete_this_click">Xóa thao tác nhấp này</string>
+    <string name="action_editor_delete_this_swipe">Xóa thao tác vuốt này</string>
+    <string name="action_editor_delete_this_action">Xóa hành động này</string>
+    <string name="action_editor_delete_multi_touch">Xóa thao tác chạm đa điểm</string>
+    <string name="action_editor_save_multi_touch">Lưu thao tác chạm đa điểm</string>
+    <string name="action_editor_close_multi_touch">Đóng thao tác chạm đa điểm</string>
+    <string name="multi_touch_brief_no_touches">Chưa cấu hình lần chạm nào</string>
+    <plurals name="multi_touch_brief_click_count">
+        <item quantity="other">%d thao tác nhấp</item>
+    </plurals>
+    <plurals name="multi_touch_brief_swipe_count">
+        <item quantity="other">%d thao tác vuốt</item>
+    </plurals>
+    <plurals name="multi_touch_brief_setup_count">
+        <item quantity="other">%d mục cần thiết lập</item>
+    </plurals>
 </resources>

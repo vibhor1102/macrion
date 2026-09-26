@@ -31,7 +31,11 @@ import io.github.vibhor1102.macrion.core.domain.model.action.SetText
 import io.github.vibhor1102.macrion.core.domain.model.action.Swipe
 import io.github.vibhor1102.macrion.core.domain.model.action.SystemAction
 import io.github.vibhor1102.macrion.core.domain.model.action.ToggleEvent
+import io.github.vibhor1102.macrion.core.domain.model.action.PlaySound
+import io.github.vibhor1102.macrion.core.domain.model.action.CaptureScreenshot
 import io.github.vibhor1102.macrion.core.domain.model.action.ExternalAction
+import io.github.vibhor1102.macrion.core.domain.model.action.SplitAction
+import io.github.vibhor1102.macrion.core.database.entity.SplitActionItemEntity
 
 
 internal fun Action.toEntity(): ActionEntity {
@@ -48,6 +52,9 @@ internal fun Action.toEntity(): ActionEntity {
         is Notification -> toNotificationEntity()
         is SystemAction -> toSystemActionEntity()
         is SetText -> toSetTextEntity()
+        is PlaySound -> toPlaySoundEntity()
+        is CaptureScreenshot -> toCaptureScreenshotEntity()
+        is SplitAction -> toSplitActionEntity()
     }
 }
 
@@ -65,6 +72,8 @@ private fun Click.toClickEntity(): ActionEntity =
         clickOnConditionId = clickOnConditionId?.databaseId,
         clickOffsetX = clickOffset?.x,
         clickOffsetY = clickOffset?.y,
+        waitBeforeMs = waitBeforeMs,
+        waitAfterMs = waitAfterMs,
     )
 
 private fun Swipe.toSwipeEntity(): ActionEntity =
@@ -79,6 +88,9 @@ private fun Swipe.toSwipeEntity(): ActionEntity =
         fromY = from?.y,
         toX = to?.x,
         toY = to?.y,
+        swipePath = path,
+        waitBeforeMs = waitBeforeMs,
+        waitAfterMs = waitAfterMs,
     )
 
 private fun Pause.toPauseEntity(): ActionEntity =
@@ -174,3 +186,76 @@ private fun SetText.toSetTextEntity(): ActionEntity =
         textValue = text,
         textValidateInput = validateInput,
     )
+
+private fun PlaySound.toPlaySoundEntity(): ActionEntity =
+    ActionEntity(
+        id = id.databaseId,
+        eventId = eventId.databaseId,
+        priority = priority,
+        name = name!!.trim(),
+        type = ActionType.PLAY_SOUND,
+        soundUri = soundUri,
+        soundTitle = soundTitle,
+    )
+
+private fun CaptureScreenshot.toCaptureScreenshotEntity(): ActionEntity =
+    ActionEntity(
+        id = id.databaseId,
+        eventId = eventId.databaseId,
+        priority = priority,
+        name = name!!.trim(),
+        type = ActionType.CAPTURE_SCREENSHOT,
+        screenshotFolderUri = screenshotFolderUri,
+        screenshotFolderName = screenshotFolderName,
+    )
+
+private fun SplitAction.toSplitActionEntity(): ActionEntity =
+    ActionEntity(
+        id = id.databaseId,
+        eventId = eventId.databaseId,
+        priority = priority,
+        name = name!!.trim(),
+        type = ActionType.SPLIT_ACTION,
+    )
+
+internal fun Action.toSplitItemEntity(actionDbId: Long, itemPriority: Int): SplitActionItemEntity =
+    when (this) {
+        is Swipe -> SplitActionItemEntity(
+            id = id.databaseId,
+            actionId = actionDbId,
+            priority = itemPriority,
+            name = name,
+            type = ActionType.SWIPE,
+            fromX = from?.x,
+            fromY = from?.y,
+            toX = to?.x,
+            toY = to?.y,
+            swipePath = path,
+            duration = swipeDuration,
+            startOffset = waitBeforeMs ?: 0L,
+            waitAfterMs = waitAfterMs,
+        )
+        is Click -> SplitActionItemEntity(
+            id = id.databaseId,
+            actionId = actionDbId,
+            priority = itemPriority,
+            name = name,
+            type = ActionType.CLICK,
+            clickPositionType = positionType.toEntity(),
+            clickOnConditionId = clickOnConditionId?.databaseId,
+            clickOffsetX = clickOffset?.x,
+            clickOffsetY = clickOffset?.y,
+            fromX = position?.x,
+            fromY = position?.y,
+            duration = pressDuration,
+            startOffset = waitBeforeMs ?: 0L,
+            waitAfterMs = waitAfterMs,
+        )
+        else -> SplitActionItemEntity(
+            id = id.databaseId,
+            actionId = actionDbId,
+            priority = itemPriority,
+            name = name,
+            type = ActionType.SWIPE,
+        )
+    }

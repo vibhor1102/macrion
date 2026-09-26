@@ -27,7 +27,9 @@
     <string name="item_desc_dumb_click_on_position">Nhấp vào %1$d, %2$d</string>
     <string name="item_desc_dumb_pause">Tạm dừng thực hiện</string>
     <string name="item_desc_dumb_pause_details">Trong %1$s</string>
-    <string name="item_desc_dumb_repeat_count">Lặp lại %1$d lần</string>
+    <plurals name="item_desc_dumb_repeat_count">
+        <item quantity="other">Lặp lại %1$d lần</item>
+    </plurals>
     <string name="item_desc_dumb_repeat_infinite">Lặp lại vô hạn</string>
     <string name="item_desc_dumb_swipe">Vuốt từ vị trí trên màn hình sang vị trí khác</string>
     <string name="item_desc_dumb_swipe_details">Trong %1$s từ [%2$d, %3$d] đến [%4$d, %5$d]</string>
@@ -55,4 +57,34 @@
     <string name="dialog_stop_confirmation_message">Kịch bản hiện tại sẽ bị dừng.</string>
     <string name="dialog_stop_confirmation_stop">Dừng</string>
 
+
+    <!-- Added Vietnamese translations -->
+    <string name="action_type_zoom">Chạm đa điểm</string>
+    <string name="item_desc_dumb_zoom">Chạy đồng thời từ hai thao tác nhấp hoặc vuốt trở lên.</string>
+    <string name="item_title_dumb_zoom">Chạm đa điểm</string>
+    <string name="action_combine_with_new_swipe">Kết hợp với thao tác vuốt mới</string>
+    <string name="action_combine_with">Kết hợp với "%1$s"</string>
+    <string name="action_unsplit">Tách thành các hành động riêng biệt</string>
+    <string name="action_edit_gestures">Cấu hình cử chỉ</string>
+    <string name="action_edit_stroke">Chỉnh sửa %1$s</string>
+    <string name="dialog_title_split_action">Chạm đa điểm</string>
+    <string name="split_action_touch_actions_header">Các nét chạm</string>
+    <string name="split_action_add_swipe">Thêm thao tác vuốt</string>
+    <string name="split_action_add_click">Thêm thao tác nhấp</string>
+    <string name="split_action_group_settings">Cài đặt chạm đa điểm</string>
+    <string name="split_action_check_group_settings">Kiểm tra cài đặt chạm đa điểm</string>
+    <string name="split_action_click_coordinates">Tại %1$d, %2$d</string>
+    <string name="split_action_swipe_coordinates">Từ %1$d, %2$d đến %3$d, %4$d</string>
+    <string name="split_action_unsplit">Tách ra</string>
+    <string name="action_combine_with_new_click">Kết hợp với thao tác nhấp mới</string>
+    <string name="action_combine_with_existing">Kết hợp với hành động hiện có…</string>
+    <plurals name="combined_touch_count">
+        <item quantity="other">%1$d thao tác chạm</item>
+    </plurals>
+    <string name="split_repeat_help">Số lần lặp áp dụng cho toàn bộ cử chỉ. Mỗi lần chạm chạy một lần trong mỗi lượt lặp; cài đặt lặp riêng của từng lần chạm sẽ được khôi phục khi bạn tách ra.</string>
+    <string name="split_action_position_not_set">Chưa đặt vị trí</string>
+    <string name="split_discard_title">Bỏ thay đổi?</string>
+    <string name="split_discard_message">Các thay đổi đối với cử chỉ này và những lần chạm của nó chưa được lưu.</string>
+    <string name="split_discard_confirm">Bỏ thay đổi</string>
+    <string name="split_keep_editing">Tiếp tục chỉnh sửa</string>
 </resources>

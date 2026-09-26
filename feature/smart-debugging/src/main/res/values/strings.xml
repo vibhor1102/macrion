@@ -82,12 +82,18 @@
     <string name="title_event_occurrence_filtered_empty">No matching events</string>
     <string name="desc_event_occurrence_filtered_empty">No Timeline events match the current filters.</string>
     <string name="button_clear_timeline_filters">Clear filters</string>
-    <string name="content_desc_timeline_filters_active">%1$d Timeline filter categories active</string>
+    <plurals name="content_desc_timeline_filters_active">
+        <item quantity="one">%1$d Timeline filter category active</item>
+        <item quantity="other">%1$d Timeline filter categories active</item>
+    </plurals>
     <string name="content_desc_timeline_fast_scroller">Timeline fast scroller</string>
     <string name="item_event_occurrence_frame_number">Frame #%1$d</string>
     <string name="item_event_occurrence_trigger">Trigger</string>
     <string name="item_event_occurrence_one_condition_fulfilled">Fulfilled: %1$s</string>
-    <string name="item_event_occurrence_several_condition_processed">%1$d conditions processed</string>
+    <plurals name="item_event_occurrence_several_condition_processed">
+        <item quantity="one">%1$d condition processed</item>
+        <item quantity="other">%1$d conditions processed</item>
+    </plurals>
     <string name="item_event_occurrence_milliseconds" translatable="false">ms</string>
     <string name="item_event_occurrence_detecting_label">detecting</string>
     <string name="item_event_occurrence_actions_label">actions</string>
@@ -108,7 +114,10 @@
     <string name="field_debug_filter_trigger_events_show_desc_off">Hide all Trigger Events occurrences in timeline</string>
 
     <string name="field_debug_filter_events_show_title">Filters</string>
-    <string name="field_debug_filter_events_show_select_desc">%1$d events</string>
+    <plurals name="field_debug_filter_events_show_select_desc">
+        <item quantity="one">%1$d event</item>
+        <item quantity="other">%1$d events</item>
+    </plurals>
     <string name="field_debug_filter_events_show_select_desc_none">No events</string>
 
 

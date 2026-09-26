@@ -76,8 +76,7 @@
     <string name="item_toggle_event_details_enable_all">Habilitar todo</string>
     <string name="item_toggle_event_details_disable_all">Desactivar todo</string>
     <string name="item_toggle_event_details_invert_all">invertir todo</string>
-    <string name="item_toggle_event_details_manual">Cambiar eventos %1$d</string>
-    <string name="item_toggle_event_details_error">Evento de destino no encontrado</string>
+<string name="item_toggle_event_details_error">Evento de destino no encontrado</string>
 
     <string name="item_intent_title">Intención</string>
     <string name="item_intent_desc">Interactuar con otra aplicación</string>
@@ -116,7 +115,7 @@
 
     <!-- Dialog Scenario =========================================================================================== -->
 
-    <string name="dialog_title_scenario_config">Guión</string>
+    <string name="dialog_title_scenario_config">Guion</string>
 
     <string name="message_empty_screen_event_title">¡Sin eventos de pantalla!</string>
     <string name="message_empty_screen_event_desc">Un evento de pantalla contiene un conjunto de acciones ejecutadas cuando se detecta una condición específica en la pantalla.\nNecesita al menos una pantalla o evento desencadenante en su escenario para ejecutarlo.</string>
@@ -150,9 +149,7 @@
     <string name="dialog_title_trigger_event">Desencadenar</string>
     <string name="dialog_title_action_type">Tipo de acción</string>
     <string name="dialog_title_trigger_condition_type">Tipo de disparador</string>
-
-    <string name="field_condition_selector_desc">%1$d condiciones</string>
-    <string name="message_empty_screen_condition_list_title">¡Sin condiciones de pantalla!</string>
+<string name="message_empty_screen_condition_list_title">¡Sin condiciones de pantalla!</string>
     <string name="message_empty_screen_condition_list_desc">Una condición de pantalla es parte de una captura de pantalla que se buscará en cada cuadro que se muestra en la pantalla de su teléfono.</string>
     <string name="message_empty_trigger_condition_list_title">¡Sin condiciones!</string>
     <string name="message_empty_trigger_condition_list_desc">Una condición es un criterio personalizado para iniciar una acción.</string>
@@ -303,9 +300,7 @@
     <string name="field_change_all_desc_enable_all">Habilitar todos los eventos en este escenario.</string>
     <string name="field_change_all_desc_invert_all">Invertir el estado de todos los eventos en este escenario.</string>
     <string name="field_change_all_desc_disable_all">Deshabilite todos los eventos en este escenario. Cuando todos los eventos están deshabilitados, el escenario se detiene automáticamente.</string>
-
-    <string name="field_select_toggle_events_title">%1$d cambios</string>
-    <string name="field_select_toggle_events_title_empty">Sin cambios</string>
+<string name="field_select_toggle_events_title_empty">Sin cambios</string>
     <string name="field_select_toggle_events_desc_empty">Seleccione al menos un evento para cambiar al estado de</string>
 
 
@@ -406,9 +401,7 @@
 
     <string name="field_counters_title">Contadores</string>
     <string name="field_counters_desc_empty">No hay contadores definidos</string>
-    <string name="field_counters_desc">%1$d contadores definidos</string>
-
-    <string name="dialog_title_screen_condition_type">Tipo de condición</string>
+<string name="dialog_title_screen_condition_type">Tipo de condición</string>
 
     <string name="field_event_cooldown_title">Recarga</string>
     <string name="field_event_cooldown_desc">Ignorar este evento durante un tiempo determinado después de ser cumplido.</string>
@@ -463,14 +456,10 @@
     <string name="message_empty_counter_name_list_title">No hay contadores definidos</string>
     <string name="message_empty_counter_name_list_desc">Un contador almacena un valor numérico que se puede modificar, verificar o utilizar en tus acciones o condiciones</string>
     <string name="item_counter_desc_collapsed_no_reference">Este contador no se usa. (%1$s)</string>
-    <string name="item_counter_desc_collapsed_referenced">Este contador se referencia %1$d veces. (%2$s)</string>
-    <string name="item_counter_desc_expanded_no_reference">Este contador no se usa.</string>
-    <string name="item_counter_desc_expanded_referenced">Este contador se referencia %1$d veces.</string>
-    <string name="field_label_counter_starting_value">Valor inicial</string>
-    <string name="button_text_counter_actions_references">%1$d escritura(s)</string>
-    <string name="button_text_counter_actions_no_reference">Nunca cambiado</string>
-    <string name="button_text_counter_conditions_references">%1$d lectura(s)</string>
-    <string name="button_text_counter_conditions_no_reference">Nunca leído</string>
+<string name="item_counter_desc_expanded_no_reference">Este contador no se usa.</string>
+<string name="field_label_counter_starting_value">Valor inicial</string>
+<string name="button_text_counter_actions_no_reference">Nunca cambiado</string>
+<string name="button_text_counter_conditions_no_reference">Nunca leído</string>
     <string name="button_text_counter_delete">Eliminar contador</string>
     <string name="button_text_counter_delete_and_replace">Reemplazar y eliminar</string>
     <string name="message_replace_by">Reemplazar por …</string>
@@ -517,10 +506,129 @@
     <string name="message_empty_external_action_list_title">No se encontró ninguna acción externa</string>
     <string name="message_empty_external_action_list_desc">Escribe primero un nombre de acción externa nuevo en un escenario inteligente.</string>
     <string name="content_desc_switch_scenario">Cambiar escenario</string>
-    <string name="default_external_action_name">Acción externa</string>
     <string name="dialog_stop_confirmation_title">¿Detener Macrion?</string>
     <string name="dialog_stop_confirmation_message">Se detendrá el escenario actual.</string>
     <string name="dialog_stop_confirmation_stop">Detener</string>
     <string name="action_move_event_up">Mover evento arriba</string>
     <string name="action_move_event_down">Mover evento abajo</string>
+    <string name="content_desc_show_all_action_previews">Mostrar vistas previas de todas las acciones</string>
+    <string name="action_previews_all_on">Todas las acciones</string>
+    <string name="action_previews_all_off">Solo la acción actual</string>
+    <string name="item_zoom_title">Multitáctil</string>
+    <string name="item_zoom_desc">Ejecuta dos o más toques o deslizamientos a la vez.</string>
+    <string name="item_zoom_details">Toques y deslizamientos a la vez</string>
+    <string name="item_play_sound_title">Reproducir sonido</string>
+    <string name="item_play_sound_desc">Reproduce un sonido de notificación</string>
+    <string name="item_play_sound_details_text">Sonido: %1$s</string>
+    <string name="item_play_sound_details_none">No se ha seleccionado ningún sonido</string>
+    <string name="dialog_title_play_sound">Reproducir sonido</string>
+    <string name="default_notification_sound">Sonido de notificación predeterminado</string>
+    <string name="field_sound_selector_label">Sonido de notificación</string>
+    <string name="dialog_title_select_sound">Seleccionar sonido</string>
+    <string name="play_sound_tip_custom_files">Consejo: para usar sonidos personalizados, coloca los archivos de audio en la carpeta Notifications del teléfono con un gestor de archivos. Aparecerán aquí automáticamente.</string>
+    <string name="item_capture_screenshot_title">Capturar pantalla</string>
+    <string name="item_capture_screenshot_desc">Captura la pantalla y guarda la imagen en el almacenamiento</string>
+    <string name="item_capture_screenshot_details_default">Ubicación: Pictures/Macrion</string>
+    <string name="item_capture_screenshot_details_custom">Ubicación: %1$s</string>
+    <string name="dialog_title_capture_screenshot">Capturar pantalla</string>
+    <string name="capture_screenshot_location_label">Destino de guardado</string>
+    <string name="capture_screenshot_location_default">Pictures/Macrion (predeterminado)</string>
+    <string name="capture_screenshot_button_choose_folder">Elegir carpeta</string>
+    <string name="capture_screenshot_button_reset_folder">Restablecer valor predeterminado</string>
+    <string name="capture_screenshot_button_open_folder">Abrir carpeta en Archivos</string>
+    <string name="capture_screenshot_storage_note">Las capturas de pantalla se guardan como archivos JPEG. La carpeta predeterminada aparece automáticamente en Galería y Fotos.</string>
+    <string name="field_condition_fps_limit_desc">Limita la frecuencia con la que se comprueba esta condición para ahorrar batería y CPU. La detección será más lenta.</string>
+    <string name="click_offset_preview_label">Vista previa %1$d/%2$d · %3$s</string>
+    <string name="click_offset_previous_condition">Vista previa de la condición anterior</string>
+    <string name="click_offset_next_condition">Vista previa de la condición siguiente</string>
+    <string name="dialog_title_split_action">Multitáctil</string>
+    <string name="action_type_zoom">Multitáctil</string>
+    <string name="split_action_touch_actions_header">Trazos táctiles</string>
+    <string name="split_action_add_swipe">Añadir deslizamiento</string>
+    <string name="split_action_add_click">Añadir toque</string>
+    <string name="split_action_rename">Cambiar nombre de multitáctil</string>
+    <string name="split_action_name_required">Asigna un nombre a la acción multitáctil</string>
+    <string name="split_action_fixed_position">Posición</string>
+    <string name="split_action_detected_condition">Condición</string>
+    <string name="split_action_unsplit">Separar</string>
+    <string name="split_action_stroke_not_configured">Posición sin definir</string>
+    <string name="action_combine_title">Combinar</string>
+    <string name="action_combine_with_new">Combinar con un nuevo deslizamiento</string>
+    <string name="action_combine_with_existing">Combinar con una acción existente…</string>
+    <string name="action_unsplit_title">Separar</string>
+    <string name="dialog_screenshot_rate_limit_title">Se alcanzó el límite de capturas de pantalla</string>
+<string name="folder_ungrouped_label">Sin agrupar</string>
+    <string name="folder_action_new">Nueva carpeta</string>
+    <string name="folder_action_create_event">Crear evento</string>
+    <string name="folder_action_rename">Cambiar nombre de carpeta</string>
+    <string name="folder_action_delete">Eliminar carpeta</string>
+    <string name="folder_menu_options">Opciones de carpeta</string>
+    <string name="folder_delete_dialog_title">Eliminar carpeta</string>
+    <string name="folder_delete_dialog_message">¿Qué quieres hacer con los eventos de «%1$s»?</string>
+    <string name="folder_delete_keep_events">Conservar eventos (quitar del grupo)</string>
+    <string name="folder_delete_all_events">Eliminar eventos</string>
+    <string name="folder_name_hint">Nombre de la carpeta</string>
+    <string name="folder_collapse_all">Contraer todo</string>
+    <string name="folder_reorder_disabled_hint">Contrae todas las carpetas para reordenarlas</string>
+    <string name="generic_cancel">Cancelar</string>
+    <string name="generic_create">Crear</string>
+    <string name="action_combine_with_new_swipe">Combinar con un nuevo deslizamiento</string>
+    <string name="action_combine_with">Combinar con «%1$s»</string>
+    <string name="action_unsplit">Separar en acciones individuales</string>
+    <string name="action_edit_gestures">Configurar gestos</string>
+    <string name="action_edit_stroke">Editar %1$s</string>
+    <string name="action_combine_with_new_click">Combinar con un nuevo toque</string>
+<string name="split_repeat_help">La repetición se aplica a todo el gesto. Cada toque se ejecuta una vez por repetición; al separar, se restauran los ajustes de repetición individuales.</string>
+    <string name="split_action_position_not_set">Posición sin definir</string>
+    <string name="split_action_detected_position">La posición depende de la condición detectada</string>
+    <plurals name="item_toggle_event_details_manual">
+        <item quantity="one">Cambiar %1$d evento</item>
+        <item quantity="many">Cambiar %1$d eventos</item>
+        <item quantity="other">Cambiar %1$d eventos</item>
+    </plurals>
+    <plurals name="field_counters_desc">
+        <item quantity="one">%1$d contador definido</item>
+        <item quantity="many">%1$d contadores definidos</item>
+        <item quantity="other">%1$d contadores definidos</item>
+    </plurals>
+    <plurals name="field_condition_selector_desc">
+        <item quantity="one">%1$d condición</item>
+        <item quantity="many">%1$d condiciones</item>
+        <item quantity="other">%1$d condiciones</item>
+    </plurals>
+    <plurals name="field_select_toggle_events_title">
+        <item quantity="one">%1$d cambio</item>
+        <item quantity="many">%1$d cambios</item>
+        <item quantity="other">%1$d cambios</item>
+    </plurals>
+    <plurals name="item_counter_desc_collapsed_referenced">
+        <item quantity="one">Este contador se referencia %1$d vez. (%2$s)</item>
+        <item quantity="many">Este contador se referencia %1$d veces. (%2$s)</item>
+        <item quantity="other">Este contador se referencia %1$d veces. (%2$s)</item>
+    </plurals>
+    <plurals name="item_counter_desc_expanded_referenced">
+        <item quantity="one">Este contador se referencia %1$d vez.</item>
+        <item quantity="many">Este contador se referencia %1$d veces.</item>
+        <item quantity="other">Este contador se referencia %1$d veces.</item>
+    </plurals>
+    <plurals name="button_text_counter_actions_references">
+        <item quantity="one">%1$d escritura</item>
+        <item quantity="many">%1$d escrituras</item>
+        <item quantity="other">%1$d escrituras</item>
+    </plurals>
+    <plurals name="button_text_counter_conditions_references">
+        <item quantity="one">%1$d lectura</item>
+        <item quantity="many">%1$d lecturas</item>
+        <item quantity="other">%1$d lecturas</item>
+    </plurals>
+    <plurals name="dialog_screenshot_rate_limit_message">
+        <item quantity="one">El escenario se pausó porque capturó más de %1$d captura de pantalla en un minuto. Esto evita que se llene el almacenamiento del dispositivo.\n\nPuedes cambiar este límite en Ajustes &gt; Ajustes avanzados o añadir pausas al escenario.</item>
+        <item quantity="many">El escenario se pausó porque capturó más de %1$d capturas de pantalla en un minuto. Esto evita que se llene el almacenamiento del dispositivo.\n\nPuedes cambiar este límite en Ajustes &gt; Ajustes avanzados o añadir pausas al escenario.</item>
+        <item quantity="other">El escenario se pausó porque capturó más de %1$d capturas de pantalla en un minuto. Esto evita que se llene el almacenamiento del dispositivo.\n\nPuedes cambiar este límite en Ajustes &gt; Ajustes avanzados o añadir pausas al escenario.</item>
+    </plurals>
+    <plurals name="combined_touch_count">
+        <item quantity="one">%1$d acción táctil</item>
+        <item quantity="many">%1$d acciones táctiles</item>
+        <item quantity="other">%1$d acciones táctiles</item>
+    </plurals>
 </resources>

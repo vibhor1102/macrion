@@ -23,6 +23,8 @@ import io.github.vibhor1102.macrion.core.domain.model.action.Click
 import io.github.vibhor1102.macrion.core.domain.model.action.Intent
 import io.github.vibhor1102.macrion.core.domain.model.action.Notification
 import io.github.vibhor1102.macrion.core.domain.model.action.Pause
+import io.github.vibhor1102.macrion.core.domain.model.action.PlaySound
+import io.github.vibhor1102.macrion.core.domain.model.action.CaptureScreenshot
 import io.github.vibhor1102.macrion.core.domain.model.action.SetText
 import io.github.vibhor1102.macrion.core.domain.model.action.Swipe
 import io.github.vibhor1102.macrion.core.domain.model.action.SystemAction
@@ -30,6 +32,7 @@ import io.github.vibhor1102.macrion.core.domain.model.action.ToggleEvent
 import io.github.vibhor1102.macrion.core.smart.debugging.domain.DebuggingRepository
 import io.github.vibhor1102.macrion.core.smart.debugging.domain.model.live.DebugLiveEventOccurrence
 import io.github.vibhor1102.macrion.core.domain.model.action.ExternalAction
+import io.github.vibhor1102.macrion.core.domain.model.action.SplitAction
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -79,13 +82,23 @@ class GetDebugLiveDetectionResultUseCase @Inject constructor(
     private fun List<Action>.getDurationMs(): Long =
         fold(initial = 0) { acc, action ->
             acc + when (action) {
-                is Click -> action.pressDuration ?: 0
-                is Swipe -> action.swipeDuration ?: 0
+                is Click -> (action.waitBeforeMs ?: 0) + (action.pressDuration ?: 0) + (action.waitAfterMs ?: 0)
+                is Swipe -> (action.waitBeforeMs ?: 0) + (action.swipeDuration ?: 0) + (action.waitAfterMs ?: 0)
                 is Pause -> action.pauseDuration ?: 0
+                is SplitAction -> action.subActions.maxOfOrNull { sub ->
+                    when (sub) {
+                        is Swipe -> (sub.waitBeforeMs ?: 0) + (sub.swipeDuration ?: 0) + (sub.waitAfterMs ?: 0)
+                        is Click -> (sub.waitBeforeMs ?: 0) + (sub.pressDuration ?: 0) + (sub.waitAfterMs ?: 0)
+                        is Pause -> sub.pauseDuration ?: 0L
+                        else -> 0L
+                    }
+                } ?: 0L
+                is CaptureScreenshot,
                 is ChangeCounter,
                 is ExternalAction,
                 is Intent,
                 is Notification,
+                is PlaySound,
                 is SetText,
                 is SystemAction,
                 is ToggleEvent -> 0

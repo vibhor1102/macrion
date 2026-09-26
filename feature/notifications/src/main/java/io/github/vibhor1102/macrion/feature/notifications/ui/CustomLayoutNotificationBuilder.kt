@@ -47,6 +47,7 @@ internal class CustomLayoutNotificationBuilder(
         setLocalOnly(true)
         setStyle(NotificationCompat.DecoratedCustomViewStyle())
         setContentIntent(ServiceNotificationAction.Config.getPendingIntent(context, appComponentsProvider))
+        setDeleteIntent(ServiceNotificationAction.Dismiss.getPendingIntent(context, appComponentsProvider))
 
         updateState(context, initialState)
     }
@@ -102,7 +103,7 @@ internal class CustomLayoutNotificationBuilder(
 
     private fun RemoteViews.addAction(context: Context, @IdRes viewId: Int, action: ServiceNotificationAction) {
         setImageViewResource(viewId, action.iconRes)
+        setContentDescription(viewId, context.getString(action.textRes))
         setOnClickPendingIntent(viewId, action.getPendingIntent(context, appComponentsProvider))
     }
 }
-

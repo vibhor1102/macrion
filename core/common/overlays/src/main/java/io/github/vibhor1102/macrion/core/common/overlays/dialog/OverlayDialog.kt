@@ -144,6 +144,8 @@ abstract class OverlayDialog(@StyleRes theme: Int? = null) : BaseOverlay(theme, 
                 setBackgroundDrawableResource(android.R.color.transparent)
                 setDimAmount(0.6f)
                 addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
+                // Overlay dialogs still rely on this deprecated window flag to resize above the IME.
+                @Suppress("DEPRECATION")
                 setSoftInputMode(
                     WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN or
                         WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE,

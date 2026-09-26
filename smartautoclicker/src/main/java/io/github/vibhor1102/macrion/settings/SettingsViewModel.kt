@@ -53,9 +53,6 @@ class SettingsViewModel @Inject constructor(
     val isStopConfirmationEnabled: Flow<Boolean> =
         settingsRepository.isStopConfirmationEnabledFlow
 
-    val isLegacyActionUiEnabled: Flow<Boolean> =
-        settingsRepository.isLegacyActionUiEnabledFlow
-
     val isLegacyNotificationUiEnabled: Flow<Boolean> =
         settingsRepository.isLegacyNotificationUiEnabledFlow
 
@@ -94,10 +91,6 @@ class SettingsViewModel @Inject constructor(
 
     fun toggleStopConfirmation() {
         settingsRepository.toggleStopConfirmation()
-    }
-
-    fun toggleLegacyActionUi() {
-        settingsRepository.toggleLegacyActionUi()
     }
 
     fun toggleLegacyNotificationUi() {
@@ -145,8 +138,22 @@ class SettingsViewModel @Inject constructor(
         settingsRepository.setMaxToleratedDifference(difference)
     }
 
+    val screenshotRateLimitPerMinute: Flow<Int> =
+        settingsRepository.screenshotRateLimitPerMinuteFlow
+
+    fun setScreenshotRateLimit(limit: Int) {
+        settingsRepository.setScreenshotRateLimitPerMinute(limit)
+    }
+
     val isToolbarAutoHideEnabled: Flow<Boolean> =
         settingsRepository.isToolbarAutoHideEnabledFlow
+
+    val allowPreviewHandleEditing: Flow<Boolean> =
+        settingsRepository.allowPreviewHandleEditingFlow
+
+    fun togglePreviewHandleEditing() {
+        settingsRepository.togglePreviewHandleEditing()
+    }
 
     val toolbarAutoHideDelaySeconds: Flow<Int> =
         settingsRepository.toolbarAutoHideDelaySecondsFlow

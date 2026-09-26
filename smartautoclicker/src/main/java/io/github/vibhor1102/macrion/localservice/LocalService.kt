@@ -45,7 +45,6 @@ import io.github.vibhor1102.macrion.feature.revenue.IRevenueRepository
 import io.github.vibhor1102.macrion.feature.revenue.UserBillingState
 import io.github.vibhor1102.macrion.core.domain.IRepository
 import io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.switcher.ScenarioSwitchDialog
-import io.github.vibhor1102.macrion.scenarios.ScenarioActivity
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -120,6 +119,7 @@ class LocalService(
                 override fun onHide() = hideMenu()
                 override fun onStop() = stopScenario()
                 override fun onSwitch() = openScenarioSwitcherAfterPause()
+                override fun onDismiss() = onNotificationDismissed()
             }
         )
     }
@@ -140,7 +140,7 @@ class LocalService(
         if (state.isStarted && !state.isSmartLoaded) loadedDumbScenarioId else null
 
     override fun isScenarioRunning(): Boolean =
-        dumbEngine.isRunning.value || smartProcessingRepository.isRunning()
+        dumbEngine.isRunning.value || smartProcessingRepository.isDetectionActive()
 
     init {
         combine(dumbEngine.isRunning, smartProcessingRepository.detectionState) { dumbIsRunning, smartState ->
@@ -277,7 +277,8 @@ class LocalService(
         serviceScope.launch {
             scenarioChangeMutex.withLock {
                 stopAndWait()
-                context.startActivity(Intent(context, ScenarioActivity::class.java).apply {
+                context.startActivity(Intent().apply {
+                    component = appComponentsProvider.scenarioActivityComponentName
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
                 })
             }
@@ -383,7 +384,7 @@ class LocalService(
 
     private fun play() {
         serviceScope.launch {
-            if (state.isSmartLoaded && !smartProcessingRepository.isRunning()) {
+            if (state.isSmartLoaded && !smartProcessingRepository.isDetectionActive()) {
                 if (shouldStartPaywall()) startPaywall()
                 else startSmartScenario()
             } else if (!state.isSmartLoaded && !dumbEngine.isRunning.value) {
@@ -420,7 +421,7 @@ class LocalService(
         serviceScope.launch {
             when {
                 dumbEngine.isRunning.value -> dumbEngine.stopDumbScenario()
-                smartProcessingRepository.isRunning() -> smartProcessingRepository.stopDetection()
+                smartProcessingRepository.isDetectionActive() -> smartProcessingRepository.stopDetection()
             }
         }
     }
@@ -448,7 +449,7 @@ class LocalService(
             // scenario different from the one the user saw when they pressed Play.
             if (!smartScenarioTransitionMutex.tryLock()) return@launch
             try {
-                if (!state.isSmartLoaded || smartProcessingRepository.isRunning()) return@launch
+                if (!state.isSmartLoaded || smartProcessingRepository.isDetectionActive()) return@launch
                 if (onlyIfRootVisible &&
                     (overlayManager.isOverlayStackHidden() || overlayManager.hasOverlayAboveRoot())
                 ) return@launch
@@ -531,11 +532,46 @@ class LocalService(
             hideCurrent = true,
         )
     }
+
+    private fun onNotificationDismissed() {
+        if (!state.isStarted) return
+
+        when (determineNotificationDismissAction(
+            isOverlayHidden = overlayManager.isOverlayStackHidden(),
+            isScenarioRunning = isScenarioRunning(),
+            hasOverlayAboveRoot = overlayManager.hasOverlayAboveRoot(),
+        )) {
+            NotificationDismissAction.DO_NOTHING -> Unit
+            NotificationDismissAction.RESTORE_OVERLAY -> showMenu()
+            NotificationDismissAction.STOP_SCENARIO -> stopScenario()
+        }
+    }
 }
 
 private const val SCENARIO_SWITCHER_PAUSE_TIMEOUT_MS = 5_000L
 private const val SCENARIO_STOP_TIMEOUT_MS = 5_000L
 private const val TAG = "LocalService"
+
+internal enum class NotificationDismissAction {
+    DO_NOTHING,
+    RESTORE_OVERLAY,
+    STOP_SCENARIO,
+}
+
+internal fun determineNotificationDismissAction(
+    isOverlayHidden: Boolean,
+    isScenarioRunning: Boolean,
+    hasOverlayAboveRoot: Boolean,
+): NotificationDismissAction {
+    if (!isOverlayHidden) {
+        return NotificationDismissAction.DO_NOTHING
+    }
+    return if (isScenarioRunning || hasOverlayAboveRoot) {
+        NotificationDismissAction.RESTORE_OVERLAY
+    } else {
+        NotificationDismissAction.STOP_SCENARIO
+    }
+}
 
 internal fun canRunCurrentScenario(
     isLoaded: Boolean,

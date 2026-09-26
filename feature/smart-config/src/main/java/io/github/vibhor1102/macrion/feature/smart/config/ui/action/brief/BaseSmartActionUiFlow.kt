@@ -26,6 +26,8 @@ import io.github.vibhor1102.macrion.core.domain.model.action.Click
 import io.github.vibhor1102.macrion.core.domain.model.action.Intent
 import io.github.vibhor1102.macrion.core.domain.model.action.Notification
 import io.github.vibhor1102.macrion.core.domain.model.action.Pause
+import io.github.vibhor1102.macrion.core.domain.model.action.PlaySound
+import io.github.vibhor1102.macrion.core.domain.model.action.CaptureScreenshot
 import io.github.vibhor1102.macrion.core.domain.model.action.SetText
 import io.github.vibhor1102.macrion.core.domain.model.action.Swipe
 import io.github.vibhor1102.macrion.core.domain.model.action.SystemAction
@@ -39,6 +41,8 @@ import io.github.vibhor1102.macrion.feature.smart.config.ui.action.pause.PauseDi
 import io.github.vibhor1102.macrion.feature.smart.config.ui.action.selection.ActionTypeChoice
 import io.github.vibhor1102.macrion.feature.smart.config.ui.action.selection.ActionTypeSelectionDialog
 import io.github.vibhor1102.macrion.feature.smart.config.ui.action.settext.SetTextDialog
+import io.github.vibhor1102.macrion.feature.smart.config.ui.action.sound.PlaySoundDialog
+import io.github.vibhor1102.macrion.feature.smart.config.ui.action.screenshot.CaptureScreenshotDialog
 import io.github.vibhor1102.macrion.feature.smart.config.ui.action.swipe.SwipeDialog
 import io.github.vibhor1102.macrion.feature.smart.config.ui.action.system.SystemActionDialog
 import io.github.vibhor1102.macrion.feature.smart.config.ui.action.toggleevent.ToggleEventDialog
@@ -48,14 +52,31 @@ import io.github.vibhor1102.macrion.core.domain.model.action.ExternalAction
 import io.github.vibhor1102.macrion.feature.smart.config.ui.action.external.ExternalActionDialog
 
 
+import io.github.vibhor1102.macrion.core.domain.model.action.SplitAction
+
+import io.github.vibhor1102.macrion.feature.smart.config.ui.action.split.SplitActionDialog
+
 internal interface ActionConfigurator {
     fun getActionTypeChoices(): List<ActionTypeChoice>
     fun createAction(context: Context, choice: ActionTypeChoice): Action
     fun startActionEdition(action: Action)
+    fun startSubActionEdition(parent: SplitAction, subIndex: Int)
     fun upsertEditedAction()
     fun removeEditedAction()
     fun dismissEditedAction()
+    fun isExistingTopLevelAction(action: Action): Boolean
+    fun combinableActions(source: Action): List<Action>
+    fun combineWithNewClick(source: Action): SplitAction?
+    fun combineWithNewSwipe(source: Action): SplitAction?
+    fun combineActions(source: Action, other: Action): SplitAction?
 }
+
+class SmartCombinationOptions(
+    val existingActions: List<Action>,
+    val onNewClick: (Action) -> Unit,
+    val onNewSwipe: (Action) -> Unit,
+    val onExisting: (Action, Action) -> Unit,
+)
 
 internal fun BaseOverlay.showActionTypeSelectionDialog(configurator: ActionConfigurator) {
     overlayManager.navigateTo(
@@ -68,7 +89,8 @@ internal fun BaseOverlay.showActionTypeSelectionDialog(configurator: ActionConfi
                     return@ActionTypeSelectionDialog
                 }
 
-                showActionConfigDialog(configurator, configurator.createAction(context, choiceClicked))
+                val action = configurator.createAction(context, choiceClicked)
+                showActionConfigDialog(configurator, action)
             },
         ),
     )
@@ -86,8 +108,66 @@ internal fun BaseOverlay.showActionCopyDialog(configurator: ActionConfigurator) 
     )
 }
 
-internal fun BaseOverlay.showActionConfigDialog(configurator: ActionConfigurator, action: Action) {
+internal fun BaseOverlay.showSubActionConfigDialog(
+    configurator: ActionConfigurator,
+    parent: SplitAction,
+    subIndex: Int,
+) {
+    val subAction = parent.subActions.getOrNull(subIndex) ?: return
+    configurator.startSubActionEdition(parent, subIndex)
+
+    val actionConfigDialogListener = object : OnActionConfigCompleteListener {
+        override fun onConfirmClicked() { configurator.upsertEditedAction() }
+        override fun onDeleteClicked() { configurator.removeEditedAction() }
+        override fun onDismissClicked() { configurator.dismissEditedAction() }
+    }
+
+    val overlay = when (subAction) {
+        is Click -> ClickDialog(actionConfigDialogListener, canDelete = parent.subActions.size > 2)
+        is Swipe -> SwipeDialog(actionConfigDialogListener, canDelete = parent.subActions.size > 2)
+        is Pause -> PauseDialog(actionConfigDialogListener)
+        is Intent -> IntentDialog(actionConfigDialogListener)
+        is SystemAction -> SystemActionDialog(actionConfigDialogListener)
+        is ToggleEvent -> ToggleEventDialog(actionConfigDialogListener)
+        is ChangeCounter -> ChangeCounterDialog(actionConfigDialogListener)
+        is ExternalAction -> ExternalActionDialog(actionConfigDialogListener)
+        is SetText -> SetTextDialog(actionConfigDialogListener)
+        is PlaySound -> PlaySoundDialog(actionConfigDialogListener)
+        is CaptureScreenshot -> CaptureScreenshotDialog(actionConfigDialogListener)
+        is Notification -> {
+            if (PermissionPostNotification().checkIfGranted(context)) NotificationDialog(actionConfigDialogListener)
+            else newNotificationPermissionStarterOverlay(context)
+        }
+        is SplitAction -> return
+    }
+
+    overlayManager.navigateTo(
+        context = context,
+        newOverlay = overlay,
+        hideCurrent = true,
+    )
+}
+
+internal fun BaseOverlay.showActionConfigDialog(
+    configurator: ActionConfigurator,
+    action: Action,
+) {
     configurator.startActionEdition(action)
+
+    val combinationOptions = if (configurator.isExistingTopLevelAction(action) &&
+        (action is Click || action is Swipe || action is SplitAction)
+    ) SmartCombinationOptions(
+        existingActions = configurator.combinableActions(action),
+        onNewClick = { source ->
+            configurator.combineWithNewClick(source)?.let { showActionConfigDialog(configurator, it) }
+        },
+        onNewSwipe = { source ->
+            configurator.combineWithNewSwipe(source)?.let { showActionConfigDialog(configurator, it) }
+        },
+        onExisting = { source, other ->
+            configurator.combineActions(source, other)?.let { showActionConfigDialog(configurator, it) }
+        },
+    ) else null
 
     val actionConfigDialogListener: OnActionConfigCompleteListener by lazy {
         object : OnActionConfigCompleteListener {
@@ -98,8 +178,15 @@ internal fun BaseOverlay.showActionConfigDialog(configurator: ActionConfigurator
     }
 
     val overlay = when (action) {
-        is Click -> ClickDialog(actionConfigDialogListener)
-        is Swipe -> SwipeDialog(actionConfigDialogListener)
+        is SplitAction -> SplitActionDialog(
+            listener = actionConfigDialogListener,
+            combinationOptions = combinationOptions,
+            onConfigureSubAction = { parent, subIndex ->
+                showSubActionConfigDialog(configurator, parent, subIndex)
+            },
+        )
+        is Click -> ClickDialog(actionConfigDialogListener, combinationOptions = combinationOptions)
+        is Swipe -> SwipeDialog(actionConfigDialogListener, combinationOptions = combinationOptions)
         is Pause -> PauseDialog(actionConfigDialogListener)
         is Intent -> IntentDialog(actionConfigDialogListener)
         is SystemAction -> SystemActionDialog(actionConfigDialogListener)
@@ -107,12 +194,13 @@ internal fun BaseOverlay.showActionConfigDialog(configurator: ActionConfigurator
         is ChangeCounter -> ChangeCounterDialog(actionConfigDialogListener)
         is ExternalAction -> ExternalActionDialog(actionConfigDialogListener)
         is SetText -> SetTextDialog(actionConfigDialogListener)
+        is PlaySound -> PlaySoundDialog(actionConfigDialogListener)
+        is CaptureScreenshot -> CaptureScreenshotDialog(actionConfigDialogListener)
         is Notification -> {
             if (PermissionPostNotification().checkIfGranted(context)) NotificationDialog(actionConfigDialogListener)
             else newNotificationPermissionStarterOverlay(context)
         }
     }
-
 
     overlayManager.navigateTo(
         context = context,

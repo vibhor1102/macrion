@@ -45,6 +45,7 @@ fun createActionsOverlayToolbar(
         OverlayMenuButton(R.id.btn_back, R.drawable.ic_back),
         OverlayMenuButton(R.id.btn_record, R.drawable.ic_gesture_record),
         OverlayMenuButton(R.id.btn_add_other, R.drawable.ic_add),
+        OverlayMenuButton(R.id.btn_show_all_action_previews, R.drawable.ic_action_preview_all, R.string.content_desc_show_all_action_previews),
         OverlayMenuButton(R.id.btn_hide_overlay, R.drawable.ic_visible_on),
         OverlayMenuButton(R.id.btn_move, R.drawable.ic_move, R.string.content_desc_move_menu),
     ),

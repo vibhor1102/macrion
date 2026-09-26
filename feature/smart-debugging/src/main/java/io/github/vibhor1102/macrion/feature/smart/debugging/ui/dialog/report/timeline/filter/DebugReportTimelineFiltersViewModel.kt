@@ -216,5 +216,9 @@ class DebugReportTimelineFiltersViewModel @Inject constructor() : ViewModel() {
 private fun Set<Long>.getDisplayText(context: Context, enabled: Boolean): String =
     when {
         isEmpty() || !enabled -> context.getString(R.string.field_debug_filter_events_show_select_desc_none)
-        else -> context.getString(R.string.field_debug_filter_events_show_select_desc, size)
+        else -> context.resources.getQuantityString(
+            R.plurals.field_debug_filter_events_show_select_desc,
+            size,
+            size,
+        )
     }
