@@ -92,6 +92,10 @@
     <string name="field_privacy">隱私權設定</string>
     <string name="field_remove_ads">移除廣告</string>
     <string name="field_troubleshooting">疑難排解</string>
+    <string name="settings_support_title">支援</string>
+    <string name="settings_github">造訪 GitHub</string>
+    <string name="settings_discord">加入 Discord 伺服器</string>
+    <string name="settings_report_bug">回報問題</string>
 
     <string name="dialog_condition_migration_title">移轉</string>
 

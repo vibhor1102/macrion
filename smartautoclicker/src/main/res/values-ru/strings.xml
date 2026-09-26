@@ -139,6 +139,10 @@
     <string name="field_privacy">Настройки конфиденциальности</string>
     <string name="field_remove_ads">Удалить рекламу</string>
     <string name="field_troubleshooting">Поиск неисправностей</string>
+    <string name="settings_support_title">Поддержка</string>
+    <string name="settings_github">Перейти на GitHub</string>
+    <string name="settings_discord">Присоединиться к серверу Discord</string>
+    <string name="settings_report_bug">Сообщить об ошибке</string>
 
 
     <!-- Legacy condition migration dialog  ======================================================================== -->

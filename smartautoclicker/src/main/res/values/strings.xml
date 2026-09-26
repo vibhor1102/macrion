@@ -156,10 +156,10 @@
     <string name="field_privacy">Privacy settings</string>
     <string name="field_remove_ads">Remove ads</string>
     <string name="field_troubleshooting">Troubleshooting</string>
-    <string name="settings_support_title" translatable="false">Support</string>
-    <string name="settings_github" translatable="false">Visit GitHub</string>
-    <string name="settings_discord" translatable="false">Join the Discord server</string>
-    <string name="settings_report_bug" translatable="false">Report a bug</string>
+    <string name="settings_support_title">Support</string>
+    <string name="settings_github">Visit GitHub</string>
+    <string name="settings_discord">Join the Discord server</string>
+    <string name="settings_report_bug">Report a bug</string>
 
 
     <!-- Legacy condition migration dialog  ======================================================================== -->

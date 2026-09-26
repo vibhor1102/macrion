@@ -157,6 +157,10 @@
     <string name="field_privacy">إعدادات الخصوصية</string>
     <string name="field_remove_ads">إزالة الإعلانات</string>
     <string name="field_troubleshooting">استكشاف الأخطاء وإصلاحها</string>
+    <string name="settings_support_title">الدعم</string>
+    <string name="settings_github">زيارة GitHub</string>
+    <string name="settings_discord">الانضمام إلى خادم Discord</string>
+    <string name="settings_report_bug">الإبلاغ عن خطأ</string>
 
 
     <!-- Legacy condition migration dialog  ======================================================================== -->

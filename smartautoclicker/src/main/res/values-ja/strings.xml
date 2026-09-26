@@ -92,6 +92,10 @@
     <string name="field_privacy">プライバシー設定</string>
     <string name="field_remove_ads">広告を削除</string>
     <string name="field_troubleshooting">トラブルシューティング</string>
+    <string name="settings_support_title">サポート</string>
+    <string name="settings_github">GitHub を表示</string>
+    <string name="settings_discord">Discord サーバーに参加</string>
+    <string name="settings_report_bug">バグを報告</string>
 
     <string name="dialog_condition_migration_title">移行</string>
 

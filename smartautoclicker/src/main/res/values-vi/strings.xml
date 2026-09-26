@@ -59,6 +59,10 @@
     <string name="field_privacy">Cài đặt quyền riêng tư</string>
     <string name="field_remove_ads">Xóa quảng cáo</string>
     <string name="field_troubleshooting">Khắc phục sự cố</string>
+    <string name="settings_support_title">Hỗ trợ</string>
+    <string name="settings_github">Truy cập GitHub</string>
+    <string name="settings_discord">Tham gia máy chủ Discord</string>
+    <string name="settings_report_bug">Báo cáo lỗi</string>
     <string name="dialog_condition_migration_title">Di chuyển</string>
     <string name="message_condition_migration_desc">Định dạng hình ảnh của Macrion đã thay đổi và kịch bản của bạn cần được cập nhật. Quá trình này có thể mất vài phút tùy thuộc vào số lượng điều kiện cần chuyển đổi dữ liệu.</string>
     <plurals name="message_condition_migration_count">

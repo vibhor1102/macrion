@@ -92,6 +92,10 @@
     <string name="field_privacy">隐私设置</string>
     <string name="field_remove_ads">移除广告</string>
     <string name="field_troubleshooting">疑难解答</string>
+    <string name="settings_support_title">支持</string>
+    <string name="settings_github">访问 GitHub</string>
+    <string name="settings_discord">加入 Discord 服务器</string>
+    <string name="settings_report_bug">报告问题</string>
 
     <string name="dialog_condition_migration_title">迁移</string>
 

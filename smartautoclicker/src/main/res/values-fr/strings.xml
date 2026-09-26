@@ -148,6 +148,10 @@
     <string name="field_privacy">Paramètres de confidentialité</string>
     <string name="field_remove_ads">Supprimer les publicités</string>
     <string name="field_troubleshooting">Dépannage</string>
+    <string name="settings_support_title">Assistance</string>
+    <string name="settings_github">Visiter GitHub</string>
+    <string name="settings_discord">Rejoindre le serveur Discord</string>
+    <string name="settings_report_bug">Signaler un bug</string>
 
 
     <!-- Legacy condition migration dialog  ======================================================================== -->

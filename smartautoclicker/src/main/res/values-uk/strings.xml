@@ -142,6 +142,10 @@
     <string name="field_privacy">Налаштування приватності</string>
     <string name="field_remove_ads">Видалити рекламу</string>
     <string name="field_troubleshooting">Усунення несправностей</string>
+    <string name="settings_support_title">Підтримка</string>
+    <string name="settings_github">Відвідати GitHub</string>
+    <string name="settings_discord">Приєднатися до сервера Discord</string>
+    <string name="settings_report_bug">Повідомити про помилку</string>
 
 
     <!-- Legacy condition migration dialog  ======================================================================== -->
