@@ -224,7 +224,6 @@ class ItemsBriefOverlayViewBinding private constructor(
     private val dragDescription = mutableStateOf<ItemBriefDescription?>(null)
     private val isHandleDragging = mutableStateOf(false)
     private val isHandleEditingEnabled = mutableStateOf(true)
-    private val areTouchLocationsInPreviewVisible = mutableStateOf(true)
     private val undoNotice = mutableStateOf<HandleUndoNotice?>(null)
     private var pendingMove: BriefHandleMove? = null
     private var nextUndoId = 0
@@ -328,14 +327,6 @@ class ItemsBriefOverlayViewBinding private constructor(
             dragDescription.value = null
             pendingMove = null
             undoNotice.value = null
-        }
-    }
-
-    fun setTouchLocationsInPreviewVisible(visible: Boolean) {
-        areTouchLocationsInPreviewVisible.value = visible
-        if (!visible) {
-            isHandleDragging.value = false
-            dragDescription.value = null
         }
     }
 
@@ -530,7 +521,6 @@ class ItemsBriefOverlayViewBinding private constructor(
                 description = dragDescription.value ?: currentDescription.value,
                 displayConfig = displayConfig,
                 animate = isAnimateEnabled.value && !isHandleDragging.value,
-                showTouchLocationsInPreview = areTouchLocationsInPreviewVisible.value,
                 modifier = Modifier.fillMaxSize(),
             )
             GestureRecordOverlay(
@@ -786,9 +776,8 @@ class ItemsBriefOverlayViewBinding private constructor(
         Box(
             Modifier
                 .fillMaxSize()
-                .pointerInput(hitRadiusPx, isHandleEditingEnabled.value, areTouchLocationsInPreviewVisible.value, isPanelVisible.value) {
-                    if (!isHandleEditingEnabled.value || !areTouchLocationsInPreviewVisible.value ||
-                        !isPanelVisible.value || onHandleMoved == null
+                .pointerInput(hitRadiusPx, isHandleEditingEnabled.value, isPanelVisible.value) {
+                    if (!isHandleEditingEnabled.value || !isPanelVisible.value || onHandleMoved == null
                     ) {
                         return@pointerInput
                     }

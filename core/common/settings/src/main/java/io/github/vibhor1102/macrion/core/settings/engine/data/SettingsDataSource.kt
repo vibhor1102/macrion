@@ -69,8 +69,8 @@ internal class SettingsDataSource @Inject constructor(
             intPreferencesKey("maxToleratedDifference")
         val KEY_IS_TOOLBAR_AUTO_HIDE_ENABLED: Preferences.Key<Boolean> =
             booleanPreferencesKey("isToolbarAutoHideEnabled")
-        val KEY_SHOW_TOUCH_LOCATIONS_IN_PREVIEW: Preferences.Key<Boolean> =
-            booleanPreferencesKey("showTouchLocationsInPreview")
+        val KEY_ALLOW_PREVIEW_HANDLE_EDITING: Preferences.Key<Boolean> =
+            booleanPreferencesKey("allowPreviewHandleEditing")
         val KEY_TOOLBAR_AUTO_HIDE_DELAY_SECONDS: Preferences.Key<Int> =
             intPreferencesKey("toolbarAutoHideDelaySeconds")
         val KEY_SCREENSHOT_RATE_LIMIT_PER_MINUTE: Preferences.Key<Int> =
@@ -183,13 +183,13 @@ internal class SettingsDataSource @Inject constructor(
             preferences[KEY_IS_TOOLBAR_AUTO_HIDE_ENABLED] = enabled
         }
 
-    internal fun showTouchLocationsInPreview(): Flow<Boolean> =
-        dataStore.data.map { preferences -> preferences[KEY_SHOW_TOUCH_LOCATIONS_IN_PREVIEW] ?: true }
+    internal fun allowPreviewHandleEditing(): Flow<Boolean> =
+        dataStore.data.map { preferences -> preferences[KEY_ALLOW_PREVIEW_HANDLE_EDITING] ?: true }
 
-    internal suspend fun toggleShowTouchLocationsInPreview() =
+    internal suspend fun togglePreviewHandleEditing() =
         dataStore.edit { preferences ->
-            preferences[KEY_SHOW_TOUCH_LOCATIONS_IN_PREVIEW] =
-                !(preferences[KEY_SHOW_TOUCH_LOCATIONS_IN_PREVIEW] ?: true)
+            preferences[KEY_ALLOW_PREVIEW_HANDLE_EDITING] =
+                !(preferences[KEY_ALLOW_PREVIEW_HANDLE_EDITING] ?: true)
         }
 
     internal fun toolbarAutoHideDelaySeconds(): Flow<Int> =

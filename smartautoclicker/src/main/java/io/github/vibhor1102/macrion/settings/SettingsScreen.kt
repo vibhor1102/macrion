@@ -112,7 +112,7 @@ internal fun SettingsRoute(
     val shouldShowPurchase by viewModel.shouldShowPurchase.collectAsStateWithLifecycle(false)
     val toolbarScalePercent by viewModel.toolbarScalePercent.collectAsStateWithLifecycle(100)
     val isToolbarAutoHideEnabled by viewModel.isToolbarAutoHideEnabled.collectAsStateWithLifecycle(true)
-    val showTouchLocationsInPreview by viewModel.showTouchLocationsInPreview.collectAsStateWithLifecycle(true)
+    val allowPreviewHandleEditing by viewModel.allowPreviewHandleEditing.collectAsStateWithLifecycle(true)
     val toolbarAutoHideDelaySeconds by viewModel.toolbarAutoHideDelaySeconds.collectAsStateWithLifecycle(120)
     val areAdvancedSettingsEnabled by viewModel.areAdvancedSettingsEnabled.collectAsStateWithLifecycle(false)
     val hasSeenAdvancedWarning by viewModel.hasSeenAdvancedWarning.collectAsStateWithLifecycle(false)
@@ -174,6 +174,19 @@ internal fun SettingsRoute(
                         listOf(SettingsItem.Switch(R.string.field_show_scenario_filters_ui_title, R.string.field_show_scenario_filters_ui_desc, isScenarioFiltersEnabled, viewModel::toggleScenarioFiltersUi)),
                     ),
                 )
+                add(
+                    SettingsSection(
+                        R.string.settings_section_action_editing,
+                        listOf(
+                            SettingsItem.Switch(
+                                title = R.string.settings_preview_handle_editing_title,
+                                description = R.string.settings_preview_handle_editing_desc,
+                                checked = allowPreviewHandleEditing,
+                                onClick = viewModel::togglePreviewHandleEditing,
+                            ),
+                        ),
+                    ),
+                )
                 val autoHideDelayLabel = formatAutoHideDelay(toolbarAutoHideDelaySeconds)
                 add(
                     SettingsSection(
@@ -195,12 +208,6 @@ internal fun SettingsRoute(
                                 ),
                                 isChildVisible = isToolbarAutoHideEnabled,
                                 onClick = viewModel::toggleToolbarAutoHide,
-                            ),
-                            SettingsItem.Switch(
-                                title = R.string.settings_show_touch_locations_in_preview_title,
-                                description = R.string.settings_show_touch_locations_in_preview_desc,
-                                checked = showTouchLocationsInPreview,
-                                onClick = viewModel::toggleShowTouchLocationsInPreview,
                             ),
                             SettingsItem.Switch(R.string.field_scenario_switcher_title, R.string.field_scenario_switcher_desc, isScenarioSwitcherEnabled, viewModel::toggleScenarioSwitcher),
                             SettingsItem.Switch(R.string.field_home_button_title, R.string.field_home_button_desc, isHomeButtonEnabled, viewModel::toggleHomeButton),

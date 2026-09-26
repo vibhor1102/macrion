@@ -148,11 +148,11 @@ class SettingsViewModel @Inject constructor(
     val isToolbarAutoHideEnabled: Flow<Boolean> =
         settingsRepository.isToolbarAutoHideEnabledFlow
 
-    val showTouchLocationsInPreview: Flow<Boolean> =
-        settingsRepository.showTouchLocationsInPreviewFlow
+    val allowPreviewHandleEditing: Flow<Boolean> =
+        settingsRepository.allowPreviewHandleEditingFlow
 
-    fun toggleShowTouchLocationsInPreview() {
-        settingsRepository.toggleShowTouchLocationsInPreview()
+    fun togglePreviewHandleEditing() {
+        settingsRepository.togglePreviewHandleEditing()
     }
 
     val toolbarAutoHideDelaySeconds: Flow<Int> =

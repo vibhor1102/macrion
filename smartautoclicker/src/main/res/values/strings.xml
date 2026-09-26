@@ -122,6 +122,7 @@
     <string name="activity_settings_title">Settings</string>
     <string name="content_desc_back">Navigate back</string>
     <string name="settings_section_scenario_list">Scenario list</string>
+    <string name="settings_section_action_editing">Action editing</string>
     <string name="settings_section_overlay">Overlay controls</string>
     <string name="settings_section_compatibility">Compatibility</string>
     <string name="settings_section_device_compatibility">Device compatibility</string>
@@ -137,8 +138,8 @@
     <string name="field_home_button_desc">Adds a toolbar button that stops the scenario and opens Macrion’s home screen.</string>
     <string name="field_stop_confirmation_title">Confirm before stopping</string>
     <string name="field_stop_confirmation_desc">Ask before stopping Macrion from the overlay toolbar.</string>
-    <string name="settings_show_touch_locations_in_preview_title">Show touch locations in preview</string>
-    <string name="settings_show_touch_locations_in_preview_desc">Show click targets and swipe paths while browsing actions.</string>
+    <string name="settings_preview_handle_editing_title">Drag touch handles in preview</string>
+    <string name="settings_preview_handle_editing_desc">Move click and swipe positions by dragging their handles. Turn off to prevent accidental edits.</string>
 
     <string name="field_legacy_action_ui_title">Legacy Action UI</string>
     <string name="field_legacy_action_ui_desc">Change the action display by a list. Useful for complex scenarios.</string>

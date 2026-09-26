@@ -172,11 +172,11 @@ internal class SettingsRepositoryImpl @Inject constructor(
         }
     }
 
-    override val showTouchLocationsInPreviewFlow: Flow<Boolean> =
-        dataSource.showTouchLocationsInPreview()
+    override val allowPreviewHandleEditingFlow: Flow<Boolean> =
+        dataSource.allowPreviewHandleEditing()
 
-    override fun toggleShowTouchLocationsInPreview() {
-        coroutineScope.launch { dataSource.toggleShowTouchLocationsInPreview() }
+    override fun togglePreviewHandleEditing() {
+        coroutineScope.launch { dataSource.togglePreviewHandleEditing() }
     }
 
     private val _toolbarAutoHideDelaySecondsFlow: StateFlow<Int> = dataSource.toolbarAutoHideDelaySeconds()

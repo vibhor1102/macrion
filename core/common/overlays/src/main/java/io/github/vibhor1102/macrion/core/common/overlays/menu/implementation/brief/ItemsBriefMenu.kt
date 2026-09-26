@@ -78,11 +78,13 @@ abstract class ItemBriefMenu(
             orientation = displayConfigManager.displayConfig.orientation,
             displayConfig = displayConfigManager.displayConfig,
         )
+        // Keep preview dragging unavailable until the persisted preference has been read.
+        briefViewBinding.setHandleEditingEnabled(false)
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                settingsRepository.showTouchLocationsInPreviewFlow.collect(
-                    briefViewBinding::setTouchLocationsInPreviewVisible,
+                settingsRepository.allowPreviewHandleEditingFlow.collect(
+                    briefViewBinding::setHandleEditingEnabled,
                 )
             }
         }
