@@ -17,16 +17,17 @@
 package io.github.vibhor1102.macrion.feature.smart.config.ui.action.click.offset
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.graphics.Point
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.ViewModel
 
 import io.github.vibhor1102.macrion.core.base.identifier.Identifier
 import io.github.vibhor1102.macrion.core.bitmaps.BitmapRepository
 import io.github.vibhor1102.macrion.core.display.config.DisplayConfigManager
 import io.github.vibhor1102.macrion.core.domain.ext.getConditionBitmap
-import io.github.vibhor1102.macrion.core.domain.model.AND
-import io.github.vibhor1102.macrion.core.domain.model.ConditionOperator
+import io.github.vibhor1102.macrion.core.domain.model.OR
 import io.github.vibhor1102.macrion.core.domain.model.action.Click
 import io.github.vibhor1102.macrion.core.domain.model.condition.ScreenCondition
 import io.github.vibhor1102.macrion.core.domain.model.event.ScreenEvent
@@ -35,6 +36,7 @@ import io.github.vibhor1102.macrion.feature.smart.config.R
 import io.github.vibhor1102.macrion.feature.smart.config.domain.EditionRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -43,10 +45,11 @@ import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class ClickOffsetViewModel @Inject constructor(
-    @ApplicationContext context: Context,
+    @ApplicationContext private val context: Context,
     private val bitmapRepository: BitmapRepository,
     private val editionRepository: EditionRepository,
     private val displayConfigManager: DisplayConfigManager,
@@ -69,11 +72,34 @@ class ClickOffsetViewModel @Inject constructor(
         workspaceClick,
     ) { action, child -> child ?: (action.value as? Click) }.filterNotNull()
 
-    private val conditionToShow: Flow<ScreenCondition?> =
-        combine(editedEvent, editedImageConditions, configuredClick) { event, imageConditions, click ->
-            if (!click.haveDeterminedCondition(event.conditionOperator)) null
-            else imageConditions.getImageConditionFromId(click.clickOnConditionId)
+    val conditionPreviews: Flow<ClickOffsetPreviewState> =
+        combine(editedEvent, editedImageConditions, configuredClick) { event, conditions, click ->
+            val isOrMode = event.conditionOperator == OR
+            val candidates = when {
+                click.positionType != Click.PositionType.ON_DETECTED_CONDITION -> emptyList()
+                isOrMode -> conditions.filter { it.shouldBeDetected }.sortedBy { it.priority }
+                else -> conditions.filter { it.id == click.clickOnConditionId }
+            }
+            ClickOffsetPreviewState(
+                isOrMode = isOrMode,
+                previews = candidates.map { condition ->
+                    ClickOffsetConditionPreview(
+                        id = condition.id,
+                        name = condition.name,
+                        condition = condition,
+                    )
+                },
+            )
         }
+
+    suspend fun loadPreviewBitmap(condition: ScreenCondition): Bitmap? = withContext(Dispatchers.IO) {
+        when (condition) {
+            is ScreenCondition.Color -> context.createColorIndicatorDrawable(condition.color)?.toBitmap()
+            is ScreenCondition.Image -> bitmapRepository.getConditionBitmap(condition)
+            is ScreenCondition.Number -> ContextCompat.getDrawable(context, R.drawable.ic_number_condition)?.toBitmap()
+            is ScreenCondition.Text -> ContextCompat.getDrawable(context, R.drawable.ic_text_condition)?.toBitmap()
+        }
+    }
 
     private val initialClickOffset: Flow<Point> = configuredClick
         .map { click -> click.clickOffset ?: Point(0, 0) }
@@ -86,17 +112,6 @@ class ClickOffsetViewModel @Inject constructor(
         if (user == null) ClickOffsetState(initial, ClickOffsetUpdateType.INITIAL)
         else ClickOffsetState(user.offset, user.updateFrom)
     }
-
-    val conditionImage: Flow<Any?> = conditionToShow
-        .map { screenCondition -> 
-            when (screenCondition) {
-                is ScreenCondition.Color -> context.createColorIndicatorDrawable(screenCondition.color)
-                is ScreenCondition.Image -> bitmapRepository.getConditionBitmap(screenCondition)
-                is ScreenCondition.Number -> ContextCompat.getDrawable(context, R.drawable.ic_number_condition)
-                is ScreenCondition.Text -> ContextCompat.getDrawable(context, R.drawable.ic_text_condition)
-                null -> null
-            }
-        }
 
     fun getOffsetMaxBoundsX(): IntRange =
         displayConfigManager.displayConfig.let { displayConfig ->
@@ -142,14 +157,18 @@ class ClickOffsetViewModel @Inject constructor(
             ?: editionRepository.editionState.getEditedAction<Click>()?.clickOffset
             ?: Point(0, 0)
 
-    private fun Click.haveDeterminedCondition(@ConditionOperator conditionOperator: Int): Boolean =
-        positionType == Click.PositionType.ON_DETECTED_CONDITION
-                && conditionOperator == AND
-                && clickOnConditionId != null
-
-    private fun List<ScreenCondition>.getImageConditionFromId(id: Identifier?): ScreenCondition? =
-        id?.let { identifier -> find { screenCondition -> screenCondition.id == identifier } }
 }
+
+data class ClickOffsetConditionPreview(
+    val id: Identifier,
+    val name: String,
+    val condition: ScreenCondition,
+)
+
+data class ClickOffsetPreviewState(
+    val isOrMode: Boolean = false,
+    val previews: List<ClickOffsetConditionPreview> = emptyList(),
+)
 
 data class ClickOffsetState(
     val offset: Point,
