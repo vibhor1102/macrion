@@ -12,7 +12,7 @@ java = "21"
 kotlin = "2.4.20"
 kotlinxCoroutines = "1.11.0"
 reorderable = "3.1.0"
-ksp = "2.3.11"
+ksp = "2.3.12"
 
 # Androidx
 androidxAnnotation = "1.11.0"
