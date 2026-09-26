@@ -218,6 +218,7 @@
     <string name="settings_toolbar_auto_hide_desc">Plegar la barra de herramientas contra el borde de la pantalla cuando esté inactiva.</string>
     <string name="settings_toolbar_auto_hide_delay_title">Retardo de ocultación automática</string>
     <string name="settings_toolbar_auto_hide_delay_dialog_title">Retardo de ocultación automática</string>
+    <string name="settings_toolbar_auto_hide_delay_never">Nunca</string>
     <string name="settings_toolbar_auto_hide_delay_1_minute">1 minuto</string>
     <string name="toast_advanced_settings_restored_defaults">Los ajustes avanzados se han restaurado a los valores predeterminados.</string>
     <string name="settings_section_scenario_editing">Edición de escenarios</string>

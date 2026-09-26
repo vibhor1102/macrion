@@ -184,6 +184,7 @@
     <string name="settings_toolbar_auto_hide_desc">操作がないときにツールバーを画面の端に収納します。</string>
     <string name="settings_toolbar_auto_hide_delay_title">自動非表示までの時間</string>
     <string name="settings_toolbar_auto_hide_delay_dialog_title">自動非表示までの時間</string>
+    <string name="settings_toolbar_auto_hide_delay_never">なし</string>
     <plurals name="settings_toolbar_auto_hide_delay_seconds">
         <item quantity="other">%1$d秒</item>
     </plurals>

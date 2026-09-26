@@ -259,6 +259,7 @@
     <string name="settings_toolbar_auto_hide_desc">Сворачивать панель инструментов к краю экрана при бездействии.</string>
     <string name="settings_toolbar_auto_hide_delay_title">Задержка автоматического скрытия</string>
     <string name="settings_toolbar_auto_hide_delay_dialog_title">Задержка автоматического скрытия</string>
+    <string name="settings_toolbar_auto_hide_delay_never">Никогда</string>
     <string name="settings_toolbar_auto_hide_delay_1_minute">1 минута</string>
     <string name="toast_advanced_settings_restored_defaults">Расширенные настройки были сброшены к значениям по умолчанию.</string>
 

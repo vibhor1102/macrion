@@ -241,6 +241,7 @@
     <string name="settings_toolbar_auto_hide_desc">طي شريط الأدوات عند حافة الشاشة عند عدم النشاط.</string>
     <string name="settings_toolbar_auto_hide_delay_title">مهلة الإخفاء التلقائي</string>
     <string name="settings_toolbar_auto_hide_delay_dialog_title">مهلة الإخفاء التلقائي</string>
+    <string name="settings_toolbar_auto_hide_delay_never">أبدًا</string>
     <plurals name="settings_toolbar_auto_hide_delay_seconds">
         <item quantity="zero">%1$d ثانية</item>
         <item quantity="one">%1$d ثانية</item>

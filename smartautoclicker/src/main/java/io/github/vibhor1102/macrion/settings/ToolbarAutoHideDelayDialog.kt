@@ -35,12 +35,14 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import io.github.vibhor1102.macrion.R
 
-private val AUTO_HIDE_DELAY_STOPS = listOf(3, 5, 10, 15, 30, 60, 120, 180, 300, 600)
+internal const val AUTO_HIDE_DELAY_NEVER = 0
+
+private val AUTO_HIDE_DELAY_STOPS = listOf(AUTO_HIDE_DELAY_NEVER, 3, 5, 10, 15, 30, 60, 120, 180, 300, 600)
 
 @Composable
 internal fun formatAutoHideDelay(seconds: Int): String = when {
-    seconds == 120 -> pluralStringResource(R.plurals.settings_toolbar_auto_hide_delay_minutes_default, 2, 2)
-    seconds == 60 -> stringResource(R.string.settings_toolbar_auto_hide_delay_1_minute)
+    seconds == AUTO_HIDE_DELAY_NEVER -> stringResource(R.string.settings_toolbar_auto_hide_delay_never)
+    seconds == 60 -> pluralStringResource(R.plurals.settings_toolbar_auto_hide_delay_minutes_default, 1, 1)
     seconds >= 60 && seconds % 60 == 0 -> {
         val minutes = seconds / 60
         pluralStringResource(R.plurals.settings_toolbar_auto_hide_delay_minutes, minutes, minutes)
@@ -51,10 +53,12 @@ internal fun formatAutoHideDelay(seconds: Int): String = when {
 @Composable
 internal fun ToolbarAutoHideDelayDialog(
     currentDelaySeconds: Int,
+    isAutoHideEnabled: Boolean = true,
     onDismiss: () -> Unit,
     onConfirm: (Int) -> Unit,
 ) {
-    var selectedDelay by remember(currentDelaySeconds) { mutableIntStateOf(currentDelaySeconds) }
+    val initialSelection = if (isAutoHideEnabled) currentDelaySeconds else AUTO_HIDE_DELAY_NEVER
+    var selectedDelay by remember(currentDelaySeconds, isAutoHideEnabled) { mutableIntStateOf(initialSelection) }
 
     AlertDialog(
         onDismissRequest = onDismiss,

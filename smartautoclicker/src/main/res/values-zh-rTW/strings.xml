@@ -169,6 +169,7 @@
     <string name="settings_toolbar_auto_hide_desc">無操作時將工具列收起至螢幕邊緣。</string>
     <string name="settings_toolbar_auto_hide_delay_title">自動隱藏延遲</string>
     <string name="settings_toolbar_auto_hide_delay_dialog_title">自動隱藏延遲</string>
+    <string name="settings_toolbar_auto_hide_delay_never">永不</string>
     <plurals name="settings_toolbar_auto_hide_delay_seconds">
         <item quantity="other">%1$d 秒</item>
     </plurals>

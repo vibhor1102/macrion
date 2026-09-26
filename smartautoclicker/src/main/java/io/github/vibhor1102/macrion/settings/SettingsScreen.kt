@@ -111,9 +111,9 @@ internal fun SettingsRoute(
     val shouldShowPrivacySettings by viewModel.shouldShowPrivacySettings.collectAsStateWithLifecycle(false)
     val shouldShowPurchase by viewModel.shouldShowPurchase.collectAsStateWithLifecycle(false)
     val toolbarScalePercent by viewModel.toolbarScalePercent.collectAsStateWithLifecycle(100)
-    val isToolbarAutoHideEnabled by viewModel.isToolbarAutoHideEnabled.collectAsStateWithLifecycle(true)
+    val isToolbarAutoHideEnabled by viewModel.isToolbarAutoHideEnabled.collectAsStateWithLifecycle(false)
     val allowPreviewHandleEditing by viewModel.allowPreviewHandleEditing.collectAsStateWithLifecycle(true)
-    val toolbarAutoHideDelaySeconds by viewModel.toolbarAutoHideDelaySeconds.collectAsStateWithLifecycle(120)
+    val toolbarAutoHideDelaySeconds by viewModel.toolbarAutoHideDelaySeconds.collectAsStateWithLifecycle(60)
     val areAdvancedSettingsEnabled by viewModel.areAdvancedSettingsEnabled.collectAsStateWithLifecycle(false)
     val hasSeenAdvancedWarning by viewModel.hasSeenAdvancedWarning.collectAsStateWithLifecycle(false)
     val maxToleratedDifference by viewModel.maxToleratedDifference.collectAsStateWithLifecycle(20)
@@ -313,9 +313,15 @@ internal fun SettingsRoute(
         if (showToolbarAutoHideDelayDialog) {
             ToolbarAutoHideDelayDialog(
                 currentDelaySeconds = toolbarAutoHideDelaySeconds,
+                isAutoHideEnabled = isToolbarAutoHideEnabled,
                 onDismiss = { showToolbarAutoHideDelayDialog = false },
                 onConfirm = { seconds ->
-                    viewModel.setToolbarAutoHideDelaySeconds(seconds)
+                    if (seconds == AUTO_HIDE_DELAY_NEVER) {
+                        viewModel.setToolbarAutoHideEnabled(false)
+                    } else {
+                        viewModel.setToolbarAutoHideDelaySeconds(seconds)
+                        viewModel.setToolbarAutoHideEnabled(true)
+                    }
                     showToolbarAutoHideDelayDialog = false
                 },
             )

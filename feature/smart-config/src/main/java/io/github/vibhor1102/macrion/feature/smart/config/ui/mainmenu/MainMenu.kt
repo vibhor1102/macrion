@@ -105,7 +105,7 @@ class MainMenu(
     private var liveDebugUiState by mutableStateOf<LiveDebuggingUiState?>(null)
     private var isDetecting by mutableStateOf(false)
     private var isToolbarAutoHideEnabled by mutableStateOf(false)
-    private var toolbarAutoHideDelaySeconds by mutableIntStateOf(10)
+    private var toolbarAutoHideDelaySeconds by mutableIntStateOf(60)
     private var autoHideJob: Job? = null
     /** The coroutine job for the observable used in debug mode. Null when not in debug mode. */
     private var debugObservableJob: Job? = null

@@ -218,6 +218,7 @@
     <string name="settings_toolbar_auto_hide_desc">Згортати панель інструментів до краю екрана при бездіяльності.</string>
     <string name="settings_toolbar_auto_hide_delay_title">Затримка автоприховування</string>
     <string name="settings_toolbar_auto_hide_delay_dialog_title">Затримка автоприховування</string>
+    <string name="settings_toolbar_auto_hide_delay_never">Ніколи</string>
     <string name="settings_toolbar_auto_hide_delay_1_minute">1 хвилина</string>
     <string name="toast_advanced_settings_restored_defaults">Розширені налаштування скинуто до значень за замовчуванням.</string>
     <string name="settings_preview_handle_editing_desc">Перетягуйте маркери дотику в попередньому перегляді дії, щоб змінити їхнє положення.</string>

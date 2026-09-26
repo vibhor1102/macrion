@@ -227,6 +227,7 @@
     <string name="settings_toolbar_auto_hide_desc">Recolher a barra de ferramentas na borda da tela quando inativa.</string>
     <string name="settings_toolbar_auto_hide_delay_title">Atraso de ocultação automática</string>
     <string name="settings_toolbar_auto_hide_delay_dialog_title">Atraso de ocultação automática</string>
+    <string name="settings_toolbar_auto_hide_delay_never">Nunca</string>
     <plurals name="settings_toolbar_auto_hide_delay_seconds">
         <item quantity="one">%1$d segundo</item>
         <item quantity="many">%1$d segundos</item>

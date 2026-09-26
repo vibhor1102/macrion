@@ -148,6 +148,7 @@
     <string name="settings_toolbar_auto_hide_desc">Thu gọn thanh công cụ vào cạnh màn hình khi không hoạt động.</string>
     <string name="settings_toolbar_auto_hide_delay_title">Thời gian chờ tự động ẩn</string>
     <string name="settings_toolbar_auto_hide_delay_dialog_title">Thời gian chờ tự động ẩn</string>
+    <string name="settings_toolbar_auto_hide_delay_never">Không bao giờ</string>
     <plurals name="settings_toolbar_auto_hide_delay_seconds">
         <item quantity="other">%1$d giây</item>
     </plurals>

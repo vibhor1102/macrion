@@ -176,7 +176,7 @@ internal class SettingsDataSource @Inject constructor(
         }
 
     internal fun isToolbarAutoHideEnabled(): Flow<Boolean> =
-        dataStore.data.map { preferences -> preferences[KEY_IS_TOOLBAR_AUTO_HIDE_ENABLED] ?: true }
+        dataStore.data.map { preferences -> preferences[KEY_IS_TOOLBAR_AUTO_HIDE_ENABLED] ?: false }
 
     internal suspend fun setToolbarAutoHideEnabled(enabled: Boolean) =
         dataStore.edit { preferences ->
@@ -193,7 +193,7 @@ internal class SettingsDataSource @Inject constructor(
         }
 
     internal fun toolbarAutoHideDelaySeconds(): Flow<Int> =
-        dataStore.data.map { preferences -> preferences[KEY_TOOLBAR_AUTO_HIDE_DELAY_SECONDS] ?: 120 }
+        dataStore.data.map { preferences -> preferences[KEY_TOOLBAR_AUTO_HIDE_DELAY_SECONDS] ?: 60 }
 
     internal suspend fun setToolbarAutoHideDelaySeconds(seconds: Int) =
         dataStore.edit { preferences ->

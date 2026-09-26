@@ -229,6 +229,7 @@
     <string name="settings_toolbar_auto_hide_desc">Replier la barre d\'outils contre le bord de l\'écran en cas d\'inactivité.</string>
     <string name="settings_toolbar_auto_hide_delay_title">Délai de masquage automatique</string>
     <string name="settings_toolbar_auto_hide_delay_dialog_title">Délai de masquage automatique</string>
+    <string name="settings_toolbar_auto_hide_delay_never">Jamais</string>
     <plurals name="settings_toolbar_auto_hide_delay_seconds">
         <item quantity="one">%1$d seconde</item>
         <item quantity="many">%1$d secondes</item>
