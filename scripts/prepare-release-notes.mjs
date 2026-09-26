@@ -23,7 +23,7 @@ const DEFAULT_INSTALLATION_SUFFIX = `
 
 Download the APK matching your device. \`arm64-v8a\` is the standard choice for modern Android devices; use the universal APK if you are unsure.
 
-Back up important scenarios before upgrading. Macrion is based on [Klick'r](https://github.com/Nain57/Smart-AutoClicker), and the existing Klick'r 4.0.1 feature set remains available. Report issues through the repository's issue tracker.
+Macrion is built on Klick'r, preserving all existing features and maintaining full backup compatibility so you can transition your scenarios seamlessly and safely.
 `.trim();
 
 function prepareReleaseNotes(inputFile, outputFile) {

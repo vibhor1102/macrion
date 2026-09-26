@@ -12,6 +12,64 @@ All notable changes to the **Macrion** project are documented on this page. Each
 
 ---
 
+## Macrion 0.6.0 {#v0-6-0}
+
+<div class="release-actions">
+  <a href="https://github.com/vibhor1102/macrion/releases/tag/v0.6.0" target="_blank" rel="noopener noreferrer" class="release-tag-link">
+    <svg class="release-gh-icon" viewBox="0 0 16 16" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
+    <span>View Release on GitHub</span>
+  </a>
+</div>
+
+
+Macrion 0.6.0 delivers our most requested feature by far: full support for complex multi-touch gestures and freehand curved swipes. You can now automate multi-finger interactions like pinches and zooms, alongside custom curved swipe paths with synchronized timing and node-level control.
+
+### Multi-Touch Gestures
+
+- **Simultaneous Multi-Finger Actions**: Automate multi-finger interactions, including pinch-to-zoom and coordinated taps or swipes.
+- **Gesture Recording Recommended**: For the smoothest setup (such as pinch-to-zoom), try using the **Record gesture** flow rather than building gestures manually—though manual creation in the child workspace remains available if you prefer configuring each stroke by hand.
+- **Dedicated Child Workspace**: Fine-tune each finger's path, duration, and coordinates independently or inspect the combined timeline.
+- **Combine & Unsplit Touches**: Merge existing standalone clicks and swipes into coordinated multi-touch actions, or unsplit combined gestures back into individual actions.
+
+### Freehand Curved Swipes
+
+- **Live Gesture Tracing**: Record fluid, curved swipes with a live path trace visible on screen while drawing.
+- **Interactive Node Editing**: Fine-tune curves in the position selector by dragging individual nodes along the fitted path.
+- **Accurate Replay**: Execute smooth, natural curved swipes across Smart, Dumb, and Multi-touch scenarios.
+
+### Gesture Quality of Life Improvements
+
+- **Numbered Sequence Badges**: Numbered badges now appear directly within action preview rings and swipe paths so you can see touch order at a glance.
+- **Simultaneous Action Previews**: Preview all actions in an event at once on screen, with a setting to preview only the currently selected action if the display becomes cluttered.
+- **Direct Handle Dragging**: Adjust action positions directly by dragging handles from the carousel, complete with an interactive undo snackbar.
+- **Configurable Action Delays**: Add optional pre-action and post-action pauses to individual touches or standalone actions for precise timing control.
+
+### Scenario Event Folders
+
+- Group scenario events into collapsible, named folders to keep complex automation routines organized.
+- Reorder entire folders or move events between folders using drag and drop.
+- Folders currently serve to reduce visual overload in scenarios with many events. Future updates will expand on this with capabilities like copying folders and reusing them across scenarios.
+
+### New Automation Actions
+
+- **Capture Screenshot**: Automatically capture screenshots during scenario runs to a customizable folder, with built-in rate-limit safeguards.
+- **Play Sound**: Play in-built notification or custom sounds during scenario execution using a dedicated sound picker.
+
+### Bug Fixes & Refinements
+
+- Add an execution rate limiter for screen conditions to cap check frequency, saving CPU and battery.
+- Preview click offsets at actual screen scale, with automatic cycling through OR condition examples.
+- Enforce canonical prefix validation when extracting OCR model archives.
+- Prevent a native crash when vision detection stops before full initialization.
+- Improve drag-and-drop reordering responsiveness and eliminate visual flicker when moving items.
+- Repair dangling scenario references when exporting in Klick'r-compatible format.
+- Properly handle service notification dismissal when overlays are hidden.
+- Suppress redundant screen-capture permission denial notifications when launching scenarios externally.
+- Keep floating action buttons properly dimmed behind open modal dialogs.
+- Expand localization coverage and translations across settings.
+
+---
+
 ## Macrion 0.5.0 {#v0-5-0}
 
 <div class="release-actions">
