@@ -54,6 +54,7 @@ import androidx.compose.foundation.pager.VerticalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -145,7 +146,8 @@ private fun BoxScope.HandleUndoSnackbar(
     }
     val colors = MaterialTheme.colorScheme
     val darkTheme = isSystemInDarkTheme()
-    val containerColor = if (darkTheme) colors.surfaceContainerHigh else colors.inverseSurface
+    // The carousel cards use ElevatedCard defaults; matching their tone keeps this overlay cohesive.
+    val containerColor = if (darkTheme) CardDefaults.elevatedCardColors().containerColor else colors.inverseSurface
     val contentColor = if (darkTheme) colors.onSurface else colors.inverseOnSurface
     val accentColor = if (darkTheme) colors.primary else colors.inversePrimary
     val snackbarShape = SnackbarDefaults.shape
@@ -159,8 +161,9 @@ private fun BoxScope.HandleUndoSnackbar(
             )
             .widthIn(max = 360.dp),
     ) {
+        // Do not force a minimum width here. Snackbar measures its message and action separately,
+        // and fillMaxWidth makes its message consume the space reserved for Undo.
         Snackbar(
-            modifier = Modifier.fillMaxWidth(),
             shape = snackbarShape,
             containerColor = containerColor,
             contentColor = contentColor,
