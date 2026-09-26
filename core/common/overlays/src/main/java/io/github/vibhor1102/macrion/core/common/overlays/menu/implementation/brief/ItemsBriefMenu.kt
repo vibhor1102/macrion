@@ -26,11 +26,18 @@ import androidx.annotation.StringRes
 import androidx.annotation.StyleRes
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 
 import io.github.vibhor1102.macrion.core.common.overlays.R
 import io.github.vibhor1102.macrion.core.common.overlays.menu.OverlayMenu
+import io.github.vibhor1102.macrion.core.common.overlays.di.OverlaysEntryPoint
+import io.github.vibhor1102.macrion.core.settings.domain.SettingsRepository
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.ItemBriefDescription
 import io.github.vibhor1102.macrion.core.ui.views.gesturerecord.toActionDescription
+import dagger.hilt.EntryPoints
+import kotlinx.coroutines.launch
 
 abstract class ItemBriefMenu(
     @StyleRes theme: Int? = null,
@@ -44,6 +51,9 @@ abstract class ItemBriefMenu(
     /** Items currently displayed by the Compose carousel. */
     private var briefItems: List<ItemBrief> = emptyList()
     private var focusedItemIndex: Int = 0
+    private val settingsRepository: SettingsRepository by lazy {
+        EntryPoints.get(context.applicationContext, OverlaysEntryPoint::class.java).settingsRepository()
+    }
 
     protected open fun onOverlayViewCreated(binding: ItemsBriefOverlayViewBinding): Unit = Unit
 
@@ -68,6 +78,14 @@ abstract class ItemBriefMenu(
             orientation = displayConfigManager.displayConfig.orientation,
             displayConfig = displayConfigManager.displayConfig,
         )
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                settingsRepository.showTouchLocationsInPreviewFlow.collect(
+                    briefViewBinding::setTouchLocationsInPreviewVisible,
+                )
+            }
+        }
 
         briefViewBinding.apply {
             setHandleMoveCallback(::onHandleMoved)

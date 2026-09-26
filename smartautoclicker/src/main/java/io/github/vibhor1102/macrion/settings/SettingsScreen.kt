@@ -112,6 +112,7 @@ internal fun SettingsRoute(
     val shouldShowPurchase by viewModel.shouldShowPurchase.collectAsStateWithLifecycle(false)
     val toolbarScalePercent by viewModel.toolbarScalePercent.collectAsStateWithLifecycle(100)
     val isToolbarAutoHideEnabled by viewModel.isToolbarAutoHideEnabled.collectAsStateWithLifecycle(true)
+    val showTouchLocationsInPreview by viewModel.showTouchLocationsInPreview.collectAsStateWithLifecycle(true)
     val toolbarAutoHideDelaySeconds by viewModel.toolbarAutoHideDelaySeconds.collectAsStateWithLifecycle(120)
     val areAdvancedSettingsEnabled by viewModel.areAdvancedSettingsEnabled.collectAsStateWithLifecycle(false)
     val hasSeenAdvancedWarning by viewModel.hasSeenAdvancedWarning.collectAsStateWithLifecycle(false)
@@ -194,6 +195,12 @@ internal fun SettingsRoute(
                                 ),
                                 isChildVisible = isToolbarAutoHideEnabled,
                                 onClick = viewModel::toggleToolbarAutoHide,
+                            ),
+                            SettingsItem.Switch(
+                                title = R.string.settings_show_touch_locations_in_preview_title,
+                                description = R.string.settings_show_touch_locations_in_preview_desc,
+                                checked = showTouchLocationsInPreview,
+                                onClick = viewModel::toggleShowTouchLocationsInPreview,
                             ),
                             SettingsItem.Switch(R.string.field_scenario_switcher_title, R.string.field_scenario_switcher_desc, isScenarioSwitcherEnabled, viewModel::toggleScenarioSwitcher),
                             SettingsItem.Switch(R.string.field_home_button_title, R.string.field_home_button_desc, isHomeButtonEnabled, viewModel::toggleHomeButton),

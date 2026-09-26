@@ -87,6 +87,7 @@ fun ItemBriefCanvas(
     displayConfig: DisplayConfig,
     modifier: Modifier = Modifier,
     animate: Boolean = true,
+    showTouchLocationsInPreview: Boolean = true,
     backgroundColor: Color = colorResource(R.color.overlayActionsBriefBackground),
     primaryColor: Color = colorResource(R.color.overlayViewPrimary),
     secondaryColor: Color = colorResource(R.color.overlayViewPrimary),
@@ -109,13 +110,14 @@ fun ItemBriefCanvas(
             focusedPreview ?: carousel.focusedFallback
         }
     } ?: description
+    val animateTouchLocations = animate && (carouselDescription == null || showTouchLocationsInPreview)
     val clickScale = remember { Animatable(1f) }
-    LaunchedEffect(animationDescription, animate) {
+    LaunchedEffect(animationDescription, animateTouchLocations) {
         val clickDescList = when (animationDescription) {
             is ClickDescription -> listOf(animationDescription)
             else -> emptyList()
         }
-        if (!animate || clickDescList.isEmpty()) {
+        if (!animateTouchLocations || clickDescList.isEmpty()) {
             clickScale.snapTo(1f)
             return@LaunchedEffect
         }
@@ -144,13 +146,13 @@ fun ItemBriefCanvas(
     }
 
     val swipeProgress = remember { Animatable(0f) }
-    LaunchedEffect(animationDescription, animate) {
+    LaunchedEffect(animationDescription, animateTouchLocations) {
         val swipeDescList = when (animationDescription) {
             is SwipeDescription -> listOf(animationDescription)
             else -> emptyList()
         }.filter { it.from != null && it.to != null }
 
-        if (!animate || swipeDescList.isEmpty()) {
+        if (!animateTouchLocations || swipeDescList.isEmpty()) {
             swipeProgress.snapTo(0f)
             return@LaunchedEffect
         }
@@ -171,7 +173,7 @@ fun ItemBriefCanvas(
     }
 
     val simultaneousTime = remember { Animatable(-1f) }
-    LaunchedEffect(animationDescription, animate) {
+    LaunchedEffect(animationDescription, animateTouchLocations) {
         val children = (animationDescription as? SplitDescription)?.subDescriptions.orEmpty()
         val endTime = children.maxOfOrNull { child ->
             when (child) {
@@ -180,7 +182,7 @@ fun ItemBriefCanvas(
                 else -> 0L
             }
         } ?: 0L
-        if (!animate || endTime <= 0L) {
+        if (!animateTouchLocations || endTime <= 0L) {
             simultaneousTime.snapTo(-1f)
             return@LaunchedEffect
         }
@@ -217,21 +219,24 @@ fun ItemBriefCanvas(
     Canvas(modifier = modifier.fillMaxSize()) {
         when (description) {
             is ActionCarouselDescription -> {
-                val badges = buildList {
-                    description.focusedFallback?.let { fallback ->
-                        addAll(actionNumberBadges(fallback, description.focusedOrder, true,
-                            animate, clickScale.value, simultaneousTime.value, outerRadiusPx, labelAngles))
+                val badges = if (showTouchLocationsInPreview) {
+                    buildList {
+                        description.focusedFallback?.let { fallback ->
+                            addAll(actionNumberBadges(fallback, description.focusedOrder, true,
+                                animate, clickScale.value, simultaneousTime.value, outerRadiusPx, labelAngles))
+                        }
+                        description.previews.forEach { preview ->
+                            addAll(actionNumberBadges(preview.description, preview.order,
+                                preview.order == description.focusedOrder, animate && preview.order == description.focusedOrder,
+                                clickScale.value, simultaneousTime.value, outerRadiusPx, labelAngles))
+                        }
                     }
-                    description.previews.forEach { preview ->
-                        addAll(actionNumberBadges(preview.description, preview.order,
-                            preview.order == description.focusedOrder, animate && preview.order == description.focusedOrder,
-                            clickScale.value, simultaneousTime.value, outerRadiusPx, labelAngles))
-                    }
-                }.distinctBy { it.order to it.center }
+                } else emptyList()
+                val distinctBadges = badges.distinctBy { it.order to it.center }
                 // End crossing geometry at the badge stroke's centerline. The stroke covers
                 // that join, while its inner half keeps paths out of the transparent center.
                 val badgeCutouts = Path().apply {
-                    badges.forEach { badge ->
+                    distinctBadges.forEach { badge ->
                         val cutoutRadius = actionNumberBadgeRadius.toPx()
                         addOval(Rect(
                             badge.center.x - cutoutRadius, badge.center.y - cutoutRadius,
@@ -243,6 +248,7 @@ fun ItemBriefCanvas(
                     when (val fallback = description.focusedFallback) {
                         is ClickDescription -> drawClickIndicator(
                             description = fallback,
+                            showTouchLocation = showTouchLocationsInPreview,
                             scale = if (animate) clickScale.value else 1f,
                             outerRadiusPx = outerRadiusPx,
                             innerRadiusPx = innerRadiusPx,
@@ -268,6 +274,7 @@ fun ItemBriefCanvas(
                         is SplitDescription -> fallback.subDescriptions.forEach { child ->
                             if (child is ClickDescription) drawClickIndicator(
                                 description = child,
+                                showTouchLocation = showTouchLocationsInPreview,
                                 scale = if (animate && childProgress(simultaneousTime.value, child.startOffsetMs, child.pressDurationMs) != null) 0.75f else 1f,
                                 outerRadiusPx = outerRadiusPx,
                                 innerRadiusPx = innerRadiusPx,
@@ -284,6 +291,7 @@ fun ItemBriefCanvas(
                         drawNumberedActionPreview(
                             preview, false, false, clickScale.value, swipeProgress.value, simultaneousTime.value,
                             outerRadiusPx, innerRadiusPx, thicknessPx, primaryColor, secondaryColor, innerColor, backgroundColor,
+                            showTouchLocations = showTouchLocationsInPreview,
                             pass = pass,
                         )
                     }
@@ -291,6 +299,7 @@ fun ItemBriefCanvas(
                         drawNumberedActionPreview(
                             preview, true, animate, clickScale.value, swipeProgress.value, simultaneousTime.value,
                             outerRadiusPx, innerRadiusPx, thicknessPx, primaryColor, secondaryColor, innerColor, backgroundColor,
+                            showTouchLocations = showTouchLocationsInPreview,
                             pass = pass,
                         )
                     }
@@ -301,8 +310,8 @@ fun ItemBriefCanvas(
                 clipPath(badgeCutouts, clipOp = ClipOp.Difference) {
                     drawCarouselActions(IndicatorPass.FOREGROUND)
                 }
-                badges.filterNot { it.isFocused }.forEach { drawActionNumber(it, innerColor.copy(alpha = 0.7f)) }
-                badges.filter { it.isFocused }.forEach { drawActionNumber(it, innerColor) }
+                distinctBadges.filterNot { it.isFocused }.forEach { drawActionNumber(it, innerColor.copy(alpha = 0.7f)) }
+                distinctBadges.filter { it.isFocused }.forEach { drawActionNumber(it, innerColor) }
             }
 
             is ClickDescription -> drawClickIndicator(
@@ -446,6 +455,7 @@ private fun DrawScope.drawNumberedActionPreview(
     secondaryColor: Color,
     innerColor: Color,
     backgroundColor: Color,
+    showTouchLocations: Boolean = true,
     pass: IndicatorPass = IndicatorPass.ALL,
 ) {
     val ringColor = if (isFocused) primaryColor else primaryColor.copy(alpha = INACTIVE_PREVIEW_STROKE_ALPHA)
@@ -455,6 +465,7 @@ private fun DrawScope.drawNumberedActionPreview(
     when (val action = preview.description) {
         is ClickDescription -> drawClickIndicator(
             description = action,
+            showTouchLocation = showTouchLocations,
             scale = if (animate) clickScale else 1f,
             outerRadiusPx = outerRadiusPx,
             innerRadiusPx = innerRadiusPx,
@@ -464,7 +475,7 @@ private fun DrawScope.drawNumberedActionPreview(
             backgroundColor = hazeColor,
             pass = pass,
         )
-        is SwipeDescription -> drawSwipeIndicator(
+        is SwipeDescription -> if (showTouchLocations) drawSwipeIndicator(
             description = action,
             progress = if (animate) swipeProgress else null,
             outerRadiusPx = outerRadiusPx,
@@ -481,6 +492,7 @@ private fun DrawScope.drawNumberedActionPreview(
             when (child) {
                 is ClickDescription -> drawClickIndicator(
                     description = child,
+                    showTouchLocation = showTouchLocations,
                     scale = if (animate && childProgress(simultaneousTime, child.startOffsetMs, child.pressDurationMs) != null) 0.75f else 1f,
                     outerRadiusPx = outerRadiusPx,
                     innerRadiusPx = innerRadiusPx,
@@ -490,7 +502,7 @@ private fun DrawScope.drawNumberedActionPreview(
                     backgroundColor = hazeColor,
                     pass = pass,
                 )
-                is SwipeDescription -> drawSwipeIndicator(
+                is SwipeDescription -> if (showTouchLocations) drawSwipeIndicator(
                     description = child,
                     progress = if (animate) childProgress(simultaneousTime, child.startOffsetMs, child.swipeDurationMs) else null,
                     outerRadiusPx = outerRadiusPx,
@@ -512,6 +524,7 @@ private fun DrawScope.drawNumberedActionPreview(
 
 private fun DrawScope.drawClickIndicator(
     description: ClickDescription,
+    showTouchLocation: Boolean = true,
     scale: Float,
     outerRadiusPx: Float,
     innerRadiusPx: Float,
@@ -536,6 +549,8 @@ private fun DrawScope.drawClickIndicator(
     } else {
         description.position?.let { Offset(it.x, it.y) }
     } ?: return
+
+    if (!showTouchLocation) return
 
     val animatedRadius = outerRadiusPx * scale
 

@@ -75,6 +75,9 @@ interface SettingsRepository {
     fun setToolbarAutoHideEnabled(enabled: Boolean)
     fun toggleToolbarAutoHide()
 
+    val showTouchLocationsInPreviewFlow: Flow<Boolean>
+    fun toggleShowTouchLocationsInPreview()
+
     val toolbarAutoHideDelaySecondsFlow: Flow<Int>
     fun getToolbarAutoHideDelaySeconds(): Int
     fun setToolbarAutoHideDelaySeconds(seconds: Int)
