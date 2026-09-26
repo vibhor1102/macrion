@@ -66,7 +66,7 @@ def package(mapping_dir, output, version, commit, native_root=None):
 
 def inspect(path):
     with zipfile.ZipFile(path) as archive:
-        if sum(i.file_size for i in archive.infolist()) > 256 * 1024 * 1024:
+        if sum(i.file_size for i in archive.infolist()) > 512 * 1024 * 1024:
             raise ValueError('Archive exceeds diagnostic size limit')
         manifest = json.loads(archive.read('manifest.json'))
         if manifest.get('schemaVersion') != 1 or manifest.get('sourceRepository') != 'vibhor1102/Macrion':
