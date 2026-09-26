@@ -66,6 +66,7 @@ Macrion 0.6.0 delivers our most requested feature by far: full support for compl
 - Properly handle service notification dismissal when overlays are hidden.
 - Suppress redundant screen-capture permission denial notifications when launching scenarios externally.
 - Keep floating action buttons properly dimmed behind open modal dialogs.
+- Refine toolbar auto-hide settings defaults and add a "Never" option.
 - Expand localization coverage and translations across settings.
 
 ---
