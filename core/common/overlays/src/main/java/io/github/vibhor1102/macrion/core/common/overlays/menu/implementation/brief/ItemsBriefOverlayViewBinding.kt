@@ -86,7 +86,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.geometry.Offset
@@ -145,11 +144,11 @@ private fun BoxScope.HandleUndoSnackbar(
         progress.animateTo(0f, tween(notice.durationMs.toInt(), easing = LinearEasing))
     }
     val colors = MaterialTheme.colorScheme
-    val darkTheme = isSystemInDarkTheme()
-    // The carousel cards use ElevatedCard defaults; matching their tone keeps this overlay cohesive.
-    val containerColor = if (darkTheme) CardDefaults.elevatedCardColors().containerColor else colors.inverseSurface
-    val contentColor = if (darkTheme) colors.onSurface else colors.inverseOnSurface
-    val accentColor = if (darkTheme) colors.primary else colors.inversePrimary
+    // Match the carousel cards in both themes; this snackbar intentionally uses the regular palette.
+    val cardColors = CardDefaults.elevatedCardColors()
+    val containerColor = cardColors.containerColor
+    val contentColor = cardColors.contentColor
+    val accentColor = colors.primary
     val snackbarShape = SnackbarDefaults.shape
     Box(
         modifier = Modifier
