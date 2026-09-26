@@ -128,6 +128,8 @@ internal class DirectDownloadModelRemoteDataSource @Inject constructor(
         try {
             val totalEntries = ZipFile(zipFile).size()
             var processed = 0
+            val canonicalDestDir = destDir.canonicalFile
+            val canonicalDestPath = canonicalDestDir.canonicalPath + File.separator
 
             ZipInputStream(zipFile.inputStream().buffered()).use { zis ->
                 var entry = zis.nextEntry
@@ -135,7 +137,11 @@ internal class DirectDownloadModelRemoteDataSource @Inject constructor(
 
                     if (!entry.isDirectory) {
                         // Strip any leading directory from the zip entry — we only want the file name
-                        val outFile = File(destDir, File(entry.name).name).requireDirectChildOf(destDir)
+                        val entryName = entry.name.substringAfterLast('/').substringAfterLast('\\')
+                        val outFile = File(canonicalDestDir, entryName).canonicalFile
+                        if (!outFile.canonicalPath.startsWith(canonicalDestPath)) {
+                            throw IOException("Archive entry resolves outside the model directory: ${entry.name}")
+                        }
                         outFile.outputStream().use { zis.copyTo(it) }
                     }
 
@@ -153,15 +159,6 @@ internal class DirectDownloadModelRemoteDataSource @Inject constructor(
             return false
         }
     }
-}
-
-/** Reject archive entry names that resolve outside the model directory (for example, `..`). */
-private fun File.requireDirectChildOf(directory: File): File {
-    val canonicalDirectory = directory.canonicalFile
-    if (canonicalFile.parentFile != canonicalDirectory) {
-        throw IOException("Archive entry resolves outside the model directory: $path")
-    }
-    return this
 }
 
 private fun OCRAlphabet.getRecognitionModelUrl(): String =
