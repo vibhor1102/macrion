@@ -33,6 +33,7 @@ import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.MoveToDialog
 import io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.brief.ItemBrief
 import io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.brief.ItemBriefMenu
+import io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.brief.BriefHandleMove
 import io.github.vibhor1102.macrion.core.domain.model.action.Action
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.ItemBriefDescription
 import io.github.vibhor1102.macrion.feature.smart.config.R
@@ -225,6 +226,9 @@ class SmartActionsBriefMenu(initialItemIndex: Int) : ItemBriefMenu(
         viewModel.deleteAction(index)
     }
 
+    override fun onHandleMoved(move: BriefHandleMove): (() -> Boolean)? =
+        viewModel.moveHandle(move)
+
     override fun onPlayItemClicked(index: Int) {
         viewModel.playAction(context, index)
     }
@@ -277,6 +281,7 @@ class SmartActionsBriefMenu(initialItemIndex: Int) : ItemBriefMenu(
 
     private fun updateRecordingState(isRecording: Boolean) {
         this.isRecording = isRecording
+        briefViewBinding.setHandleEditingEnabled(!isRecording && !isReplaying)
         if (isRecording) {
             setMenuItemViewEnabled(menuView.findOverlayView(R.id.btn_back), true)
             setMenuItemViewEnabled(menuView.findOverlayView(R.id.btn_add_other), false)
@@ -295,6 +300,7 @@ class SmartActionsBriefMenu(initialItemIndex: Int) : ItemBriefMenu(
 
     private fun updateReplayingState(isReplaying: Boolean) {
         this.isReplaying = isReplaying
+        briefViewBinding.setHandleEditingEnabled(!isRecording && !isReplaying)
         setOverlayViewVisibility(!isReplaying && isUserOverlayVisible)
         setMenuItemViewEnabled(menuView.findOverlayView(R.id.btn_back), !isReplaying)
         setMenuItemViewEnabled(menuView.findOverlayView(R.id.btn_add_other), !isReplaying)

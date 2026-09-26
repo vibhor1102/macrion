@@ -19,6 +19,7 @@ package io.github.vibhor1102.macrion.feature.smart.config.ui.action.brief
 
 import android.content.Context
 import android.graphics.Bitmap
+import io.github.vibhor1102.macrion.core.base.gesture.SwipePoint
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import androidx.core.graphics.toPoint
@@ -28,6 +29,8 @@ import androidx.lifecycle.viewModelScope
 
 import io.github.vibhor1102.macrion.core.bitmaps.BitmapRepository
 import io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.brief.ItemBrief
+import io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.brief.BriefHandleKind
+import io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.brief.BriefHandleMove
 import io.github.vibhor1102.macrion.core.display.config.DisplayConfigManager
 import io.github.vibhor1102.macrion.core.domain.ext.getConditionBitmap
 import io.github.vibhor1102.macrion.core.domain.model.action.Action
@@ -94,6 +97,8 @@ class SmartActionsBriefViewModel @Inject constructor(
 ) : ViewModel(), ActionConfigurator {
 
     private var actionTestJob: Job? = null
+    private var actionTestGeneration = 0
+    private val actionTestPending = MutableStateFlow(false)
 
     private val editedActions: Flow<EditedListState<Action>> = editionRepository.editionState.editedEventActionsState
     private val editedEvent: Flow<Event> = editionRepository.editionState.editedEventState.mapNotNull { it.value }
@@ -127,8 +132,10 @@ class SmartActionsBriefViewModel @Inject constructor(
             }
         }
 
-    val isTestingAction: Flow<Boolean> = smartProcessingRepository.detectionState
-        .map { state -> state == DetectionState.DETECTING }
+    val isTestingAction: Flow<Boolean> = combine(
+        smartProcessingRepository.detectionState, actionTestPending,
+    ) { state, pending -> pending || state == DetectionState.DETECTING }
+        .distinctUntilChanged()
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val actionVisualization: Flow<ItemBriefDescription?> =
@@ -279,9 +286,15 @@ class SmartActionsBriefViewModel @Inject constructor(
         if (scenario == null || actions == null || index !in actions.indices) return
 
         actionTestJob?.cancel()
+        val generation = ++actionTestGeneration
+        actionTestPending.value = true
         actionTestJob = viewModelScope.launch {
-            delay(500)
-            smartProcessingRepository.tryAction(context, scenario, actions[index])
+            try {
+                delay(500)
+                smartProcessingRepository.tryAction(context, scenario, actions[index])
+            } finally {
+                if (actionTestGeneration == generation) actionTestPending.value = false
+            }
         }
     }
 
@@ -289,6 +302,8 @@ class SmartActionsBriefViewModel @Inject constructor(
         val pending = actionTestJob?.isActive == true
         actionTestJob?.cancel()
         actionTestJob = null
+        actionTestGeneration++
+        actionTestPending.value = false
         val detecting = smartProcessingRepository.isDetectionActive()
         if (detecting) smartProcessingRepository.stopDetection()
         return pending || detecting
@@ -327,6 +342,72 @@ class SmartActionsBriefViewModel @Inject constructor(
             startActionEdition(actions[index])
             deleteEditedAction()
         }
+    }
+
+    /** Apply one position edit to the current event draft; return its guarded undo operation. */
+    fun moveHandle(move: BriefHandleMove): (() -> Boolean)? {
+        val actions = editionRepository.editionState.getEditedEventActions<Action>() ?: return null
+        val before = actions.firstOrNull { it.id == move.actionId } ?: return null
+        val bounds = displayConfigManager.displayConfig.sizePx
+        if (!move.newPosition.x.isFinite() || !move.newPosition.y.isFinite() ||
+            move.newPosition.x !in 0f..bounds.x.toFloat() ||
+            move.newPosition.y !in 0f..bounds.y.toFloat()
+        ) return null
+        val after = before.withMovedHandle(move) ?: return null
+        if (after == before) return null
+        editionRepository.startActionEdition(before)
+        editionRepository.updateEditedAction(after)
+        editionRepository.upsertEditedAction()
+        return {
+            val current = editionRepository.editionState.getEditedEventActions<Action>()
+                ?.firstOrNull { it.id == move.actionId }
+            if (current != after) false
+            else {
+                editionRepository.startActionEdition(current)
+                editionRepository.updateEditedAction(before)
+                editionRepository.upsertEditedAction()
+                true
+            }
+        }
+    }
+
+    private fun Action.withMovedHandle(move: BriefHandleMove): Action? {
+        fun moveTouch(action: Action): Action? {
+            return when (action) {
+                is Click -> {
+                    if (move.handle.kind != BriefHandleKind.CLICK ||
+                        action.positionType != Click.PositionType.USER_SELECTED ||
+                        action.position != move.handle.position.toPoint()
+                    ) null else action.copy(position = move.newPosition.toPoint())
+                }
+                is Swipe -> {
+                    val index = move.handle.nodeIndex ?: return null
+                    val lastIndex = action.path?.nodes?.lastIndex ?: 1
+                    if (index !in 0..lastIndex) return null
+                    val old = action.path?.nodes?.get(index)?.position
+                        ?: when (index) {
+                            0 -> action.from?.let(::SwipePoint)
+                            1 -> action.to?.let(::SwipePoint)
+                            else -> null
+                        }
+                    if (old != SwipePoint(move.handle.position)) return null
+                    val path = action.path?.moveNode(index, SwipePoint(move.newPosition))
+                    if (path != null && !path.isValid()) return null
+                    action.copy(
+                        from = if (index == 0) move.newPosition.toPoint() else action.from,
+                        to = if (index == lastIndex) move.newPosition.toPoint() else action.to,
+                        path = path,
+                    )
+                }
+                else -> null
+            }
+        }
+        return if (this is SplitAction) {
+            val index = move.handle.sourceChildIndex ?: return null
+            val child = subActions.getOrNull(index) ?: return null
+            val changed = moveTouch(child) ?: return null
+            copy(subActions = subActions.toMutableList().apply { set(index, changed) })
+        } else if (move.handle.sourceChildIndex == null) moveTouch(this) else null
     }
 
     override fun isExistingTopLevelAction(action: Action): Boolean =
@@ -448,20 +529,24 @@ class SmartActionsBriefViewModel @Inject constructor(
 
     /** Only fixed screen positions belong in the combined overlay. Condition-target clicks have no fixed point. */
     private fun Action.toSpatialDescription(): ItemBriefDescription? = when (this) {
-        is Click -> position?.let { ClickDescription(position = it.toPointF(), pressDurationMs = pressDuration ?: 1L) }
+        is Click -> position?.takeIf { positionType == Click.PositionType.USER_SELECTED }?.let {
+            ClickDescription(position = it.toPointF(), pressDurationMs = pressDuration ?: 1L)
+        }
         is Swipe -> if (from != null || to != null) SwipeDescription(
             from = from?.toPointF(),
             to = to?.toPointF(),
             path = path,
             swipeDurationMs = swipeDuration ?: 1L,
         ) else null
-        is SplitAction -> subActions.mapNotNull { child ->
+        is SplitAction -> subActions.mapIndexedNotNull { index, child ->
             when (val description = child.toSpatialDescription()) {
                 is ClickDescription -> description.copy(startOffsetMs = (child as Click).waitBeforeMs ?: 0L)
                 is SwipeDescription -> description.copy(startOffsetMs = (child as Swipe).waitBeforeMs ?: 0L)
                 else -> null
-            }
-        }.takeIf { it.isNotEmpty() }?.let(::SplitDescription)
+            }?.let { index to it }
+        }.takeIf { it.isNotEmpty() }?.let { children ->
+            SplitDescription(children.map { it.second }, children.map { it.first })
+        }
         else -> null
     }
 

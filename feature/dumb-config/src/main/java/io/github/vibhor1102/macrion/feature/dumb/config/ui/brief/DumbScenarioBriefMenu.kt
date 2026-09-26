@@ -32,6 +32,7 @@ import io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.bri
 import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.MoveToDialog
 import io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.brief.ItemBrief
+import io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.brief.BriefHandleMove
 import io.github.vibhor1102.macrion.core.dumb.domain.model.DumbAction
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.ItemBriefDescription
 import io.github.vibhor1102.macrion.feature.dumb.config.R
@@ -75,6 +76,8 @@ class DumbScenarioBriefMenu(
     )
 
     private lateinit var menuView: ViewGroup
+    private var isRecording = false
+    private var isReplaying = false
     private val backButton get() = menuView.findOverlayView<View>(R.id.btn_back)
     private val recordButton get() = menuView.findOverlayView<View>(R.id.btn_record)
     private val addButton get() = menuView.findOverlayView<View>(R.id.btn_add)
@@ -211,6 +214,9 @@ class DumbScenarioBriefMenu(
         viewModel.deleteDumbAction(index)
     }
 
+    override fun onHandleMoved(move: BriefHandleMove): (() -> Boolean)? =
+        viewModel.moveHandle(move)
+
     override fun onPlayItemClicked(index: Int) {
         updateReplayingState(true)
         viewModel.playAction(index) {
@@ -302,6 +308,8 @@ class DumbScenarioBriefMenu(
     }
 
     private fun updateRecordingState(isRecording: Boolean) {
+        this.isRecording = isRecording
+        briefViewBinding.setHandleEditingEnabled(!isRecording && !isReplaying)
         if (isRecording) {
             setMenuItemViewEnabled(backButton, true)
             setMenuItemViewEnabled(addButton, false)
@@ -318,6 +326,8 @@ class DumbScenarioBriefMenu(
     }
 
     private fun updateReplayingState(isReplaying: Boolean) {
+        this.isReplaying = isReplaying
+        briefViewBinding.setHandleEditingEnabled(!isRecording && !isReplaying)
         setOverlayViewVisibility(!isReplaying && isUserOverlayVisible)
         setMenuItemViewEnabled(backButton, true)
         setMenuItemViewEnabled(addButton, !isReplaying)

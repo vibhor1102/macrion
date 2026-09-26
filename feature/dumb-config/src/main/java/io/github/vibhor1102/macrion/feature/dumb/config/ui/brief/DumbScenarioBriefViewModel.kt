@@ -18,6 +18,7 @@ package io.github.vibhor1102.macrion.feature.dumb.config.ui.brief
 
 import android.content.Context
 import android.graphics.Point
+import io.github.vibhor1102.macrion.core.base.gesture.SwipePoint
 import androidx.core.graphics.toPoint
 
 import androidx.core.graphics.toPointF
@@ -27,6 +28,8 @@ import io.github.vibhor1102.macrion.core.base.di.Dispatcher
 import io.github.vibhor1102.macrion.core.base.di.HiltCoroutineDispatchers.Main
 
 import io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.brief.ItemBrief
+import io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.brief.BriefHandleKind
+import io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.brief.BriefHandleMove
 import io.github.vibhor1102.macrion.core.dumb.domain.model.DumbAction
 import io.github.vibhor1102.macrion.core.dumb.engine.DumbEngine
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.ItemBriefDescription
@@ -199,6 +202,61 @@ class DumbScenarioBriefViewModel @Inject constructor(
 
     fun updateDumbAction(dumbAction: DumbAction) {
         dumbEditionRepository.updateDumbAction(dumbAction)
+    }
+
+    fun moveHandle(move: BriefHandleMove): (() -> Boolean)? {
+        val before = dumbEditionRepository.editedDumbScenario.value?.dumbActions
+            ?.firstOrNull { it.id == move.actionId } ?: return null
+        val after = before.withMovedHandle(move) ?: return null
+        if (after == before) return null
+        dumbEditionRepository.updateDumbAction(after)
+        return {
+            val current = dumbEditionRepository.editedDumbScenario.value?.dumbActions
+                ?.firstOrNull { it.id == move.actionId }
+            if (current != after) false
+            else {
+                dumbEditionRepository.updateDumbAction(before)
+                true
+            }
+        }
+    }
+
+    private fun DumbAction.withMovedHandle(move: BriefHandleMove): DumbAction? {
+        fun moveTouch(action: DumbAction): DumbAction? {
+            return when (action) {
+                is DumbAction.DumbClick -> {
+                    if (move.handle.kind != BriefHandleKind.CLICK ||
+                        action.position != move.handle.position.toPoint()
+                    ) null else action.copy(position = move.newPosition.toPoint())
+                }
+                is DumbAction.DumbSwipe -> {
+                    val index = move.handle.nodeIndex ?: return null
+                    val lastIndex = action.path?.nodes?.lastIndex ?: 1
+                    if (index !in 0..lastIndex) return null
+                    val old = action.path?.nodes?.get(index)?.position
+                        ?: when (index) {
+                            0 -> SwipePoint(action.fromPosition)
+                            1 -> SwipePoint(action.toPosition)
+                            else -> null
+                        }
+                    if (old != SwipePoint(move.handle.position)) return null
+                    val path = action.path?.moveNode(index, SwipePoint(move.newPosition))
+                    if (path != null && !path.isValid()) return null
+                    action.copy(
+                        fromPosition = if (index == 0) move.newPosition.toPoint() else action.fromPosition,
+                        toPosition = if (index == lastIndex) move.newPosition.toPoint() else action.toPosition,
+                        path = path,
+                    )
+                }
+                else -> null
+            }
+        }
+        return if (this is DumbAction.DumbSplitAction) {
+            val index = move.handle.sourceChildIndex ?: return null
+            val child = subActions.getOrNull(index) ?: return null
+            val changed = moveTouch(child) ?: return null
+            copy(subActions = subActions.toMutableList().apply { set(index, changed) })
+        } else if (move.handle.sourceChildIndex == null) moveTouch(this) else null
     }
 
     fun swapDumbActions(i: Int, j: Int) {

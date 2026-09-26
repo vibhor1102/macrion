@@ -18,16 +18,20 @@ package io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.br
 
 import android.content.Context
 import android.content.res.Configuration
+import android.graphics.PointF
 import android.os.Build
 import android.view.LayoutInflater
 import android.view.ViewConfiguration
 import android.view.accessibility.AccessibilityManager
 import kotlin.math.roundToInt
+import kotlin.math.abs
 import kotlinx.coroutines.delay
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import io.github.vibhor1102.macrion.core.base.identifier.Identifier
@@ -52,8 +56,11 @@ import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.Snackbar
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -67,11 +74,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -81,6 +93,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.sp
+import androidx.annotation.StringRes
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -107,6 +120,54 @@ interface GestureRecordViewFacade {
     fun clearAndHide()
 }
 
+private data class HandleUndoNotice(
+    val id: Int,
+    @param:StringRes val messageRes: Int,
+    val durationMs: Long,
+    val undo: () -> Boolean,
+)
+
+@Composable
+private fun BoxScope.HandleUndoSnackbar(
+    notice: HandleUndoNotice,
+    isPortrait: Boolean,
+    onUndo: () -> Unit,
+) {
+    val progress = remember(notice.id) { Animatable(1f) }
+    LaunchedEffect(notice.id) {
+        progress.animateTo(0f, tween(notice.durationMs.toInt(), easing = LinearEasing))
+    }
+    Snackbar(
+        modifier = Modifier
+            .align(if (isPortrait) Alignment.BottomCenter else Alignment.BottomEnd)
+            .padding(
+                start = 16.dp,
+                end = 16.dp,
+                bottom = if (isPortrait) 188.dp else 16.dp,
+            )
+            .widthIn(max = 360.dp),
+        action = {
+            TextButton(onClick = onUndo) {
+                Text(
+                    stringResource(R.string.brief_handle_undo),
+                    color = MaterialTheme.colorScheme.inversePrimary,
+                )
+            }
+        },
+    ) {
+        Column(Modifier.semantics { liveRegion = LiveRegionMode.Polite }) {
+            Text(stringResource(notice.messageRes))
+            Spacer(Modifier.height(8.dp))
+            LinearProgressIndicator(
+                progress = { progress.value },
+                modifier = Modifier.fillMaxWidth().height(2.dp).clearAndSetSemantics {},
+                color = MaterialTheme.colorScheme.inversePrimary,
+                trackColor = MaterialTheme.colorScheme.inverseOnSurface.copy(alpha = 0.24f),
+            )
+        }
+    }
+}
+
 class ItemsBriefOverlayViewBinding private constructor(
     val root: ComposeView,
     initialOrientation: Int,
@@ -119,12 +180,20 @@ class ItemsBriefOverlayViewBinding private constructor(
 
     val currentDescription = mutableStateOf<ItemBriefDescription?>(null)
     private val isAnimateEnabled = mutableStateOf(true)
+    private val dragDescription = mutableStateOf<ItemBriefDescription?>(null)
+    private val isHandleDragging = mutableStateOf(false)
+    private val isHandleEditingEnabled = mutableStateOf(true)
+    private val undoNotice = mutableStateOf<HandleUndoNotice?>(null)
+    private var pendingMove: BriefHandleMove? = null
+    private var nextUndoId = 0
+    private var onHandleMoved: ((BriefHandleMove) -> (() -> Boolean)?)? = null
     private var internalGestureCaptureListener: ((gesture: RecordedGesture?, isFinished: Boolean) -> Unit)? = null
 
     val viewBrief: ItemBriefViewFacade = object : ItemBriefViewFacade {
         override fun setDescription(newDescription: ItemBriefDescription?, animate: Boolean) {
             currentDescription.value = newDescription
             isAnimateEnabled.value = animate
+            settlePendingPreview()
         }
     }
 
@@ -194,6 +263,32 @@ class ItemsBriefOverlayViewBinding private constructor(
         emptyText.intValue = textRes
     }
 
+    fun setHandleMoveCallback(callback: (BriefHandleMove) -> (() -> Boolean)?) {
+        onHandleMoved = callback
+    }
+
+    private fun settlePendingPreview() {
+        val pending = pendingMove ?: return
+        val shownPosition = currentDescription.value?.focusedHandlePosition(pending.handle) ?: return
+        if (!isHandleDragging.value &&
+            abs(shownPosition.x - pending.newPosition.x) < 1f &&
+            abs(shownPosition.y - pending.newPosition.y) < 1f
+        ) {
+            pendingMove = null
+            dragDescription.value = null
+        }
+    }
+
+    fun setHandleEditingEnabled(enabled: Boolean) {
+        isHandleEditingEnabled.value = enabled
+        if (!enabled) {
+            isHandleDragging.value = false
+            dragDescription.value = null
+            pendingMove = null
+            undoNotice.value = null
+        }
+    }
+
     fun setControlCallbacks(
         onDelete: () -> Unit,
         onPosition: () -> Unit,
@@ -231,6 +326,10 @@ class ItemsBriefOverlayViewBinding private constructor(
 
     fun updateBriefItems(items: List<ItemBrief>, focusedIndex: Int) {
         val previousIds = briefItems.value.map { it.id }
+        if (previousIds.getOrNull(navigationRequest.value.index) != items.getOrNull(focusedIndex)?.id) {
+            dragDescription.value = null
+            pendingMove = null
+        }
         briefItems.value = items
         if (previousIds != items.map { it.id } || navigationRequest.value.index != focusedIndex) {
             requestBriefItem(focusedIndex)
@@ -240,12 +339,20 @@ class ItemsBriefOverlayViewBinding private constructor(
     private fun handleFocusedItemChanged(index: Int) {
         // The pager is removed when the panel auto-hides. Keep its next initial page in sync
         // with the card the user actually reached before that happens.
+        if (navigationRequest.value.index != index) {
+            dragDescription.value = null
+            pendingMove = null
+        }
         navigationRequest.value = navigationRequest.value.copy(index = index)
         onFocusedItemChanged(index)
     }
 
     private fun requestBriefItem(index: Int) {
         val previous = navigationRequest.value
+        if (previous.index != index) {
+            dragDescription.value = null
+            pendingMove = null
+        }
         navigationRequest.value = CarouselNavigationRequest(index, previous.version + 1)
     }
 
@@ -266,6 +373,7 @@ class ItemsBriefOverlayViewBinding private constructor(
         isPointerActive.value = false
         isCarouselScrolling.value = false
         isPanelVisible.value = false
+        undoNotice.value = null
     }
 
     fun setGestureRecording(recording: Boolean) {
@@ -314,6 +422,8 @@ class ItemsBriefOverlayViewBinding private constructor(
     fun dispose() {
         panelTimerTrigger.intValue = 0
         instructionsTimerTrigger.intValue = 0
+        undoNotice.value = null
+        onHandleMoved = null
     }
 
     @Composable
@@ -324,9 +434,10 @@ class ItemsBriefOverlayViewBinding private constructor(
             isPanelAutoHideEnabled.value,
             isPointerActive.value,
             isCarouselScrolling.value,
+            undoNotice.value?.id,
         ) {
             if (panelTimerTrigger.intValue > 0 && isPanelAutoHideEnabled.value &&
-                !isPointerActive.value && !isCarouselScrolling.value
+                !isPointerActive.value && !isCarouselScrolling.value && undoNotice.value == null
             ) {
                 delay(context.recommendedPanelHideDelayMs())
                 isPanelVisible.value = false
@@ -336,6 +447,13 @@ class ItemsBriefOverlayViewBinding private constructor(
             if (instructionsTimerTrigger.intValue > 0) {
                 delay(INSTRUCTIONS_HIDE_DELAY_MS)
                 isInstructionsVisible.value = false
+            }
+        }
+        val activeUndoNotice = undoNotice.value
+        LaunchedEffect(activeUndoNotice?.id) {
+            if (activeUndoNotice != null) {
+                delay(activeUndoNotice.durationMs)
+                if (undoNotice.value?.id == activeUndoNotice.id) undoNotice.value = null
             }
         }
         val isPortrait = orientation == Configuration.ORIENTATION_PORTRAIT
@@ -359,9 +477,9 @@ class ItemsBriefOverlayViewBinding private constructor(
             },
         ) {
             ItemBriefCanvas(
-                description = currentDescription.value,
+                description = dragDescription.value ?: currentDescription.value,
                 displayConfig = displayConfig,
-                animate = isAnimateEnabled.value,
+                animate = isAnimateEnabled.value && !isHandleDragging.value,
                 modifier = Modifier.fillMaxSize(),
             )
             GestureRecordOverlay(
@@ -406,6 +524,30 @@ class ItemsBriefOverlayViewBinding private constructor(
                             indication = null,
                             onClick = ::showOrResetPanelTimer,
                         ),
+                )
+            }
+
+            if (activeUndoNotice != null && isPanelVisible.value) {
+                HandleUndoSnackbar(
+                    notice = activeUndoNotice,
+                    isPortrait = isPortrait,
+                    onUndo = {
+                        if (undoNotice.value?.id != activeUndoNotice.id) return@HandleUndoSnackbar
+                        val restored = activeUndoNotice.undo()
+                        undoNotice.value = null
+                        if (restored) {
+                            val pending = pendingMove
+                            val displayed = dragDescription.value ?: currentDescription.value
+                            if (pending != null && displayed != null) {
+                                dragDescription.value = displayed.withFocusedHandleMoved(
+                                    pending.handle, pending.handle.position,
+                                )
+                                pendingMove = pending.copy(newPosition = pending.handle.position)
+                                settlePendingPreview()
+                            }
+                        }
+                        showOrResetPanelTimer()
+                    },
                 )
             }
 
@@ -589,9 +731,78 @@ class ItemsBriefOverlayViewBinding private constructor(
     @Composable
     private fun PanelTimerResetSurface() {
         val interactionSource = remember { MutableInteractionSource() }
+        val hitRadiusPx = with(LocalDensity.current) { 32.dp.toPx() }
         Box(
             Modifier
                 .fillMaxSize()
+                .pointerInput(hitRadiusPx, isHandleEditingEnabled.value, isPanelVisible.value) {
+                    if (!isHandleEditingEnabled.value || !isPanelVisible.value || onHandleMoved == null) {
+                        return@pointerInput
+                    }
+                    awaitEachGesture {
+                        val down = awaitFirstDown(requireUnconsumed = false)
+                        val originalDescription = dragDescription.value ?: currentDescription.value
+                            ?: return@awaitEachGesture
+                        val handle = originalDescription.findFocusedHandle(
+                            PointF(down.position.x, down.position.y), hitRadiusPx,
+                        ) ?: return@awaitEachGesture
+                        val actionId = briefItems.value.getOrNull(navigationRequest.value.index)?.id
+                            ?: return@awaitEachGesture
+                        val pointerId = down.id
+                        var dragging = false
+                        var cancelled = false
+                        var newPosition = handle.position
+                        try {
+                            while (true) {
+                                val event = awaitPointerEvent()
+                                if (event.changes.any { it.id != pointerId && it.pressed }) {
+                                    cancelled = true
+                                    break
+                                }
+                                val change = event.changes.firstOrNull { it.id == pointerId } ?: break
+                                if (!change.pressed) break
+                                val delta = change.position - down.position
+                                if (!dragging && delta.getDistance() >= viewConfiguration.touchSlop) {
+                                    dragging = true
+                                    isHandleDragging.value = true
+                                }
+                                if (dragging) {
+                                    newPosition = PointF(
+                                        (handle.position.x + delta.x).coerceIn(0f, size.width.toFloat()),
+                                        (handle.position.y + delta.y).coerceIn(0f, size.height.toFloat()),
+                                    )
+                                    dragDescription.value = originalDescription.withFocusedHandleMoved(handle, newPosition)
+                                    change.consume()
+                                }
+                            }
+                        } finally {
+                            isHandleDragging.value = false
+                        }
+                        if (dragging && !cancelled && newPosition != handle.position) {
+                            val move = BriefHandleMove(actionId, handle, newPosition)
+                            val undo = onHandleMoved?.invoke(move)
+                            if (undo != null) {
+                                pendingMove = move
+                                settlePendingPreview()
+                                undoNotice.value = HandleUndoNotice(
+                                    id = ++nextUndoId,
+                                    messageRes = when (handle.kind) {
+                                        BriefHandleKind.CLICK -> R.string.brief_handle_moved_click
+                                        BriefHandleKind.SWIPE_START -> R.string.brief_handle_moved_swipe_start
+                                        BriefHandleKind.SWIPE_NODE -> R.string.brief_handle_moved_swipe_node
+                                        BriefHandleKind.SWIPE_END -> R.string.brief_handle_moved_swipe_end
+                                    },
+                                    durationMs = root.context.recommendedHandleUndoDelayMs(),
+                                    undo = undo,
+                                )
+                            } else {
+                                dragDescription.value = if (pendingMove != null) originalDescription else null
+                            }
+                        } else if (dragging) {
+                            dragDescription.value = if (pendingMove != null) originalDescription else null
+                        }
+                    }
+                }
                 .clickable(
                     interactionSource = interactionSource,
                     indication = null,
@@ -970,5 +1181,15 @@ private fun Context.recommendedPanelHideDelayMs(): Long {
         AccessibilityManager.FLAG_CONTENT_CONTROLS or
             AccessibilityManager.FLAG_CONTENT_ICONS or
             AccessibilityManager.FLAG_CONTENT_TEXT,
+    ).toLong()
+}
+
+private fun Context.recommendedHandleUndoDelayMs(): Long {
+    val duration = 5_000
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return duration.toLong()
+    val accessibilityManager = getSystemService(AccessibilityManager::class.java) ?: return duration.toLong()
+    return accessibilityManager.getRecommendedTimeoutMillis(
+        duration,
+        AccessibilityManager.FLAG_CONTENT_CONTROLS or AccessibilityManager.FLAG_CONTENT_TEXT,
     ).toLong()
 }

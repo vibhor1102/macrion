@@ -72,6 +72,8 @@ data class DefaultDescription(
 
 data class SplitDescription(
     val subDescriptions: List<ItemBriefDescription> = emptyList(),
+    /** Original child indexes when a preview omits children without fixed screen positions. */
+    val sourceIndices: List<Int> = subDescriptions.indices.toList(),
 ) : ItemBriefDescription
 
 /** Screen positions belonging to cards in an action carousel. [order] is the card's 1-based index. */

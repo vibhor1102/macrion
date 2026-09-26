@@ -55,6 +55,8 @@ abstract class ItemBriefMenu(
 
     protected open fun onItemBriefClicked(index: Int, item: ItemBrief): Unit = Unit
     protected open fun onItemPositionCardClicked(index: Int, itemCount: Int): Unit = Unit
+    /** Returns an undo operation when a handle move was accepted. */
+    protected open fun onHandleMoved(move: BriefHandleMove): (() -> Boolean)? = null
     protected open fun onReorderClicked(): Unit = Unit
     protected open fun onMoveItemClicked(from: Int, to: Int) = Unit
     protected abstract fun onPlayItemClicked(index: Int)
@@ -68,6 +70,7 @@ abstract class ItemBriefMenu(
         )
 
         briefViewBinding.apply {
+            setHandleMoveCallback(::onHandleMoved)
 
             setBriefItemsContent(
                 initialItemIndex = initialItemIndex,
