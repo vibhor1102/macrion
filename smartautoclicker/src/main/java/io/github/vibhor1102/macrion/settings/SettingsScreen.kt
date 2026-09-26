@@ -176,7 +176,7 @@ internal fun SettingsRoute(
                 )
                 add(
                     SettingsSection(
-                        R.string.settings_section_action_editing,
+                        R.string.settings_section_scenario_editing,
                         listOf(
                             SettingsItem.Switch(
                                 title = R.string.settings_preview_handle_editing_title,
