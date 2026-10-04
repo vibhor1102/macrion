@@ -9,6 +9,7 @@
 package io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.imageevents
 
 import android.content.Context
+import android.os.Build
 import androidx.test.core.app.ApplicationProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -18,8 +19,10 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
+@Config(sdk = [Build.VERSION_CODES.Q])
 class FolderExpansionPreferencesTest {
     @Test
     fun `reopening restores each scenario independently and rapid writes retain the latest state`() = runBlocking {
