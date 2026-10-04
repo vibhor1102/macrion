@@ -1,0 +1,2 @@
+Remember expanded and collapsed event folders per scenario when reopening the event list or restarting Macrion.
+Clarify optional OCR model downloads and user-initiated crash reporting in the app description.
