@@ -44,7 +44,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -143,7 +142,8 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
             var pendingFolders by remember {
                 mutableStateOf<List<io.github.vibhor1102.macrion.core.domain.model.scenario.ScenarioFolder>?>(null)
             }
-            var collapsedFolders by rememberSaveable { mutableStateOf<Set<String>>(emptySet()) }
+            val storedCollapsedFolders by viewModel.collapsedFolders.collectAsStateWithLifecycle()
+            val collapsedFolders = storedCollapsedFolders ?: return@CompositionLocalProvider
             var reorderedVisibleItems by remember { mutableStateOf<List<ScenarioListItem>?>(null) }
 
             // Dialog states
@@ -230,7 +230,7 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
                             duration = SnackbarDuration.Short,
                         )
                         if (result == SnackbarResult.ActionPerformed) {
-                            collapsedFolders = allFolderNames.toSet()
+                            viewModel.setCollapsedFolders(allFolderNames.toSet())
                         }
                     }
                 }
@@ -296,11 +296,11 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
                                                     showReorderHandle = canDragFolder,
                                                     onDisabledHandleClick = if (!canDragFolder) onDisabledFolderDragClick else null,
                                                     onToggleExpand = {
-                                                        collapsedFolders = if (listItem.isExpanded) {
+                                                        viewModel.setCollapsedFolders(if (listItem.isExpanded) {
                                                             collapsedFolders + listItem.name
                                                         } else {
                                                             collapsedFolders - listItem.name
-                                                        }
+                                                        })
                                                     },
                                                     onRenameClick = { folderToRename = listItem.name },
                                                     onDeleteClick = { folderToDelete = listItem.name },
@@ -426,7 +426,7 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
                                         if (trimmed != oldName) {
                                             viewModel.renameFolder(oldName, trimmed)
                                             if (oldName in collapsedFolders) {
-                                                collapsedFolders = collapsedFolders - oldName + trimmed
+                                                viewModel.setCollapsedFolders(collapsedFolders - oldName + trimmed)
                                             }
                                         }
                                         folderToRename = null
@@ -442,7 +442,7 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
                                 if (trimmed != oldName) {
                                     viewModel.renameFolder(oldName, trimmed)
                                     if (oldName in collapsedFolders) {
-                                        collapsedFolders = collapsedFolders - oldName + trimmed
+                                        viewModel.setCollapsedFolders(collapsedFolders - oldName + trimmed)
                                     }
                                 }
                                 folderToRename = null
@@ -473,7 +473,7 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
                         TextButton(
                             onClick = {
                                 viewModel.deleteFolder(targetFolder, deleteEvents = true)
-                                collapsedFolders = collapsedFolders - targetFolder
+                                viewModel.setCollapsedFolders(collapsedFolders - targetFolder)
                                 folderToDelete = null
                             },
                         ) {
@@ -492,7 +492,7 @@ class ImageEventListContent(appContext: Context) : NavBarDialogContent(appContex
                             TextButton(
                                 onClick = {
                                     viewModel.deleteFolder(targetFolder, deleteEvents = false)
-                                    collapsedFolders = collapsedFolders - targetFolder
+                                    viewModel.setCollapsedFolders(collapsedFolders - targetFolder)
                                     folderToDelete = null
                                 },
                             ) {

@@ -4,4 +4,6 @@ Use image, text, number, and colour conditions to make automation respond to scr
 
 Macrion requires Accessibility, screen-capture, and display-over-other-apps permissions to automate other apps. Grant them only when you understand and trust the scenarios you run.
 
+Network access is used to download optional OCR language models from GitHub and to send crash reports to the developer when you choose Send. Crash reports are stored locally until you choose to send or discard them. Screen detection and scenario execution run on your device; OCR does not send screen content to an online service.
+
 Macrion is independently developed from Klick'r, originally created by Kevin Buzeau and its contributors. It retains applicable copyright and GPL-3.0-or-later license notices from that prior work.

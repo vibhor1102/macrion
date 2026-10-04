@@ -18,6 +18,7 @@ package io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.imageevent
 
 import android.content.Context
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 
 import io.github.vibhor1102.macrion.core.domain.model.event.ScreenEvent
 import io.github.vibhor1102.macrion.core.domain.model.scenario.ScenarioFolder
@@ -29,6 +30,10 @@ import io.github.vibhor1102.macrion.feature.smart.config.domain.usecase.copy.ava
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.event.UiImageEvent
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.event.toUiImageEvent
 
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 
@@ -37,8 +42,27 @@ import javax.inject.Inject
 class ImageEventListViewModel @Inject constructor(
     isScreenEventCopyAvailableUseCase: IsScreenEventCopyAvailableUseCase,
     private val editionRepository: EditionRepository,
+    private val folderExpansionPreferences: FolderExpansionPreferences,
     internal val monitoredViewsManager: MonitoredViewsManager,
 ) : ViewModel() {
+
+    private val scenarioId = editionRepository.editionState.getScenario()?.id?.databaseId ?: 0L
+    private val _collapsedFolders = MutableStateFlow<Set<String>?>(null)
+    internal val collapsedFolders = _collapsedFolders.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            val names = currentFolders().map { it.name }.toSet()
+            val restored = folderExpansionPreferences.observe(scenarioId).first().intersect(names)
+            _collapsedFolders.value = restored
+            folderExpansionPreferences.save(scenarioId, restored)
+        }
+    }
+
+    fun setCollapsedFolders(folders: Set<String>) {
+        _collapsedFolders.value = folders
+        folderExpansionPreferences.save(scenarioId, folders)
+    }
 
     /** Read both parts of the draft together after each synchronous editor operation. */
     internal val listState = combine(
