@@ -1,0 +1,1 @@
+Fix saving the first action in an empty simple scenario, including after deleting all actions. Keep action and condition previews and gesture-recording state synchronized with selection when lists change.
