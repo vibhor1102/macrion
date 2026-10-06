@@ -50,7 +50,8 @@ abstract class ItemBriefMenu(
     protected lateinit var briefViewBinding: ItemsBriefOverlayViewBinding
     /** Items currently displayed by the Compose carousel. */
     private var briefItems: List<ItemBrief> = emptyList()
-    private var focusedItemIndex: Int = 0
+    /** No item is focused until the list is populated, matching the former snap helper. */
+    private var focusedItemIndex: Int = -1
     private val settingsRepository: SettingsRepository by lazy {
         EntryPoints.get(context.applicationContext, OverlaysEntryPoint::class.java).settingsRepository()
     }
@@ -179,7 +180,7 @@ abstract class ItemBriefMenu(
         briefItems = actions
 
         val targetIndex = when {
-            actions.isEmpty() -> 0
+            actions.isEmpty() -> -1
             previousItems.isEmpty() -> initialItemIndex.coerceIn(0, actions.lastIndex)
             actions.size > previousItems.size -> actions.indexOfLast { item -> previousItems.none { it.id == item.id } }
                 .takeIf { it >= 0 } ?: focusedItemIndex.coerceIn(0, actions.lastIndex)
@@ -188,8 +189,13 @@ abstract class ItemBriefMenu(
             else -> actions.indexOfFirst { it.id == previouslyFocusedId }
                 .takeIf { it >= 0 } ?: focusedItemIndex.coerceIn(0, actions.lastIndex)
         }
+        val focusChanged = focusedItemIndex != targetIndex
         focusedItemIndex = targetIndex
         briefViewBinding.updateBriefItems(actions, targetIndex)
+
+        // The pager does not exist while the panel is hidden or recording a gesture.
+        // Keep previews and recording state in sync without waiting for its callback.
+        if (focusChanged) onFocusedItemChanged(targetIndex)
 
         updateBriefButtons(actions.size)
     }
