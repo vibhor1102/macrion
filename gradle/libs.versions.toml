@@ -44,7 +44,7 @@ espressoCore = "3.7.0"
 
 
 [libraries]
-acra-core = { module = "ch.acra:acra-core", version = "5.13.1" }
+acra-core = { module = "ch.acra:acra-core", version = "5.14.2" }
 
 # Plugin dependencies for build-logic
 android-gradlePlugin = { group = "com.android.tools.build", name = "gradle", version.ref = "androidGradlePlugin" }
