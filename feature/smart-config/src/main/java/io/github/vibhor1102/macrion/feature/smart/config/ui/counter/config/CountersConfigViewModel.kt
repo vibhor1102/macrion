@@ -18,6 +18,8 @@ package io.github.vibhor1102.macrion.feature.smart.config.ui.counter.config
 
 import android.content.Context
 import androidx.lifecycle.ViewModel
+import androidx.compose.runtime.mutableStateMapOf
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.FiniteNumberInput
 import androidx.lifecycle.viewModelScope
 
 import io.github.vibhor1102.macrion.core.domain.model.counter.Counter
@@ -98,7 +100,19 @@ class CountersConfigViewModel @Inject constructor(
         }
     }
 
+    private val numberInputs = mutableStateMapOf<String, FiniteNumberInput>()
+
+    val hasInvalidNumberInputs: Boolean get() = numberInputs.values.any { !it.isValid }
+
+    fun numberInput(item: CounterUiItem): FiniteNumberInput =
+        numberInputs.getOrPut(item.counterName) { FiniteNumberInput() }
+
+    fun setStartingValueText(item: CounterUiItem, text: String) {
+        numberInput(item).update(text) { setStartingValue(item, it) }
+    }
+
     fun setStartingValue(item: CounterUiItem, value: Double) {
+        if (!value.isFinite()) return
         editionRepository.updateCounter(
             item.counter.copy(defaultValue = value)
         )
@@ -120,6 +134,7 @@ class CountersConfigViewModel @Inject constructor(
 
             replaceCounterUseCase(toDelete.counter, replacedBy.counter)
             editionRepository.deleteCounter(toDelete.counter)
+            numberInputs.remove(toDelete.counterName)
             selectedForReplacement.update { null }
         }
     }
@@ -127,6 +142,7 @@ class CountersConfigViewModel @Inject constructor(
     fun deleteCounter(item: CounterUiItem) {
         if (item.setByButtonIsEmpty && item.readByButtonIsEmpty) {
             editionRepository.deleteCounter(item.counter)
+            numberInputs.remove(item.counterName)
         }
     }
 

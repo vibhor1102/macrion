@@ -17,6 +17,7 @@
 package io.github.vibhor1102.macrion.feature.smart.config.ui.condition.trigger.counter
 
 import android.content.Context
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.FiniteNumberInput
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 
@@ -72,7 +73,7 @@ class CounterReachedConditionViewModel @Inject constructor(
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     fun hasUnsavedModifications(): Boolean =
-        uiState.value?.hasUnsavedModifications == true
+        numberInput.hasDraft || uiState.value?.hasUnsavedModifications == true
 
     fun setName(name: String) {
         updateEditedCondition { old -> old.copy(name = "" + name) }
@@ -101,7 +102,16 @@ class CounterReachedConditionViewModel @Inject constructor(
         )
     }
 
+    val numberInput = FiniteNumberInput(allowNegative = false)
+
+    fun setOperationValueText(text: String) {
+        numberInput.update(text) { value ->
+            updateEditedCondition { old -> old.copy(counterValue = CounterOperationValue.Number(value)) }
+        }
+    }
+
     fun setOperationValue(value: CounterOperationValue) {
+        numberInput.reset()
         updateEditedCondition { old ->
             old.copy(counterValue = value)
         }

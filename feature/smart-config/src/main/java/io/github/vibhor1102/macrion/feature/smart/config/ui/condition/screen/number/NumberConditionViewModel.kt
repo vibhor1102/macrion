@@ -17,6 +17,7 @@
 package io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.number
 
 import android.content.Context
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.FiniteNumberInput
 import android.graphics.Rect
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -101,7 +102,7 @@ class NumberConditionViewModel @Inject constructor(
 
 
     fun hasUnsavedModifications(): Boolean =
-        editedConditionHasChanged.value
+        numberInput.hasDraft || editedConditionHasChanged.value
 
     fun isConditionRelatedToClick(): Boolean =
         editionRepository.editionState.isEditedConditionReferencedByClick()
@@ -129,7 +130,16 @@ class NumberConditionViewModel @Inject constructor(
         )
     }
 
+    val numberInput = FiniteNumberInput(allowNegative = false)
+
+    fun setOperationValueText(text: String) {
+        numberInput.update(text) { value ->
+            updateEditedCondition { old -> old.copy(counterValue = CounterOperationValue.Number(value)) }
+        }
+    }
+
     fun setOperationValue(value: CounterOperationValue) {
+        numberInput.reset()
         updateEditedCondition { old ->
             old.copy(counterValue = value)
         }

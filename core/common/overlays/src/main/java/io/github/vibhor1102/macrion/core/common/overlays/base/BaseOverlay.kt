@@ -53,6 +53,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -225,14 +226,14 @@ abstract class BaseOverlay internal constructor(
 
         Log.d(TAG, "destroy overlay ${hashCode()}")
 
+        // Rotation cancels the lifecycle scope too. Never retain its debounce gate.
+        debounceUserInteractionJob?.cancel()
+        debounceUserInteractionJob = null
         lifecycleRegistry.currentState = State.DESTROYED
         CrashDiagnostics.record(CrashDiagnostics.Event.OVERLAY_DESTROYED, javaClass.name, lifecycleRegistry.currentState.ordinal)
         onDestroy()
 
         if (!shouldBeRecreated) {
-            debounceUserInteractionJob?.cancel()
-            debounceUserInteractionJob = null
-
             onDestroyListener?.invoke()
             onDestroyListener = null
 
@@ -246,11 +247,16 @@ abstract class BaseOverlay internal constructor(
 
     protected fun debounceUserInteraction(userInteraction: () -> Unit) {
         if (debounceUserInteractionJob == null && lifecycleRegistry.currentState == State.RESUMED) {
-            debounceUserInteractionJob = lifecycleScope.launch {
+            // Assign before starting: navigation may synchronously destroy this overlay.
+            val job = lifecycleScope.launch(start = CoroutineStart.LAZY) {
                 userInteraction()
                 delay(500)
-                debounceUserInteractionJob = null
             }
+            debounceUserInteractionJob = job
+            job.invokeOnCompletion {
+                if (debounceUserInteractionJob === job) debounceUserInteractionJob = null
+            }
+            job.start()
         }
     }
 

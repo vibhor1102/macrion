@@ -24,7 +24,7 @@ sealed class CounterOperationValue : Completable {
     abstract val value: Any
 
     data class Number(override val value: Double): CounterOperationValue() {
-        override fun isComplete(): Boolean = value >= 0
+        override fun isComplete(): Boolean = value.isFinite() && value >= 0
     }
 
     data class Counter(override val value: String): CounterOperationValue() {
