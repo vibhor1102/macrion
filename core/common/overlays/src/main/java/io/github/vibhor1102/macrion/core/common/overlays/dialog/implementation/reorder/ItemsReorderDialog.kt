@@ -65,6 +65,26 @@ class ItemsReorderDialog(
     private val onSaveOrder: (List<ItemBrief>) -> Unit,
 ) : OverlayDialog(theme) {
 
+    // The overlay controller survives rotation; its composition does not.
+    internal var initialItems by mutableStateOf<List<ItemBrief>?>(null)
+        private set
+    internal var displayedItems by mutableStateOf<List<ItemBrief>>(emptyList())
+        private set
+    private var showDiscardDialog by mutableStateOf(false)
+
+    internal val hasUnsavedChanges: Boolean
+        get() = initialItems?.let { initial -> displayedItems.map { it.id } != initial.map { it.id } } ?: false
+
+    internal fun initializeItems(items: List<ItemBrief>) {
+        if (initialItems != null) return
+        initialItems = items
+        displayedItems = items
+    }
+
+    internal fun moveItem(from: Int, to: Int) {
+        displayedItems = displayedItems.toMutableList().apply { add(to, removeAt(from)) }
+    }
+
     override fun onDialogCreated(dialog: Dialog) {
         // This full-height list needs the actual frame size, just like NavBarDialog.
         // WRAP_CONTENT can probe a taller viewport and move a list away from its end.
@@ -88,20 +108,10 @@ class ItemsReorderDialog(
     @Composable
     private fun ReorderDialogContent() {
         val sourceItems by itemsFlow.collectAsState(initial = null)
-        var initialItems by remember { mutableStateOf<List<ItemBrief>?>(null) }
-        var displayedItems by remember { mutableStateOf<List<ItemBrief>>(emptyList()) }
-        var showDiscardDialog by remember { mutableStateOf(false) }
         val haptic = LocalHapticFeedback.current
 
         LaunchedEffect(sourceItems) {
-            if (initialItems == null && sourceItems != null) {
-                initialItems = sourceItems
-                displayedItems = sourceItems.orEmpty()
-            }
-        }
-
-        val hasUnsavedChanges = remember(displayedItems, initialItems) {
-            initialItems != null && displayedItems.map { it.id } != initialItems!!.map { it.id }
+            sourceItems?.let(::initializeItems)
         }
 
         val onDismissAttempt = {
@@ -137,9 +147,7 @@ class ItemsReorderDialog(
 
         val listState = rememberLazyListState()
         val reorderState = rememberReorderableLazyListState(listState) { from, to ->
-            displayedItems = displayedItems.toMutableList().apply {
-                add(to.index, removeAt(from.index))
-            }
+            moveItem(from.index, to.index)
         }
 
         Surface(

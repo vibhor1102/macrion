@@ -56,7 +56,7 @@ class CountersConfigDialog : OverlayDialog(R.style.ScenarioConfigTheme) {
 @Composable
     private fun Content() {
         val state by viewModel.uiState.collectAsStateWithLifecycle()
-        val canDismiss = state is CountersUiState.Loaded || state is CountersUiState.Empty
+        val canDismiss = !viewModel.hasInvalidNumberInputs && (state is CountersUiState.Loaded || state is CountersUiState.Empty)
         Surface(
             shape = OverlayDialogShape,
             
@@ -168,15 +168,11 @@ class CountersConfigDialog : OverlayDialog(R.style.ScenarioConfigTheme) {
 
     @Composable
     private fun ExpandedCounterContent(counter: CounterUiItem) {
-        var value by rememberSaveable(counter.counterName) { mutableStateOf(counter.startingValue.toNaturalDisplayString()) }
+        val input = viewModel.numberInput(counter)
         OutlinedTextField(
-            value = value,
-            onValueChange = { newValue ->
-                if (newValue.matches(Regex("-?\\d*(\\.\\d*)?"))) {
-                    value = newValue
-                    newValue.toDoubleOrNull()?.let { viewModel.setStartingValue(counter, it) }
-                }
-            },
+            value = input.textFor(counter.startingValue),
+            onValueChange = { viewModel.setStartingValueText(counter, it) },
+            isError = !input.isValid,
             label = { Text(context.getString(R.string.field_label_counter_starting_value)) },
             modifier = Modifier.fillMaxWidth(),
             keyboardOptions = macrionDoneKeyboardOptions(KeyboardType.Decimal),
@@ -211,7 +207,7 @@ class CountersConfigDialog : OverlayDialog(R.style.ScenarioConfigTheme) {
     }
 
     override fun back() {
-        if (viewModel.getUiState() is CountersUiState.Replacing) return
+        if (viewModel.getUiState() is CountersUiState.Replacing || viewModel.hasInvalidNumberInputs) return
         super.back()
     }
 

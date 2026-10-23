@@ -17,6 +17,7 @@
 package io.github.vibhor1102.macrion.feature.smart.config.ui.action.changecounter
 
 import android.content.Context
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.FiniteNumberInput
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.github.vibhor1102.macrion.core.domain.model.counter.CounterOperationValue
@@ -71,7 +72,7 @@ class ChangeCounterViewModel @Inject constructor(
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     fun hasUnsavedModifications(): Boolean =
-        uiState.value?.hasUnsavedModifications == true
+        numberInput.hasDraft || uiState.value?.hasUnsavedModifications == true
 
     fun setName(name: String) {
         updateEditedChangeCounter { old -> old.copy(name = "" + name) }
@@ -100,7 +101,16 @@ class ChangeCounterViewModel @Inject constructor(
         )
     }
 
+    val numberInput = FiniteNumberInput(allowNegative = false)
+
+    fun setOperationValueText(text: String) {
+        numberInput.update(text) { value ->
+            updateEditedChangeCounter { old -> old.copy(operationValue = CounterOperationValue.Number(value)) }
+        }
+    }
+
     fun setOperationValue(value: CounterOperationValue) {
+        numberInput.reset()
         updateEditedChangeCounter { old ->
             old.copy(operationValue = value)
         }

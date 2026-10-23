@@ -72,7 +72,7 @@ class ChangeCounterDialog(private val listener: OnActionConfigCompleteListener) 
             shape = OverlayDialogShape,
             modifier = Modifier.fillMaxWidth().heightIn(max = 600.dp), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
             Column {
-                TopBar(ui.canBeSaved)
+                TopBar(ui.canBeSaved && viewModel.numberInput.isValid)
                 Column(Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState())
                     .padding(horizontal = 16.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     MacrionTextField(ui.name.orEmpty(), viewModel::setName, context.getString(R.string.generic_name),
@@ -185,10 +185,10 @@ class ChangeCounterDialog(private val listener: OnActionConfigCompleteListener) 
                 }
                 when (val operand = ui.operandValue) {
                     is UiStaticOrCounterSelection.StaticValue -> {
-                        var value by remember { mutableStateOf(operand.value.toNaturalDisplayString()) }
                         OutlinedTextField(
-                        value = value,
-                        onValueChange = { text -> value = text; text.toDoubleOrNull()?.let { number -> viewModel.setOperationValue(CounterOperationValue.Number(number)) } },
+                        value = viewModel.numberInput.textFor(operand.value),
+                        onValueChange = viewModel::setOperationValueText,
+                        isError = !viewModel.numberInput.isValid,
                         modifier = Modifier.fillMaxWidth(), label = { Text(context.getString(R.string.field_counter_operation_value_label)) },
                         keyboardOptions = macrionDoneKeyboardOptions(KeyboardType.Decimal),
                         keyboardActions = macrionDoneKeyboardActions(), singleLine = true)
@@ -206,7 +206,7 @@ class ChangeCounterDialog(private val listener: OnActionConfigCompleteListener) 
         }
         listener.onDismissClicked(); super.back()
     }
-    private fun save() { listener.onConfirmClicked(); super.back() }
+    private fun save() { if (viewModel.numberInput.isValid) { listener.onConfirmClicked(); super.back() } }
     private fun delete() { listener.onDeleteClicked(); super.back() }
     private fun selectCounterToChange() = showCounterSelectionDialog(viewModel::setCounterName)
     private fun showCounterSelectionDialog(onSelected: (String) -> Unit) =

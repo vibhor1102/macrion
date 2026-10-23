@@ -47,7 +47,6 @@ class CounterCreationDialog : OverlayDialog(R.style.ScenarioConfigTheme) {
     private fun Content() {
         val state by viewModel.uiState.collectAsStateWithLifecycle()
         val name by viewModel.name.collectAsStateWithLifecycle()
-        var startingValue by rememberSaveable { mutableStateOf("0") }
 
         Surface(
             shape = OverlayDialogShape,
@@ -68,7 +67,7 @@ class CounterCreationDialog : OverlayDialog(R.style.ScenarioConfigTheme) {
                         style = MaterialTheme.typography.titleLarge,
                     )
                     FilledIconButton(
-                        enabled = state?.canBeSaved == true,
+                        enabled = state?.canBeSaved == true && viewModel.numberInput.isValid,
                         onClick = { viewModel.createCounter(); back() },
                     ) { Icon(painterResource(R.drawable.ic_save_filled), null) }
                 }
@@ -92,13 +91,9 @@ class CounterCreationDialog : OverlayDialog(R.style.ScenarioConfigTheme) {
                         )
                     }
                     OutlinedTextField(
-                        value = startingValue,
-                        onValueChange = { value ->
-                            if (value.matches(Regex("-?\\d*(\\.\\d*)?"))) {
-                                startingValue = value
-                                viewModel.setStartingValue(value.toDoubleOrNull() ?: 0.0)
-                            }
-                        },
+                        value = viewModel.startingValueText(),
+                        onValueChange = viewModel::setStartingValueText,
+                        isError = !viewModel.numberInput.isValid,
                         label = { Text(context.getString(R.string.field_new_counter_starting_value)) },
                         modifier = Modifier.fillMaxWidth(),
                         keyboardOptions = macrionDoneKeyboardOptions(KeyboardType.Decimal),

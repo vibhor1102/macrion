@@ -157,7 +157,7 @@ fun ItemBriefCanvas(
             return@LaunchedEffect
         }
         val maxDuration = swipeDescList.maxOfOrNull { it.swipeDurationMs } ?: 250L
-        val animDurationMs = max(maxDuration, 250L).toInt()
+        val animDurationMs = maxDuration.toPreviewAnimationDuration(250)
         while (isActive) {
             swipeProgress.snapTo(0f)
             delay(250)
@@ -201,7 +201,7 @@ fun ItemBriefCanvas(
             pauseRotation.snapTo(0f)
             return@LaunchedEffect
         }
-        val animDurationMs = max(animationDescription.pauseDurationMs, 500L).toInt()
+        val animDurationMs = animationDescription.pauseDurationMs.toPreviewAnimationDuration(500)
         while (isActive) {
             pauseRotation.snapTo(0f)
             delay(250)
@@ -1035,3 +1035,7 @@ private fun DrawScope.drawDefaultIndicator(
         }
     }
 }
+
+/** Compose durations use Int milliseconds, while action durations use Long milliseconds. */
+internal fun Long.toPreviewAnimationDuration(minimumMillis: Int): Int =
+    coerceIn(minimumMillis.toLong(), Int.MAX_VALUE.toLong()).toInt()

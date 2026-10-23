@@ -83,6 +83,25 @@ class CounterCreationViewModelTests {
         )
     }
 
+    @Test
+    fun invalidStartingValueCannotSilentlyCreateCounterWithPreviousValue() = runTest {
+        val scenario = Scenario(Identifier(databaseId = 1L), "Scenario", detectionQuality = 600)
+        val repository = createEditionRepository(scenario)
+        val viewModel = CountersCreationViewModel(repository)
+        viewModel.setName("score")
+        viewModel.setStartingValueText("42.50")
+        viewModel.setStartingValueText("abc")
+        viewModel.createCounter()
+        assertEquals(emptyList<Counter>(), repository.editionState.getAllEditedCounters())
+        viewModel.setStartingValueText("9".repeat(400))
+        viewModel.createCounter()
+        assertEquals(emptyList<Counter>(), repository.editionState.getAllEditedCounters())
+        viewModel.setStartingValueText("-3.50")
+        assertEquals("-3.50", viewModel.startingValueText())
+        viewModel.createCounter()
+        assertEquals(listOf(Counter("score", -3.5, scenario.id)), repository.editionState.getAllEditedCounters())
+    }
+
     private suspend fun createEditionRepository(
         scenario: Scenario,
         screenEvents: List<ScreenEvent> = emptyList(),

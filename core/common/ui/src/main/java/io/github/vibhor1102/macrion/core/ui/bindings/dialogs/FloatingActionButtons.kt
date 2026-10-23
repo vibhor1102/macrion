@@ -80,6 +80,7 @@ class FloatingActionButtonsView(val context: Context) {
         this.tertiaryVisible.value = false
     }
 
+    // Resolve callbacks when clicked: tab changes can replace them without recomposing the buttons.
     fun performPrimaryClick() { onPrimary() }
     fun performSecondaryClick() { onSecondary() }
     fun performTertiaryClick() { onTertiary() }
@@ -115,7 +116,7 @@ class FloatingActionButtonsView(val context: Context) {
         Box(modifier.wrapContentSize(), contentAlignment = Alignment.BottomCenter) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 if (tertiaryVisible.value) {
-                    SmallFloatingActionButton(onClick = onTertiary) {
+                    SmallFloatingActionButton(onClick = { performTertiaryClick() }) {
                         Icon(
                             painterResource(tertiaryIcon.intValue),
                             contentDescription = tertiaryDescription.value?.toString(),
@@ -124,14 +125,14 @@ class FloatingActionButtonsView(val context: Context) {
                     Spacer(Modifier.height(16.dp))
                 }
                 if (secondaryVisible.value) {
-                    SmallFloatingActionButton(onClick = onSecondary) {
+                    SmallFloatingActionButton(onClick = { performSecondaryClick() }) {
                         Icon(painterResource(secondaryIcon.intValue), contentDescription = null)
                     }
                     Spacer(Modifier.height(16.dp))
                 }
                 Box(Modifier.size(PRIMARY_CONTAINER_SIZE_DP.dp), contentAlignment = Alignment.Center) {
                     FloatingActionButton(
-                        onClick = onPrimary,
+                        onClick = { performPrimaryClick() },
                         modifier = Modifier.size(56.dp).then(primaryModifier()),
                     ) {
                         Icon(

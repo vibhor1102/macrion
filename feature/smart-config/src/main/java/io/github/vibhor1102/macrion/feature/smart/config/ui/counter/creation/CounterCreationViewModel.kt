@@ -17,6 +17,7 @@
 package io.github.vibhor1102.macrion.feature.smart.config.ui.counter.creation
 
 import androidx.lifecycle.ViewModel
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.FiniteNumberInput
 import androidx.lifecycle.viewModelScope
 
 import io.github.vibhor1102.macrion.core.domain.model.counter.Counter
@@ -48,6 +49,12 @@ class CountersCreationViewModel @Inject constructor(
         _name.update { counterName }
     }
 
+    val numberInput = FiniteNumberInput()
+
+    fun startingValueText(): String = numberInput.textFor(startingValue.value)
+
+    fun setStartingValueText(text: String) = numberInput.update(text, ::setStartingValue)
+
     fun setStartingValue(value: Double) {
         startingValue.update { value }
     }
@@ -57,6 +64,7 @@ class CountersCreationViewModel @Inject constructor(
         val counterName = _name.value?.trim()
         val startingValue = startingValue.value
 
+        if (!numberInput.isValid || !startingValue.isFinite()) return
         if (counterName.isNullOrBlank() || editionRepository.editionState.getCounter(counterName) != null) return
 
         editionRepository.addNewCounter(

@@ -86,7 +86,7 @@ class NumberConditionDialog(private val listener: OnConditionConfigCompleteListe
             shape = OverlayDialogShape,
             modifier = Modifier.fillMaxWidth().heightIn(max = 600.dp), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
             Column {
-                TopBar(ui.canBeSaved)
+                TopBar(ui.canBeSaved && viewModel.numberInput.isValid)
                 Column(Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState())
                     .padding(horizontal = 16.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     MacrionTextField(name, { name = it; viewModel.setName(it) }, context.getString(R.string.generic_name),
@@ -205,14 +205,11 @@ class NumberConditionDialog(private val listener: OnConditionConfigCompleteListe
     }
 
     @Composable private fun StaticValueField(operand: UiStaticOrCounterSelection.StaticValue) {
-        var text by rememberSaveable { mutableStateOf(operand.value.toNaturalDisplayString()) }
         val focusRequester = remember { FocusRequester() }
         OutlinedTextField(
-            value = text,
-            onValueChange = { newText ->
-                text = newText
-                newText.toDoubleOrNull()?.let { viewModel.setOperationValue(CounterOperationValue.Number(it)) }
-            },
+            value = viewModel.numberInput.textFor(operand.value),
+            onValueChange = viewModel::setOperationValueText,
+            isError = !viewModel.numberInput.isValid,
             modifier = Modifier
                 .fillMaxWidth()
                 .focusRequester(focusRequester)
@@ -222,7 +219,7 @@ class NumberConditionDialog(private val listener: OnConditionConfigCompleteListe
                 )
                 .tutorialTextAnchor(
                     MonitoredViewType.NUMBER_CONDITION_DIALOG_FIELD_VALUE_TO_DETECT,
-                    text = text,
+                    text = viewModel.numberInput.textFor(operand.value),
                 ),
             label = { Text(context.getString(R.string.field_counter_operation_value_label)) },
             keyboardOptions = macrionDoneKeyboardOptions(KeyboardType.Decimal),
@@ -312,7 +309,7 @@ class NumberConditionDialog(private val listener: OnConditionConfigCompleteListe
         if (viewModel.hasUnsavedModifications()) { context.showCloseWithoutSavingDialog { listener.onDismissClicked(); super.back() }; return }
         listener.onDismissClicked(); super.back()
     }
-    private fun save() { listener.onConfirmClicked(); super.back() }
+    private fun save() { if (viewModel.numberInput.isValid) { listener.onConfirmClicked(); super.back() } }
     private fun onDeleteClicked() {
         if (viewModel.isConditionRelatedToClick()) context.showDeleteConditionsWithAssociatedActionsDialog(::onConfirmDelete)
         else onConfirmDelete()
