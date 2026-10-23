@@ -44,4 +44,6 @@ dependencies {
     implementation(project(":core:common:ui"))
     implementation(project(":core:common:settings"))
     implementation(libs.reorderable)
+
+    testImplementation(libs.androidx.compose.ui.test.junit4)
 }
