@@ -9,7 +9,7 @@ androidNdk = "28.2.13676358"
 androidGradlePlugin = "9.4.1"
 googleProtobufGradlePlugin = "0.10.0"
 java = "21"
-kotlin = "2.4.20"
+kotlin = "2.4.21"
 kotlinxCoroutines = "1.11.0"
 reorderable = "3.1.0"
 ksp = "2.3.12"
@@ -44,7 +44,7 @@ espressoCore = "3.7.0"
 
 
 [libraries]
-acra-core = { module = "ch.acra:acra-core", version = "5.13.1" }
+acra-core = { module = "ch.acra:acra-core", version = "5.14.2" }
 
 # Plugin dependencies for build-logic
 android-gradlePlugin = { group = "com.android.tools.build", name = "gradle", version.ref = "androidGradlePlugin" }
