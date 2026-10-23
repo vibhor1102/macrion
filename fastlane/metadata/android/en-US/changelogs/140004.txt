@@ -1,0 +1,1 @@
+Fix unresponsive Add/Copy buttons when switching event tabs. Preserve pending reorder changes and numeric input across rotation. Reject invalid or overflowing numbers instead of saving the previous value. Fix controls becoming unresponsive after rotation and preview timing for very long pauses and swipes.
