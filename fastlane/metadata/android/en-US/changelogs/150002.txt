@@ -1,0 +1,1 @@
+Fix a crash reported by an anonymous user. Fix another potential crash.
