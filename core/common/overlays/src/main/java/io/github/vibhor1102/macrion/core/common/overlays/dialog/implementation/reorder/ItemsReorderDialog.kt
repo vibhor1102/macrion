@@ -43,7 +43,7 @@ import androidx.compose.ui.unit.dp
 import io.github.vibhor1102.macrion.core.common.overlays.R
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayDialog
 import io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.brief.ItemBrief
-import io.github.vibhor1102.macrion.core.ui.compose.MacrionMessageAlertDialog
+import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayMessageDialog
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.core.ui.compose.OverlayDialogShape
 import io.github.vibhor1102.macrion.core.ui.R as UiR
@@ -130,7 +130,7 @@ class ItemsReorderDialog(
         BackHandler(enabled = hasUnsavedChanges, onBack = onDismissAttempt)
 
         if (showDiscardDialog) {
-            MacrionMessageAlertDialog(
+            OverlayMessageDialog(
                 title = stringResource(R.string.dialog_reorder_discard_title),
                 message = stringResource(R.string.dialog_reorder_discard_message),
                 confirmLabel = R.string.dialog_reorder_discard_confirm,

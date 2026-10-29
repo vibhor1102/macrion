@@ -12,19 +12,17 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.unit.dp
 import io.github.vibhor1102.macrion.core.ui.R
 import io.github.vibhor1102.macrion.core.ui.utils.getDynamicColorsContext
 
-/** A Compose message surface in an AlertDialog window, for callers that need Android dialog lifecycle hooks. */
+/** A Compose message surface in a native dialog, for callers that need Android dialog lifecycle hooks. */
 fun Context.createMacrionMessageDialog(
     @StringRes title: Int,
     @StringRes message: Int,
@@ -114,32 +112,4 @@ fun Context.createMacrionMessageDialog(
         setOnDismissListener { onDismiss?.invoke() }
     }
     return dialog
-}
-
-@Composable
-fun MacrionMessageAlertDialog(
-    title: String,
-    message: String,
-    @StringRes confirmLabel: Int = android.R.string.ok,
-    @StringRes cancelLabel: Int? = null,
-    onConfirm: () -> Unit,
-    onDismissRequest: () -> Unit,
-) {
-    AlertDialog(
-        onDismissRequest = onDismissRequest,
-        title = { Text(title, style = MaterialTheme.typography.headlineSmall) },
-        text = { Text(message, style = MaterialTheme.typography.bodyMedium) },
-        confirmButton = {
-            TextButton(onClick = onConfirm) {
-                Text(androidx.compose.ui.res.stringResource(confirmLabel))
-            }
-        },
-        dismissButton = cancelLabel?.let {
-            {
-                TextButton(onClick = onDismissRequest) {
-                    Text(androidx.compose.ui.res.stringResource(it))
-                }
-            }
-        },
-    )
 }

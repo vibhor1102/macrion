@@ -40,6 +40,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.vibhor1102.macrion.core.common.actions.GESTURE_DURATION_MAX_VALUE
 import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayDialog
+import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayMessageDialog
 import io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.PositionSelectorMenu
 import io.github.vibhor1102.macrion.core.dumb.domain.model.DumbAction
 import io.github.vibhor1102.macrion.core.ui.R as UiR
@@ -112,16 +113,13 @@ class DumbSplitActionDialog(
             return
         }
         if (showDiscardConfirmation) {
-            AlertDialog(
+            OverlayMessageDialog(
                 onDismissRequest = { showDiscardConfirmation = false },
-                title = { Text(stringResource(R.string.split_discard_title)) },
-                text = { Text(stringResource(R.string.split_discard_message)) },
-                confirmButton = { TextButton(onClick = { showDiscardConfirmation = false; dismissDraft() }) {
-                    Text(stringResource(R.string.split_discard_confirm))
-                } },
-                dismissButton = { TextButton(onClick = { showDiscardConfirmation = false }) {
-                    Text(stringResource(R.string.split_keep_editing))
-                } },
+                title = stringResource(R.string.split_discard_title),
+                message = stringResource(R.string.split_discard_message),
+                confirmLabel = R.string.split_discard_confirm,
+                cancelLabel = R.string.split_keep_editing,
+                onConfirm = { showDiscardConfirmation = false; dismissDraft() },
             )
         }
         MultiTouchEditorFrame(expanded = !showingGroupSettings) {
