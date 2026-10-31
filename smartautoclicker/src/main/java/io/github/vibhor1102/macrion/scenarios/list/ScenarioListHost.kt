@@ -56,7 +56,7 @@ import io.github.vibhor1102.macrion.core.common.quality.ui.AccessibilityTroubles
 import io.github.vibhor1102.macrion.core.common.quality.ui.BackgroundLaunchTroubleshootingDialog
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionDialogSurface
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
-import io.github.vibhor1102.macrion.crash.CrashReportDialog
+import io.github.vibhor1102.macrion.crash.CrashReportFlow
 import io.github.vibhor1102.macrion.feature.backup.ui.BackupDialog
 import io.github.vibhor1102.macrion.feature.backup.ui.BackupViewModel
 import io.github.vibhor1102.macrion.scenarios.creation.ScenarioCreationSheet
@@ -254,7 +254,7 @@ class ScenarioListHost(
                             )
                         }
                         is ActiveScenarioDialog.CrashReport -> {
-                            CrashReportDialog(
+                            CrashReportFlow(
                                 reportId = currentDialog.reportId,
                                 onDismiss = ::dismissActiveDialog,
                             )

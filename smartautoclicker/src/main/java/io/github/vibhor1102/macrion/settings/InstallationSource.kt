@@ -37,7 +37,7 @@ enum class InstallationSource(
         stringRes?.let { context.getString(it) } ?: displayName.orEmpty()
 }
 
-fun detectInstallationSource(context: Context): InstallationSource {
+fun detectInstallationSource(context: Context, allowSideloadGuess: Boolean = true): InstallationSource {
     val pm = context.packageManager
     val packageName = context.packageName
 
@@ -72,6 +72,7 @@ fun detectInstallationSource(context: Context): InstallationSource {
         initiatingPackage = initiatingPackage,
         originatingPackage = originatingPackage,
         isBrowser = { pkg -> isBrowserPackage(pm, pkg) },
+        allowSideloadGuess = allowSideloadGuess,
     )
 }
 
@@ -80,6 +81,7 @@ internal fun resolveInstallationSource(
     initiatingPackage: String?,
     originatingPackage: String?,
     isBrowser: (String) -> Boolean = { false },
+    allowSideloadGuess: Boolean = true,
 ): InstallationSource {
     val packages = listOfNotNull(installingPackage, initiatingPackage, originatingPackage)
 
@@ -104,6 +106,10 @@ internal fun resolveInstallationSource(
     if (packages.isEmpty() || packages.all { it == "com.android.shell" }) {
         return InstallationSource.UNKNOWN
     }
+
+    // An explicit GitHub installer is stronger evidence than a generic sideload.
+    if ("com.github.android" in packages) return InstallationSource.GITHUB
+    if (!allowSideloadGuess) return InstallationSource.UNKNOWN
 
     // Check for GitHub app or direct browser / package installer download
     val isGitHubOrBrowser = packages.any { pkg ->

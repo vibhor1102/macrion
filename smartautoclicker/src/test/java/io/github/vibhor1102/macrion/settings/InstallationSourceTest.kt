@@ -93,4 +93,34 @@ class InstallationSourceTest {
         )
         assertEquals(InstallationSource.GITHUB, result)
     }
+    @Test
+    fun `strict source detection does not infer github from a browser or file manager`() {
+        for (initiator in listOf("com.android.chrome", "com.sec.android.app.myfiles", "com.imranr98.obtainium")) {
+            assertEquals(InstallationSource.UNKNOWN, resolveInstallationSource(
+                installingPackage = "com.android.packageinstaller",
+                initiatingPackage = initiator,
+                originatingPackage = null,
+                isBrowser = { it == "com.android.chrome" },
+                allowSideloadGuess = false,
+            ))
+        }
+    }
+
+    @Test
+    fun `strict source detection preserves explicit github and fdroid sources`() {
+        for ((installer, expected) in listOf(
+            "com.github.android" to InstallationSource.GITHUB,
+            "org.fdroid.fdroid" to InstallationSource.FDROID,
+            "com.looker.droidify" to InstallationSource.FDROID,
+            "com.android.vending" to InstallationSource.GOOGLE_PLAY,
+        )) {
+            assertEquals(expected, resolveInstallationSource(
+                installingPackage = installer,
+                initiatingPackage = null,
+                originatingPackage = null,
+                allowSideloadGuess = false,
+            ))
+        }
+    }
+
 }

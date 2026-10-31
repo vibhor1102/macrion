@@ -26,7 +26,7 @@
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
     <!-- Needed to keep the screen active while detecting, only if defined by the user. -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
-    <!-- Used only when the user explicitly sends a locally reviewed crash report. -->
+    <!-- Used for optional OCR model downloads, consented crash uploads, and update availability checks. -->
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application

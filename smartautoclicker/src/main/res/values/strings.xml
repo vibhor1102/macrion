@@ -186,6 +186,10 @@
 
     <!-- Crash reporting -->
     <string name="crash_reports_title">Local crash reports</string>
+    <string name="crash_update_title">Update available</string>
+    <string name="crash_update_message">Macrion %1$s is available on %2$s. Updating may resolve this issue.</string>
+    <string name="crash_update_later">Not now</string>
+    <string name="crash_update_view">View update</string>
     <string name="crash_report_prompt_title">Uh-oh, Macrion crashed</string>
     <string name="crash_report_prompt_message">Macrion ran into a problem and had to close. Sending the crash report can help Vibhor find and fix what went wrong, and he’ll look into it as soon as possible.\n\nThe report contains technical crash and device details and is checked to reduce personal information. Nothing is sent unless you choose Send report.</string>
     <string name="crash_report_local_notice">A technical report was saved on this device. Nothing is sent unless you choose Send report. Reports include crash and device details. We try to remove personal information, but some may remain in error details. Local reports expire after seven days; sent reports are retained for up to 30 days.</string>
