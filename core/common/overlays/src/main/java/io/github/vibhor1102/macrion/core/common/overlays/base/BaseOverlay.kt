@@ -151,17 +151,22 @@ abstract class BaseOverlay internal constructor(
         if (lifecycleRegistry.currentState == State.DESTROYED) lifecycleRegistry.currentState = State.INITIALIZED
         if (lifecycleRegistry.currentState != State.INITIALIZED) return
 
-        Log.d(TAG, "create overlay ${hashCode()}")
-        parentAppContext = appContext
-        if (!this::context.isInitialized) context = appContext
-        context = newOverlayContext(appContext, theme) { displayConfigManager.displayConfig.orientation }
+        val operationStarted = SlowUiOperation.begin()
+        try {
+            Log.d(TAG, "create overlay ${hashCode()}")
+            parentAppContext = appContext
+            if (!this::context.isInitialized) context = appContext
+            context = newOverlayContext(appContext, theme) { displayConfigManager.displayConfig.orientation }
 
-        dismissListener?.let { listener -> onDestroyListener = { listener(appContext, this@BaseOverlay) } }
-        savedStateController.performAttach()
-        savedStateController.performRestore(null)
-        CrashDiagnostics.record(CrashDiagnostics.Event.OVERLAY_CREATED, javaClass.name, lifecycleRegistry.currentState.ordinal)
-        onCreate()
-        lifecycleRegistry.currentState = State.CREATED
+            dismissListener?.let { listener -> onDestroyListener = { listener(appContext, this@BaseOverlay) } }
+            savedStateController.performAttach()
+            savedStateController.performRestore(null)
+            CrashDiagnostics.record(CrashDiagnostics.Event.OVERLAY_CREATED, javaClass.name, lifecycleRegistry.currentState.ordinal)
+            onCreate()
+            lifecycleRegistry.currentState = State.CREATED
+        } finally {
+            SlowUiOperation.end(operationStarted, javaClass.simpleName, "create")
+        }
     }
 
     /**
@@ -171,17 +176,22 @@ abstract class BaseOverlay internal constructor(
     override fun start() {
         if (lifecycleRegistry.currentState != State.CREATED) return
 
-        // During the orientation change, this overlay was hidden (in CREATED state). As it was not displayed, the
-        // recreation of the overlay was delayed to its next start request.
-        if (shouldBeRecreated) {
-            recreate()
+        val operationStarted = SlowUiOperation.begin()
+        try {
+            // During the orientation change, this overlay was hidden (in CREATED state). As it was not displayed, the
+            // recreation of the overlay was delayed to its next start request.
+            if (shouldBeRecreated) {
+                recreate()
+            }
+
+            Log.d(TAG, "show overlay ${hashCode()}")
+
+            CrashDiagnostics.record(CrashDiagnostics.Event.OVERLAY_SHOWN, javaClass.name, lifecycleRegistry.currentState.ordinal)
+            onStart()
+            lifecycleRegistry.currentState = State.STARTED
+        } finally {
+            SlowUiOperation.end(operationStarted, javaClass.simpleName, "start")
         }
-
-        Log.d(TAG, "show overlay ${hashCode()}")
-
-        CrashDiagnostics.record(CrashDiagnostics.Event.OVERLAY_SHOWN, javaClass.name, lifecycleRegistry.currentState.ordinal)
-        onStart()
-        lifecycleRegistry.currentState = State.STARTED
     }
 
     override fun resume() {
@@ -295,25 +305,30 @@ abstract class BaseOverlay internal constructor(
      * rotation.
      */
     override fun changeOrientation() {
-        Log.d(TAG, "onOrientationChanged for overlay ${hashCode()}")
+        val operationStarted = SlowUiOperation.begin()
+        try {
+            Log.d(TAG, "onOrientationChanged for overlay ${hashCode()}")
 
-        if (this::parentAppContext.isInitialized) {
-            context = newOverlayContext(parentAppContext, theme) { displayConfigManager.displayConfig.orientation }
-        }
+            if (this::parentAppContext.isInitialized) {
+                context = newOverlayContext(parentAppContext, theme) { displayConfigManager.displayConfig.orientation }
+            }
 
-        CrashDiagnostics.record(CrashDiagnostics.Event.ROTATION_CHANGED, javaClass.name, lifecycleRegistry.currentState.ordinal)
-        onOrientationChanged()
+            CrashDiagnostics.record(CrashDiagnostics.Event.ROTATION_CHANGED, javaClass.name, lifecycleRegistry.currentState.ordinal)
+            onOrientationChanged()
 
-        if (!recreateOnRotation) return
+            if (!recreateOnRotation) return
 
-        shouldBeRecreated = true
-        val preRotationLifecycleState = lifecycleRegistry.currentState
-        if (preRotationLifecycleState.isAtLeast(State.STARTED)) {
-            recreate()
-            start()
-            if (preRotationLifecycleState == State.RESUMED) resume()
-        } else {
-            Log.d(TAG, "not visible, delay recreation of overlay ${hashCode()}")
+            shouldBeRecreated = true
+            val preRotationLifecycleState = lifecycleRegistry.currentState
+            if (preRotationLifecycleState.isAtLeast(State.STARTED)) {
+                recreate()
+                start()
+                if (preRotationLifecycleState == State.RESUMED) resume()
+            } else {
+                Log.d(TAG, "not visible, delay recreation of overlay ${hashCode()}")
+            }
+        } finally {
+            SlowUiOperation.end(operationStarted, javaClass.simpleName, "rotate")
         }
     }
 
