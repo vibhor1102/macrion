@@ -265,4 +265,8 @@
         <item quantity="many">%1$d por minuto (predeterminado)</item>
         <item quantity="other">%1$d por minuto (predeterminado)</item>
     </plurals>
+    <string name="crash_update_title">Actualización disponible</string>
+    <string name="crash_update_message">Macrion %1$s está disponible en %2$s. La actualización podría resolver este problema.</string>
+    <string name="crash_update_later">Ahora no</string>
+    <string name="crash_update_view">Ver actualización</string>
 </resources>

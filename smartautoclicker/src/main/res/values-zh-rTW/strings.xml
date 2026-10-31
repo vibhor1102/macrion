@@ -196,4 +196,8 @@
     <string name="settings_screenshot_rate_limit_dialog_desc">輸入每個滾動分鐘內允許擷取的螢幕畫面數量上限。輸入 0 可停用限制。</string>
     <string name="settings_screenshot_rate_limit_dialog_label">每分鐘螢幕擷取數</string>
     <string name="settings_screenshot_rate_limit_invalid">請輸入有效數字（0 或大於 0）</string>
+    <string name="crash_update_title">有可用更新</string>
+    <string name="crash_update_message">Macrion %1$s 已在 %2$s 上發布。更新可能會解決此問題。</string>
+    <string name="crash_update_later">稍後再說</string>
+    <string name="crash_update_view">查看更新</string>
 </resources>

@@ -264,4 +264,8 @@
     <string name="settings_screenshot_rate_limit_dialog_desc">Inserisci il numero massimo di screenshot consentiti in un minuto mobile. Inserisci 0 per disattivare il limite.</string>
     <string name="settings_screenshot_rate_limit_dialog_label">Screenshot al minuto</string>
     <string name="settings_screenshot_rate_limit_invalid">Inserisci un numero valido (0 o superiore)</string>
+    <string name="crash_update_title">Aggiornamento disponibile</string>
+    <string name="crash_update_message">Macrion %1$s è disponibile su %2$s. L’aggiornamento potrebbe risolvere questo problema.</string>
+    <string name="crash_update_later">Non ora</string>
+    <string name="crash_update_view">Visualizza aggiornamento</string>
 </resources>

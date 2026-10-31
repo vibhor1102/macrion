@@ -274,4 +274,8 @@
     <string name="settings_screenshot_rate_limit_dialog_label">Снимков экрана в минуту</string>
     <string name="settings_screenshot_rate_limit_invalid">Введите допустимое число (0 или больше)</string>
 
+    <string name="crash_update_title">Доступно обновление</string>
+    <string name="crash_update_message">Macrion %1$s доступен на %2$s. Обновление может решить эту проблему.</string>
+    <string name="crash_update_later">Не сейчас</string>
+    <string name="crash_update_view">Посмотреть обновление</string>
 </resources>

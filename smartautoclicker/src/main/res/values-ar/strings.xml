@@ -294,4 +294,8 @@
     <string name="settings_screenshot_rate_limit_dialog_desc">أدخل الحد الأقصى لعدد لقطات الشاشة خلال الدقيقة المتحركة. أدخل 0 لتعطيل الحد.</string>
     <string name="settings_screenshot_rate_limit_dialog_label">لقطات الشاشة في الدقيقة</string>
     <string name="settings_screenshot_rate_limit_invalid">أدخل رقمًا صالحًا (0 أو أكبر)</string>
+    <string name="crash_update_title">يتوفر تحديث</string>
+    <string name="crash_update_message">الإصدار %1$s من Macrion متاح على %2$s. قد يؤدي التحديث إلى حل هذه المشكلة.</string>
+    <string name="crash_update_later">ليس الآن</string>
+    <string name="crash_update_view">عرض التحديث</string>
 </resources>

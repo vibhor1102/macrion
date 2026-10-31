@@ -267,4 +267,8 @@
     <string name="settings_screenshot_rate_limit_dialog_desc">Saisissez le nombre maximal de captures d’écran autorisées sur une période glissante d’une minute. Saisissez 0 pour désactiver la limite.</string>
     <string name="settings_screenshot_rate_limit_dialog_label">Captures d’écran par minute</string>
     <string name="settings_screenshot_rate_limit_invalid">Veuillez saisir un nombre valide (supérieur ou égal à 0)</string>
+    <string name="crash_update_title">Mise à jour disponible</string>
+    <string name="crash_update_message">Macrion %1$s est disponible sur %2$s. La mise à jour pourrait résoudre ce problème.</string>
+    <string name="crash_update_later">Pas maintenant</string>
+    <string name="crash_update_view">Voir la mise à jour</string>
 </resources>

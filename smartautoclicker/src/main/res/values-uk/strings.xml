@@ -272,4 +272,8 @@
         <item quantity="many">%1$d за хвилину (за замовчуванням)</item>
         <item quantity="other">%1$d за хвилину (за замовчуванням)</item>
     </plurals>
+    <string name="crash_update_title">Доступне оновлення</string>
+    <string name="crash_update_message">Macrion %1$s доступний на %2$s. Оновлення може вирішити цю проблему.</string>
+    <string name="crash_update_later">Не зараз</string>
+    <string name="crash_update_view">Переглянути оновлення</string>
 </resources>

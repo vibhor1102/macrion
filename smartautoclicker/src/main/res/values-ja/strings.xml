@@ -196,4 +196,8 @@
         <item quantity="other">%1$d分（デフォルト）</item>
     </plurals>
     <string name="toast_advanced_settings_restored_defaults">詳細設定がデフォルト値に復元されました。</string>
+    <string name="crash_update_title">アップデートがあります</string>
+    <string name="crash_update_message">Macrion %1$s が %2$s で公開されています。アップデートすると、この問題が解決する可能性があります。</string>
+    <string name="crash_update_later">後で</string>
+    <string name="crash_update_view">アップデートを確認</string>
 </resources>

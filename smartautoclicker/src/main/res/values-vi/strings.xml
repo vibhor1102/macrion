@@ -177,4 +177,8 @@
     <string name="settings_screenshot_rate_limit_dialog_desc">Nhập số ảnh chụp màn hình tối đa trong mỗi phút liên tiếp. Nhập 0 để tắt giới hạn.</string>
     <string name="settings_screenshot_rate_limit_dialog_label">Ảnh chụp màn hình mỗi phút</string>
     <string name="settings_screenshot_rate_limit_invalid">Vui lòng nhập một số hợp lệ (0 trở lên)</string>
+    <string name="crash_update_title">Có bản cập nhật</string>
+    <string name="crash_update_message">Macrion %1$s hiện có trên %2$s. Cập nhật có thể khắc phục sự cố này.</string>
+    <string name="crash_update_later">Để sau</string>
+    <string name="crash_update_view">Xem bản cập nhật</string>
 </resources>
