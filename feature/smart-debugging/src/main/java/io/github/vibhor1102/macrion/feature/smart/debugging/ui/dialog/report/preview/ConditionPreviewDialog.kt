@@ -16,6 +16,7 @@
  */
 package io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.preview
 
+import io.github.vibhor1102.macrion.core.base.extensions.toNaturalString
 import android.graphics.Bitmap
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
@@ -525,8 +526,5 @@ private fun ComparisonOperation.toSymbol(): String = when (this) {
 
 private fun CounterOperationValue.toNaturalDisplayString(): String = when (this) {
     is CounterOperationValue.Counter -> value
-    is CounterOperationValue.Number -> {
-        if (value % 1.0 == 0.0) value.toLong().toString()
-        else value.toString()
-    }
+    is CounterOperationValue.Number -> value.toNaturalString()
 }

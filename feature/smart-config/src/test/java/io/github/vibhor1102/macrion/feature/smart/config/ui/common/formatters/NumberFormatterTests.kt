@@ -69,4 +69,12 @@ class NumberFormatterTests {
     fun counterOperationCounter_keepsCounterName() {
         assertEquals("Counter A", CounterOperationValue.Counter("Counter A").toNaturalDisplayString())
     }
+    @Test
+    fun typedExtrasAreCompactWithoutChangingTextPayloads() {
+        assertEquals("42", 42.0.toIntentExtraDisplayString())
+        assertEquals("1.2", 1.2f.toIntentExtraDisplayString())
+        assertEquals("100000000000000000000", 1e20.toIntentExtraDisplayString())
+        assertEquals(" 0042.00 ", " 0042.00 ".toIntentExtraDisplayString())
+        assertEquals(" ", ' '.toIntentExtraDisplayString())
+    }
 }

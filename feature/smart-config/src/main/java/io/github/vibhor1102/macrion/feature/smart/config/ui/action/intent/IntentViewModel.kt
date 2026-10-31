@@ -16,6 +16,7 @@
  */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.action.intent
 
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.formatters.toIntentExtraDisplayString
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent as AndroidIntent
@@ -120,7 +121,7 @@ class IntentViewModel @Inject constructor(
                         ExtraListItem.ExtraItem(
                             extra = extra,
                             name = if (lastDotIndex == -1) extra.key!! else extra.key!!.substring(lastDotIndex),
-                            value = extra.value.toString()
+                            value = extra.value.toIntentExtraDisplayString()
                         )
                     )
                 }

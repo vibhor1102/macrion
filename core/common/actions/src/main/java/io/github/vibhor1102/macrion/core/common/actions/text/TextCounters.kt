@@ -16,6 +16,7 @@
  */
 package io.github.vibhor1102.macrion.core.common.actions.text
 
+import io.github.vibhor1102.macrion.core.base.extensions.toNaturalString
 import java.util.regex.Pattern
 
 fun String.appendCounterReference(counterName: String, atIndex: Int = -1): String {
@@ -48,7 +49,7 @@ fun String.replaceCounterReferences(counterToValueMap: Map<String, Double>): Str
     counterToValueMap.entries.forEach { (counterName, counterValue) ->
         result = result.replace(
             oldValue = "{$counterName}",
-            newValue = counterValue.toString()
+            newValue = counterValue.toNaturalString()
         )
     }
 

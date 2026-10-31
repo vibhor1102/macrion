@@ -61,7 +61,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.math.BigDecimal
+import io.github.vibhor1102.macrion.core.base.extensions.toNaturalString
 import javax.inject.Inject
 import kotlin.coroutines.cancellation.CancellationException
 
@@ -236,8 +236,7 @@ class DebugConditionContentViewModel @Inject constructor(
         100.00 - this
 
     private fun Double.toNaturalDisplayString(): String {
-        if (!isFinite()) return toString()
-        return BigDecimal.valueOf(this).stripTrailingZeros().toPlainString()
+        return toNaturalString()
     }
 
     private fun CounterOperationValue.toNaturalDisplayString(): String =

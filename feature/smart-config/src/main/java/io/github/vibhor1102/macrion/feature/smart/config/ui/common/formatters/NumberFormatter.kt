@@ -18,17 +18,16 @@ package io.github.vibhor1102.macrion.feature.smart.config.ui.common.formatters
 
 import io.github.vibhor1102.macrion.core.domain.model.counter.CounterOperationValue
 
-import java.math.BigDecimal
-import java.math.RoundingMode
+import io.github.vibhor1102.macrion.core.base.extensions.toNaturalString
 
-fun Double.toNaturalDisplayString(maxFractionDigits: Int? = null): String {
-    if (!isFinite()) return toString()
+fun Double.toNaturalDisplayString(maxFractionDigits: Int? = null): String =
+    toNaturalString(maxFractionDigits)
 
-    val value = maxFractionDigits
-        ?.let { BigDecimal.valueOf(this).setScale(it, RoundingMode.HALF_UP) }
-        ?: BigDecimal.valueOf(this)
-
-    return value.stripTrailingZeros().toPlainString()
+/** Format typed numeric extras for editing, while preserving String/Char payloads exactly. */
+fun Any?.toIntentExtraDisplayString(): String = when (this) {
+    is Double -> toNaturalString()
+    is Float -> toNaturalString()
+    else -> toString()
 }
 
 fun CounterOperationValue.toNaturalDisplayString(): String =

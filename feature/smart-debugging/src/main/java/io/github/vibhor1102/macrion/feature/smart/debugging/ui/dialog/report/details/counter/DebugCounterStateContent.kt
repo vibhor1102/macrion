@@ -25,7 +25,7 @@ import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.Rep
 import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.ReportFastScroller
 import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.ReportLoading
 import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.adapter.ReportNameValueRow
-import java.math.BigDecimal
+import io.github.vibhor1102.macrion.core.base.extensions.toNaturalString
 
 class DebugCounterStateContent(
     appContext: Context,
@@ -90,4 +90,4 @@ private fun CounterStateItem.toValueDisplayText(): String {
 }
 
 private fun Double.toNaturalDisplayString(): String =
-    if (!isFinite()) toString() else BigDecimal.valueOf(this).stripTrailingZeros().toPlainString()
+    toNaturalString()

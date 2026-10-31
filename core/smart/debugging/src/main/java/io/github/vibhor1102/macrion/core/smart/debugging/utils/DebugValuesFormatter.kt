@@ -16,13 +16,17 @@
  */
 package io.github.vibhor1102.macrion.core.smart.debugging.utils
 
-import android.annotation.SuppressLint
+import java.text.NumberFormat
+import java.math.RoundingMode
 import io.github.vibhor1102.macrion.core.smart.debugging.domain.model.live.DebugLiveEventOccurrence
 
 /** Format this value as a displayable confidence rate. */
-@SuppressLint("DefaultLocale")
 fun Double.formatDebugConfidenceRate(): String =
-    "${String.format("%.2f", (this * 100).coerceIn(0.0, 100.0))} % "
+    NumberFormat.getNumberInstance().apply {
+        isGroupingUsed = false
+        maximumFractionDigits = 2
+        roundingMode = RoundingMode.HALF_UP
+    }.format((this * 100).coerceIn(0.0, 100.0)) + " %"
 
 /**
  * Format this image event occurrence conditions results as a displayable text.

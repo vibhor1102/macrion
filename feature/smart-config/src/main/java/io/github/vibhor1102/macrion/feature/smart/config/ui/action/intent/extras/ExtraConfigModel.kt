@@ -16,6 +16,7 @@
  */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.action.intent.extras
 
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.formatters.toIntentExtraDisplayString
 import androidx.lifecycle.ViewModel
 
 import io.github.vibhor1102.macrion.core.ui.bindings.dropdown.DropdownItem
@@ -63,7 +64,7 @@ class ExtraConfigModel @Inject constructor(
                 )
                 else -> ExtraValueInputState.TextInputTypeSelected(
                     value::class.getTypeItem(),
-                    value.toString(),
+                    value.toIntentExtraDisplayString(),
                     value,
                 )
             }
