@@ -1,0 +1,1 @@
+Fix whole-number counters adding unnecessary .0 in text-writing and notifications, while preserving fractions. Improve number formatting in intent extra editors and confidence percentages. Correct very large counter values in debugging previews. Add lightweight diagnostics for unusually slow floating menus.
