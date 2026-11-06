@@ -158,7 +158,10 @@ class BackupRepository @Inject constructor(
                 screenSize,
                 BackupProgress(
                     onError = { error ->
-                        send(Backup.Error(malformedArchive = error == BackupError.MALFORMED_ARCHIVE))
+                        send(Backup.Error(
+                            malformedArchive = error == BackupError.MALFORMED_ARCHIVE,
+                            unsupportedSchema = error == BackupError.UNSUPPORTED_SCHEMA,
+                        ))
                     },
                     onProgressChanged = { current, max -> send(Backup.Loading(current, max)) },
                     onVerification = { send(Backup.Verification) },

@@ -70,8 +70,8 @@ internal class DumbBackupDataSource(
             },
             screenWidth = screenSize.x,
             screenHeight = screenSize.y,
-            // Keep the previously emitted portable version; the new path column is native-only.
-            version = if (format == BackupArchiveFormat.MACRION_NATIVE) DUMB_DATABASE_VERSION else 5,
+            // Version 1 selects the legacy reader in both Klick’r 4.0 and 4.1.
+            version = if (format == BackupArchiveFormat.MACRION_NATIVE) DUMB_DATABASE_VERSION else 1,
         )
 
     override fun verifyExtractedBackup(backup: DumbScenarioBackup, screenSize: Point): DumbScenarioWithActions? {

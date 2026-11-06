@@ -80,4 +80,5 @@
         <item quantity="other">%1$d errori</item>
         <item quantity="many">%1$d errori</item>
     </plurals>
+    <string name="message_backup_import_unsupported_schema">Questo backup usa un formato di scenario che questa versione di Macrion non può importare in sicurezza. Non è stato importato nulla. Conserva il backup originale.</string>
 </resources>

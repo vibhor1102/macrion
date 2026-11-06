@@ -91,4 +91,5 @@
         <item quantity="many">%1$d خطأ</item>
         <item quantity="other">%1$d خطأ</item>
     </plurals>
+    <string name="message_backup_import_unsupported_schema">تستخدم هذه النسخة الاحتياطية تنسيق سيناريو لا يستطيع هذا الإصدار من Macrion استيراده بأمان. لم يتم استيراد أي شيء. احتفظ بالنسخة الاحتياطية الأصلية.</string>
 </resources>

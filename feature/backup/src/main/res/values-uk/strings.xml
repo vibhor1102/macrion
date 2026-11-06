@@ -84,4 +84,5 @@
         <item quantity="other">%1$d помилки</item>
     </plurals>
     <string name="message_backup_import_completed_with_error">Імпорт завершено\n%1$s\n%2$s</string>
+    <string name="message_backup_import_unsupported_schema">У цій резервній копії використовується формат сценарію, який ця версія Macrion не може безпечно імпортувати. Нічого не імпортовано. Збережіть початкову резервну копію.</string>
 </resources>

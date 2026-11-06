@@ -23,6 +23,7 @@ import io.github.vibhor1102.macrion.core.base.extensions.getJsonObject
 import io.github.vibhor1102.macrion.core.base.extensions.getString
 import io.github.vibhor1102.macrion.core.database.serialization.DeserializerFactory
 import io.github.vibhor1102.macrion.core.database.entity.normalizeUserEnteredNames
+import io.github.vibhor1102.macrion.feature.backup.data.base.validateBackupSchema
 import io.github.vibhor1102.macrion.feature.backup.data.base.BackupArchiveFormat
 import io.github.vibhor1102.macrion.feature.backup.data.base.withoutMacrionSubExtension
 import io.github.vibhor1102.macrion.feature.backup.data.base.MACRION_FORMAT_NAME
@@ -74,6 +75,7 @@ internal class ScenarioSerializer : ScenarioBackupSerializer<ScenarioBackup> {
         ) {
             throw MalformedBackupArchiveException()
         }
+        validateBackupSchema(jsonBackup, format, isDumb = false)
         val version = jsonBackup.getInt("version", true) ?: -1
 
         val scenario = jsonBackup.getJsonObject("scenario", true)?.let { scenario ->

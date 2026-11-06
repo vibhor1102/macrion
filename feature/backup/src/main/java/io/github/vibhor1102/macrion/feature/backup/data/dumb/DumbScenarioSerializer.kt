@@ -39,6 +39,7 @@ import io.github.vibhor1102.macrion.core.dumb.domain.model.REPEAT_COUNT_MIN_VALU
 import io.github.vibhor1102.macrion.core.dumb.domain.model.REPEAT_DELAY_MAX_MS
 import io.github.vibhor1102.macrion.core.dumb.domain.model.REPEAT_DELAY_MIN_MS
 import io.github.vibhor1102.macrion.feature.backup.data.base.ScenarioBackupSerializer
+import io.github.vibhor1102.macrion.feature.backup.data.base.validateBackupSchema
 import io.github.vibhor1102.macrion.feature.backup.data.base.BackupArchiveFormat
 import io.github.vibhor1102.macrion.feature.backup.data.base.MACRION_FORMAT_NAME
 import io.github.vibhor1102.macrion.feature.backup.data.base.MalformedBackupArchiveException
@@ -64,7 +65,8 @@ internal class DumbScenarioSerializer : ScenarioBackupSerializer<DumbScenarioBac
      * @param outputStream the stream to serialize into.
      */
     override fun serialize(scenarioBackup: DumbScenarioBackup, outputStream: OutputStream) {
-        Json.encodeToStream(scenarioBackup, outputStream)
+        if (scenarioBackup.format == MACRION_FORMAT_NAME) Json.encodeToStream(scenarioBackup, outputStream)
+        else Json.encodeToStream(scenarioBackup.toKlickrLegacyBackup(), outputStream)
     }
 
     /**
@@ -86,6 +88,7 @@ internal class DumbScenarioSerializer : ScenarioBackupSerializer<DumbScenarioBac
         ) {
             throw MalformedBackupArchiveException()
         }
+        validateBackupSchema(jsonBackup, format, isDumb = true)
         val version = jsonBackup.getInt("version", true) ?: -1
 
         val scenario = when {
@@ -173,7 +176,7 @@ internal class DumbScenarioSerializer : ScenarioBackupSerializer<DumbScenarioBac
 
     private fun JsonObject.deserializeDumbClickCompat(): DumbActionEntity? {
         val id = getLong("id", true) ?: return null
-        val scenarioId = getLong("dumb_scenario_id", true) ?: return null
+        val scenarioId = (getLong("dumbScenarioId") ?: getLong("dumb_scenario_id", true)) ?: return null
 
         val name = getString("name", true)
         if (name.isNullOrEmpty()) return null
@@ -204,7 +207,7 @@ internal class DumbScenarioSerializer : ScenarioBackupSerializer<DumbScenarioBac
 
     private fun JsonObject.deserializeDumbSwipeCompat(): DumbActionEntity? {
         val id = getLong("id", true) ?: return null
-        val scenarioId = getLong("dumb_scenario_id", true) ?: return null
+        val scenarioId = (getLong("dumbScenarioId") ?: getLong("dumb_scenario_id", true)) ?: return null
 
         val name = getString("name", true)
         if (name.isNullOrEmpty()) return null
@@ -239,7 +242,7 @@ internal class DumbScenarioSerializer : ScenarioBackupSerializer<DumbScenarioBac
 
     private fun JsonObject.deserializeDumbPauseCompat(): DumbActionEntity? {
         val id = getLong("id", true) ?: return null
-        val scenarioId = getLong("dumb_scenario_id", true) ?: return null
+        val scenarioId = (getLong("dumbScenarioId") ?: getLong("dumb_scenario_id", true)) ?: return null
 
         val name = getString("name", true)
         if (name.isNullOrEmpty()) return null

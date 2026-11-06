@@ -25,6 +25,8 @@ import io.github.vibhor1102.macrion.core.database.entity.CompleteScenario
 import io.github.vibhor1102.macrion.core.dumb.data.database.DumbScenarioWithActions
 import io.github.vibhor1102.macrion.feature.backup.data.dumb.DumbBackupDataSource
 import io.github.vibhor1102.macrion.feature.backup.data.smart.SmartBackupDataSource
+import io.github.vibhor1102.macrion.feature.backup.data.base.UnsupportedBackupSchemaException
+import io.github.vibhor1102.macrion.feature.backup.data.base.validateBackupSchema
 import io.github.vibhor1102.macrion.feature.backup.data.base.BackupArchiveFormat
 import io.github.vibhor1102.macrion.feature.backup.data.base.MACRION_MANIFEST_FILE_NAME
 import io.github.vibhor1102.macrion.feature.backup.data.base.MACRION_FORMAT_NAME
@@ -207,6 +209,9 @@ internal class BackupEngine(private val appDataDir: File, private val contentRes
                     importSmartDataSource.screenCompatWarning,
                     0,
                 )
+            } catch (unsupported: UnsupportedBackupSchemaException) {
+                Log.w(TAG, "Backup uses an unsupported schema; nothing imported", unsupported)
+                progress.onError(BackupError.UNSUPPORTED_SCHEMA)
             } catch (malformed: MalformedBackupArchiveException) {
                 Log.e(TAG, "Backup archive is malformed or mixes formats", malformed)
                 progress.onError(BackupError.MALFORMED_ARCHIVE)
@@ -252,7 +257,7 @@ internal fun detectArchiveFormat(inputStream: InputStream): BackupArchiveFormat 
                 if (entryFormat != null && zipEntry.name.endsWith(".json") &&
                     zipEntry.name != MACRION_MANIFEST_FILE_NAME) {
                     scenarioEntryFound = true
-                    validateScenarioEntryFormat(zipStream, entryFormat)
+                    validateScenarioEntryFormat(zipStream, entryFormat, isDumb = zipEntry.name.startsWith("dumb-"))
                 }
 
                 if (zipEntry.name == MACRION_MANIFEST_FILE_NAME) {
@@ -274,6 +279,7 @@ internal fun detectArchiveFormat(inputStream: InputStream): BackupArchiveFormat 
 private fun validateScenarioEntryFormat(
     zipStream: ZipInputStream,
     format: BackupArchiveFormat,
+    isDumb: Boolean,
 ) {
     val json = try {
         Json.parseToJsonElement(zipStream.readBytes().toString(Charsets.UTF_8)).jsonObject
@@ -287,6 +293,7 @@ private fun validateScenarioEntryFormat(
     ) {
         throw MalformedBackupArchiveException()
     }
+    validateBackupSchema(json, format, isDumb)
 }
 
 private fun validateNativeManifest(zipStream: ZipInputStream) {

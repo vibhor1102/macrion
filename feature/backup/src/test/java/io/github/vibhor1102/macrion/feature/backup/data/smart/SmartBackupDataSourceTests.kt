@@ -89,6 +89,7 @@ class SmartBackupDataSourceTests {
     fun deserialize_normalizesNamesAndCounterReferences_withoutTrimmingPayload() {
         val serializer = ScenarioSerializer()
         val source = ScenarioBackup(
+            format = MACRION_FORMAT_NAME,
             version = DATABASE_VERSION,
             screenWidth = 1080,
             screenHeight = 2400,
@@ -141,7 +142,7 @@ class SmartBackupDataSourceTests {
         val bytes = ByteArrayOutputStream().also { serializer.serialize(source, it) }.toByteArray()
 
         val restored = serializer.deserialize(
-            ByteArrayInputStream(bytes), BackupArchiveFormat.KLICKR_COMPATIBLE,
+            ByteArrayInputStream(bytes), BackupArchiveFormat.MACRION_NATIVE,
         )!!.scenario
 
         assertEquals("Scenario", restored.scenario.name)

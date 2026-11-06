@@ -36,7 +36,7 @@ class KlickrCompatibilityProjectorTests {
         val plan = KlickrCompatibilityProjector.createPlan(emptyList(), emptyList())
 
         assertEquals(BackupArchiveFormat.KLICKR_COMPATIBLE, plan.format)
-        assertEquals("klickr-d466f1620c54", plan.profile?.id)
+        assertEquals("klickr-legacy-smart23-simple1", plan.profile?.id)
         assertEquals(23, plan.profile?.portableDatabaseVersion)
         assertEquals(false, plan.profile?.crossReaderVerified)
         assertEquals(0, plan.omittedComponentCount)
@@ -481,6 +481,23 @@ class KlickrCompatibilityProjectorTests {
                 }
             }
         }
+    }
+
+    @Test
+    fun smartTouchDelaysBecomeOrderedPausesWithUniqueIds() {
+        val event = completeEvent(ActionType.CLICK, ActionType.PAUSE)
+        val click = event.actions[0].copy(action = event.actions[0].action.copy(
+            id = -1, waitBeforeMs = 120, waitAfterMs = 230,
+        ))
+        val original = completeScenario(event.copy(actions = listOf(click, event.actions[1])))
+        val projected = KlickrCompatibilityProjector.projectSmartScenario(original).value!!
+        val actions = projected.events.single().actions.map { it.action }
+        assertEquals(listOf(ActionType.PAUSE, ActionType.CLICK, ActionType.PAUSE, ActionType.PAUSE), actions.map { it.type })
+        assertEquals(listOf(120L, null, 230L, 100L), actions.map { it.pauseDuration })
+        assertEquals(listOf(0, 1, 2, 3), actions.map { it.priority })
+        assertEquals(4, actions.map { it.id }.distinct().size)
+        assertTrue(actions.all { it.waitBeforeMs == null && it.waitAfterMs == null })
+        assertEquals(120L, original.events.single().actions.first().action.waitBeforeMs)
     }
 
     private fun completeScenario(vararg events: CompleteEventEntity) = CompleteScenario(

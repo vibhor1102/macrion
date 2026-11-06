@@ -78,4 +78,5 @@
       -->
     <string name="content_desc_backup_state">The state of the backup</string>
 
+    <string name="message_backup_import_unsupported_schema">This backup uses a scenario format that this Macrion version cannot import safely. Nothing was imported. Keep the original backup.</string>
 </resources>

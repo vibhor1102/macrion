@@ -44,5 +44,5 @@ sealed class Backup {
     ) : Backup()
 
     /** The backup has encountered an error and has stopped. */
-    data class Error(val malformedArchive: Boolean = false) : Backup()
+    data class Error(val malformedArchive: Boolean = false, val unsupportedSchema: Boolean = false) : Backup()
 }

@@ -33,4 +33,5 @@
     <plurals name="message_backup_import_errors">
         <item quantity="other">%1$d 個錯誤</item>
     </plurals>
+    <string name="message_backup_import_unsupported_schema">此備份使用的情境格式無法由此版本的 Macrion 安全匯入。未匯入任何內容。請保留原始備份。</string>
 </resources>

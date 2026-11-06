@@ -43,4 +43,5 @@ class BackupProgress(
 enum class BackupError {
     GENERIC,
     MALFORMED_ARCHIVE,
+    UNSUPPORTED_SCHEMA,
 }

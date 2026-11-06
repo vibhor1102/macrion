@@ -4,6 +4,18 @@ Your automation scenarios can represent hours of meticulous layout, coordinate c
 
 ---
 
+## Compatibility with Klick’r
+
+Use native `.macrion.zip` backups to preserve all Macrion features. The separate Klick’r-compatible export targets the legacy readers in Klick’r 4.0 and 4.1: smart schema 23 and simple schema 1. Simple exports use an explicit interchange model rather than serializing Macrion’s database entities. Before/after touch delays are exported as separate pauses, including around repeated simple actions.
+
+Curved swipes, multi-touch groups, screenshot/sound actions, and external actions remain excluded from compatible exports. Review the omissions before saving; keep a native backup as well. A compatible export is a reduced copy of the selected scenarios.
+
+Klick’r 4.1 changed smart clicks and gestures (smart schemas 24–25) and nested simple actions (simple schema 3). These backups are currently rejected before extraction or database insertion instead of importing incomplete automations. A higher Macrion schema number does not imply support for a Klick’r schema with the same number. Older smart backups and legacy flat simple backups remain supported. Previously emitted Macrion-compatible simple schema 5 remains readable.
+
+The compatibility profile remains marked as verification pending: automated tests exercise a pinned Klick’r 4.1.2 simple-scenario reader, but full smart/simple restore and replay in the Klick’r APK still require device verification. Native Macrion archives are intentionally ignored by Klick’r; renaming their files does not convert them.
+
+---
+
 ## The Storage Philosophy
 
 Macrion operates under a strict offline-first, local-storage model:
@@ -32,10 +44,11 @@ Macrion-Backup-2026-09-07.macrion.zip
 
 ### 1. The Container Manifest (`macrion-manifest.macrion.json`)
 The root manifest validates the archive identity and declares container-level specifications:
-- `containerVersion`: The version of the Macrion archive format.
-- `macrionVersion`: The version string of the Macrion app that generated the backup.
-- `schemaVersion`: The Room database schema version utilized by the scenario definitions.
-- `createdAt`: ISO 8601 creation timestamp.
+- `format`: The archive family, currently `macrion`.
+- `containerVersion`: The version of the Macrion archive format, currently `1`.
+- `databaseVersion`: The Macrion smart database schema version. Each scenario payload also carries its own `version`; simple scenarios use their separate database version.
+
+The current manifest does not include an app version or creation timestamp.
 
 ### 2. Scenario Definitions (`{id}.macrion.json`)
 Each scenario resides in its own numbered directory. The JSON payload encapsulates the complete hierarchical tree of the scenario:

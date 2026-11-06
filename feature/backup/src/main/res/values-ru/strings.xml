@@ -98,4 +98,5 @@
         <item quantity="other">%1$d ошибки</item>
     </plurals>
 
+    <string name="message_backup_import_unsupported_schema">В этой резервной копии используется формат сценария, который эта версия Macrion не может безопасно импортировать. Ничего не импортировано. Сохраните исходную резервную копию.</string>
 </resources>

@@ -176,7 +176,7 @@ class BackupViewModel @Inject constructor(
         _backupState.value = when (backup) {
             is Backup.Loading -> getLoadingState(context, backup, isImport)
             Backup.Verification -> getVerificationState(context)
-            is Backup.Error -> getErrorState(context, isImport, backup.malformedArchive)
+            is Backup.Error -> getErrorState(context, isImport, backup.malformedArchive, backup.unsupportedSchema)
             is Backup.Completed -> getCompletedState(context, backup, isImport)
             null -> getInitialState(context, isImport)
         }
@@ -294,7 +294,12 @@ class BackupViewModel @Inject constructor(
      * @param isImport true for an import, false for an export.
      * @return the error state.
      */
-    private fun getErrorState(context: Context, isImport: Boolean, malformedArchive: Boolean) = BackupDialogUiState(
+    private fun getErrorState(
+        context: Context,
+        isImport: Boolean,
+        malformedArchive: Boolean,
+        unsupportedSchema: Boolean = false,
+    ) = BackupDialogUiState(
         fileSelectionVisibility = View.GONE,
         loadingVisibility = View.GONE,
         textStatusVisibility = View.VISIBLE,
@@ -305,7 +310,8 @@ class BackupViewModel @Inject constructor(
         iconStatusVisibility = View.VISIBLE,
         dialogOkButtonEnabled = false,
         dialogCancelButtonEnabled = true,
-        textStatusText = if (isImport && malformedArchive) context.getString(R.string.message_backup_import_malformed)
+        textStatusText = if (isImport && unsupportedSchema) context.getString(R.string.message_backup_import_unsupported_schema)
+                         else if (isImport && malformedArchive) context.getString(R.string.message_backup_import_malformed)
                          else if (isImport) context.getString(R.string.message_backup_import_error)
                          else context.getString(R.string.message_backup_create_error),
         iconStatus = R.drawable.img_error,

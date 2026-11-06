@@ -83,4 +83,5 @@
         <item quantity="many">%1$d erros</item>
         <item quantity="other">%1$d erros</item>
     </plurals>
+    <string name="message_backup_import_unsupported_schema">Este backup usa um formato de cenário que esta versão do Macrion não pode importar com segurança. Nada foi importado. Mantenha o backup original.</string>
 </resources>

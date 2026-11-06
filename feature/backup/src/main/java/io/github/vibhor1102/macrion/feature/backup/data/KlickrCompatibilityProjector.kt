@@ -6,11 +6,14 @@
  */
 package io.github.vibhor1102.macrion.feature.backup.data
 
+import io.github.vibhor1102.macrion.core.database.entity.ActionEntity
 import io.github.vibhor1102.macrion.core.database.entity.ActionType
 import io.github.vibhor1102.macrion.core.database.entity.ClickPositionType
 import io.github.vibhor1102.macrion.core.database.entity.CompleteActionEntity
 import io.github.vibhor1102.macrion.core.database.entity.CompleteEventEntity
 import io.github.vibhor1102.macrion.core.database.entity.CompleteScenario
+import io.github.vibhor1102.macrion.core.dumb.data.database.DumbActionEntity
+import io.github.vibhor1102.macrion.core.dumb.data.database.DumbActionType
 import io.github.vibhor1102.macrion.core.dumb.data.database.DumbScenarioWithActions
 import io.github.vibhor1102.macrion.feature.backup.data.base.BackupArchiveFormat
 
@@ -23,8 +26,8 @@ internal data class KlickrCompatibilityProfile(
 )
 
 internal val CURRENT_KLICKR_COMPATIBILITY_PROFILE = KlickrCompatibilityProfile(
-    id = "klickr-d466f1620c54",
-    displayName = "Klick’r 4.0.1-1-gd466f162 (verification pending)",
+    id = "klickr-legacy-smart23-simple1",
+    displayName = "Klick’r 4.0–4.1 legacy format (verification pending)",
     portableDatabaseVersion = 23,
     crossReaderVerified = false,
 )
@@ -214,7 +217,25 @@ internal object KlickrCompatibilityProjector {
             return KlickrCompatibilityProjection(value = null, losses = losses)
         }
 
-        val resultScenario = detached.copy(events = currentEvents)
+        val pauseIds = ExportPauseIds(detached.events.flatMap { it.actions }.map { it.action.id })
+        val resultScenario = detached.copy(events = currentEvents.map { event ->
+            event.copy(actions = event.actions.flatMap { action ->
+                if (action.action.type != ActionType.CLICK && action.action.type != ActionType.SWIPE) {
+                    listOf(action)
+                } else buildList {
+                    fun pause(duration: Long) = CompleteActionEntity(
+                        action = ActionEntity(
+                            id = pauseIds.next(), eventId = action.action.eventId, name = "Pause",
+                            type = ActionType.PAUSE, pauseDuration = duration,
+                        ),
+                        intentExtras = emptyList(), eventsToggle = emptyList(),
+                    )
+                    action.action.waitBeforeMs?.takeIf { it > 0 }?.let { add(pause(it)) }
+                    add(action.copy(action = action.action.copy(waitBeforeMs = null, waitAfterMs = null)))
+                    action.action.waitAfterMs?.takeIf { it > 0 }?.let { add(pause(it)) }
+                }
+            }.mapIndexed { index, action -> action.copy(action = action.action.copy(priority = index)) })
+        })
         val violations = validateReferentialIntegrity(resultScenario)
         check(violations.isEmpty()) {
             "Klick'r compatibility projection produced invalid referential integrity: $violations"
@@ -298,8 +319,21 @@ internal object KlickrCompatibilityProjector {
             )
             return KlickrCompatibilityProjection(value = null, losses = losses)
         }
+        val pauseIds = ExportPauseIds(detached.dumbActions.map { it.id })
+        val timedActions = compatibleActions.flatMap { action ->
+            if (action.type != DumbActionType.CLICK && action.type != DumbActionType.SWIPE) listOf(action)
+            else buildList {
+                fun pause(duration: Long) = DumbActionEntity(
+                    id = pauseIds.next(), dumbScenarioId = action.dumbScenarioId,
+                    name = "Pause", type = DumbActionType.PAUSE, pauseDuration = duration,
+                )
+                action.waitBeforeMs?.takeIf { it > 0 }?.let { add(pause(it)) }
+                add(action.copy(waitBeforeMs = null, waitAfterMs = null))
+                action.waitAfterMs?.takeIf { it > 0 }?.let { add(pause(it)) }
+            }
+        }.mapIndexed { index, action -> action.copy(priority = index) }
         return KlickrCompatibilityProjection(
-            value = detached.copy(dumbActions = compatibleActions, dumbActionsWithSubActions = emptyList()),
+            value = detached.copy(dumbActions = timedActions, dumbActionsWithSubActions = emptyList()),
             losses = losses,
         )
     }
@@ -331,3 +365,14 @@ private fun DumbScenarioWithActions.detachedCopy(): DumbScenarioWithActions = co
         action.copy(action = action.action.copy(), splitItems = action.splitItems.map { it.copy() })
     },
 )
+
+/** Pause IDs must not collide with retained or subsequently pruned source actions. */
+private class ExportPauseIds(ids: List<Long>) {
+    private val occupied = ids.toMutableSet()
+    private var candidate = -1L
+
+    fun next(): Long {
+        while (candidate in occupied) candidate--
+        return candidate.also { occupied += it }
+    }
+}

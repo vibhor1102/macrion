@@ -12,36 +12,36 @@ internal object BackupZipFixtures {
         get() = zip(
             "macrion-manifest.macrion.json" to
                 """{"format":"macrion","containerVersion":1,"databaseVersion":23}""",
-            "12/12.macrion.json" to """{"format":"macrion"}""",
+            "12/12.macrion.json" to """{"format":"macrion","version":23}""",
             "12/Condition_-34.macrion.png" to "image contents",
-            "dumb-56/56.macrion.json" to """{"format":"macrion"}""",
+            "dumb-56/56.macrion.json" to """{"format":"macrion","version":6}""",
         )
 
     val klickrCompatible: InputStream
         get() = zip(
-            "12/12.json" to "{}",
+            "12/12.json" to """{"version":23}""",
             "12/Condition_-34.png" to "image contents",
-            "dumb-56/56.json" to "{}",
+            "dumb-56/56.json" to """{"version":1}""",
         )
 
     val mixed: InputStream
         get() = zip(
             "macrion-manifest.macrion.json" to
                 """{"format":"macrion","containerVersion":1,"databaseVersion":23}""",
-            "12/12.macrion.json" to """{"format":"macrion"}""",
+            "12/12.macrion.json" to """{"format":"macrion","version":23}""",
             "13/13.json" to "{}",
         )
 
     val nativeWithoutManifest: InputStream
         get() = zip(
-            "12/12.macrion.json" to """{"format":"macrion"}""",
+            "12/12.macrion.json" to """{"format":"macrion","version":23}""",
         )
 
     val nativeWithInvalidManifest: InputStream
         get() = zip(
             "macrion-manifest.macrion.json" to
                 """{"format":"macrion","containerVersion":2,"databaseVersion":23}""",
-            "12/12.macrion.json" to """{"format":"macrion"}""",
+            "12/12.macrion.json" to """{"format":"macrion","version":23}""",
         )
 
     val nativeWithLegacyScenarioJson: InputStream
@@ -59,7 +59,7 @@ internal object BackupZipFixtures {
 
     val klickrFilenameWithNativeScenarioJson: InputStream
         get() = zip(
-            "12/12.json" to """{"format":"macrion"}""",
+            "12/12.json" to """{"format":"macrion","version":23}""",
         )
 
     val unrelated: InputStream

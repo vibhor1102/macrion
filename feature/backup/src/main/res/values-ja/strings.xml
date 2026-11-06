@@ -33,4 +33,5 @@
     <string name="message_backup_create_klickr_compatible_completed">Klick’r 互換バックアップが完了しました。削除された Macrion 専用コンポーネント: %1$d。</string>
     <string name="message_backup_create_klickr_compatible_completed_without_loss">Klick’r 互換バックアップが完了しました。削除が必要な Macrion 専用機能はありませんでした。</string>
     <string name="message_backup_klickr_curved_swipes_excluded">曲線スワイプを %1$d 件除外しました。完全な軌跡を保持するには、Macrion ネイティブのバックアップを使用してください。</string>
+    <string name="message_backup_import_unsupported_schema">このバックアップのシナリオ形式は、このバージョンの Macrion では安全にインポートできません。何もインポートされていません。元のバックアップを保管してください。</string>
 </resources>

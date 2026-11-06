@@ -54,4 +54,5 @@
     <plurals name="message_backup_import_errors">
         <item quantity="other">%1$d lỗi</item>
     </plurals>
+    <string name="message_backup_import_unsupported_schema">Bản sao lưu này sử dụng định dạng kịch bản mà phiên bản Macrion này không thể nhập an toàn. Chưa nhập dữ liệu nào. Hãy giữ lại bản sao lưu gốc.</string>
 </resources>
