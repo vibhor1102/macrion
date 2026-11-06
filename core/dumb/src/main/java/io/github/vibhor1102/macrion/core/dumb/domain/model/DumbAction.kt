@@ -113,6 +113,6 @@ sealed class DumbAction : Identifiable {
         val pauseDurationMs: Long,
     ) : DumbAction() {
 
-        override fun isValid(): Boolean = name.isNotBlank()
+        override fun isValid(): Boolean = name.isNotBlank() && pauseDurationMs > 0
     }
 }

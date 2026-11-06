@@ -34,6 +34,20 @@ class CombinedActionPersistenceTest {
     private fun click() = DumbAction.DumbClick(Identifier(databaseId = 1), Identifier(databaseId = 2),
         "Custom finger", 0, 3, false, 150, Point(0, 0), 250, 100, 400)
 
+    @Test fun scenarioRejectsAnyInvalidActionIncludingInsideGroups() {
+        val scenario = DumbScenario(Identifier(databaseId = 2), "Recording", listOf(click()),
+            1, false, 1, true, false)
+        assertTrue(scenario.isValid())
+        val invalid = click().copy(pressDurationMs = 60_000)
+        assertFalse(scenario.copy(dumbActions = listOf(click(), invalid)).isValid())
+        val group = DumbAction.DumbSplitAction(Identifier(databaseId = 10), scenario.id,
+            "Group", subActions = listOf(click(), invalid))
+        assertFalse(scenario.copy(dumbActions = listOf(group)).isValid())
+        assertFalse(scenario.copy(dumbActions = listOf(DumbAction.DumbPause(
+            Identifier(databaseId = 11), scenario.id, "Pause", 0, -1,
+        ))).isValid())
+    }
+
     @Test fun originIsValidButUnconfiguredPositionIsNot() {
         assertTrue(click().isValid())
         assertFalse(click().copy(position = Point(-1, -1)).isValid())

@@ -32,7 +32,7 @@ data class DumbScenario(
     val stats: ScenarioStats? = null,
 ) : Identifiable, Repeatable {
 
-    fun isValid(): Boolean = name.isNotBlank() && dumbActions.isNotEmpty()
+    fun isValid(): Boolean = name.isNotBlank() && dumbActions.isNotEmpty() && dumbActions.all { it.isValid() }
 }
 
 const val DUMB_SCENARIO_MIN_DURATION_MINUTES = 1
