@@ -81,4 +81,21 @@
         <item quantity="many">%1$d errori</item>
     </plurals>
     <string name="message_backup_import_unsupported_schema">Questo backup usa un formato di scenario che questa versione di Macrion non può importare in sicurezza. Non è stato importato nulla. Conserva il backup originale.</string>
+    <string name="message_backup_import_analysis">Verifica della compatibilità del backup…</string>
+    <string name="message_backup_import_incompatible">Questo backup non è completamente compatibile. Non è stato importato nulla. Puoi esaminare un recupero parziale.</string>
+    <string name="message_backup_partial_review">Saranno importati solo i dati compatibili. Le azioni non supportate vengono omesse. Gli eventi con condizioni non supportate vengono omessi interamente. Conserva il backup originale e controlla gli scenari recuperati prima di eseguirli.</string>
+    <string name="message_backup_import_recovery_counts">Scenari disponibili: %1$d\nScenari omessi: %2$d</string>
+    <string name="button_backup_try_partial">Prova importazione parziale</string>
+    <string name="button_backup_import_compatible">Importa dati compatibili</string>
+    <string name="message_backup_partial_completed">Importazione di recupero completata. Controlla le note di compatibilità e gli scenari recuperati prima di eseguirli.</string>
+    <string name="backup_issue_version">Versione del formato non verificata</string>
+    <string name="backup_issue_field">Campo sconosciuto omesso</string>
+    <string name="backup_issue_action">Azione omessa</string>
+    <string name="backup_issue_event">Evento omesso</string>
+    <string name="backup_issue_scenario">Scenario omesso</string>
+    <string name="backup_issue_reference">Azione omessa: riferimento mancante</string>
+    <string name="message_backup_more_issues">Altre %1$d note di compatibilità</string>
+    <string name="backup_feature_hold">Pressione mantenuta persistente</string>
+    <string name="backup_feature_timing">Sequenza di movimenti temporizzati</string>
+    <string name="backup_feature_coordinates">Coordinate dinamiche del gesto</string>
 </resources>

@@ -92,4 +92,21 @@
         <item quantity="other">%1$d خطأ</item>
     </plurals>
     <string name="message_backup_import_unsupported_schema">تستخدم هذه النسخة الاحتياطية تنسيق سيناريو لا يستطيع هذا الإصدار من Macrion استيراده بأمان. لم يتم استيراد أي شيء. احتفظ بالنسخة الاحتياطية الأصلية.</string>
+    <string name="message_backup_import_analysis">جارٍ التحقق من توافق النسخة الاحتياطية…</string>
+    <string name="message_backup_import_incompatible">هذه النسخة الاحتياطية غير متوافقة بالكامل. لم يتم استيراد أي شيء. يمكنك مراجعة استعادة جزئية.</string>
+    <string name="message_backup_partial_review">سيتم استيراد البيانات المتوافقة فقط. ستُحذف الإجراءات غير المدعومة من الاستيراد، وستُستبعد الأحداث ذات الشروط غير المدعومة بالكامل. احتفظ بالنسخة الأصلية وراجع السيناريوهات المستعادة قبل تشغيلها.</string>
+    <string name="message_backup_import_recovery_counts">السيناريوهات المتاحة: %1$d\nالسيناريوهات المستبعدة: %2$d</string>
+    <string name="button_backup_try_partial">تجربة الاستيراد الجزئي</string>
+    <string name="button_backup_import_compatible">استيراد البيانات المتوافقة</string>
+    <string name="message_backup_partial_completed">اكتمل استيراد الاستعادة. راجع ملاحظات التوافق والسيناريوهات المستعادة قبل تشغيلها.</string>
+    <string name="backup_issue_version">إصدار تنسيق غير متحقق منه</string>
+    <string name="backup_issue_field">تم استبعاد حقل غير معروف</string>
+    <string name="backup_issue_action">تم استبعاد إجراء</string>
+    <string name="backup_issue_event">تم استبعاد حدث</string>
+    <string name="backup_issue_scenario">تم استبعاد سيناريو</string>
+    <string name="backup_issue_reference">تم استبعاد إجراء: مرجع مفقود</string>
+    <string name="message_backup_more_issues">%1$d ملاحظات توافق إضافية</string>
+    <string name="backup_feature_hold">ضغط مستمر</string>
+    <string name="backup_feature_timing">تسلسل حركات بتوقيت محدد</string>
+    <string name="backup_feature_coordinates">إحداثيات إيماءة ديناميكية</string>
 </resources>

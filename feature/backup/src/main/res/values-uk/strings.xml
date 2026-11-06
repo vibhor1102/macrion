@@ -85,4 +85,21 @@
     </plurals>
     <string name="message_backup_import_completed_with_error">Імпорт завершено\n%1$s\n%2$s</string>
     <string name="message_backup_import_unsupported_schema">У цій резервній копії використовується формат сценарію, який ця версія Macrion не може безпечно імпортувати. Нічого не імпортовано. Збережіть початкову резервну копію.</string>
+    <string name="message_backup_import_analysis">Перевірка сумісності резервної копії…</string>
+    <string name="message_backup_import_incompatible">Ця резервна копія сумісна не повністю. Нічого не імпортовано. Можна переглянути часткове відновлення.</string>
+    <string name="message_backup_partial_review">Буде імпортовано лише сумісні дані. Непідтримувані дії пропускаються. Події з непідтримуваними умовами пропускаються повністю. Збережіть початкову копію та перевірте відновлені сценарії перед запуском.</string>
+    <string name="message_backup_import_recovery_counts">Доступно сценаріїв: %1$d\nПропущено сценаріїв: %2$d</string>
+    <string name="button_backup_try_partial">Спробувати частковий імпорт</string>
+    <string name="button_backup_import_compatible">Імпортувати сумісні дані</string>
+    <string name="message_backup_partial_completed">Імпорт відновлення завершено. Перевірте примітки щодо сумісності та відновлені сценарії перед запуском.</string>
+    <string name="backup_issue_version">Неперевірена версія формату</string>
+    <string name="backup_issue_field">Невідоме поле пропущено</string>
+    <string name="backup_issue_action">Дію пропущено</string>
+    <string name="backup_issue_event">Подію пропущено</string>
+    <string name="backup_issue_scenario">Сценарій пропущено</string>
+    <string name="backup_issue_reference">Дію пропущено: відсутнє посилання</string>
+    <string name="message_backup_more_issues">Додаткових приміток щодо сумісності: %1$d</string>
+    <string name="backup_feature_hold">Тривале утримання</string>
+    <string name="backup_feature_timing">Послідовність рухів із заданим часом</string>
+    <string name="backup_feature_coordinates">Динамічні координати жесту</string>
 </resources>

@@ -79,4 +79,21 @@
     <string name="content_desc_backup_state">The state of the backup</string>
 
     <string name="message_backup_import_unsupported_schema">This backup uses a scenario format that this Macrion version cannot import safely. Nothing was imported. Keep the original backup.</string>
+    <string name="message_backup_import_analysis">Checking backup compatibility…</string>
+    <string name="message_backup_import_incompatible">This backup is not fully compatible. Nothing has been imported. You can review a partial recovery.</string>
+    <string name="message_backup_partial_review">Only compatible data will be imported. Unsupported actions are omitted. Events with unsupported conditions are omitted entirely. Keep the original backup and check recovered scenarios before running them.</string>
+    <string name="message_backup_import_recovery_counts">Scenarios available: %1$d\nScenarios omitted: %2$d</string>
+    <string name="button_backup_try_partial">Try partial import</string>
+    <string name="button_backup_import_compatible">Import compatible data</string>
+    <string name="message_backup_partial_completed">Recovery import completed. Check the compatibility notes and recovered scenarios before running them.</string>
+    <string name="backup_issue_version">Unverified format version</string>
+    <string name="backup_issue_field">Unrecognized field omitted</string>
+    <string name="backup_issue_action">Action omitted</string>
+    <string name="backup_issue_event">Event omitted</string>
+    <string name="backup_issue_scenario">Scenario omitted</string>
+    <string name="backup_issue_reference">Action omitted: missing reference</string>
+    <string name="message_backup_more_issues">%1$d additional compatibility notes</string>
+    <string name="backup_feature_hold">Persistent hold</string>
+    <string name="backup_feature_timing">Timed movement sequence</string>
+    <string name="backup_feature_coordinates">Dynamic gesture coordinates</string>
 </resources>

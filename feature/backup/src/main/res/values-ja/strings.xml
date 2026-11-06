@@ -34,4 +34,21 @@
     <string name="message_backup_create_klickr_compatible_completed_without_loss">Klick’r 互換バックアップが完了しました。削除が必要な Macrion 専用機能はありませんでした。</string>
     <string name="message_backup_klickr_curved_swipes_excluded">曲線スワイプを %1$d 件除外しました。完全な軌跡を保持するには、Macrion ネイティブのバックアップを使用してください。</string>
     <string name="message_backup_import_unsupported_schema">このバックアップのシナリオ形式は、このバージョンの Macrion では安全にインポートできません。何もインポートされていません。元のバックアップを保管してください。</string>
+    <string name="message_backup_import_analysis">バックアップの互換性を確認中…</string>
+    <string name="message_backup_import_incompatible">このバックアップは完全には互換性がありません。何もインポートされていません。部分的な復元内容を確認できます。</string>
+    <string name="message_backup_partial_review">互換性のあるデータのみインポートします。未対応のアクションは除外します。未対応の条件があるイベントは全体を除外します。元のバックアップを保管し、復元したシナリオを実行する前に確認してください。</string>
+    <string name="message_backup_import_recovery_counts">インポート可能なシナリオ：%1$d\n除外するシナリオ：%2$d</string>
+    <string name="button_backup_try_partial">部分インポートを試す</string>
+    <string name="button_backup_import_compatible">互換データをインポート</string>
+    <string name="message_backup_partial_completed">復元データのインポートが完了しました。互換性の注記と復元したシナリオを実行前に確認してください。</string>
+    <string name="backup_issue_version">未検証の形式バージョン</string>
+    <string name="backup_issue_field">不明なフィールドを除外</string>
+    <string name="backup_issue_action">アクションを除外</string>
+    <string name="backup_issue_event">イベントを除外</string>
+    <string name="backup_issue_scenario">シナリオを除外</string>
+    <string name="backup_issue_reference">参照がないためアクションを除外</string>
+    <string name="message_backup_more_issues">互換性に関する注記は他に%1$d件あります</string>
+    <string name="backup_feature_hold">継続的な押下</string>
+    <string name="backup_feature_timing">移動ごとに時間を指定したシーケンス</string>
+    <string name="backup_feature_coordinates">動的なジェスチャー座標</string>
 </resources>

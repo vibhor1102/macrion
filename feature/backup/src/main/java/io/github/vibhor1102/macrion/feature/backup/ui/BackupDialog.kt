@@ -121,8 +121,12 @@ fun BackupDialog(
                         viewModel.setKlickrCompatibleExport(context, it)
                     },
                     onConfirm = { state ->
-                        if (state.compatibilityReviewReady) launchDocumentPickerOrShowError()
-                        else dismiss()
+                        when {
+                            state.canTryPartialImport -> viewModel.reviewPartialImport(context)
+                            state.importReviewReady -> viewModel.confirmPartialImport(context)
+                            state.compatibilityReviewReady -> launchDocumentPickerOrShowError()
+                            else -> dismiss()
+                        }
                     },
                     onCancel = ::dismiss,
                 )

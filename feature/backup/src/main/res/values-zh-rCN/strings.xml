@@ -34,4 +34,21 @@
         <item quantity="other">%1$d 个错误</item>
     </plurals>
     <string name="message_backup_import_unsupported_schema">此备份使用的场景格式无法由此版本的 Macrion 安全导入。未导入任何内容。请保留原始备份。</string>
+    <string name="message_backup_import_analysis">正在检查备份兼容性…</string>
+    <string name="message_backup_import_incompatible">此备份并非完全兼容。未导入任何内容。您可以查看部分恢复方案。</string>
+    <string name="message_backup_partial_review">仅导入兼容的数据。将省略不支持的操作，并完整省略包含不支持条件的事件。请保留原始备份，并在运行前检查恢复的场景。</string>
+    <string name="message_backup_import_recovery_counts">可导入的场景：%1$d\n省略的场景：%2$d</string>
+    <string name="button_backup_try_partial">尝试部分导入</string>
+    <string name="button_backup_import_compatible">导入兼容数据</string>
+    <string name="message_backup_partial_completed">恢复导入已完成。请在运行前检查兼容性说明和恢复的场景。</string>
+    <string name="backup_issue_version">未经验证的格式版本</string>
+    <string name="backup_issue_field">已省略未知字段</string>
+    <string name="backup_issue_action">已省略操作</string>
+    <string name="backup_issue_event">已省略事件</string>
+    <string name="backup_issue_scenario">已省略场景</string>
+    <string name="backup_issue_reference">已省略操作：缺少引用</string>
+    <string name="message_backup_more_issues">还有 %1$d 条兼容性说明</string>
+    <string name="backup_feature_hold">持续按住</string>
+    <string name="backup_feature_timing">独立定时的移动序列</string>
+    <string name="backup_feature_coordinates">动态手势坐标</string>
 </resources>

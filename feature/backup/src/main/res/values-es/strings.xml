@@ -84,4 +84,21 @@
         <item quantity="other">%1$d errores</item>
     </plurals>
     <string name="message_backup_import_unsupported_schema">Esta copia de seguridad usa un formato de escenario que esta versión de Macrion no puede importar de forma segura. No se ha importado nada. Conserva la copia de seguridad original.</string>
+    <string name="message_backup_import_analysis">Comprobando la compatibilidad de la copia de seguridad…</string>
+    <string name="message_backup_import_incompatible">Esta copia de seguridad no es totalmente compatible. No se ha importado nada. Puedes revisar una recuperación parcial.</string>
+    <string name="message_backup_partial_review">Solo se importarán los datos compatibles. Se omiten las acciones no compatibles y los eventos completos con condiciones no compatibles. Conserva la copia original y comprueba los escenarios recuperados antes de ejecutarlos.</string>
+    <string name="message_backup_import_recovery_counts">Escenarios disponibles: %1$d\nEscenarios omitidos: %2$d</string>
+    <string name="button_backup_try_partial">Intentar importación parcial</string>
+    <string name="button_backup_import_compatible">Importar datos compatibles</string>
+    <string name="message_backup_partial_completed">Importación de recuperación completada. Comprueba las notas de compatibilidad y los escenarios recuperados antes de ejecutarlos.</string>
+    <string name="backup_issue_version">Versión de formato sin verificar</string>
+    <string name="backup_issue_field">Campo desconocido omitido</string>
+    <string name="backup_issue_action">Acción omitida</string>
+    <string name="backup_issue_event">Evento omitido</string>
+    <string name="backup_issue_scenario">Escenario omitido</string>
+    <string name="backup_issue_reference">Acción omitida: falta una referencia</string>
+    <string name="message_backup_more_issues">%1$d notas de compatibilidad adicionales</string>
+    <string name="backup_feature_hold">Pulsación mantenida persistente</string>
+    <string name="backup_feature_timing">Secuencia de movimientos temporizados</string>
+    <string name="backup_feature_coordinates">Coordenadas de gesto dinámicas</string>
 </resources>

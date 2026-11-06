@@ -34,4 +34,21 @@
         <item quantity="other">%1$d 個錯誤</item>
     </plurals>
     <string name="message_backup_import_unsupported_schema">此備份使用的情境格式無法由此版本的 Macrion 安全匯入。未匯入任何內容。請保留原始備份。</string>
+    <string name="message_backup_import_analysis">正在檢查備份相容性…</string>
+    <string name="message_backup_import_incompatible">此備份並非完全相容。未匯入任何內容。您可以查看部分復原方案。</string>
+    <string name="message_backup_partial_review">僅匯入相容的資料。將略過不支援的操作，並完整略過包含不支援條件的事件。請保留原始備份，並在執行前檢查復原的情境。</string>
+    <string name="message_backup_import_recovery_counts">可匯入的情境：%1$d\n略過的情境：%2$d</string>
+    <string name="button_backup_try_partial">嘗試部分匯入</string>
+    <string name="button_backup_import_compatible">匯入相容資料</string>
+    <string name="message_backup_partial_completed">復原匯入已完成。請在執行前檢查相容性說明和復原的情境。</string>
+    <string name="backup_issue_version">未經驗證的格式版本</string>
+    <string name="backup_issue_field">已略過未知欄位</string>
+    <string name="backup_issue_action">已略過操作</string>
+    <string name="backup_issue_event">已略過事件</string>
+    <string name="backup_issue_scenario">已略過情境</string>
+    <string name="backup_issue_reference">已略過操作：缺少參照</string>
+    <string name="message_backup_more_issues">還有 %1$d 則相容性說明</string>
+    <string name="backup_feature_hold">持續按住</string>
+    <string name="backup_feature_timing">獨立計時的移動序列</string>
+    <string name="backup_feature_coordinates">動態手勢座標</string>
 </resources>

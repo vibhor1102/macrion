@@ -34,6 +34,10 @@ import io.github.vibhor1102.macrion.feature.backup.domain.Backup
 import io.github.vibhor1102.macrion.feature.backup.domain.BackupRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 
+import io.github.vibhor1102.macrion.feature.backup.data.BackupImportPlan
+import io.github.vibhor1102.macrion.feature.backup.data.ImportIssue
+import io.github.vibhor1102.macrion.feature.backup.data.ImportIssueKind
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -55,6 +59,8 @@ class BackupViewModel @Inject constructor(
     private var isImportMode: Boolean = false
     private var klickrCompatibleExport: Boolean = false
     private var preparedKlickrExport: BackupExportPlan? = null
+    private var preparedImport: BackupImportPlan? = null
+    private var backupJob: Job? = null
 
     /** The state of the backup. Null if not started yet. */
     private val _backupState = MutableStateFlow<BackupDialogUiState?>(null)
@@ -73,6 +79,10 @@ class BackupViewModel @Inject constructor(
     }
 
     fun reset() {
+        backupJob?.cancel()
+        backupJob = null
+        preparedImport?.close()
+        preparedImport = null
         _backupState.value = null
         preparedKlickrExport = null
         klickrCompatibleExport = false
@@ -92,8 +102,9 @@ class BackupViewModel @Inject constructor(
     ) {
         if (isImportMode || !klickrCompatibleExport) return
 
+        if (backupJob?.isActive == true) return
         _backupState.value = getCompatibilityAnalysisState(context)
-        viewModelScope.launch {
+        backupJob = viewModelScope.launch {
             try {
                 val plan = withContext(Dispatchers.IO) {
                     repository.prepareScenarioBackup(dumbScenarios, smartScenarios, klickrCompatible = true)
@@ -142,10 +153,18 @@ class BackupViewModel @Inject constructor(
         dumbScenarios: List<Long> = emptyList(),
         smartScenarios: List<Long> = emptyList(),
     ) {
-        viewModelScope.launch(Dispatchers.IO) {
+        if (backupJob?.isActive == true) return
+        backupJob = viewModelScope.launch {
             if (isImport) {
-                repository.restoreScenarioBackup(uri, displayConfigManager.displayConfig.sizePx).collect { backup ->
-                    updateBackupState(context, backup, true)
+                _backupState.value = getImportAnalysisState(context)
+                try {
+                    val plan = repository.prepareScenarioImport(uri)
+                    preparedImport = plan
+                    if (plan.requiresReview) _backupState.value = getImportReviewState(context, plan, partial = false)
+                    else restorePreparedImport(context, allowPartial = false)
+                } catch (cancelled: CancellationException) { throw cancelled }
+                catch (error: Exception) {
+                    _backupState.value = getErrorState(context, true, error is io.github.vibhor1102.macrion.feature.backup.data.base.MalformedBackupArchiveException)
                 }
             } else {
                 val backupFlow = preparedKlickrExport?.let { plan ->
@@ -165,6 +184,84 @@ class BackupViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    fun reviewPartialImport(context: Context) {
+        val plan = preparedImport ?: return
+        if (_backupState.value?.canTryPartialImport != true || plan.recoverableCount == 0) return
+        _backupState.value = getImportReviewState(context, plan, partial = true)
+    }
+
+    fun confirmPartialImport(context: Context) {
+        if (_backupState.value?.importReviewReady != true || preparedImport == null) return
+        _backupState.value = getLoadingState(context, Backup.Loading(), true)
+        backupJob = viewModelScope.launch { restorePreparedImport(context, allowPartial = true) }
+    }
+
+    private suspend fun restorePreparedImport(context: Context, allowPartial: Boolean) {
+        val plan = preparedImport ?: return
+        try {
+            repository.restorePreparedScenarioBackup(plan, displayConfigManager.displayConfig.sizePx, allowPartial).collect { backup ->
+                updateBackupState(context, backup, true)
+                if (backup is Backup.Completed && allowPartial) {
+                    _backupState.value = _backupState.value?.copy(
+                        textStatusText = _backupState.value?.textStatusText.orEmpty() + "\n\n" +
+                            context.getString(R.string.message_backup_partial_completed) + "\n\n" +
+                            context.getString(R.string.message_backup_import_recovery_counts, plan.recoverableCount, plan.excludedCount) +
+                            "\n\n" + importDetails(context, plan.issues),
+                    )
+                }
+            }
+        } catch (cancelled: CancellationException) { throw cancelled }
+        catch (error: Exception) { _backupState.value = getErrorState(context, true, false) }
+        finally { plan.close(); preparedImport = null }
+    }
+
+    private fun getImportAnalysisState(context: Context) = getLoadingState(context, Backup.Loading(), true).copy(
+        textStatusText = context.getString(R.string.message_backup_import_analysis),
+        dialogCancelButtonEnabled = true,
+    )
+
+    private fun getImportReviewState(context: Context, plan: BackupImportPlan, partial: Boolean) = BackupDialogUiState(
+        fileSelectionVisibility = View.GONE, loadingVisibility = View.GONE,
+        textStatusVisibility = View.VISIBLE, compatWarningVisibility = View.GONE,
+        klickrCheckboxVisibility = View.GONE, klickrExportWarningVisibility = View.GONE,
+        klickrCompatibleChecked = false, iconStatusVisibility = View.VISIBLE,
+        iconStatus = R.drawable.ic_warning, dialogOkButtonEnabled = plan.recoverableCount > 0,
+        dialogCancelButtonEnabled = true, canTryPartialImport = !partial && plan.recoverableCount > 0,
+        importReviewReady = partial && plan.recoverableCount > 0,
+        confirmButtonText = context.getString(if (partial) R.string.button_backup_import_compatible else R.string.button_backup_try_partial),
+        textStatusText = context.getString(when {
+            partial -> R.string.message_backup_partial_review
+            plan.recoverableCount == 0 -> R.string.message_backup_import_unsupported_schema
+            else -> R.string.message_backup_import_incompatible
+        }) +
+            "\n\n" + context.getString(R.string.message_backup_import_recovery_counts, plan.recoverableCount, plan.excludedCount) +
+            "\n\n" + importDetails(context, plan.issues, limit = if (partial) 100 else 5),
+    )
+
+    private fun importDetails(context: Context, issues: List<ImportIssue>, limit: Int = 100): String = issues.take(limit).joinToString("\n") { issue ->
+        val label = context.getString(when (issue.kind) {
+            ImportIssueKind.VERSION -> R.string.backup_issue_version
+            ImportIssueKind.FIELD -> R.string.backup_issue_field
+            ImportIssueKind.ACTION -> R.string.backup_issue_action
+            ImportIssueKind.EVENT -> R.string.backup_issue_event
+            ImportIssueKind.SCENARIO -> R.string.backup_issue_scenario
+            ImportIssueKind.REFERENCE -> R.string.backup_issue_reference
+        })
+        val detail = when (issue.detail) {
+            "persistent hold" -> context.getString(R.string.backup_feature_hold)
+            "timed movement sequence" -> context.getString(R.string.backup_feature_timing)
+            "dynamic gesture coordinates", "dynamic offset" -> context.getString(R.string.backup_feature_coordinates)
+            else -> issue.detail
+        }
+        "• " + listOf(issue.scenario, issue.item, label, detail).filter { it.isNotBlank() }.joinToString(" — ")
+    } + if (issues.size > limit) "\n" + context.getString(R.string.message_backup_more_issues, issues.size - limit) else ""
+
+    override fun onCleared() {
+        backupJob?.cancel()
+        preparedImport?.close()
+        super.onCleared()
     }
 
     /**
@@ -232,7 +329,7 @@ class BackupViewModel @Inject constructor(
         iconStatusVisibility = View.VISIBLE,
         iconStatus = R.drawable.ic_warning,
         iconTint = Color.YELLOW,
-        dialogOkButtonEnabled = true,
+        dialogOkButtonEnabled = plan.dumbScenarios.isNotEmpty() || plan.smartScenarios.isNotEmpty(),
         dialogCancelButtonEnabled = true,
         compatibilityReviewReady = true,
         textStatusText = if (plan.omittedComponentCount == 0 && plan.excludedScenarioCount == 0) {
@@ -250,7 +347,10 @@ class BackupViewModel @Inject constructor(
                 R.string.message_backup_klickr_curved_swipes_excluded,
                 plan.omittedCurvedSwipeCount,
             ) else ""
-        },
+        } + if (plan.losses.isNotEmpty()) "\n\n" + plan.losses.take(100).joinToString("\n") { loss ->
+            "• " + listOf(loss.scenarioName, loss.componentNames.joinToString(", "), loss.componentCount.toString())
+                .filter { it.isNotBlank() }.joinToString(" — ")
+        } else "",
     )
 
     /**
@@ -401,6 +501,9 @@ data class BackupDialogUiState(
     val dialogCancelButtonEnabled: Boolean,
     val requiresCompatibilityPreparation: Boolean = false,
     val compatibilityReviewReady: Boolean = false,
+    val canTryPartialImport: Boolean = false,
+    val importReviewReady: Boolean = false,
+    val confirmButtonText: String? = null,
 
     val fileSelectionText: String? = null,
     val textStatusText: String? = null,

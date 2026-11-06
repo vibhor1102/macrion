@@ -55,4 +55,21 @@
         <item quantity="other">%1$d lỗi</item>
     </plurals>
     <string name="message_backup_import_unsupported_schema">Bản sao lưu này sử dụng định dạng kịch bản mà phiên bản Macrion này không thể nhập an toàn. Chưa nhập dữ liệu nào. Hãy giữ lại bản sao lưu gốc.</string>
+    <string name="message_backup_import_analysis">Đang kiểm tra khả năng tương thích của bản sao lưu…</string>
+    <string name="message_backup_import_incompatible">Bản sao lưu này không tương thích hoàn toàn. Chưa nhập dữ liệu nào. Bạn có thể xem lại phương án khôi phục một phần.</string>
+    <string name="message_backup_partial_review">Chỉ dữ liệu tương thích sẽ được nhập. Các hành động không được hỗ trợ sẽ bị bỏ qua. Sự kiện có điều kiện không được hỗ trợ sẽ bị bỏ qua toàn bộ. Giữ bản sao lưu gốc và kiểm tra các kịch bản đã khôi phục trước khi chạy.</string>
+    <string name="message_backup_import_recovery_counts">Kịch bản có thể nhập: %1$d\nKịch bản bị bỏ qua: %2$d</string>
+    <string name="button_backup_try_partial">Thử nhập một phần</string>
+    <string name="button_backup_import_compatible">Nhập dữ liệu tương thích</string>
+    <string name="message_backup_partial_completed">Đã nhập dữ liệu khôi phục. Hãy kiểm tra các ghi chú tương thích và kịch bản đã khôi phục trước khi chạy.</string>
+    <string name="backup_issue_version">Phiên bản định dạng chưa xác minh</string>
+    <string name="backup_issue_field">Đã bỏ qua trường không xác định</string>
+    <string name="backup_issue_action">Đã bỏ qua hành động</string>
+    <string name="backup_issue_event">Đã bỏ qua sự kiện</string>
+    <string name="backup_issue_scenario">Đã bỏ qua kịch bản</string>
+    <string name="backup_issue_reference">Đã bỏ qua hành động: thiếu tham chiếu</string>
+    <string name="message_backup_more_issues">Thêm %1$d ghi chú về khả năng tương thích</string>
+    <string name="backup_feature_hold">Giữ chạm liên tục</string>
+    <string name="backup_feature_timing">Chuỗi chuyển động có thời gian riêng</string>
+    <string name="backup_feature_coordinates">Tọa độ cử chỉ động</string>
 </resources>

@@ -4,15 +4,19 @@ Your automation scenarios can represent hours of meticulous layout, coordinate c
 
 ---
 
-## Compatibility with Klick’r
+## Compatibility with Klick’r and future versions
 
-Use native `.macrion.zip` backups to preserve all Macrion features. The separate Klick’r-compatible export targets the legacy readers in Klick’r 4.0 and 4.1: smart schema 23 and simple schema 1. Simple exports use an explicit interchange model rather than serializing Macrion’s database entities. Before/after touch delays are exported as separate pauses, including around repeated simple actions.
+Use native `.macrion.zip` backups to preserve all features supported by the installed Macrion version. Klick’r-compatible export targets the explicitly named legacy format (smart schema 23, simple schema 1); compatibility with an unknown future Klick’r reader cannot be guaranteed. Export reviews show omissions and affected scenario/action names. Before/after touch delays become explicit pauses, including around repeated simple actions. Curves, multi-touch groups, screenshot/sound actions, and external actions remain excluded from this legacy export profile.
 
-Curved swipes, multi-touch groups, screenshot/sound actions, and external actions remain excluded from compatible exports. Review the omissions before saving; keep a native backup as well. A compatible export is a reduced copy of the selected scenarios.
+Macrion inspects a private snapshot of a selected archive before importing. Supported Klick’r 4.1 smart and simple clicks, straight swipes, stationary presses, and representable multi-touch gestures are translated into Macrion actions, retaining start offsets, durations, literal offsets, and simple-action repeat settings. Condition-targeted smart clicks remain condition-targeted. Timed movement sequences, counter-driven gesture coordinates, and persistent holds are not flattened into different behavior.
 
-Klick’r 4.1 changed smart clicks and gestures (smart schemas 24–25) and nested simple actions (simple schema 3). These backups are currently rejected before extraction or database insertion instead of importing incomplete automations. A higher Macrion schema number does not imply support for a Klick’r schema with the same number. Older smart backups and legacy flat simple backups remain supported. Previously emitted Macrion-compatible simple schema 5 remains readable.
+Unknown schema/container versions, unknown fields and enum values, and unsupported components stop the normal import before any database insertion. **Try partial import** opens a separate review of recoverable scenario counts and compatibility notes. **Import compatible data** is a second explicit confirmation. This fallback applies to recognizable future Macrion and Klick’r layouts, including version numbers not known when Macrion was built. It is recovery, not a promise that future semantics are understood.
 
-The compatibility profile remains marked as verification pending: automated tests exercise a pinned Klick’r 4.1.2 simple-scenario reader, but full smart/simple restore and replay in the Klick’r APK still require device verification. Native Macrion archives are intentionally ignored by Klick’r; renaming their files does not convert them.
+Unsupported actions are omitted as whole actions. An unknown condition removes its entire event, so recovery cannot accidentally broaden a trigger by dropping a restriction. Unknown scenario settings can make the whole scenario unrecoverable. References to omitted events/conditions are checked and dependent actions are omitted too. If no recognizable scenarios remain, import is disabled. Mixed-format, corrupt, and unrecognized archives do not gain a validation bypass.
+
+The review and import use the same private ZIP snapshot. Cancelling or finishing removes the snapshot; the original selected file is left untouched. Partial imports create copies and do not start scenarios automatically. Keep the original backup and inspect recovered scenarios before running them. Re-exporting a recovered scenario includes only the data that survived recovery, not its omitted future features.
+
+Automated tests exercise conversion, review/confirmation, future-version gates, private snapshots, and a pinned Klick’r 4.1.2 simple-scenario reader. Full smart/simple restore and replay inside Klick’r still require device verification. Native Macrion archive sub-extensions intentionally prevent accidental ingestion by Klick’r; renaming files does not convert them.
 
 ---
 
@@ -134,5 +138,5 @@ flowchart TD
 
 ### Referential Integrity & Orphan Prevention
 - **Missing Asset Detection**: If a scenario JSON references `Condition-456.macrion.png` but the image file is missing from the archive, Macrion alerts you before importing rather than silently creating broken conditions.
-- **Atomic Rollback**: Database insertion and asset copying are bound together. If an import fails midway (due to low disk space or an invalid entry), the entire transaction rolls back, and any partially extracted image files are deleted immediately—preventing orphaned files from cluttering your device storage.
+- **Staging and Database Rollback**: Archive validation and recovery review happen before live data is written. Image promotion rolls back newly copied files if promotion fails, and each scenario’s database insertion runs in a transaction. A failed scenario copy rolls back its rows; other successfully imported copies can remain. File promotion and database insertion are separate stages, so this is not an archive-wide transaction.
 - **ID De-Duplication**: Scenario, event, condition, and action database IDs are dynamically re-assigned upon import. Importing an archive never overwrites or collides with existing scenarios in your library, even if they share the same original numerical IDs.

@@ -44,6 +44,8 @@ internal data class KlickrCompatibilityLoss(
     val reason: KlickrCompatibilityLossReason,
     val componentCount: Int,
     val scenarioId: Long,
+    val scenarioName: String = "",
+    val componentNames: List<String> = emptyList(),
 )
 
 internal data class KlickrCompatibilityProjection<T>(
@@ -84,7 +86,11 @@ internal object KlickrCompatibilityProjector {
             smartScenarios = smartProjections.mapNotNull { it.value },
             format = BackupArchiveFormat.KLICKR_COMPATIBLE,
             profile = CURRENT_KLICKR_COMPATIBILITY_PROFILE,
-            losses = dumbProjections.flatMap { it.losses } + smartProjections.flatMap { it.losses },
+            losses = dumbProjections.flatMapIndexed { index, projection ->
+                projection.losses.map { it.copy(scenarioName = dumbScenarios[index].scenario.name) }
+            } + smartProjections.flatMapIndexed { index, projection ->
+                projection.losses.map { it.copy(scenarioName = smartScenarios[index].scenario.name) }
+            },
             excludedScenarioCount = dumbProjections.count { !it.isExportable } +
                 smartProjections.count { !it.isExportable },
         )
@@ -103,6 +109,7 @@ internal object KlickrCompatibilityProjector {
                 reason = KlickrCompatibilityLossReason.CURVED_SWIPE,
                 componentCount = curvedSwipeCount,
                 scenarioId = detached.scenario.id,
+                componentNames = event.actions.filter { it.action.type == ActionType.SWIPE && it.action.swipePath?.isCurved == true }.map { it.action.name },
             )
             val compatibleActions = event.actions.filterNot { action ->
                 action.action.type == ActionType.EXTERNAL_ACTION ||
@@ -120,6 +127,7 @@ internal object KlickrCompatibilityProjector {
                     reason = KlickrCompatibilityLossReason.UNSUPPORTED_COMPONENT,
                     componentCount = removedActionCount,
                     scenarioId = detached.scenario.id,
+                    componentNames = event.actions.filter { it.action.type in setOf(ActionType.EXTERNAL_ACTION, ActionType.PLAY_SOUND, ActionType.CAPTURE_SCREENSHOT, ActionType.SPLIT_ACTION) }.map { it.action.name },
                 )
             }
             event.copy(actions = compatibleActions)

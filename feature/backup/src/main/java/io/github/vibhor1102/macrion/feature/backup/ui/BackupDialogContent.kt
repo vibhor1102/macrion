@@ -14,6 +14,8 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -123,7 +125,7 @@ internal fun BackupDialogContent(
                 text = currentState.textStatusText.orEmpty(),
                 modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
                 style = MaterialTheme.typography.bodyLarge,
-                textAlign = TextAlign.Center,
+                textAlign = TextAlign.Start,
             )
         }
 
@@ -132,24 +134,24 @@ internal fun BackupDialogContent(
                 text = stringResource(R.string.message_backup_import_compatibility),
                 modifier = Modifier.fillMaxWidth().padding(top = 24.dp),
                 style = MaterialTheme.typography.bodyLarge,
-                textAlign = TextAlign.Center,
+                textAlign = TextAlign.Start,
             )
         }
 
-        Row(
+        FlowRow(
             modifier = Modifier.fillMaxWidth().padding(top = 24.dp),
             horizontalArrangement = Arrangement.End,
-            verticalAlignment = Alignment.CenterVertically,
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            TextButton(onClick = onCancel, enabled = currentState.dialogCancelButtonEnabled) {
+            TextButton(onClick = onCancel, enabled = currentState.dialogCancelButtonEnabled, modifier = Modifier.heightIn(min = 48.dp)) {
                 Text(stringResource(android.R.string.cancel))
             }
             Button(
                 onClick = { onConfirm(currentState) },
                 enabled = currentState.dialogOkButtonEnabled,
-                modifier = Modifier.padding(start = 8.dp),
+                modifier = Modifier.padding(start = 8.dp).heightIn(min = 48.dp),
             ) {
-                Text(stringResource(android.R.string.ok))
+                Text(currentState.confirmButtonText ?: stringResource(android.R.string.ok))
             }
         }
     }

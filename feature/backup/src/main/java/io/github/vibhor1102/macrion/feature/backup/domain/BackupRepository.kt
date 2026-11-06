@@ -19,6 +19,11 @@ package io.github.vibhor1102.macrion.feature.backup.domain
 import android.content.Context
 import android.graphics.Point
 import android.net.Uri
+import androidx.room.RoomDatabase
+import androidx.room.withTransaction
+import kotlinx.coroutines.CancellationException
+import io.github.vibhor1102.macrion.feature.backup.data.BackupImportPlan
+import io.github.vibhor1102.macrion.feature.backup.data.BackupImportPreparer
 
 import io.github.vibhor1102.macrion.core.database.ClickDatabase
 import io.github.vibhor1102.macrion.core.domain.IRepository
@@ -33,6 +38,8 @@ import io.github.vibhor1102.macrion.feature.backup.data.base.BackupArchiveFormat
 import dagger.hilt.android.qualifiers.ApplicationContext
 
 import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -50,6 +57,10 @@ class BackupRepository @Inject constructor(
         appDataDir = context.filesDir,
         contentResolver = context.contentResolver,
     )
+
+    private val importPreparer = BackupImportPreparer(context.cacheDir, context.contentResolver)
+
+    internal suspend fun prepareScenarioImport(uri: Uri): BackupImportPlan = importPreparer.prepare(uri)
 
     /**
      * Create a backup of the provided scenario into the provided file.
@@ -151,10 +162,18 @@ class BackupRepository @Inject constructor(
      *
      * @return a flow on the backup import progress.
      */
-    fun restoreScenarioBackup(zipFileUri: Uri, screenSize: Point) = channelFlow {
+    fun restoreScenarioBackup(zipFileUri: Uri, screenSize: Point) = flow<Backup> {
+        val plan = prepareScenarioImport(zipFileUri)
+        try {
+            if (plan.requiresReview) emit(Backup.Error(unsupportedSchema = true))
+            else emitAll(restorePreparedScenarioBackup(plan, screenSize))
+        } finally { plan.close() }
+    }
+
+    internal fun restorePreparedScenarioBackup(plan: BackupImportPlan, screenSize: Point, allowPartial: Boolean = false) = channelFlow {
         launch {
             backupEngine.loadBackup(
-                zipFileUri,
+                Uri.fromFile(plan.source),
                 screenSize,
                 BackupProgress(
                     onError = { error ->
@@ -171,7 +190,7 @@ class BackupRepository @Inject constructor(
                         val dumbsSnapshot = dumbs.toList()
                         val dumbsSuccess = dumbsSnapshot.toMutableList()
                         dumbsSnapshot.forEach { completeScenario ->
-                            if (dumbRepository.addDumbScenarioCopy(completeScenario) == null) {
+                            if (!insertScenarioCopy(dumbDatabase) { dumbRepository.addDumbScenarioCopy(completeScenario) }) {
                                 dumbsSuccess.remove(completeScenario)
                                 totalFailures++
                             }
@@ -180,7 +199,7 @@ class BackupRepository @Inject constructor(
                         val smartsSnapshot = smarts.toList()
                         val smartsSuccess = smartsSnapshot.toMutableList()
                         smartsSnapshot.forEach { completeScenario ->
-                            if (smartRepository.addScenarioCopy(completeScenario) == null) {
+                            if (!insertScenarioCopy(smartDatabase) { smartRepository.addScenarioCopy(completeScenario) }) {
                                 smartsSuccess.remove(completeScenario)
                                 totalFailures++
                             }
@@ -192,8 +211,20 @@ class BackupRepository @Inject constructor(
                             compatWarning = compatWarning,
                         ))
                     }
-                )
+                ),
+                prepared = plan,
+                allowPartial = allowPartial,
             )
         }
     }
+}
+
+/** A repository may return null after a partial insert; force rollback of that entire scenario. */
+private suspend fun insertScenarioCopy(database: RoomDatabase, insert: suspend () -> Long?): Boolean = try {
+    database.withTransaction { checkNotNull(insert()) }
+    true
+} catch (cancelled: CancellationException) {
+    throw cancelled
+} catch (_: Exception) {
+    false
 }

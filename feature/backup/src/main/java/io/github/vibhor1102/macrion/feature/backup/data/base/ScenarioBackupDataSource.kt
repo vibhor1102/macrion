@@ -146,9 +146,12 @@ internal abstract class ScenarioBackupDataSource<Backup, BackupScenario>(private
         zipStream: ZipInputStream,
         fileName: String,
         format: BackupArchiveFormat,
+        normalizedScenario: File? = null,
     ): Boolean {
         if (isScenarioBackupFileZipEntry(fileName, format)) {
-            val backup = serializer.deserialize(zipStream, format)
+            val backup = if (normalizedScenario != null) normalizedScenario.inputStream().use {
+                serializer.deserialize(it, BackupArchiveFormat.MACRION_NATIVE)
+            } else serializer.deserialize(zipStream, format)
 
             if (backup == null) {
                 Log.w(TAG, "Can't deserialize $fileName")

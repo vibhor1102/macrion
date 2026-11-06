@@ -99,4 +99,21 @@
     </plurals>
 
     <string name="message_backup_import_unsupported_schema">В этой резервной копии используется формат сценария, который эта версия Macrion не может безопасно импортировать. Ничего не импортировано. Сохраните исходную резервную копию.</string>
+    <string name="message_backup_import_analysis">Проверка совместимости резервной копии…</string>
+    <string name="message_backup_import_incompatible">Эта резервная копия совместима не полностью. Ничего не импортировано. Можно просмотреть частичное восстановление.</string>
+    <string name="message_backup_partial_review">Будут импортированы только совместимые данные. Неподдерживаемые действия пропускаются. События с неподдерживаемыми условиями пропускаются целиком. Сохраните исходную копию и проверьте восстановленные сценарии перед запуском.</string>
+    <string name="message_backup_import_recovery_counts">Доступно сценариев: %1$d\nПропущено сценариев: %2$d</string>
+    <string name="button_backup_try_partial">Попробовать частичный импорт</string>
+    <string name="button_backup_import_compatible">Импортировать совместимые данные</string>
+    <string name="message_backup_partial_completed">Импорт восстановления завершён. Проверьте замечания о совместимости и восстановленные сценарии перед запуском.</string>
+    <string name="backup_issue_version">Непроверенная версия формата</string>
+    <string name="backup_issue_field">Неизвестное поле пропущено</string>
+    <string name="backup_issue_action">Действие пропущено</string>
+    <string name="backup_issue_event">Событие пропущено</string>
+    <string name="backup_issue_scenario">Сценарий пропущен</string>
+    <string name="backup_issue_reference">Действие пропущено: отсутствует ссылка</string>
+    <string name="message_backup_more_issues">Дополнительных замечаний о совместимости: %1$d</string>
+    <string name="backup_feature_hold">Длительное удержание</string>
+    <string name="backup_feature_timing">Последовательность движений с заданным временем</string>
+    <string name="backup_feature_coordinates">Динамические координаты жеста</string>
 </resources>

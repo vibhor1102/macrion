@@ -145,7 +145,11 @@ internal class BackupEngine(private val appDataDir: File, private val contentRes
      * @param screenSize the size of this device screen.
      * @param progress the object notified about the backup import progress.
      */
-    suspend fun loadBackup(zipFileUri: Uri, screenSize: Point, progress: BackupProgress) {
+    suspend fun loadBackup(
+        zipFileUri: Uri, screenSize: Point, progress: BackupProgress,
+        prepared: BackupImportPlan? = null, allowPartial: Boolean = false,
+    ) {
+        require(prepared == null || (zipFileUri == Uri.fromFile(prepared.source) && (!prepared.requiresReview || allowPartial)))
         Log.i(TAG, "Load backup: $zipFileUri")
 
         val importStagingDir = File(appDataDir, "backup-import-${UUID.randomUUID()}")
@@ -161,7 +165,7 @@ internal class BackupEngine(private val appDataDir: File, private val contentRes
 
         withContext(Dispatchers.IO) {
             try {
-                val archiveFormat = detectArchiveFormat(contentResolver, zipFileUri)
+                val archiveFormat = prepared?.format ?: detectArchiveFormat(contentResolver, zipFileUri)
                 ZipInputStream(contentResolver.openInputStream(zipFileUri)).use { zipStream ->
                     generateSequence { zipStream.nextEntry }
                         .forEach { zipEntry ->
@@ -171,16 +175,19 @@ internal class BackupEngine(private val appDataDir: File, private val contentRes
                             if (zipEntry.name == MACRION_MANIFEST_FILE_NAME) return@forEach
                             if (entryFormat != archiveFormat) return@forEach
 
+                            val scenarioEntry = zipEntry.name.endsWith(".json")
+                            if (prepared != null && scenarioEntry && prepared.scenarios[zipEntry.name] == null) return@forEach
+                            val normalized = prepared?.scenarios?.get(zipEntry.name)
                             Log.d(TAG, "Extracting file ${zipEntry.name}")
                             when {
-                                importDumbDataSource.extractFromZip(zipStream, zipEntry.name, archiveFormat) -> {
+                                importDumbDataSource.extractFromZip(zipStream, zipEntry.name, archiveFormat, normalized) -> {
                                     Log.d(TAG, "Dumb scenario file ${zipEntry.name} extracted.")
 
                                     currentProgress++
                                     progress.onProgressChanged(currentProgress, null)
                                 }
 
-                                importSmartDataSource.extractFromZip(zipStream, zipEntry.name, archiveFormat) -> {
+                                importSmartDataSource.extractFromZip(zipStream, zipEntry.name, archiveFormat, normalized) -> {
                                     if (importSmartDataSource.isScenarioBackupFileZipEntry(zipEntry.name, archiveFormat)) {
                                         Log.d(TAG, "Smart scenario file ${zipEntry.name} extracted")
 
@@ -242,7 +249,7 @@ private fun detectArchiveFormat(
     detectArchiveFormat(inputStream)
 }
 
-internal fun detectArchiveFormat(inputStream: InputStream): BackupArchiveFormat {
+internal fun detectArchiveFormat(inputStream: InputStream, validateSchemas: Boolean = true): BackupArchiveFormat {
     var archiveFormat: BackupArchiveFormat? = null
     var nativeManifestFound = false
     var scenarioEntryFound = false
@@ -257,11 +264,11 @@ internal fun detectArchiveFormat(inputStream: InputStream): BackupArchiveFormat 
                 if (entryFormat != null && zipEntry.name.endsWith(".json") &&
                     zipEntry.name != MACRION_MANIFEST_FILE_NAME) {
                     scenarioEntryFound = true
-                    validateScenarioEntryFormat(zipStream, entryFormat, isDumb = zipEntry.name.startsWith("dumb-"))
+                    validateScenarioEntryFormat(zipStream, entryFormat, isDumb = zipEntry.name.startsWith("dumb-"), validateSchema = validateSchemas)
                 }
 
                 if (zipEntry.name == MACRION_MANIFEST_FILE_NAME) {
-                    validateNativeManifest(zipStream)
+                    validateNativeManifest(zipStream, allowFuture = !validateSchemas)
                     nativeManifestFound = true
                 }
             }
@@ -280,6 +287,7 @@ private fun validateScenarioEntryFormat(
     zipStream: ZipInputStream,
     format: BackupArchiveFormat,
     isDumb: Boolean,
+    validateSchema: Boolean,
 ) {
     val json = try {
         Json.parseToJsonElement(zipStream.readBytes().toString(Charsets.UTF_8)).jsonObject
@@ -293,10 +301,10 @@ private fun validateScenarioEntryFormat(
     ) {
         throw MalformedBackupArchiveException()
     }
-    validateBackupSchema(json, format, isDumb)
+    if (validateSchema) validateBackupSchema(json, format, isDumb)
 }
 
-private fun validateNativeManifest(zipStream: ZipInputStream) {
+private fun validateNativeManifest(zipStream: ZipInputStream, allowFuture: Boolean = false) {
     val manifest = try {
         Json.parseToJsonElement(zipStream.readBytes().toString(Charsets.UTF_8)).jsonObject
     } catch (error: RuntimeException) {
@@ -305,7 +313,7 @@ private fun validateNativeManifest(zipStream: ZipInputStream) {
 
     if (
         manifest.getString("format") != MACRION_FORMAT_NAME ||
-        manifest.getInt("containerVersion") != 1 ||
+        (if (allowFuture) (manifest.getInt("containerVersion") ?: 0) < 1 else manifest.getInt("containerVersion") != 1) ||
         (manifest.getInt("databaseVersion") ?: -1) < 0
     ) {
         throw MalformedBackupArchiveException()

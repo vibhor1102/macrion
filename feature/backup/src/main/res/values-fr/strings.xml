@@ -82,4 +82,21 @@
         <item quantity="other">%1$d erreurs</item>
     </plurals>
     <string name="message_backup_import_unsupported_schema">Cette sauvegarde utilise un format de scénario que cette version de Macrion ne peut pas importer de manière sûre. Aucune donnée n’a été importée. Conservez la sauvegarde originale.</string>
+    <string name="message_backup_import_analysis">Vérification de la compatibilité de la sauvegarde…</string>
+    <string name="message_backup_import_incompatible">Cette sauvegarde n’est pas entièrement compatible. Aucune donnée n’a été importée. Vous pouvez examiner une récupération partielle.</string>
+    <string name="message_backup_partial_review">Seules les données compatibles seront importées. Les actions non prises en charge sont omises. Les événements contenant des conditions non prises en charge sont entièrement omis. Conservez la sauvegarde originale et vérifiez les scénarios récupérés avant de les exécuter.</string>
+    <string name="message_backup_import_recovery_counts">Scénarios disponibles : %1$d\nScénarios omis : %2$d</string>
+    <string name="button_backup_try_partial">Essayer une importation partielle</string>
+    <string name="button_backup_import_compatible">Importer les données compatibles</string>
+    <string name="message_backup_partial_completed">Importation de récupération terminée. Vérifiez les remarques de compatibilité et les scénarios récupérés avant de les exécuter.</string>
+    <string name="backup_issue_version">Version de format non vérifiée</string>
+    <string name="backup_issue_field">Champ inconnu omis</string>
+    <string name="backup_issue_action">Action omise</string>
+    <string name="backup_issue_event">Événement omis</string>
+    <string name="backup_issue_scenario">Scénario omis</string>
+    <string name="backup_issue_reference">Action omise : référence manquante</string>
+    <string name="message_backup_more_issues">%1$d autres remarques de compatibilité</string>
+    <string name="backup_feature_hold">Maintien persistant</string>
+    <string name="backup_feature_timing">Séquence de mouvements temporisés</string>
+    <string name="backup_feature_coordinates">Coordonnées de geste dynamiques</string>
 </resources>

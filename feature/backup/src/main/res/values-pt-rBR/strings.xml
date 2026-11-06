@@ -84,4 +84,21 @@
         <item quantity="other">%1$d erros</item>
     </plurals>
     <string name="message_backup_import_unsupported_schema">Este backup usa um formato de cenário que esta versão do Macrion não pode importar com segurança. Nada foi importado. Mantenha o backup original.</string>
+    <string name="message_backup_import_analysis">Verificando a compatibilidade do backup…</string>
+    <string name="message_backup_import_incompatible">Este backup não é totalmente compatível. Nada foi importado. Você pode revisar uma recuperação parcial.</string>
+    <string name="message_backup_partial_review">Somente dados compatíveis serão importados. Ações não compatíveis são omitidas. Eventos com condições não compatíveis são omitidos por completo. Mantenha o backup original e confira os cenários recuperados antes de executá-los.</string>
+    <string name="message_backup_import_recovery_counts">Cenários disponíveis: %1$d\nCenários omitidos: %2$d</string>
+    <string name="button_backup_try_partial">Tentar importação parcial</string>
+    <string name="button_backup_import_compatible">Importar dados compatíveis</string>
+    <string name="message_backup_partial_completed">Importação de recuperação concluída. Confira as observações de compatibilidade e os cenários recuperados antes de executá-los.</string>
+    <string name="backup_issue_version">Versão de formato não verificada</string>
+    <string name="backup_issue_field">Campo desconhecido omitido</string>
+    <string name="backup_issue_action">Ação omitida</string>
+    <string name="backup_issue_event">Evento omitido</string>
+    <string name="backup_issue_scenario">Cenário omitido</string>
+    <string name="backup_issue_reference">Ação omitida: referência ausente</string>
+    <string name="message_backup_more_issues">Mais %1$d observações de compatibilidade</string>
+    <string name="backup_feature_hold">Toque mantido persistente</string>
+    <string name="backup_feature_timing">Sequência de movimentos temporizados</string>
+    <string name="backup_feature_coordinates">Coordenadas dinâmicas do gesto</string>
 </resources>
