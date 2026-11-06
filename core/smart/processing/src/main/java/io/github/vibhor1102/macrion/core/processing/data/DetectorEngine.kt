@@ -19,6 +19,7 @@ package io.github.vibhor1102.macrion.core.processing.data
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.Point
 import android.media.Image
 import android.media.projection.MediaProjectionManager
 import android.os.SystemClock
@@ -38,11 +39,13 @@ import io.github.vibhor1102.macrion.core.detection.ImageDetector
 import io.github.vibhor1102.macrion.core.detection.NativeDetector
 import io.github.vibhor1102.macrion.core.display.config.DisplayConfigManager
 import io.github.vibhor1102.macrion.core.domain.ext.getAllOCRAlphabets
+import io.github.vibhor1102.macrion.core.domain.model.condition.ScreenCondition
 import io.github.vibhor1102.macrion.core.domain.model.counter.Counter
 import io.github.vibhor1102.macrion.core.domain.model.event.ScreenEvent
 import io.github.vibhor1102.macrion.core.domain.model.event.TriggerEvent
 import io.github.vibhor1102.macrion.core.domain.model.scenario.Scenario
 import io.github.vibhor1102.macrion.core.processing.data.processor.ScenarioProcessor
+import io.github.vibhor1102.macrion.core.processing.data.scaling.ScreenConditionScalingInfo
 import io.github.vibhor1102.macrion.core.processing.data.scaling.ScalingManager
 import io.github.vibhor1102.macrion.core.settings.domain.SettingsRepository
 import io.github.vibhor1102.macrion.core.processing.domain.SmartProcessingListener
@@ -258,12 +261,12 @@ class DetectorEngine @Inject constructor(
             bitmapRepository.clearCache()
 
             // Set the display projection to the scaled size
-            displayRecorder.resizeDisplay(
-                displaySize = scalingManager.startScaling(
-                    quality = scenario.detectionQuality.toDouble(),
-                    screenEvents = screenEvents,
-                )
+            val scaledScreenSize = scalingManager.startScaling(
+                quality = scenario.detectionQuality.toDouble(),
+                screenEvents = screenEvents,
             )
+            displayRecorder.resizeDisplay(scaledScreenSize)
+            bitmapRepository.resizeCacheForDetection(computeDetectionBitmapsBytes(scaledScreenSize, screenEvents))
             currentCoroutineContext().ensureActive()
 
             // Compute minimal processing duration
@@ -399,6 +402,7 @@ class DetectorEngine @Inject constructor(
             // Clear after the processing job has ended and the recorder resize has dropped its reference to the last
             // scaled frame.
             bitmapRepository.clearCache()
+            bitmapRepository.resetCacheSize()
 
             if (_state.value == DetectorState.STOPPING_DETECTION) _state.emit(DetectorState.RECORDING)
             processingShutdownJob = null
@@ -444,6 +448,8 @@ class DetectorEngine @Inject constructor(
 
             displayConfigManager.removeOrientationListener(screenOrientationListener)
             displayRecorder.stopProjection()
+            bitmapRepository.clearCache()
+            bitmapRepository.resetCacheSize()
             _state.emit(DetectorState.CREATED)
 
             processingScope?.cancel()
@@ -522,6 +528,25 @@ class DetectorEngine @Inject constructor(
 
         return loadTextDetectionModels(ocrDetectModelPath, ocrRecoModels)
     }
+
+    /**
+     * Size of the bitmaps accessed on each detection loop: all image conditions at their scaled size, and the screen
+     * capture. The capture is counted twice, as a screen rotation creates a new one with swapped dimensions.
+     */
+    private fun computeDetectionBitmapsBytes(scaledScreenSize: Point, screenEvents: List<ScreenEvent>): Long {
+        val conditionsBytes = screenEvents
+            .flatMap { event -> event.conditions }
+            .filterIsInstance<ScreenCondition.Image>()
+            .mapNotNull { condition ->
+                val imageArea = (scalingManager.getScreenConditionScalingInfo(condition)
+                        as? ScreenConditionScalingInfo.Image)?.imageArea ?: return@mapNotNull null
+                Triple(condition.path, imageArea.width(), imageArea.height())
+            }
+            .distinct()
+            .sumOf { (_, width, height) -> width.toArgbBytes(height) }
+
+        return conditionsBytes + 2 * scaledScreenSize.x.toArgbBytes(scaledScreenSize.y)
+    }
 }
 
 /** Wait between processing loops and report only delays caused by the user-configured Execution Limiter. */
@@ -544,6 +569,8 @@ internal suspend fun delayProcessingLoop(
         timingListener.onExecutionLimiterWaited(elapsedRealtimeNanos() - startTimestampNs)
     }
 }
+
+private fun Int.toArgbBytes(height: Int): Long = toLong() * height * 4
 
 private fun OCRModel.getOCRModelPath(): String? =
     (state as? OCRModelState.Installed)?.path

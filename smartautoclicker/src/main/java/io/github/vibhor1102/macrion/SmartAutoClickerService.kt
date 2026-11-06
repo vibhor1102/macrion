@@ -228,6 +228,23 @@ class SmartAutoClickerService : AccessibilityService() {
         externalLaunchRepository.setTileScenario(scenarioId = scenarioId, isSmart = isSmart)
     }
 
+    @Suppress("DEPRECATION")
+    override fun onTrimMemory(level: Int) {
+        super.onTrimMemory(level)
+
+        // UI_HIDDEN is ignored: it is sent each time the scenario activity closes, which isn't memory pressure.
+        when (level) {
+            TRIM_MEMORY_RUNNING_LOW,
+            TRIM_MEMORY_RUNNING_CRITICAL,
+            TRIM_MEMORY_BACKGROUND,
+            TRIM_MEMORY_MODERATE,
+            TRIM_MEMORY_COMPLETE -> {
+                Log.i(TAG, "Trimming memory, level=$level")
+                bitmapManager.clearCache()
+            }
+        }
+    }
+
     override fun onKeyEvent(event: KeyEvent?): Boolean =
         (localServiceConnection.getLocalService() as? LocalService)?.onKeyEvent(event) ?: super.onKeyEvent(event)
 
