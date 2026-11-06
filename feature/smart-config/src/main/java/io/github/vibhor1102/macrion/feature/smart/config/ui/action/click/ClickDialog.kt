@@ -1,6 +1,8 @@
 /* Copyright (C) 2024 Kevin Buzeau; Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.action.click
 
+import android.graphics.Point
+
 import io.github.vibhor1102.macrion.core.ui.compose.OverlayDialogShape
 
 import android.util.Log
@@ -35,6 +37,7 @@ import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.ClickDescription
 import io.github.vibhor1102.macrion.feature.smart.config.R
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
+import io.github.vibhor1102.macrion.feature.smart.config.ui.action.PositionCountersEditor
 import io.github.vibhor1102.macrion.feature.smart.config.ui.action.OnActionConfigCompleteListener
 import io.github.vibhor1102.macrion.feature.smart.config.ui.action.brief.SmartActionHeaderMenu
 import io.github.vibhor1102.macrion.feature.smart.config.ui.action.brief.toPickerOptions
@@ -118,6 +121,12 @@ class ClickDialog(
                                 onClick = if (state.positionState?.positionType == Click.PositionType.USER_SELECTED)
                                     ::showPositionSelector else ::showConditionSelector,
                                 enabled = state.positionState?.isSelectorEnabled == true),
+                        )
+                        PositionCountersEditor(
+                            context.getString(R.string.coordinate_counters_title), state.configuredAction.positionCounters,
+                            if (state.configuredAction.positionType == Click.PositionType.USER_SELECTED) state.configuredAction.position
+                                else state.configuredAction.clickOffset ?: Point(0, 0),
+                            viewModel.counterNames, viewModel::setPositionCounters,
                         )
                     }
                 }

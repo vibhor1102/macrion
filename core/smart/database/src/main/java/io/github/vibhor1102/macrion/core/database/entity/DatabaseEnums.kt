@@ -137,7 +137,10 @@ enum class CounterComparisonOperation {
  * Type of counter value to apply to the [CounterComparisonOperation] or [ChangeCounterOperationType].
  * This allows to perform either an operation or a comparison with a numeral value or the value contained in another counter.
  */
+enum class CounterOperationConditionPositionType { CONDITION_CENTER_X, CONDITION_CENTER_Y, CONDITION_LEFT, CONDITION_TOP, CONDITION_RIGHT, CONDITION_BOTTOM }
+
 enum class CounterOperationValueType {
+    CONDITION,
     /** The operand is a numeral value. */
     NUMBER,
     /** The operand is a value reference by another counter. */

@@ -33,5 +33,6 @@ fun Any?.toIntentExtraDisplayString(): String = when (this) {
 fun CounterOperationValue.toNaturalDisplayString(): String =
     when (this) {
         is CounterOperationValue.Counter -> value
+        is CounterOperationValue.ConditionPosition -> "?"
         is CounterOperationValue.Number -> value.toNaturalDisplayString()
     }

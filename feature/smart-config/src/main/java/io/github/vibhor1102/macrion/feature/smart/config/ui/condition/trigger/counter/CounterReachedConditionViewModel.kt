@@ -154,6 +154,7 @@ class CounterReachedConditionViewModel @Inject constructor(
             is CounterOperationValue.Counter ->
                 UiStaticOrCounterSelection.CounterValue(editionRepository.editionState.getCounter(value))
 
+            is CounterOperationValue.ConditionPosition -> UiStaticOrCounterSelection.StaticValue(Double.NaN)
             is CounterOperationValue.Number ->
                 UiStaticOrCounterSelection.StaticValue(value)
         }

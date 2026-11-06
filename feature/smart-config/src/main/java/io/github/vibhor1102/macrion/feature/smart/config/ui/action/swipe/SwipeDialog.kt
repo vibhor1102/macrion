@@ -1,6 +1,8 @@
 /* Copyright (C) 2024 Kevin Buzeau; Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.action.swipe
 
+import io.github.vibhor1102.macrion.feature.smart.config.ui.action.PositionCountersEditor
+
 import android.util.Log
 import android.view.ViewGroup
 import androidx.compose.runtime.Composable
@@ -98,6 +100,18 @@ class SwipeDialog(
             onDismiss = ::back,
             onDelete = ::onDeleteButtonClicked,
             onSave = ::onSaveButtonClicked,
+            positionOptions = {
+                val swipe = ui.configuredAction
+                PositionCountersEditor(
+                    context.getString(R.string.coordinate_start_counters_title), swipe.fromCounters, swipe.from,
+                    viewModel.counterNames, { viewModel.setPositionCounters(true, it) }, enabled = swipe.path?.isCurved != true,
+                )
+                PositionCountersEditor(
+                    context.getString(R.string.coordinate_end_counters_title), swipe.toCounters, swipe.to,
+                    viewModel.counterNames, { viewModel.setPositionCounters(false, it) }, enabled = swipe.path?.isCurved != true,
+                )
+                if (swipe.path?.isCurved == true) androidx.compose.material3.Text(context.getString(R.string.coordinate_curve_hint))
+            },
             headerActions = combinationOptions?.let { options ->
                 {
                     SmartActionHeaderMenu(

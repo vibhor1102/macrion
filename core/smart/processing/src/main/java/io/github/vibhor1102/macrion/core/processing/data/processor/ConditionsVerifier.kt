@@ -129,6 +129,7 @@ internal class ConditionsVerifier(
 
             val operandValue = when (val operationValue = condition.counterValue) {
                 is CounterOperationValue.Counter -> state.getCounterValue(operationValue.value) ?: 0.0
+                is CounterOperationValue.ConditionPosition -> return false
                 is CounterOperationValue.Number -> operationValue.value
             }
 
@@ -233,6 +234,7 @@ internal class ConditionsVerifier(
             else {
                 val operandValue = when (val operationValue = condition.counterValue) {
                     is CounterOperationValue.Counter -> state.getCounterValue(operationValue.value) ?: 0.0
+                    is CounterOperationValue.ConditionPosition -> return condition.toInvalidConditionResult()
                     is CounterOperationValue.Number -> operationValue.value
                 }
 

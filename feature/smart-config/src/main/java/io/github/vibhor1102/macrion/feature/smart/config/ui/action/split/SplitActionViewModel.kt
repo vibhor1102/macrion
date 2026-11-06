@@ -80,6 +80,8 @@ class SplitActionViewModel @Inject constructor(
         )
     }.flowOn(Dispatchers.IO).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
+    val counterNames get() = editionRepository.editionState.getAllEditedCounters().map { it.counterName }
+
     fun getEditedSplit(): SplitAction? =
         editionRepository.editionState.getEditedAction<SplitAction>()
 
@@ -195,7 +197,9 @@ class SplitActionViewModel @Inject constructor(
             when (subAction) {
                 is Swipe -> {
                     val hasPos = subAction.from != null && subAction.to != null
-                    val details = if (hasPos) {
+                    val details = if (subAction.fromCounters != null || subAction.toCounters != null) {
+                        context.getString(R.string.coordinate_counters_title)
+                    } else if (hasPos) {
                         val base = context.getString(
                             R.string.field_swipe_positions_desc,
                             subAction.from!!.x,
@@ -219,7 +223,9 @@ class SplitActionViewModel @Inject constructor(
                 }
                 is Click -> {
                     val hasPos = subAction.position != null || subAction.positionType == Click.PositionType.ON_DETECTED_CONDITION
-                    val details = if (hasPos) {
+                    val details = if (subAction.positionCounters != null) {
+                        context.getString(R.string.coordinate_counters_title)
+                    } else if (hasPos) {
                         val base = if (subAction.positionType == Click.PositionType.ON_DETECTED_CONDITION)
                             context.getString(R.string.split_action_detected_position)
                         else "(${subAction.position!!.x}, ${subAction.position!!.y}) • ${subAction.pressDuration ?: 0}ms"

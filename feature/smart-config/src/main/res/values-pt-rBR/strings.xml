@@ -633,4 +633,24 @@
     <string name="split_repeat_help">A repetição se aplica ao gesto inteiro. Cada toque é executado uma vez por repetição; as configurações de repetição individuais são restauradas ao separar.</string>
     <string name="split_action_position_not_set">Posição não definida</string>
     <string name="split_action_detected_position">A posição acompanha a condição detectada</string>
+
+    <!-- Position-aware automation and live debugging -->
+    <string name="coordinate_axis_x">Coordenada X</string>
+    <string name="coordinate_axis_y">Coordenada Y</string>
+    <string name="coordinate_fixed_value">Fixa: %1$s</string>
+    <string name="coordinate_counters_title">Contadores de coordenadas</string>
+    <string name="coordinate_start_counters_title">Contadores do ponto inicial</string>
+    <string name="coordinate_end_counters_title">Contadores do ponto final</string>
+    <string name="coordinate_curve_hint">Coordenadas por contador exigem um deslize reto.</string>
+    <string name="coordinate_source">Origem do valor</string>
+    <string name="coordinate_detected_condition">Posição da condição detectada</string>
+    <string name="coordinate_select_condition">Selecionar uma condição</string>
+    <string name="coordinate_missing_hint">Se esta condição não for detectada, o contador permanece inalterado.</string>
+    <string name="coordinate_counters_hint">Cada contador substitui esse eixo. Valores ausentes ou inválidos fazem a ação ser ignorada.</string>
+    <string name="coordinate_center_x">Centro X</string>
+    <string name="coordinate_center_y">Centro Y</string>
+    <string name="coordinate_left">Esquerda</string>
+    <string name="coordinate_right">Direita</string>
+    <string name="coordinate_top">Superior</string>
+    <string name="coordinate_bottom">Inferior</string>
 </resources>

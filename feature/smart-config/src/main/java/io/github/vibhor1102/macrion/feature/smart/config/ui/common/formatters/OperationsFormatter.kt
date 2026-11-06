@@ -87,6 +87,7 @@ internal fun CounterOperationValue.toEffectDescription(context: Context, operati
             context.getString(operation.toFullNameRes()),
             value.ifEmpty { "?" },
         )
+        is CounterOperationValue.ConditionPosition -> "?"
         is CounterOperationValue.Number -> context.getString(
             R.string.message_number_condition_static_value_desc,
             context.getString(operation.toFullNameRes()),

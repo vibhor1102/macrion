@@ -16,6 +16,8 @@
  */
 package io.github.vibhor1102.macrion.core.domain.model.counter
 
+import io.github.vibhor1102.macrion.core.base.identifier.Identifier
+import io.github.vibhor1102.macrion.core.database.entity.CounterOperationConditionPositionType
 import io.github.vibhor1102.macrion.core.base.interfaces.Completable
 import io.github.vibhor1102.macrion.core.database.entity.CounterOperationValueType
 
@@ -31,13 +33,21 @@ sealed class CounterOperationValue : Completable {
         override fun isComplete(): Boolean = value.isNotEmpty()
     }
 
+    data class ConditionPosition(val conditionId: Identifier?, val coordinate: ConditionCoordinate?) : CounterOperationValue() {
+        override val value: Any get() = conditionId ?: ""
+        override fun isComplete(): Boolean = conditionId != null && coordinate != null
+    }
+
     internal companion object {
 
         fun getCounterOperationValue(
             type: CounterOperationValueType?,
             numberValue: Double?,
             counterName: String?,
+            conditionId: Identifier? = null,
+            coordinate: CounterOperationConditionPositionType? = null,
         ) = when (type ?: CounterOperationValueType.NUMBER) {
+            CounterOperationValueType.CONDITION -> ConditionPosition(conditionId, coordinate?.name?.removePrefix("CONDITION_")?.let(ConditionCoordinate::valueOf))
             CounterOperationValueType.COUNTER -> Counter(counterName ?: "")
             CounterOperationValueType.NUMBER -> Number(numberValue ?: 0.0)
         }

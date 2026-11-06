@@ -16,10 +16,12 @@
  */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.action.click
 
+
 import io.github.vibhor1102.macrion.core.domain.model.action.Click
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.condition.UiScreenCondition
 
 data class ClickUiState(
+    val configuredAction: Click,
     val canBeSaved: Boolean,
     val hasUnsavedModifications: Boolean,
     val name: String?,

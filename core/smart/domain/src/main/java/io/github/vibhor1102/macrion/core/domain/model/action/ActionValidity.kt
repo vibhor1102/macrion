@@ -16,6 +16,8 @@
  */
 package io.github.vibhor1102.macrion.core.domain.model.action
 
+import io.github.vibhor1102.macrion.core.domain.model.counter.CounterOperationValue
+
 import io.github.vibhor1102.macrion.core.domain.model.AND
 import io.github.vibhor1102.macrion.core.domain.model.event.Event
 import io.github.vibhor1102.macrion.core.domain.model.event.ScreenEvent
@@ -33,6 +35,8 @@ fun Action.isValidForEvent(event: Event?): Boolean {
                 }
             else -> true
         }
+        is ChangeCounter -> (operationValue as? CounterOperationValue.ConditionPosition)
+            ?.let { operand -> event is ScreenEvent && event.conditions.any { it.id == operand.conditionId && it.shouldBeDetected } } ?: true
         is SplitAction -> subActions.all { it.isValidForEvent(event) }
         else -> true
     }

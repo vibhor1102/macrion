@@ -125,7 +125,7 @@ sealed class ScreenCondition : Condition(), Prioritizable {
 
         /** Tells if this condition is complete and valid to be saved. */
         override fun isComplete(): Boolean =
-            super.isComplete() && counterValue.isComplete() && !detectionArea.isEmpty
+            super.isComplete() && counterValue !is CounterOperationValue.ConditionPosition && counterValue.isComplete() && !detectionArea.isEmpty
 
         override fun hashCodeNoIds(): Int =
             name.hashCode() + counterValue.hashCode() + threshold.hashCode() + shouldBeDetected.hashCode() +

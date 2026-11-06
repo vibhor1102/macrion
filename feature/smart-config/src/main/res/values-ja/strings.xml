@@ -453,4 +453,24 @@
     <string name="split_repeat_help">繰り返しはジェスチャー全体に適用されます。繰り返しごとに各タッチが1回実行されます。分割を解除すると、個々の繰り返し設定が復元されます。</string>
     <string name="split_action_position_not_set">位置が設定されていません</string>
     <string name="split_action_detected_position">位置は検出された条件に従います</string>
+
+    <!-- Position-aware automation and live debugging -->
+    <string name="coordinate_axis_x">X 座標</string>
+    <string name="coordinate_axis_y">Y 座標</string>
+    <string name="coordinate_fixed_value">固定値: %1$s</string>
+    <string name="coordinate_counters_title">座標のカウンター</string>
+    <string name="coordinate_start_counters_title">開始位置のカウンター</string>
+    <string name="coordinate_end_counters_title">終了位置のカウンター</string>
+    <string name="coordinate_curve_hint">カウンター座標には直線のスワイプが必要です。</string>
+    <string name="coordinate_source">値の取得元</string>
+    <string name="coordinate_detected_condition">検出された条件の位置</string>
+    <string name="coordinate_select_condition">条件を選択</string>
+    <string name="coordinate_missing_hint">この条件が検出されなかった場合、カウンターは変更されません。</string>
+    <string name="coordinate_counters_hint">各カウンターが該当する軸の座標を置き換えます。値がない場合や無効な場合はアクションをスキップします。</string>
+    <string name="coordinate_center_x">中央X</string>
+    <string name="coordinate_center_y">中央Y</string>
+    <string name="coordinate_left">左</string>
+    <string name="coordinate_right">右</string>
+    <string name="coordinate_top">上</string>
+    <string name="coordinate_bottom">下</string>
 </resources>

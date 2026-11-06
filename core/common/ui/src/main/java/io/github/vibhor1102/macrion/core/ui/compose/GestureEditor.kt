@@ -61,6 +61,7 @@ fun MacrionPositionGestureEditor(
     onDelete: () -> Unit,
     onSave: () -> Unit,
     headerActions: @Composable (() -> Unit)? = null,
+    positionOptions: @Composable (() -> Unit)? = null,
 ) {
     Surface(
         shape = OverlayDialogShape,
@@ -81,6 +82,7 @@ fun MacrionPositionGestureEditor(
                         nameLabel, durationLabel, nameError, durationError, positionError, maxNameLength,
                         waitBefore, waitAfter, onNameChanged, onDurationChanged, onPositionClicked,
                         onWaitBeforeChanged, onWaitAfterChanged, maxWaitBeforeMs)
+                    positionOptions?.invoke()
                 }
             }
         }

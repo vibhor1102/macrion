@@ -1,6 +1,7 @@
 package io.github.vibhor1102.macrion.core.domain.model.action.mapper
 
 import android.content.ComponentName
+import io.github.vibhor1102.macrion.core.domain.model.action.PositionCounters
 import android.graphics.Point
 import io.github.vibhor1102.macrion.core.base.identifier.Identifier
 import io.github.vibhor1102.macrion.core.database.entity.ActionType
@@ -52,6 +53,7 @@ private fun CompleteActionEntity.toDomainClick(cleanIds: Boolean = false) = Clic
     pressDuration = action.pressDuration!!,
     positionType = action.clickPositionType!!.toDomain(),
     position = getPositionIfValid(action.x, action.y),
+    positionCounters = action.positionCounters?.let { PositionCounters(it.x, it.y) },
     clickOnConditionId = action.clickOnConditionId?.let { Identifier(id = it, asTemporary = cleanIds) },
     clickOffset =
         if (action.clickOffsetX != null && action.clickOffsetY != null) Point(action.clickOffsetX!!, action.clickOffsetY!!)
@@ -69,6 +71,8 @@ private fun CompleteActionEntity.toDomainSwipe(cleanIds: Boolean = false) = Swip
     from = getPositionIfValid(action.fromX, action.fromY),
     to = getPositionIfValid(action.toX, action.toY),
     path = action.swipePath,
+    fromCounters = action.fromCounters?.let { PositionCounters(it.x, it.y) },
+    toCounters = action.toCounters?.let { PositionCounters(it.x, it.y) },
     waitBeforeMs = action.waitBeforeMs,
     waitAfterMs = action.waitAfterMs,
 )
@@ -115,6 +119,8 @@ private fun CompleteActionEntity.toDomainChangeCounter(cleanIds: Boolean = false
         type = action.counterOperationValueType,
         numberValue = action.counterOperationValue,
         counterName = action.counterOperationCounterName,
+        conditionId = action.counterOperationConditionId?.let { Identifier(id = it, asTemporary = cleanIds) },
+        coordinate = action.counterOperationConditionPositionType,
     ),
 )
 
@@ -205,6 +211,8 @@ private fun CompleteActionEntity.toDomainSplitAction(cleanIds: Boolean = false) 
                 from = getPositionIfValid(item.fromX, item.fromY),
                 to = getPositionIfValid(item.toX, item.toY),
                 path = item.swipePath,
+                fromCounters = item.fromCounters?.let { PositionCounters(it.x, it.y) },
+                toCounters = item.toCounters?.let { PositionCounters(it.x, it.y) },
                 waitBeforeMs = item.startOffset.takeIf { it > 0 },
                 waitAfterMs = item.waitAfterMs,
             )
@@ -218,6 +226,7 @@ private fun CompleteActionEntity.toDomainSplitAction(cleanIds: Boolean = false) 
                 clickOnConditionId = item.clickOnConditionId?.let { Identifier(id = it, asTemporary = cleanIds) },
                 clickOffset = getPositionIfValid(item.clickOffsetX, item.clickOffsetY),
                 position = getPositionIfValid(item.fromX, item.fromY),
+                positionCounters = item.positionCounters?.let { PositionCounters(it.x, it.y) },
                 waitBeforeMs = item.startOffset.takeIf { it > 0 },
                 waitAfterMs = item.waitAfterMs,
             )
@@ -230,6 +239,8 @@ private fun CompleteActionEntity.toDomainSplitAction(cleanIds: Boolean = false) 
                 from = getPositionIfValid(item.fromX, item.fromY),
                 to = getPositionIfValid(item.toX, item.toY),
                 path = item.swipePath,
+                fromCounters = item.fromCounters?.let { PositionCounters(it.x, it.y) },
+                toCounters = item.toCounters?.let { PositionCounters(it.x, it.y) },
                 waitBeforeMs = item.startOffset.takeIf { it > 0 },
                 waitAfterMs = item.waitAfterMs,
             )

@@ -19,6 +19,7 @@ package io.github.vibhor1102.macrion.feature.smart.config.domain.usecase.copy.re
 
 import android.util.Log
 
+import io.github.vibhor1102.macrion.core.domain.model.action.renamePositionCounter
 import io.github.vibhor1102.macrion.core.domain.model.action.Action
 import io.github.vibhor1102.macrion.core.domain.model.action.ChangeCounter
 import io.github.vibhor1102.macrion.core.domain.model.action.Click
@@ -107,14 +108,12 @@ class ReplaceMissingCounterReferenceUseCase @Inject constructor() {
             is Notification -> replaceCounterReference(oldName, newName)
             is SetText -> replaceCounterReference(oldName, newName)
 
-            is Click,
+            is Click, is Swipe, is SplitAction -> renamePositionCounter(oldName, newName)
             is ExternalAction,
             is Intent,
             is Pause,
             is PlaySound,
             is CaptureScreenshot,
-            is Swipe,
-            is SplitAction,
             is SystemAction,
             is ToggleEvent -> {
                 Log.e(TAG, "Can't replace counter reference, action type is not supported.")

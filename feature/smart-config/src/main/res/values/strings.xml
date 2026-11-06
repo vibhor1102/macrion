@@ -717,4 +717,24 @@
     <string name="split_repeat_help">Repetition applies to the whole gesture. Each touch runs once per repetition; its individual repeat settings are restored when you Unsplit.</string>
     <string name="split_action_position_not_set">Position not set</string>
     <string name="split_action_detected_position">Position follows detected condition</string>
+
+    <!-- Position-aware automation and live debugging -->
+    <string name="coordinate_axis_x">X coordinate</string>
+    <string name="coordinate_axis_y">Y coordinate</string>
+    <string name="coordinate_fixed_value">Fixed: %1$s</string>
+    <string name="coordinate_counters_title">Coordinate counters</string>
+    <string name="coordinate_start_counters_title">Start coordinate counters</string>
+    <string name="coordinate_end_counters_title">End coordinate counters</string>
+    <string name="coordinate_curve_hint">Counter coordinates require a straight swipe.</string>
+    <string name="coordinate_source">Value source</string>
+    <string name="coordinate_detected_condition">Detected condition position</string>
+    <string name="coordinate_select_condition">Select a condition</string>
+    <string name="coordinate_missing_hint">If this condition is not detected, the counter stays unchanged.</string>
+    <string name="coordinate_counters_hint">Each counter replaces that axis. Missing or invalid values skip the action.</string>
+    <string name="coordinate_center_x">Center X</string>
+    <string name="coordinate_center_y">Center Y</string>
+    <string name="coordinate_left">Left</string>
+    <string name="coordinate_right">Right</string>
+    <string name="coordinate_top">Top</string>
+    <string name="coordinate_bottom">Bottom</string>
 </resources>

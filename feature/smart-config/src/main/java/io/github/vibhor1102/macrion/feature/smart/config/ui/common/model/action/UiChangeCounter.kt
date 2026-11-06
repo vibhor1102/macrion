@@ -17,6 +17,8 @@
 package io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.action
 
 import android.content.Context
+import io.github.vibhor1102.macrion.core.domain.model.counter.CounterOperationValue
+import io.github.vibhor1102.macrion.feature.smart.config.ui.action.changecounter.coordinateLabel
 import androidx.annotation.DrawableRes
 import io.github.vibhor1102.macrion.core.domain.model.action.ChangeCounter
 import io.github.vibhor1102.macrion.feature.smart.config.R
@@ -37,5 +39,6 @@ internal fun ChangeCounter.getDescription(context: Context, inError: Boolean): S
             ChangeCounter.OperationType.MINUS -> "-"
             ChangeCounter.OperationType.SET -> "="
         },
-        operationValue.toNaturalDisplayString(),
+        (operationValue as? CounterOperationValue.ConditionPosition)?.let { context.getString(it.coordinate.coordinateLabel()) }
+            ?: operationValue.toNaturalDisplayString(),
     )

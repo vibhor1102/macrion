@@ -18,6 +18,7 @@
 package io.github.vibhor1102.macrion.feature.smart.config.domain.usecase.counter
 
 import io.github.vibhor1102.macrion.core.common.actions.text.findCounterReferences
+import io.github.vibhor1102.macrion.core.domain.model.action.renamePositionCounter
 import io.github.vibhor1102.macrion.core.domain.model.action.Action
 import io.github.vibhor1102.macrion.core.domain.model.action.ChangeCounter
 import io.github.vibhor1102.macrion.core.domain.model.action.Click
@@ -90,6 +91,12 @@ class ReplaceCounterUseCase @Inject constructor(
     }
 
     private fun Action.replaceCounter(from: Counter, to: Counter) {
+        val withPositions = renamePositionCounter(from.counterName, to.counterName)
+        if (withPositions != this) {
+            editionRepository.startActionEdition(this)
+            editionRepository.updateEditedAction(withPositions)
+            editionRepository.upsertEditedAction()
+        }
         when (this) {
             is ChangeCounter -> {
                 var newAction: Action = this

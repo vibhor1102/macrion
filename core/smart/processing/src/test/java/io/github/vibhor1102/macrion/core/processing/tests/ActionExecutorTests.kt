@@ -17,6 +17,11 @@
  */
 package io.github.vibhor1102.macrion.core.processing.tests
 
+import io.github.vibhor1102.macrion.core.domain.model.action.PositionCounters
+import io.github.vibhor1102.macrion.core.domain.model.counter.ConditionCoordinate
+import io.github.vibhor1102.macrion.core.domain.model.counter.CounterOperationValue
+import io.github.vibhor1102.macrion.core.domain.model.action.ChangeCounter
+
 import android.accessibilityservice.GestureDescription
 import android.graphics.Point
 import android.graphics.Rect
@@ -124,6 +129,42 @@ class ActionExecutorTests {
     @After
     fun tearDown() {
         Dispatchers.resetMain()
+    }
+
+    @Test fun captureConditionEdgesAndSkipUnavailableCoordinates() = runTest {
+        val condition = getNewDefaultCondition(42)
+        val results = ConditionsResults().apply { addResult(42, ProcessedConditionResult.Screen(
+            true, true, condition, 100.0, Point(100, 200), Point(20, 40),
+        )) }
+        val expected = listOf(100.0, 200.0, 90.0, 180.0, 110.0, 220.0)
+        ConditionCoordinate.entries.forEachIndexed { index, coordinate ->
+            val change = ChangeCounter(
+                Identifier(databaseId = 10), TEST_EVENT_ID, "Remember", 0, "Position$index",
+                ChangeCounter.OperationType.SET,
+                CounterOperationValue.ConditionPosition(condition.id, coordinate),
+            )
+            mockWhen(mockProcessingState.getCounterValue("Position$index")).thenReturn(0.0)
+            actionExecutor.executeActions(getNewDefaultEvent(actions = listOf(change)), results)
+            verify(mockProcessingState).setCounterValue("Position$index", expected[index])
+            actionExecutor.executeActions(getNewDefaultEvent(actions = listOf(change)), ConditionsResults())
+            verify(mockProcessingState, times(1)).setCounterValue(eq("Position$index"), any())
+        }
+        results.reset()
+        results.addResult(42, ProcessedConditionResult.Screen(true, true, condition, 100.0, Point(100, 200), Point(21, 41)))
+        assertEquals(90.0, results.getDetectedCoordinate(42, ConditionCoordinate.LEFT))
+        assertEquals(220.0, results.getDetectedCoordinate(42, ConditionCoordinate.BOTTOM))
+        results.reset()
+        results.addResult(42, ProcessedConditionResult.Screen(true, false, condition, 0.0, Point(100, 200), Point(20, 40)))
+        assertNull(results.getDetectedCoordinate(42, ConditionCoordinate.CENTER_X))
+    }
+
+    @Test fun unresolvedCounterSkipsTheWholeCombinedGesture() = runTest {
+        mockWhen(mockProcessingState.getCounterValue("Missing")).thenReturn(null)
+        val good = getNewDefaultClickUserPos(1)
+        val bad = getNewDefaultSwipe(2).copy(fromCounters = PositionCounters(x = "Missing"))
+        val group = SplitAction(Identifier(databaseId = 3), TEST_EVENT_ID, "Group", 0, listOf(good, bad))
+        actionExecutor.executeActions(getNewDefaultEvent(actions = listOf(group)))
+        verify(mockAndroidExecutor, never()).dispatchGesture(anyNotNull())
     }
 
     @Test

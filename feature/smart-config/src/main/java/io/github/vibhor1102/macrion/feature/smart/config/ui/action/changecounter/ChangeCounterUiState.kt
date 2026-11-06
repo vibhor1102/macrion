@@ -16,6 +16,9 @@
  */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.action.changecounter
 
+import io.github.vibhor1102.macrion.core.domain.model.counter.CounterOperationValue
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.condition.UiScreenCondition
+
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.counter.UiCounterOperatorDropdownItem
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.counter.UiStaticOrCounterSelection
 
@@ -26,6 +29,9 @@ data class ChangeCounterUiState(
     val nameError: Boolean,
     val counter: UiStaticOrCounterSelection.CounterValue,
     val operator: UiCounterOperatorDropdownItem,
+    val positionOperand: CounterOperationValue.ConditionPosition? = null,
+    val positionConditionName: String? = null,
+    val availableConditions: List<UiScreenCondition> = emptyList(),
     val operandValue: UiStaticOrCounterSelection,
     val actionEffectText: String,
 )

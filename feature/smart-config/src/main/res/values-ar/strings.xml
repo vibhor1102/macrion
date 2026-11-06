@@ -666,4 +666,24 @@
     <string name="split_repeat_help">ينطبق التكرار على الإيماءة كلها. تُنفّذ كل لمسة مرة واحدة في كل تكرار، وتُستعاد إعدادات التكرار الفردية عند فصلها.</string>
     <string name="split_action_position_not_set">لم يتم تحديد الموضع</string>
     <string name="split_action_detected_position">الموضع يتبع الشرط المكتشف</string>
+
+    <!-- Position-aware automation and live debugging -->
+    <string name="coordinate_axis_x">إحداثي X</string>
+    <string name="coordinate_axis_y">إحداثي Y</string>
+    <string name="coordinate_fixed_value">ثابت: %1$s</string>
+    <string name="coordinate_counters_title">عدادات الإحداثيات</string>
+    <string name="coordinate_start_counters_title">عدادات نقطة البداية</string>
+    <string name="coordinate_end_counters_title">عدادات نقطة النهاية</string>
+    <string name="coordinate_curve_hint">تتطلب الإحداثيات من العدادات تمريرًا مستقيمًا.</string>
+    <string name="coordinate_source">مصدر القيمة</string>
+    <string name="coordinate_detected_condition">موضع الشرط المكتشف</string>
+    <string name="coordinate_select_condition">اختيار شرط</string>
+    <string name="coordinate_missing_hint">إذا لم يُكتشف هذا الشرط، تبقى قيمة العداد دون تغيير.</string>
+    <string name="coordinate_counters_hint">يستبدل كل عداد إحداثي محوره. تُتخطى العملية عند غياب القيم أو عدم صلاحيتها.</string>
+    <string name="coordinate_center_x">مركز X</string>
+    <string name="coordinate_center_y">مركز Y</string>
+    <string name="coordinate_left">يسار</string>
+    <string name="coordinate_right">يمين</string>
+    <string name="coordinate_top">أعلى</string>
+    <string name="coordinate_bottom">أسفل</string>
 </resources>

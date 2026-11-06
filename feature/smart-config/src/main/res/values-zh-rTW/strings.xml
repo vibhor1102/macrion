@@ -591,4 +591,24 @@
     <string name="split_repeat_help">重複次數會套用至整個手勢。每次重複時，每個觸控只會執行一次；拆分後會還原各自的重複設定。</string>
     <string name="split_action_position_not_set">尚未設定位置</string>
     <string name="split_action_detected_position">位置會依偵測到的條件決定</string>
+
+    <!-- Position-aware automation and live debugging -->
+    <string name="coordinate_axis_x">X 座標</string>
+    <string name="coordinate_axis_y">Y 座標</string>
+    <string name="coordinate_fixed_value">固定值：%1$s</string>
+    <string name="coordinate_counters_title">座標計數器</string>
+    <string name="coordinate_start_counters_title">起點座標計數器</string>
+    <string name="coordinate_end_counters_title">終點座標計數器</string>
+    <string name="coordinate_curve_hint">計數器座標需要直線滑動。</string>
+    <string name="coordinate_source">值來源</string>
+    <string name="coordinate_detected_condition">已偵測條件的位置</string>
+    <string name="coordinate_select_condition">選擇條件</string>
+    <string name="coordinate_missing_hint">如果未偵測到此條件，計數器保持不變。</string>
+    <string name="coordinate_counters_hint">每個計數器取代對應軸的座標。值缺少或無效時略過該動作。</string>
+    <string name="coordinate_center_x">中心X</string>
+    <string name="coordinate_center_y">中心Y</string>
+    <string name="coordinate_left">左側</string>
+    <string name="coordinate_right">右側</string>
+    <string name="coordinate_top">頂部</string>
+    <string name="coordinate_bottom">底部</string>
 </resources>

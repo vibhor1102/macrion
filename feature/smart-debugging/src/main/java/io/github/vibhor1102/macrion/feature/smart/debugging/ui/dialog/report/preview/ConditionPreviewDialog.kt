@@ -526,5 +526,6 @@ private fun ComparisonOperation.toSymbol(): String = when (this) {
 
 private fun CounterOperationValue.toNaturalDisplayString(): String = when (this) {
     is CounterOperationValue.Counter -> value
-    is CounterOperationValue.Number -> value.toNaturalString()
+    is CounterOperationValue.ConditionPosition -> "?"
+            is CounterOperationValue.Number -> value.toNaturalString()
 }

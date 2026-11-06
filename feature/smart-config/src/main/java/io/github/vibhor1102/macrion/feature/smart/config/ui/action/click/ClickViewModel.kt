@@ -16,6 +16,8 @@
  */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.action.click
 
+import io.github.vibhor1102.macrion.core.domain.model.action.PositionCounters
+
 import android.content.Context
 import android.content.SharedPreferences
 import android.graphics.Point
@@ -97,6 +99,12 @@ class ClickViewModel @Inject constructor(
             )
     }.flowOn(Dispatchers.IO).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
+    val counterNames get() = editionRepository.editionState.getAllEditedCounters().map { it.counterName }
+
+    fun setPositionCounters(value: PositionCounters?) {
+        getEditedClick()?.let { editionRepository.updateEditedAction(it.copy(positionCounters = value)) }
+    }
+
     fun getEditedClick(): Click? =
         editionRepository.editionState.getEditedAction<Click>()
 
@@ -116,7 +124,7 @@ class ClickViewModel @Inject constructor(
     /** Set if this click should be made on the detected condition. */
     fun setClickOnCondition(newType: Click.PositionType) {
         editionRepository.editionState.getEditedAction<Click>()?.let { click ->
-            editionRepository.updateEditedAction(click.copy(positionType = newType))
+            editionRepository.updateEditedAction(click.copy(positionType = newType, positionCounters = null))
         }
     }
 
@@ -178,6 +186,7 @@ class ClickViewModel @Inject constructor(
             availableConditions, bitmapRepository)
 
         return ClickUiState(
+            configuredAction = this,
             canBeSaved = canBeSaved,
             hasUnsavedModifications = hasUnsavedModifications,
             name = name,

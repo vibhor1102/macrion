@@ -17,6 +17,10 @@
 package io.github.vibhor1102.macrion.feature.smart.config.ui.action.changecounter
 
 import android.content.Context
+import io.github.vibhor1102.macrion.feature.smart.config.R
+import io.github.vibhor1102.macrion.core.domain.model.counter.ConditionCoordinate
+import io.github.vibhor1102.macrion.core.domain.model.condition.ScreenCondition
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.condition.toUiScreenCondition
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.FiniteNumberInput
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -86,11 +90,25 @@ class ChangeCounterViewModel @Inject constructor(
         updateEditedChangeCounter { old -> old.copy(operation = item.toAffectationOperation()) }
     }
 
+    fun setPositionOperand() {
+        if (uiState.value?.positionOperand == null) setOperationValue(CounterOperationValue.ConditionPosition(null, ConditionCoordinate.CENTER_X))
+    }
+
+    fun setPositionCondition(condition: ScreenCondition) {
+        val current = uiState.value?.positionOperand ?: return
+        setOperationValue(current.copy(conditionId = condition.id))
+    }
+
+    fun setCoordinate(coordinate: ConditionCoordinate) {
+        val current = uiState.value?.positionOperand ?: return
+        setOperationValue(current.copy(coordinate = coordinate))
+    }
+
     fun setOperandType(type: UiOperandType) {
         // Do nothing if this is the same operand
         val currentOperand = uiState.value?.operandValue
-        if (currentOperand is UiStaticOrCounterSelection.CounterValue && type == UiOperandType.COUNTER) return
-        if (currentOperand is UiStaticOrCounterSelection.StaticValue && type == UiOperandType.STATIC) return
+        if (uiState.value?.positionOperand == null && currentOperand is UiStaticOrCounterSelection.CounterValue && type == UiOperandType.COUNTER) return
+        if (uiState.value?.positionOperand == null && currentOperand is UiStaticOrCounterSelection.StaticValue && type == UiOperandType.STATIC) return
 
         // Change operand and use default value
         setOperationValue(
@@ -126,6 +144,10 @@ class ChangeCounterViewModel @Inject constructor(
     private fun ChangeCounter.toUiState(context: Context, canBeSaved: Boolean, hasChanged: Boolean): ChangeCounterUiState {
         val counterToChange = UiStaticOrCounterSelection.CounterValue(editionRepository.editionState.getCounter(counterName))
         val operand = operationValue.toUiStaticOrCounterSelection()
+        val positionOperand = operationValue as? CounterOperationValue.ConditionPosition
+        val conditions = editionRepository.editionState.getEditedEvent()?.conditions
+            ?.filterIsInstance<ScreenCondition>()?.filter { it.shouldBeDetected }.orEmpty()
+        val conditionName = conditions.find { it.id == positionOperand?.conditionId }?.name
 
         return ChangeCounterUiState(
             canBeSaved = canBeSaved,
@@ -135,10 +157,13 @@ class ChangeCounterViewModel @Inject constructor(
             counter = counterToChange,
             operator = operation.toCounterOperatorDropdownItem(),
             operandValue = operand,
+            positionOperand = positionOperand,
+            positionConditionName = conditionName,
+            availableConditions = conditions.map { it.toUiScreenCondition(context, shortThreshold = true, inError = !it.isComplete()) },
             actionEffectText = operation.toEffectDescription(
                 context = context,
                 counterName = counterName,
-                operand = operand.toDisplayValue(),
+                operand = if (positionOperand == null) operand.toDisplayValue() else "${conditionName ?: "?"}: ${context.getString(positionOperand.coordinate.coordinateLabel())}",
             )
         )
     }
@@ -148,6 +173,7 @@ class ChangeCounterViewModel @Inject constructor(
             is CounterOperationValue.Counter ->
                 UiStaticOrCounterSelection.CounterValue(editionRepository.editionState.getCounter(value))
 
+            is CounterOperationValue.ConditionPosition -> UiStaticOrCounterSelection.StaticValue(Double.NaN)
             is CounterOperationValue.Number ->
                 UiStaticOrCounterSelection.StaticValue(value)
         }

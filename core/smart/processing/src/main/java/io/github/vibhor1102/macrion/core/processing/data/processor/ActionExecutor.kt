@@ -124,7 +124,7 @@ internal class ActionExecutor(
                     is Pause -> executePause(action)
                     is Intent -> executeIntent(action)
                     is ToggleEvent -> executeToggleEvent(action)
-                    is ChangeCounter -> executeChangeCounter(action)
+                    is ChangeCounter -> executeChangeCounter(action, results)
                     is ExternalAction -> executeExternalAction(action)
                     is Notification -> executeNotification(event, action)
                     is SystemAction -> executeSystemAction(action)
@@ -150,7 +150,7 @@ internal class ActionExecutor(
     private suspend fun executeClick(event: Event, click: Click, results: ConditionsResults?) {
         val clickPath = when (click.positionType) {
             Click.PositionType.USER_SELECTED -> {
-                click.position?.let { position ->
+                resolvePosition(click.position, click.positionCounters, processingState::getCounterValue)?.let { position ->
                     Path().apply { moveTo(position, random) }
                 }
             }
@@ -188,15 +188,14 @@ internal class ActionExecutor(
             return null
         }
 
-        return Path().apply {
-            moveTo(
-                position = Point(
-                    (result.position?.x ?: 0) + (click.clickOffset?.x ?: 0),
-                    (result.position?.y ?: 0) + (click.clickOffset?.y ?: 0),
-                ),
-                random = random,
-            )
-        }
+        if (!result.haveBeenDetected || !result.isFulfilled) return null
+        val center = result.position ?: return null
+        val offset = resolvePosition(click.clickOffset ?: Point(0, 0), click.positionCounters,
+            processingState::getCounterValue, allowNegative = true) ?: return null
+        val x = center.x.toLong() + offset.x
+        val y = center.y.toLong() + offset.y
+        if (x !in 0..Int.MAX_VALUE.toLong() || y !in 0..Int.MAX_VALUE.toLong()) return null
+        return Path().apply { moveTo(Point(x.toInt(), y.toInt()), random) }
     }
 
     /**
@@ -204,12 +203,13 @@ internal class ActionExecutor(
      * @param swipe the swipe to be executed.
      */
     private suspend fun executeSwipe(swipe: Swipe) {
-        if (swipe.from == null || swipe.to == null) return
+        val from = resolvePosition(swipe.from, swipe.fromCounters, processingState::getCounterValue) ?: return
+        val to = resolvePosition(swipe.to, swipe.toCounters, processingState::getCounterValue) ?: return
 
         swipe.waitBeforeMs?.takeIf { it > 0 }?.let { delay(it) }
 
         val swipeGesture = GestureDescription.Builder().buildSingleStroke(
-            path = swipe.path?.toGesturePath(random) ?: Path().apply { line(swipe.from, swipe.to, random) },
+            path = swipe.path?.toGesturePath(random) ?: Path().apply { line(from, to, random) },
             durationMs = swipe.swipeDuration!!,
             random = random,
         )
@@ -234,9 +234,11 @@ internal class ActionExecutor(
         for (subAction in splitAction.subActions) {
             when (subAction) {
                 is Swipe -> {
-                    if (subAction.from != null && subAction.to != null && subAction.swipeDuration != null) {
+                    val from = resolvePosition(subAction.from, subAction.fromCounters, processingState::getCounterValue) ?: return
+                    val to = resolvePosition(subAction.to, subAction.toCounters, processingState::getCounterValue) ?: return
+                    if (subAction.swipeDuration != null) {
                         val path = subAction.path?.toGesturePath(random)
-                            ?: Path().apply { line(subAction.from, subAction.to, random) }
+                            ?: Path().apply { line(from, to, random) }
                         builder.addStroke(
                             path = path,
                             durationMs = subAction.swipeDuration!!,
@@ -249,7 +251,7 @@ internal class ActionExecutor(
                 is Click -> {
                     if (subAction.pressDuration != null) {
                         val path = when (subAction.positionType) {
-                            Click.PositionType.USER_SELECTED -> subAction.position?.let { position ->
+                            Click.PositionType.USER_SELECTED -> resolvePosition(subAction.position, subAction.positionCounters, processingState::getCounterValue)?.let { position ->
                                 Path().apply { moveTo(position, random) }
                             }
                             Click.PositionType.ON_DETECTED_CONDITION -> getOnConditionClickPath(event, subAction, results)
@@ -354,22 +356,23 @@ internal class ActionExecutor(
      * Execute the provided change counter.
      * @param changeCounter the changeCounter action to be executed.
      */
-    private fun executeChangeCounter(changeCounter: ChangeCounter) {
+    private fun executeChangeCounter(changeCounter: ChangeCounter, results: ConditionsResults?) {
         val oldValue = processingState.getCounterValue(changeCounter.counterName) ?: return
 
         val operandValue = when (val operationValue = changeCounter.operationValue) {
-            is CounterOperationValue.Counter -> processingState.getCounterValue(operationValue.value) ?: 0.0
+            is CounterOperationValue.ConditionPosition -> results?.getDetectedCoordinate(
+                operationValue.conditionId?.databaseId ?: return, operationValue.coordinate ?: return,
+            ) ?: return
+            is CounterOperationValue.Counter -> processingState.getCounterValue(operationValue.value) ?: return
             is CounterOperationValue.Number -> operationValue.value
         }
 
-        processingState.setCounterValue(
-            counterName = changeCounter.counterName,
-            value = when (changeCounter.operation) {
+        val newValue = when (changeCounter.operation) {
                 ChangeCounter.OperationType.ADD -> oldValue + operandValue
                 ChangeCounter.OperationType.MINUS -> oldValue - operandValue
                 ChangeCounter.OperationType.SET -> operandValue
-            }
-        )
+        }
+        if (newValue.isFinite()) processingState.setCounterValue(changeCounter.counterName, newValue)
     }
 
     private fun executeExternalAction(externalAction: ExternalAction) {

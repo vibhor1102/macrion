@@ -16,6 +16,7 @@
  */
 package io.github.vibhor1102.macrion.core.processing.data.processor
 
+import io.github.vibhor1102.macrion.core.domain.model.counter.ConditionCoordinate
 import io.github.vibhor1102.macrion.core.processing.domain.model.ProcessedConditionResult
 
 
@@ -38,6 +39,21 @@ internal class ConditionsResults {
 
     fun getAllScreenConditionsResults(): List<ProcessedConditionResult.Screen> =
         _results.mapNotNull { it.value as? ProcessedConditionResult.Screen }
+
+    fun getDetectedCoordinate(conditionId: Long, coordinate: ConditionCoordinate): Double? {
+        val result = getScreenConditionResult(conditionId) ?: return null
+        if (!result.haveBeenDetected || !result.isFulfilled || !result.condition.shouldBeDetected) return null
+        val center = result.position ?: return null
+        val size = result.size ?: return null
+        return when (coordinate) {
+            ConditionCoordinate.CENTER_X -> center.x.toDouble()
+            ConditionCoordinate.CENTER_Y -> center.y.toDouble()
+            ConditionCoordinate.LEFT -> center.x.toDouble() - size.x / 2
+            ConditionCoordinate.RIGHT -> center.x.toDouble() + size.x / 2
+            ConditionCoordinate.TOP -> center.y.toDouble() - size.y / 2
+            ConditionCoordinate.BOTTOM -> center.y.toDouble() + size.y / 2
+        }
+    }
 
     fun reset() {
         _results.clear()

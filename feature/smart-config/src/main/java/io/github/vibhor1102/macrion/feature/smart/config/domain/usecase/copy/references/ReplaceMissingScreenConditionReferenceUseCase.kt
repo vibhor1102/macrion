@@ -18,6 +18,7 @@
 package io.github.vibhor1102.macrion.feature.smart.config.domain.usecase.copy.references
 
 import android.util.Log
+import io.github.vibhor1102.macrion.core.domain.model.action.replacePositionCondition
 import io.github.vibhor1102.macrion.core.domain.model.action.Action
 import io.github.vibhor1102.macrion.core.domain.model.action.ChangeCounter
 import io.github.vibhor1102.macrion.core.domain.model.action.Click
@@ -70,32 +71,7 @@ class ReplaceMissingScreenConditionReferenceUseCase @Inject constructor() {
         replacement: ScreenCondition,
     ): Action? {
 
-        when (this) {
-            is Click -> {
-                if (clickOnConditionId == missingReference.conditionId) {
-                    return copy(clickOnConditionId = replacement.id)
-                }
-
-                Log.e(TAG, "Can't replace, can't find missing reference to replace")
-                return null
-            }
-
-            is ChangeCounter,
-            is ExternalAction,
-            is Intent,
-            is Notification,
-            is Pause,
-            is PlaySound,
-            is CaptureScreenshot,
-            is SetText,
-            is Swipe,
-            is SplitAction,
-            is SystemAction,
-            is ToggleEvent -> {
-                Log.e(TAG, "Can't replace, action type is not supported.")
-                return null
-            }
-        }
+        return replacePositionCondition(missingReference.conditionId, replacement.id).takeIf { it != this }
     }
 }
 

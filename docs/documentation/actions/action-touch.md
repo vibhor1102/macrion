@@ -188,4 +188,14 @@ In Dumb mode, repetition is configured on the parent: each child runs once per p
 
 ### Recording
 
-Record a pinch or another gesture with multiple fingers to create a combined action. Each finger retains its press/swipe duration and its delay relative to the first finger. Swipes use their recorded start and end positions; recording does not preserve curved paths.
+Record a pinch or another gesture with multiple fingers to create a combined action. Each finger retains its press/swipe duration and its delay relative to the first finger. Recorded curves are fitted to editable paths. Recording finishes at 59,999 ms, including when a finger is held still. More than ten recorded contacts cancels the capture rather than saving only part of it.
+
+## Remembering detected positions with counters
+
+In Smart mode, a **Change counter** action can use **Detected condition position** as its value source. Select a condition in the same event and choose its center X/Y or an edge. The coordinates use screen pixels. If that condition was not detected in the current event evaluation, the counter keeps its previous value.
+
+Click and straight-swipe editors offer **Coordinate counters** for each axis. Choose a counter to replace that axis, or keep **Fixed** to use the existing position picker. For condition-targeted clicks, these counters supply the offset from the detected center. The same choices are available inside multi-touch groups. Recorded curves keep their literal paths and do not support counter endpoints.
+
+For example, save a detected object’s center into `Saved X` and `Saved Y`, adjust those counters with later actions, then choose them as a swipe’s starting coordinates. Counters retain their values during that scenario run and reset to their starting values when the scenario restarts.
+
+An unknown counter, non-finite value, or invalid screen coordinate skips the touch. If any finger in a combined gesture cannot resolve its coordinates, the entire combined gesture is skipped. Native backups preserve these choices; the legacy Klick’r export review reports actions it cannot represent.

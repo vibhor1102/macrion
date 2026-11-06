@@ -53,10 +53,13 @@ internal object KlickrGestureAdapter {
                 put("id", info.long("id"))
                 put("actionId", action.long("id"))
                 put("name", action.text("name"))
-                press.forEach { (key, value) -> put(key, value) }
+                press.filterKeys { key -> move == null || (key != "positionCounters" && !key.startsWith("click")) }
+                    .forEach { (key, value) -> put(key, value) }
                 if (move != null) {
-                    put("toX", move.getValue("fromX"))
-                    put("toY", move.getValue("fromY"))
+                    if (!dumb) put("fromCounters", press["positionCounters"] ?: JsonNull)
+                    put("toX", move["fromX"] ?: JsonNull)
+                    put("toY", move["fromY"] ?: JsonNull)
+                    if (!dumb) put("toCounters", move["positionCounters"] ?: JsonNull)
                 }
             }
         }
@@ -70,11 +73,11 @@ internal object KlickrGestureAdapter {
                 resultAction["x"] = stroke["fromX"] ?: JsonNull
                 resultAction["y"] = stroke["fromY"] ?: JsonNull
                 resultAction["pressDuration"] = stroke.getValue("duration")
-                if (!dumb) for (key in listOf("clickPositionType", "clickOnConditionId", "clickOffsetX", "clickOffsetY")) {
+                if (!dumb) for (key in listOf("clickPositionType", "clickOnConditionId", "clickOffsetX", "clickOffsetY", "positionCounters")) {
                     stroke[key]?.let { resultAction[key] = it }
                 }
             } else {
-                for (key in listOf("fromX", "fromY", "toX", "toY")) resultAction[key] = stroke.getValue(key)
+                for (key in listOf("fromX", "fromY", "toX", "toY") + if (dumb) emptyList() else listOf("fromCounters", "toCounters")) resultAction[key] = stroke[key] ?: JsonNull
                 resultAction["swipeDuration"] = stroke.getValue("duration")
             }
         } else resultAction["type"] = JsonPrimitive("SPLIT_ACTION")
@@ -94,30 +97,40 @@ internal object KlickrGestureAdapter {
         }
         val xType = motion.text("xCoordinateType")
         val yType = motion.text("yCoordinateType")
-        val offsetX = offset(motion, "x")
-        val offsetY = offset(motion, "y")
-        return buildJsonObject {
-            if (xType == "CONDITION" && yType == "CONDITION" && allowCondition) {
-                put("clickPositionType", "ON_DETECTED_CONDITION")
-                motion["conditionId"]?.let { put("clickOnConditionId", it) }
-                put("clickOffsetX", offsetX); put("clickOffsetY", offsetY)
-            } else {
-                require(xType == "LITERAL" && yType == "LITERAL") { "dynamic gesture coordinates" }
-                val x = motion.coordinate("xLiteral").toLong() + offsetX
-                val y = motion.coordinate("yLiteral").toLong() + offsetY
-                require(x in 0..Int.MAX_VALUE.toLong() && y in 0..Int.MAX_VALUE.toLong()) { "coordinates" }
-                put("fromX", x.toInt()); put("fromY", y.toInt())
-                put("clickPositionType", "USER_SELECTED")
+        fun counter(key: String): JsonPrimitive = JsonPrimitive(motion.text(key).also { require(it.isNotBlank()) { key } })
+        fun axis(axis: String, condition: Boolean): Pair<Int?, JsonPrimitive?> {
+            val type = motion.text("${axis}CoordinateType")
+            val offsetType = motion["${axis}OffsetCoordinateType"]?.takeUnless { it == JsonNull }?.jsonPrimitive?.content ?: "LITERAL"
+            require(offsetType in setOf("LITERAL", "COUNTER")) { "offset type" }
+            val offset = motion["${axis}OffsetLiteral"]?.takeUnless { it == JsonNull }?.jsonPrimitive?.int ?: 0
+            if (condition) return if (offsetType == "COUNTER") null to counter("${axis}OffsetCounter") else offset to null
+            require(type in setOf("LITERAL", "COUNTER")) { "coordinate type" }
+            if (type == "COUNTER") {
+                require(offsetType == "LITERAL" && offset == 0) { "counter coordinate with additional offset" }
+                return null to counter("${axis}Counter")
             }
+            require(offsetType == "LITERAL") { "literal coordinate with counter offset" }
+            val value = motion.coordinate("${axis}Literal").toLong() + offset
+            require(value in 0..Int.MAX_VALUE.toLong()) { "coordinates" }
+            return value.toInt() to null
+        }
+        val condition = xType == "CONDITION" && yType == "CONDITION" && allowCondition
+        val x = axis("x", condition)
+        val y = axis("y", condition)
+        return buildJsonObject {
+            put("clickPositionType", if (condition) "ON_DETECTED_CONDITION" else "USER_SELECTED")
+            if (condition) {
+                motion["conditionId"]?.let { put("clickOnConditionId", it) }
+                put("clickOffsetX", x.first ?: 0); put("clickOffsetY", y.first ?: 0)
+            } else {
+                put("fromX", x.first ?: 0); put("fromY", y.first ?: 0)
+            }
+            if (x.second != null || y.second != null) put("positionCounters", buildJsonObject {
+                x.second?.let { put("x", it) }; y.second?.let { put("y", it) }
+            })
         }
     }
 
-    private fun offset(motion: JsonObject, axis: String): Int {
-        val type = motion["${axis}OffsetCoordinateType"]
-        require(type == null || type == JsonNull || type.jsonPrimitive.content == "LITERAL") { "dynamic offset" }
-        if (type == null || type == JsonNull) return 0
-        return motion["${axis}OffsetLiteral"]?.takeUnless { it == JsonNull }?.jsonPrimitive?.int ?: 0
-    }
 }
 
 internal fun JsonObject.obj(key: String): JsonObject = getValue(key).jsonObject

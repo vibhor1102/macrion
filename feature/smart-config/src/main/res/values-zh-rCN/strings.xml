@@ -591,4 +591,24 @@
     <string name="split_repeat_help">重复次数应用于整个手势。每次重复时，每个触摸只运行一次；拆分后会还原各自的重复设置。</string>
     <string name="split_action_position_not_set">尚未设置位置</string>
     <string name="split_action_detected_position">位置由检测到的条件决定</string>
+
+    <!-- Position-aware automation and live debugging -->
+    <string name="coordinate_axis_x">X 坐标</string>
+    <string name="coordinate_axis_y">Y 坐标</string>
+    <string name="coordinate_fixed_value">固定值：%1$s</string>
+    <string name="coordinate_counters_title">坐标计数器</string>
+    <string name="coordinate_start_counters_title">起点坐标计数器</string>
+    <string name="coordinate_end_counters_title">终点坐标计数器</string>
+    <string name="coordinate_curve_hint">计数器坐标需要直线滑动。</string>
+    <string name="coordinate_source">值来源</string>
+    <string name="coordinate_detected_condition">已检测条件的位置</string>
+    <string name="coordinate_select_condition">选择条件</string>
+    <string name="coordinate_missing_hint">如果未检测到此条件，计数器保持不变。</string>
+    <string name="coordinate_counters_hint">每个计数器替换对应轴的坐标。值缺失或无效时跳过该动作。</string>
+    <string name="coordinate_center_x">中心X</string>
+    <string name="coordinate_center_y">中心Y</string>
+    <string name="coordinate_left">左侧</string>
+    <string name="coordinate_right">右侧</string>
+    <string name="coordinate_top">顶部</string>
+    <string name="coordinate_bottom">底部</string>
 </resources>

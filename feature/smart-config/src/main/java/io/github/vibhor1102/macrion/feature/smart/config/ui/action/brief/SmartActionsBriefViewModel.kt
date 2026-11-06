@@ -494,7 +494,7 @@ class SmartActionsBriefViewModel @Inject constructor(
         }
 
     private suspend fun Action.toActionDescription(context: Context, event: Event): ItemBriefDescription = when (this) {
-        is Click -> ClickDescription(
+        is Click -> if (positionCounters != null) DefaultDescription(icon = ContextCompat.getDrawable(context, getIconRes())) else ClickDescription(
             // Switching to a detected-condition target can retain the former fixed position.
             // Runtime ignores it, so the preview must ignore it too.
             position = position?.takeIf { positionType == Click.PositionType.USER_SELECTED }?.toPointF(),
@@ -502,7 +502,7 @@ class SmartActionsBriefViewModel @Inject constructor(
             imageConditionBitmap = findClickOnConditionBitmap(context, event),
         )
 
-        is Swipe -> SwipeDescription(
+        is Swipe -> if (fromCounters != null || toCounters != null) DefaultDescription(icon = ContextCompat.getDrawable(context, getIconRes())) else SwipeDescription(
             from = from?.toPointF(),
             to = to?.toPointF(),
             path = path,
@@ -533,10 +533,10 @@ class SmartActionsBriefViewModel @Inject constructor(
 
     /** Only fixed screen positions belong in the combined overlay. Condition-target clicks have no fixed point. */
     private fun Action.toSpatialDescription(): ItemBriefDescription? = when (this) {
-        is Click -> position?.takeIf { positionType == Click.PositionType.USER_SELECTED }?.let {
+        is Click -> position?.takeIf { positionType == Click.PositionType.USER_SELECTED && positionCounters == null }?.let {
             ClickDescription(position = it.toPointF(), pressDurationMs = pressDuration ?: 1L)
         }
-        is Swipe -> if (from != null || to != null) SwipeDescription(
+        is Swipe -> if (fromCounters == null && toCounters == null && (from != null || to != null)) SwipeDescription(
             from = from?.toPointF(),
             to = to?.toPointF(),
             path = path,

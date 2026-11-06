@@ -19,6 +19,8 @@ package io.github.vibhor1102.macrion.feature.smart.config.domain.usecase.copy.un
 
 import io.github.vibhor1102.macrion.core.base.identifier.Identifier
 import io.github.vibhor1102.macrion.core.common.actions.text.findCounterReferences
+import io.github.vibhor1102.macrion.core.domain.model.action.positionCounterNames
+import io.github.vibhor1102.macrion.core.domain.model.action.referencedPositionConditions
 import io.github.vibhor1102.macrion.core.domain.model.action.Action
 import io.github.vibhor1102.macrion.core.domain.model.action.ChangeCounter
 import io.github.vibhor1102.macrion.core.domain.model.action.Click
@@ -50,6 +52,8 @@ class IsActionRelatedToUnreachableItemUseCase @Inject constructor(
             putAll(eventsToCopy.map { event -> event.id to event })
         }
 
+        if (action.positionCounterNames().any { editionRepository.counterIsUnreachable(it) }) return true
+        if (action.referencedPositionConditions().any { id -> copyResultEvents[action.eventId]?.conditions?.none { it.id == id } != false }) return true
         return when (action) {
             is ChangeCounter -> action.isRelatedToUnreachableItem()
             is Click -> action.isRelatedToUnreachableItem(copyResultEvents)
@@ -74,6 +78,7 @@ class IsActionRelatedToUnreachableItemUseCase @Inject constructor(
 
         return when (val ctnValue = operationValue) {
             is CounterOperationValue.Counter -> editionRepository.counterIsUnreachable(ctnValue.value)
+            is CounterOperationValue.ConditionPosition -> false
             is CounterOperationValue.Number -> false
         }
     }

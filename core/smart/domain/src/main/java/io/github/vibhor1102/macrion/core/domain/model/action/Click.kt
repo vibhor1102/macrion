@@ -17,6 +17,8 @@
 package io.github.vibhor1102.macrion.core.domain.model.action
 
 import io.github.vibhor1102.macrion.core.base.gesture.isTouchTimingValid
+import io.github.vibhor1102.macrion.core.domain.model.action.PositionCounters
+import io.github.vibhor1102.macrion.core.domain.model.action.isPositionConfigured
 import android.graphics.Point
 import io.github.vibhor1102.macrion.core.base.identifier.Identifier
 import io.github.vibhor1102.macrion.core.database.entity.ClickPositionType
@@ -46,6 +48,8 @@ data class Click(
     val clickOffset: Point? = null,
     val waitBeforeMs: Long? = null,
     val waitAfterMs: Long? = null,
+
+    val positionCounters: PositionCounters? = null,
 ) : Action() {
 
     /**
@@ -70,13 +74,16 @@ data class Click(
 
     override fun hashCodeNoIds(): Int =
         name.hashCode() + pressDuration.hashCode() + positionType.hashCode() + position.hashCode() +
-                clickOnConditionId.hashCode() + clickOffset.hashCode() +
+                clickOnConditionId.hashCode() + clickOffset.hashCode() + positionCounters.hashCode() +
                 waitBeforeMs.hashCode() + waitAfterMs.hashCode()
 
 
     override fun deepCopy(): Click = copy(name = "" + name)
 
     private fun isPositionValid(): Boolean =
-        (positionType == PositionType.USER_SELECTED && position != null) || positionType == PositionType.ON_DETECTED_CONDITION
+        when (positionType) {
+            PositionType.USER_SELECTED -> isPositionConfigured(position, positionCounters)
+            PositionType.ON_DETECTED_CONDITION -> isPositionConfigured(clickOffset ?: Point(0, 0), positionCounters, allowNegative = true)
+        }
 
 }

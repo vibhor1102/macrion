@@ -18,6 +18,8 @@ package io.github.vibhor1102.macrion.core.domain.model.action
 
 import io.github.vibhor1102.macrion.core.base.gesture.isTouchTimingValid
 import io.github.vibhor1102.macrion.core.base.gesture.SwipePath
+import io.github.vibhor1102.macrion.core.domain.model.action.PositionCounters
+import io.github.vibhor1102.macrion.core.domain.model.action.isPositionConfigured
 import android.graphics.Point
 import io.github.vibhor1102.macrion.core.base.identifier.Identifier
 
@@ -42,14 +44,18 @@ data class Swipe(
     val path: SwipePath? = null,
     val waitBeforeMs: Long? = null,
     val waitAfterMs: Long? = null,
+
+    val fromCounters: PositionCounters? = null,
+    val toCounters: PositionCounters? = null,
 ) : Action() {
 
     override fun isComplete(): Boolean =
-        super.isComplete() && isTouchTimingValid(swipeDuration, waitBeforeMs, waitAfterMs) && from != null && to != null &&
-            (path == null || (path.isValid() && path.start.toPoint() == from && path.end.toPoint() == to))
+        super.isComplete() && isTouchTimingValid(swipeDuration, waitBeforeMs, waitAfterMs) &&
+            isPositionConfigured(from, fromCounters) && isPositionConfigured(to, toCounters) &&
+            (path == null || (fromCounters == null && toCounters == null && path.isValid() && path.start.toPoint() == from && path.end.toPoint() == to))
 
     override fun hashCodeNoIds(): Int =
-        name.hashCode() + swipeDuration.hashCode() + from.hashCode() + to.hashCode() + path.hashCode() +
+        fromCounters.hashCode() + toCounters.hashCode() + name.hashCode() + swipeDuration.hashCode() + from.hashCode() + to.hashCode() + path.hashCode() +
                 waitBeforeMs.hashCode() + waitAfterMs.hashCode()
 
     override fun deepCopy(): Swipe = copy(name = "" + name)

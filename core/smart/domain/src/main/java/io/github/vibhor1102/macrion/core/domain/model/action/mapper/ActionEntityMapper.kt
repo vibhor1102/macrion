@@ -17,6 +17,8 @@
  */
 package io.github.vibhor1102.macrion.core.domain.model.action.mapper
 
+import io.github.vibhor1102.macrion.core.database.entity.PositionCountersEntity
+import io.github.vibhor1102.macrion.core.database.entity.CounterOperationConditionPositionType
 import io.github.vibhor1102.macrion.core.database.entity.ActionEntity
 import io.github.vibhor1102.macrion.core.database.entity.ActionType
 import io.github.vibhor1102.macrion.core.database.entity.CounterOperationValueType
@@ -67,6 +69,7 @@ private fun Click.toClickEntity(): ActionEntity =
         type = ActionType.CLICK,
         pressDuration = pressDuration,
         clickPositionType = positionType.toEntity(),
+        positionCounters = positionCounters?.let { PositionCountersEntity(it.x, it.y) },
         x = position?.x,
         y = position?.y,
         clickOnConditionId = clickOnConditionId?.databaseId,
@@ -89,6 +92,8 @@ private fun Swipe.toSwipeEntity(): ActionEntity =
         toX = to?.x,
         toY = to?.y,
         swipePath = path,
+        fromCounters = fromCounters?.let { PositionCountersEntity(it.x, it.y) },
+        toCounters = toCounters?.let { PositionCountersEntity(it.x, it.y) },
         waitBeforeMs = waitBeforeMs,
         waitAfterMs = waitAfterMs,
     )
@@ -129,8 +134,6 @@ private fun ToggleEvent.toToggleEventEntity(): ActionEntity =
     )
 
 private fun ChangeCounter.toChangeCounterEntity(): ActionEntity {
-    val isNumberValue = operationValue is CounterOperationValue.Number
-
     return ActionEntity(
         id = id.databaseId,
         eventId = eventId.databaseId,
@@ -139,9 +142,16 @@ private fun ChangeCounter.toChangeCounterEntity(): ActionEntity {
         type = ActionType.CHANGE_COUNTER,
         counterName = counterName,
         counterOperation = operation.toEntity(),
-        counterOperationValueType = if (isNumberValue) CounterOperationValueType.NUMBER else CounterOperationValueType.COUNTER,
-        counterOperationValue = if (isNumberValue) operationValue.value else null,
-        counterOperationCounterName = if (isNumberValue) null else operationValue.value as String,
+        counterOperationValueType = when (operationValue) {
+            is CounterOperationValue.Number -> CounterOperationValueType.NUMBER
+            is CounterOperationValue.Counter -> CounterOperationValueType.COUNTER
+            is CounterOperationValue.ConditionPosition -> CounterOperationValueType.CONDITION
+        },
+        counterOperationValue = (operationValue as? CounterOperationValue.Number)?.value,
+        counterOperationCounterName = (operationValue as? CounterOperationValue.Counter)?.value,
+        counterOperationConditionId = (operationValue as? CounterOperationValue.ConditionPosition)?.conditionId?.databaseId,
+        counterOperationConditionPositionType = (operationValue as? CounterOperationValue.ConditionPosition)?.coordinate
+            ?.let { CounterOperationConditionPositionType.valueOf("CONDITION_${it.name}") },
     )
 }
 
@@ -231,6 +241,8 @@ internal fun Action.toSplitItemEntity(actionDbId: Long, itemPriority: Int): Spli
             toX = to?.x,
             toY = to?.y,
             swipePath = path,
+            fromCounters = fromCounters?.let { PositionCountersEntity(it.x, it.y) },
+            toCounters = toCounters?.let { PositionCountersEntity(it.x, it.y) },
             duration = swipeDuration,
             startOffset = waitBeforeMs ?: 0L,
             waitAfterMs = waitAfterMs,
@@ -242,6 +254,7 @@ internal fun Action.toSplitItemEntity(actionDbId: Long, itemPriority: Int): Spli
             name = name,
             type = ActionType.CLICK,
             clickPositionType = positionType.toEntity(),
+            positionCounters = positionCounters?.let { PositionCountersEntity(it.x, it.y) },
             clickOnConditionId = clickOnConditionId?.databaseId,
             clickOffsetX = clickOffset?.x,
             clickOffsetY = clickOffset?.y,

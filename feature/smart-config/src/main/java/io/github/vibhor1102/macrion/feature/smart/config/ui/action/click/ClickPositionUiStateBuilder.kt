@@ -1,6 +1,8 @@
 /* Copyright (C) 2026 Vibhor Goel — GPLv3 */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.action.click
 
+import io.github.vibhor1102.macrion.core.domain.model.action.isPositionConfigured
+
 import android.content.Context
 import androidx.core.content.ContextCompat
 import io.github.vibhor1102.macrion.core.bitmaps.BitmapRepository
@@ -69,10 +71,10 @@ private fun Context.userSelectedState(click: Click, forced: Boolean) = ClickPosi
     isTypeFieldVisible = !forced,
     isSelectorEnabled = true,
     selectorTitle = getString(R.string.field_click_position_title),
-    selectorDescription = click.position?.let {
+    selectorDescription = if (click.positionCounters != null) getString(R.string.coordinate_counters_title) else click.position?.let {
         getString(R.string.field_click_position_desc, it.x, it.y)
     } ?: getString(R.string.generic_select_the_position),
-    isSelectorInError = click.position == null,
+    isSelectorInError = !isPositionConfigured(click.position, click.positionCounters),
     isClickOffsetEnabled = false,
     isClickOffsetVisible = !forced,
     clickOffsetDescription = offsetDescription(click),

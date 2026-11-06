@@ -26,12 +26,19 @@ fun CompleteScenario.normalizeUserEnteredNames(): CompleteScenario {
                     val action = completeAction.action
                     completeAction.copy(action = action.copy(
                         name = action.name.trim(),
+                        positionCounters = action.positionCounters.renamedBy(counterRenames),
+                        fromCounters = action.fromCounters.renamedBy(counterRenames),
+                        toCounters = action.toCounters.renamedBy(counterRenames),
                         counterName = action.counterName.renamedBy(counterRenames),
                         counterOperationCounterName = action.counterOperationCounterName.renamedBy(counterRenames),
                         notificationMessageText = action.notificationMessageText.renameCounterReferences(counterRenames),
                         textValue = action.textValue.renameCounterReferences(counterRenames),
                         externalActionName = action.externalActionName?.trim(),
-                    ))
+                    ), splitItems = completeAction.splitItems.map { item -> item.copy(
+                        positionCounters = item.positionCounters.renamedBy(counterRenames),
+                        fromCounters = item.fromCounters.renamedBy(counterRenames),
+                        toCounters = item.toCounters.renamedBy(counterRenames),
+                    ) })
                 },
                 conditions = completeEvent.conditions.map { condition -> condition.copy(
                     name = condition.name.trim(),
@@ -51,3 +58,6 @@ private fun String?.renameCounterReferences(renames: Map<String, String>): Strin
     this?.replace(counterReferenceRegex) { match ->
         "{${renames[match.groupValues[1]] ?: match.groupValues[1]}}"
     }
+
+private fun PositionCountersEntity?.renamedBy(renames: Map<String, String>): PositionCountersEntity? =
+    this?.copy(x = x.renamedBy(renames), y = y.renamedBy(renames))

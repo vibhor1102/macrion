@@ -613,4 +613,24 @@
     <string name="split_repeat_help">La ripetizione si applica all’intero gesto. Ogni contatto viene eseguito una volta per ripetizione; separando il gesto, vengono ripristinate le impostazioni di ripetizione individuali.</string>
     <string name="split_action_position_not_set">Posizione non impostata</string>
     <string name="split_action_detected_position">La posizione segue la condizione rilevata</string>
+
+    <!-- Position-aware automation and live debugging -->
+    <string name="coordinate_axis_x">Coordinata X</string>
+    <string name="coordinate_axis_y">Coordinata Y</string>
+    <string name="coordinate_fixed_value">Fissa: %1$s</string>
+    <string name="coordinate_counters_title">Contatori delle coordinate</string>
+    <string name="coordinate_start_counters_title">Contatori del punto iniziale</string>
+    <string name="coordinate_end_counters_title">Contatori del punto finale</string>
+    <string name="coordinate_curve_hint">Le coordinate da contatore richiedono uno scorrimento rettilineo.</string>
+    <string name="coordinate_source">Origine del valore</string>
+    <string name="coordinate_detected_condition">Posizione della condizione rilevata</string>
+    <string name="coordinate_select_condition">Seleziona una condizione</string>
+    <string name="coordinate_missing_hint">Se questa condizione non viene rilevata, il contatore resta invariato.</string>
+    <string name="coordinate_counters_hint">Ogni contatore sostituisce il relativo asse. I valori mancanti o non validi saltano l’azione.</string>
+    <string name="coordinate_center_x">Centro X</string>
+    <string name="coordinate_center_y">Centro Y</string>
+    <string name="coordinate_left">Sinistra</string>
+    <string name="coordinate_right">Destra</string>
+    <string name="coordinate_top">Alto</string>
+    <string name="coordinate_bottom">Basso</string>
 </resources>

@@ -17,6 +17,9 @@
  */
 package io.github.vibhor1102.macrion.core.domain.data
 
+import io.github.vibhor1102.macrion.core.domain.model.counter.CounterOperationValue
+import io.github.vibhor1102.macrion.core.domain.model.action.ChangeCounter
+
 import android.util.Log
 import androidx.room.withTransaction
 
@@ -389,6 +392,9 @@ internal class ScenarioDataSource @Inject constructor(
                 actionInEvent.toEntity().apply {
                     eventId = eventDbId
                     clickOnConditionId = scenarioUpdateState.getClickOnConditionDatabaseId(actionInEvent)
+                    counterOperationConditionId = ((actionInEvent as? ChangeCounter)
+                        ?.operationValue as? CounterOperationValue.ConditionPosition)
+                        ?.conditionId?.let { scenarioUpdateState.getConditionDbId(it) }
                 }
             }
         )

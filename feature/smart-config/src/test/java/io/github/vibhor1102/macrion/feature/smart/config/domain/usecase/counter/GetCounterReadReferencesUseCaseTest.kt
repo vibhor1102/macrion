@@ -17,6 +17,9 @@
 package io.github.vibhor1102.macrion.feature.smart.config.domain.usecase.counter
 
 import io.github.vibhor1102.macrion.core.base.identifier.Identifier
+import io.github.vibhor1102.macrion.core.domain.model.action.Click
+import io.github.vibhor1102.macrion.core.domain.model.action.SplitAction
+import io.github.vibhor1102.macrion.core.domain.model.action.PositionCounters
 import io.github.vibhor1102.macrion.core.domain.model.action.Action
 import io.github.vibhor1102.macrion.core.domain.model.action.ChangeCounter
 import io.github.vibhor1102.macrion.core.domain.model.action.Notification
@@ -56,6 +59,17 @@ class GetCounterReadReferencesUseCaseTest {
     @Before
     fun setUp() {
         useCase = GetCounterReadReferencesUseCase(mockEditionRepository)
+    }
+
+    @Test fun `combined gesture coordinate counters create read references to the parent`() = runTest {
+        val child = Click(Identifier(databaseId = 2), Identifier(databaseId = 1), "Remembered", 0, 100,
+            Click.PositionType.USER_SELECTED, positionCounters = PositionCounters(COUNTER_A, COUNTER_B))
+        val group = SplitAction(Identifier(databaseId = 3), child.eventId, "Group", 0, listOf(child, child.copy(id = Identifier(databaseId = 4))))
+        mockEvents(listOf(event(actions = listOf(group))))
+        val result = useCase().first()
+        assertEquals(setOf(COUNTER_A, COUNTER_B), result.keys)
+        assertTrue(result.values.all { references -> references.size == 1 &&
+            (references.single() as CounterReference.ActionElement).action == group })
     }
 
     @Test

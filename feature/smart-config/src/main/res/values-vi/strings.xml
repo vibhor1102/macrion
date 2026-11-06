@@ -452,4 +452,24 @@
     <string name="split_repeat_help">Số lần lặp áp dụng cho toàn bộ cử chỉ. Mỗi lần chạm chạy một lần trong mỗi lượt lặp; cài đặt lặp riêng của từng lần chạm sẽ được khôi phục khi bạn tách ra.</string>
     <string name="split_action_position_not_set">Chưa đặt vị trí</string>
     <string name="split_action_detected_position">Vị trí theo điều kiện được phát hiện</string>
+
+    <!-- Position-aware automation and live debugging -->
+    <string name="coordinate_axis_x">Tọa độ X</string>
+    <string name="coordinate_axis_y">Tọa độ Y</string>
+    <string name="coordinate_fixed_value">Cố định: %1$s</string>
+    <string name="coordinate_counters_title">Bộ đếm tọa độ</string>
+    <string name="coordinate_start_counters_title">Bộ đếm tọa độ bắt đầu</string>
+    <string name="coordinate_end_counters_title">Bộ đếm tọa độ kết thúc</string>
+    <string name="coordinate_curve_hint">Tọa độ từ bộ đếm yêu cầu thao tác vuốt thẳng.</string>
+    <string name="coordinate_source">Nguồn giá trị</string>
+    <string name="coordinate_detected_condition">Vị trí điều kiện được phát hiện</string>
+    <string name="coordinate_select_condition">Chọn điều kiện</string>
+    <string name="coordinate_missing_hint">Nếu không phát hiện điều kiện này, bộ đếm giữ nguyên giá trị.</string>
+    <string name="coordinate_counters_hint">Mỗi bộ đếm thay thế tọa độ của trục đó. Giá trị bị thiếu hoặc không hợp lệ sẽ bỏ qua hành động.</string>
+    <string name="coordinate_center_x">Tâm X</string>
+    <string name="coordinate_center_y">Tâm Y</string>
+    <string name="coordinate_left">Trái</string>
+    <string name="coordinate_right">Phải</string>
+    <string name="coordinate_top">Trên</string>
+    <string name="coordinate_bottom">Dưới</string>
 </resources>

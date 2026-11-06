@@ -44,6 +44,7 @@ class IsConditionRelatedToUnreachableItemUseCase @Inject constructor(
     private fun ScreenCondition.Number.isRelatedToUnreachableItem(): Boolean =
         when (val ctnValue = counterValue) {
             is CounterOperationValue.Counter -> editionRepository.editionState.getCounter(ctnValue.value) == null
+            is CounterOperationValue.ConditionPosition -> true
             is CounterOperationValue.Number -> false
         }
 
@@ -52,6 +53,7 @@ class IsConditionRelatedToUnreachableItemUseCase @Inject constructor(
 
         return when (val ctnValue = counterValue) {
             is CounterOperationValue.Counter -> editionRepository.editionState.getCounter(ctnValue.value) == null
+            is CounterOperationValue.ConditionPosition -> true
             is CounterOperationValue.Number -> false
         }
     }

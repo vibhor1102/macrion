@@ -6,6 +6,8 @@
  */
 package io.github.vibhor1102.macrion.feature.backup.data
 
+import io.github.vibhor1102.macrion.core.database.entity.CounterOperationValueType
+
 import io.github.vibhor1102.macrion.core.database.entity.ActionEntity
 import io.github.vibhor1102.macrion.core.database.entity.ActionType
 import io.github.vibhor1102.macrion.core.database.entity.ClickPositionType
@@ -116,6 +118,8 @@ internal object KlickrCompatibilityProjector {
                     action.action.type == ActionType.PLAY_SOUND ||
                     action.action.type == ActionType.CAPTURE_SCREENSHOT ||
                     action.action.type == ActionType.SPLIT_ACTION ||
+                    action.action.positionCounters != null || action.action.fromCounters != null || action.action.toCounters != null ||
+                    action.action.counterOperationValueType == CounterOperationValueType.CONDITION ||
                     (action.action.type == ActionType.SWIPE && action.action.swipePath?.isCurved == true)
             }.map { action ->
                 if (action.action.type == ActionType.SWIPE) action.copy(action = action.action.copy(swipePath = null))
@@ -127,7 +131,9 @@ internal object KlickrCompatibilityProjector {
                     reason = KlickrCompatibilityLossReason.UNSUPPORTED_COMPONENT,
                     componentCount = removedActionCount,
                     scenarioId = detached.scenario.id,
-                    componentNames = event.actions.filter { it.action.type in setOf(ActionType.EXTERNAL_ACTION, ActionType.PLAY_SOUND, ActionType.CAPTURE_SCREENSHOT, ActionType.SPLIT_ACTION) }.map { it.action.name },
+                    componentNames = event.actions.filter { action -> action !in compatibleActions &&
+                        !(action.action.type == ActionType.SWIPE && action.action.swipePath?.isCurved == true)
+                    }.map { it.action.name },
                 )
             }
             event.copy(actions = compatibleActions)

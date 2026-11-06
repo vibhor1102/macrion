@@ -117,7 +117,7 @@ import kotlinx.serialization.Serializable
         ),
     ]
 )
-@TypeConverters(SwipePathRoomConverter::class)
+@TypeConverters(SwipePathRoomConverter::class, PositionCountersConverter::class)
 @Serializable
 data class ActionEntity(
     @PrimaryKey(autoGenerate = true) override var id: Long,
@@ -189,6 +189,12 @@ data class ActionEntity(
     // Delays (Optional)
     @ColumnInfo(name = "wait_before_ms") val waitBeforeMs: Long? = null,
     @ColumnInfo(name = "wait_after_ms") val waitAfterMs: Long? = null,
+
+    @ColumnInfo(name = "position_counters") val positionCounters: PositionCountersEntity? = null,
+    @ColumnInfo(name = "from_counters") val fromCounters: PositionCountersEntity? = null,
+    @ColumnInfo(name = "to_counters") val toCounters: PositionCountersEntity? = null,
+    @ColumnInfo(name = "counter_operation_condition_id") var counterOperationConditionId: Long? = null,
+    @ColumnInfo(name = "counter_operation_condition_position_type") val counterOperationConditionPositionType: CounterOperationConditionPositionType? = null,
 ) : EntityWithId
 
 /**

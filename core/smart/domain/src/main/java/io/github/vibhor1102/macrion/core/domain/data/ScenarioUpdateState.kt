@@ -53,7 +53,7 @@ internal class ScenarioUpdateState {
         if (action is Click) action.clickOnConditionId?.let { getConditionDbId(it) }
         else null
 
-    private fun getConditionDbId(identifier: Identifier?): Long = when {
+    fun getConditionDbId(identifier: Identifier?): Long = when {
         identifier != null && identifier.tempId == null && identifier.databaseId != 0L -> identifier.databaseId
         identifier != null -> conditionsDomainToDbIdMap[identifier.tempId]
             ?: throw IllegalStateException("Identifier is not found in condition map for $identifier")

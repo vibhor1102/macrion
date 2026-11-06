@@ -16,6 +16,9 @@
  */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.action.swipe
 
+import io.github.vibhor1102.macrion.core.domain.model.action.PositionCounters
+import io.github.vibhor1102.macrion.core.domain.model.action.isPositionConfigured
+
 import android.content.Context
 import android.content.SharedPreferences
 
@@ -83,6 +86,15 @@ class SwipeViewModel @Inject constructor(
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
+    val counterNames get() = editionRepository.editionState.getAllEditedCounters().map { it.counterName }
+
+    fun setPositionCounters(from: Boolean, value: PositionCounters?) {
+        getEditedSwipe()?.let { swipe -> editionRepository.updateEditedAction(
+            if (from) swipe.copy(fromCounters = value, path = swipe.path.takeIf { value == null })
+            else swipe.copy(toCounters = value, path = swipe.path.takeIf { value == null })
+        ) }
+    }
+
     fun getEditedSwipe(): Swipe? =
         editionRepository.editionState.getEditedAction<Swipe>()
 
@@ -106,7 +118,8 @@ class SwipeViewModel @Inject constructor(
      */
     fun setPositions(from: Point, to: Point, path: SwipePath? = null) {
         editionRepository.editionState.getEditedAction<Swipe>()?.let { swipe ->
-            editionRepository.updateEditedAction(swipe.copy(from = from, to = to, path = path))
+            editionRepository.updateEditedAction(swipe.copy(from = from, to = to, path = path,
+                fromCounters = swipe.fromCounters.takeIf { path == null }, toCounters = swipe.toCounters.takeIf { path == null }))
         }
     }
 
@@ -143,15 +156,19 @@ class SwipeViewModel @Inject constructor(
         hasUnsavedModifications: Boolean,
         canBeSaved: Boolean,
     ): SwipeUiState {
-        val hasPositions = from != null && to != null
+        val hasPositions = isPositionConfigured(from, fromCounters) &&
+            isPositionConfigured(to, toCounters)
         return SwipeUiState(
+            configuredAction = this,
             canBeSaved = canBeSaved,
             hasUnsavedModifications = hasUnsavedModifications,
             name = name,
             nameError = name?.isEmpty() ?: true,
             swipeDuration = swipeDuration?.toString(),
             swipeDurationError = (swipeDuration ?: -1) <= 0,
-            positionsDescription = if (hasPositions)
+            positionsDescription = if (fromCounters != null || toCounters != null)
+                context.getString(R.string.coordinate_counters_title)
+            else if (hasPositions)
                 context.getString(R.string.field_swipe_positions_desc, from!!.x, from!!.y, to!!.x, to!!.y)
             else
                 context.getString(R.string.generic_select_the_position),

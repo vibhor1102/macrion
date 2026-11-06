@@ -1,6 +1,10 @@
 /* Copyright (C) 2026 Vibhor Goel — GPLv3 */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.action.split
 
+import io.github.vibhor1102.macrion.core.domain.model.action.isPositionConfigured
+import io.github.vibhor1102.macrion.feature.smart.config.ui.action.PositionCountersEditor
+import android.graphics.Point
+
 import android.app.Dialog
 import android.util.Log
 import android.view.ViewGroup
@@ -238,7 +242,8 @@ class SplitActionDialog(
                     durationLabel = stringResource(R.string.input_field_label_swipe_duration),
                     nameError = action.name.isNullOrBlank(),
                     durationError = (action.swipeDuration ?: 0L) <= 0L,
-                    positionError = action.from == null || action.to == null,
+                    positionError = !isPositionConfigured(action.from, action.fromCounters) ||
+                        !isPositionConfigured(action.to, action.toCounters),
                     maxNameLength = maxNameLength, waitBefore = before, waitAfter = after,
                     maxWaitBeforeMs = (MAX_TOUCH_DURATION_MS - (action.swipeDuration ?: 0L)).coerceAtLeast(0L),
                     onNameChanged = { name -> viewModel.updateSubAction(key) { (it as Swipe).copy(name = name) } },
@@ -249,6 +254,17 @@ class SplitActionDialog(
                     onPositionClicked = { showSwipePositionSelector(item.index) },
                     onWaitBeforeChanged = onBefore, onWaitAfterChanged = onAfter,
                 )
+                PositionCountersEditor(
+                    stringResource(R.string.coordinate_start_counters_title), action.fromCounters, action.from,
+                    viewModel.counterNames, { value -> viewModel.updateSubAction(key) { (it as Swipe).copy(fromCounters = value, path = it.path.takeIf { value == null }) } },
+                    enabled = action.path?.isCurved != true,
+                )
+                PositionCountersEditor(
+                    stringResource(R.string.coordinate_end_counters_title), action.toCounters, action.to,
+                    viewModel.counterNames, { value -> viewModel.updateSubAction(key) { (it as Swipe).copy(toCounters = value, path = it.path.takeIf { value == null }) } },
+                    enabled = action.path?.isCurved != true,
+                )
+                if (action.path?.isCurved == true) Text(stringResource(R.string.coordinate_curve_hint))
             }
             is Click -> Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 ClickFields(
@@ -263,11 +279,16 @@ class SplitActionDialog(
                         if (input.isBlank() || input.toLongOrNull()?.let { it <= GESTURE_DURATION_MAX_VALUE } == true)
                             viewModel.updateSubAction(key) { (it as Click).copy(pressDuration = input.toLongOrNull()) }
                     },
-                    onTypeSelected = { type -> viewModel.updateSubAction(key) { (it as Click).copy(positionType = type) } },
+                    onTypeSelected = { type -> viewModel.updateSubAction(key) { (it as Click).copy(positionType = type, positionCounters = null) } },
                     onPositionSelected = { showClickPositionSelector(item.index) },
                     onConditionSelected = { showConditionSelector(ui, item.index) },
                     onOffsetSelected = { showClickOffsetEditor(item.index) },
                     onWaitBeforeChanged = onBefore, onWaitAfterChanged = onAfter,
+                )
+                PositionCountersEditor(
+                    stringResource(R.string.coordinate_counters_title), action.positionCounters,
+                    if (action.positionType == Click.PositionType.USER_SELECTED) action.position else action.clickOffset ?: Point(0, 0),
+                    viewModel.counterNames, { value -> viewModel.updateSubAction(key) { (it as Click).copy(positionCounters = value) } },
                 )
             }
             else -> TextButton(onClick = {

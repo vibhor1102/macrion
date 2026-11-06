@@ -1,6 +1,10 @@
 /* Copyright (C) 2024 Kevin Buzeau; Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.action.changecounter
 
+import io.github.vibhor1102.macrion.core.domain.model.counter.ConditionCoordinate
+import io.github.vibhor1102.macrion.feature.smart.config.ui.action.CoordinateChoice
+import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.selection.ScreenConditionSelectionDialog
+
 import io.github.vibhor1102.macrion.core.ui.compose.OverlayDialogShape
 
 import android.util.Log
@@ -175,14 +179,44 @@ class ChangeCounterDialog(private val listener: OnActionConfigCompleteListener) 
                                 text = { Text(stringResource(item.title)) }, onClick = { viewModel.setOperationItem(item); expanded = false }) }
                         }
                     }
-                    SingleChoiceSegmentedButtonRow {
-                        listOf(UiOperandType.STATIC to R.drawable.ic_numbers, UiOperandType.COUNTER to R.drawable.ic_change_counter)
-                            .forEachIndexed { index, pair -> SegmentedButton(
-                                selected = (ui.operandValue is UiStaticOrCounterSelection.StaticValue) == (pair.first == UiOperandType.STATIC),
-                                onClick = { viewModel.setOperandType(pair.first) }, shape = SegmentedButtonDefaults.itemShape(index, 2),
-                                icon = {}, label = { Icon(painterResource(pair.second), null, Modifier.size(20.dp)) }) }
-                    }
                 }
+                CoordinateChoice(
+                    label = stringResource(R.string.coordinate_source),
+                    selected = stringResource(when {
+                        ui.positionOperand != null -> R.string.coordinate_detected_condition
+                        ui.operandValue is UiStaticOrCounterSelection.CounterValue -> R.string.field_dropdown_item_notification_message_type_counter
+                        else -> R.string.field_counter_operation_value_label
+                    }),
+                    options = listOf(
+                        0 to stringResource(R.string.field_counter_operation_value_label),
+                        1 to stringResource(R.string.field_dropdown_item_notification_message_type_counter),
+                        2 to stringResource(R.string.coordinate_detected_condition),
+                    ),
+                    onSelected = { when (it) {
+                        0 -> viewModel.setOperandType(UiOperandType.STATIC)
+                        1 -> viewModel.setOperandType(UiOperandType.COUNTER)
+                        else -> viewModel.setPositionOperand()
+                    } },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                if (ui.positionOperand != null) {
+                    OutlinedButton(onClick = {
+                        overlayManager.navigateTo(context,
+                            ScreenConditionSelectionDialog(
+                                ui.availableConditions, viewModel::setPositionCondition), false)
+                    }, enabled = ui.availableConditions.isNotEmpty(), modifier = Modifier.fillMaxWidth()) {
+                        Text(ui.positionConditionName ?: stringResource(R.string.coordinate_select_condition))
+                    }
+                    CoordinateChoice(
+                        label = stringResource(R.string.coordinate_source),
+                        selected = stringResource(ui.positionOperand.coordinate.coordinateLabel()),
+                        options = ConditionCoordinate.entries.map {
+                            it to stringResource(it.coordinateLabel())
+                        },
+                        onSelected = viewModel::setCoordinate, modifier = Modifier.fillMaxWidth(),
+                    )
+                    Text(stringResource(R.string.coordinate_missing_hint), style = MaterialTheme.typography.bodySmall)
+                } else
                 when (val operand = ui.operandValue) {
                     is UiStaticOrCounterSelection.StaticValue -> {
                         OutlinedTextField(

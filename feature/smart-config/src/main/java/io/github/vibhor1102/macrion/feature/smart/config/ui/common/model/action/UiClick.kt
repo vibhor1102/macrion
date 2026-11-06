@@ -31,6 +31,8 @@ internal fun getClickIconRes(): Int =
 internal fun Click.getDescription(context: Context, parent: Event?, inError: Boolean): String {
     if (inError) return context.getString(R.string.item_error_action_invalid_generic)
 
+    if (positionCounters != null) return context.getString(R.string.coordinate_counters_title) +
+        " (${positionCounters?.names().orEmpty().joinToString()})"
     if (positionType == Click.PositionType.ON_DETECTED_CONDITION) {
         val condition = parent?.conditions?.find { it.id == clickOnConditionId }
         return if (condition != null) {

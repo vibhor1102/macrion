@@ -30,6 +30,8 @@ internal fun getSwipeIconRes(): Int =
 internal fun Swipe.getDescription(context: Context, inError: Boolean): String = when {
     inError -> context.getString(R.string.item_error_action_invalid_generic)
 
+    fromCounters != null || toCounters != null -> context.getString(R.string.coordinate_counters_title) +
+        " (${(fromCounters?.names().orEmpty() + toCounters?.names().orEmpty()).joinToString()})"
     else -> context.getString(
         R.string.item_swipe_details,
         formatDuration(swipeDuration ?: 1),

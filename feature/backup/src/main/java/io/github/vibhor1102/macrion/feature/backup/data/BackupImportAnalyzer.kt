@@ -171,7 +171,14 @@ internal class BackupImportAnalyzer {
                     (event.event.type == EventType.IMAGE_EVENT && ((id == null && event.event.conditionOperator == 2) || id in conditionIds))
                 val actions = event.actions.filter { complete ->
                     val action = complete.action
-                    val valid = validClick(action.clickPositionType, action.clickOnConditionId) &&
+                    val counterNames = canonical.counters.map { it.name }.toSet()
+                    val positionNames = listOfNotNull(action.positionCounters, action.fromCounters, action.toCounters).flatMap { it.names() } +
+                        complete.splitItems.flatMap { item -> listOfNotNull(item.positionCounters, item.fromCounters, item.toCounters).flatMap { it.names() } }
+                    val valid = positionNames.all { it in counterNames } &&
+                        (action.counterOperationValueType != CounterOperationValueType.CONDITION ||
+                            (event.event.type == EventType.IMAGE_EVENT && event.conditions.any {
+                                it.id == action.counterOperationConditionId && it.shouldBeDetected == true
+                            })) && validClick(action.clickPositionType, action.clickOnConditionId) &&
                         complete.splitItems.all { validClick(it.clickPositionType, it.clickOnConditionId) } &&
                         (action.type != ActionType.TOGGLE_EVENT || action.toggleAll == true || complete.eventsToggle.all { it.toggleEventId in eventIds })
                     if (!valid) issue(action.name, ImportIssueKind.REFERENCE, "")

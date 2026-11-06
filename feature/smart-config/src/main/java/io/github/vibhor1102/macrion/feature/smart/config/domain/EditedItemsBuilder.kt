@@ -579,6 +579,9 @@ class EditedItemsBuilder internal constructor(
             id = actionId,
             eventId = eventId,
             name = "" + from.name,
+            operationValue = (from.operationValue as? CounterOperationValue.ConditionPosition)?.let {
+                it.copy(conditionId = eventCopyConditionIdMap[it.conditionId] ?: it.conditionId)
+            } ?: from.operationValue,
             counterName = "" + from.counterName,
         )
     }

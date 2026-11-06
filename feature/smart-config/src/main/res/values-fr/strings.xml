@@ -616,4 +616,24 @@
     <string name="split_repeat_help">La répétition s’applique à tout le geste. Chaque contact est exécuté une fois par répétition ; ses paramètres de répétition individuels sont rétablis lorsque vous séparez le geste.</string>
     <string name="split_action_position_not_set">Position non définie</string>
     <string name="split_action_detected_position">La position suit la condition détectée</string>
+
+    <!-- Position-aware automation and live debugging -->
+    <string name="coordinate_axis_x">Coordonnée X</string>
+    <string name="coordinate_axis_y">Coordonnée Y</string>
+    <string name="coordinate_fixed_value">Fixe : %1$s</string>
+    <string name="coordinate_counters_title">Compteurs de coordonnées</string>
+    <string name="coordinate_start_counters_title">Compteurs du point de départ</string>
+    <string name="coordinate_end_counters_title">Compteurs du point d’arrivée</string>
+    <string name="coordinate_curve_hint">Les coordonnées par compteur nécessitent un balayage droit.</string>
+    <string name="coordinate_source">Source de la valeur</string>
+    <string name="coordinate_detected_condition">Position de la condition détectée</string>
+    <string name="coordinate_select_condition">Sélectionner une condition</string>
+    <string name="coordinate_missing_hint">Si cette condition n’est pas détectée, le compteur reste inchangé.</string>
+    <string name="coordinate_counters_hint">Chaque compteur remplace cet axe. Une valeur absente ou invalide annule cette action.</string>
+    <string name="coordinate_center_x">Centre X</string>
+    <string name="coordinate_center_y">Centre Y</string>
+    <string name="coordinate_left">Gauche</string>
+    <string name="coordinate_right">Droite</string>
+    <string name="coordinate_top">Haut</string>
+    <string name="coordinate_bottom">Bas</string>
 </resources>

@@ -1,5 +1,9 @@
 package io.github.vibhor1102.macrion.core.domain.model.action
 
+import io.github.vibhor1102.macrion.core.domain.model.action.PositionCounters
+import io.github.vibhor1102.macrion.core.domain.model.counter.ConditionCoordinate
+import io.github.vibhor1102.macrion.core.domain.model.counter.CounterOperationValue
+
 import android.graphics.Point
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.github.vibhor1102.macrion.core.base.identifier.Identifier
@@ -16,6 +20,33 @@ import org.robolectric.annotation.Config
 @RunWith(AndroidJUnit4::class)
 @Config(sdk = [29])
 class CombinedActionPersistenceTest {
+    @Test fun counterPositionsAndDetectedCoordinateOperandsSurviveReload() {
+        val event = Identifier(databaseId = 5)
+        val counters = PositionCounters("X", "Y")
+        val click = Click(Identifier(databaseId = 2), event, "Remembered", 0, 100,
+            Click.PositionType.USER_SELECTED, positionCounters = counters)
+        val swipe = Swipe(Identifier(databaseId = 3), event, "Move", 1, 500,
+            to = Point(50, 60), fromCounters = counters)
+        assertEquals(click, CompleteActionEntity(click.toEntity()).toDomain())
+        assertEquals(swipe, CompleteActionEntity(swipe.toEntity()).toDomain())
+        val group = SplitAction(Identifier(databaseId = 1), event, "Group", 0, listOf(click, swipe))
+        assertEquals(group, CompleteActionEntity(group.toEntity(), splitItems = group.subActions.mapIndexed {
+            index, action -> action.toSplitItemEntity(1, index)
+        }).toDomain())
+        val change = ChangeCounter(Identifier(databaseId = 4), event, "Remember edge", 0, "X",
+            ChangeCounter.OperationType.SET,
+            CounterOperationValue.ConditionPosition(
+                Identifier(databaseId = 9), ConditionCoordinate.RIGHT,
+            ))
+        assertEquals(change, CompleteActionEntity(change.toEntity()).toDomain())
+        val copied = CompleteActionEntity(change.toEntity()).toDomain(cleanIds = true) as ChangeCounter
+        assertEquals(9L, (copied.operationValue as CounterOperationValue.ConditionPosition).conditionId?.tempId)
+        assertEquals(listOf("X", "Y", "X", "Y"), group.positionCounterNames())
+        val renamed = group.renamePositionCounter("X", "Saved X")
+        assertFalse("X" in renamed.positionCounterNames())
+        assertEquals(listOf("X", "Y", "X", "Y"), group.positionCounterNames())
+    }
+
     @Test fun recordedFractionalCurveCanBeSaved() {
         val path = SwipePath(listOf(
             SwipeNode(SwipePoint(12.8f, 20.9f)),

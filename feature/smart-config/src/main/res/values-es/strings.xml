@@ -631,4 +631,24 @@
         <item quantity="many">%1$d acciones táctiles</item>
         <item quantity="other">%1$d acciones táctiles</item>
     </plurals>
+
+    <!-- Position-aware automation and live debugging -->
+    <string name="coordinate_axis_x">Coordenada X</string>
+    <string name="coordinate_axis_y">Coordenada Y</string>
+    <string name="coordinate_fixed_value">Fija: %1$s</string>
+    <string name="coordinate_counters_title">Contadores de coordenadas</string>
+    <string name="coordinate_start_counters_title">Contadores del punto inicial</string>
+    <string name="coordinate_end_counters_title">Contadores del punto final</string>
+    <string name="coordinate_curve_hint">Las coordenadas con contadores requieren un deslizamiento recto.</string>
+    <string name="coordinate_source">Origen del valor</string>
+    <string name="coordinate_detected_condition">Posición de la condición detectada</string>
+    <string name="coordinate_select_condition">Seleccionar una condición</string>
+    <string name="coordinate_missing_hint">Si no se detecta esta condición, el contador no cambia.</string>
+    <string name="coordinate_counters_hint">Cada contador sustituye ese eje. Los valores ausentes o no válidos omiten la acción.</string>
+    <string name="coordinate_center_x">Centro X</string>
+    <string name="coordinate_center_y">Centro Y</string>
+    <string name="coordinate_left">Izquierda</string>
+    <string name="coordinate_right">Derecha</string>
+    <string name="coordinate_top">Arriba</string>
+    <string name="coordinate_bottom">Abajo</string>
 </resources>

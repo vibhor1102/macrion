@@ -226,6 +226,52 @@ class BackupImportAnalyzerTests {
         assertTrue(result.issues.any { it.kind == ImportIssueKind.ACTION && it.detail.contains("counterOperationValue") })
     }
 
+    @Test fun klickrCounterCoordinatesAreImportedOnlyWithExistingCounters() {
+        val base = finger(100, 1, 0, 0, true)
+        val motions = base.array("motions").toMutableList()
+        motions[0] = JsonObject(motions[0].jsonObject - "xLiteral" + mapOf(
+            "xCoordinateType" to JsonPrimitive("COUNTER"), "xCounter" to JsonPrimitive("Saved X"),
+        ))
+        val swipe = gesture(1, "GESTURE", listOf(JsonObject(base + ("motions" to JsonArray(motions)))))
+        val source = smart(listOf(event(10, listOf(swipe, pause(2)))))
+        val withCounter = JsonObject(source + ("scenario" to JsonObject(source.obj("scenario") +
+            ("counters" to JsonArray(listOf(Json.encodeToJsonElement(CountersEntity("Saved X", 42, 50.0))))))))
+        val result = analyze(withCounter)
+        assertTrue(result.issues.toString(), result.issues.isEmpty())
+        val action = Json.decodeFromJsonElement<ScenarioBackup>(result.json!!).scenario.events.single().actions.first().action
+        assertEquals(ActionType.SWIPE, action.type)
+        assertEquals("Saved X", action.fromCounters?.x)
+        assertEquals(20, action.fromY)
+        assertEquals(100, action.toX)
+        val missing = analyze(source)
+        assertEquals(listOf(2L), Json.decodeFromJsonElement<ScenarioBackup>(missing.json!!).scenario.events.single().actions.map { it.action.id })
+        assertTrue(missing.issues.any { it.kind == ImportIssueKind.REFERENCE })
+    }
+
+    @Test fun conditionCoordinateOperandsAreRecognizedAndLegacyExportReportsTheirLoss() {
+        val image = ConditionEntity(100, 10, "Image", ConditionType.ON_IMAGE_DETECTED, 0,
+            shouldBeDetected = true, path = "Condition_100.png", areaLeft = 0, areaTop = 0, areaRight = 20, areaBottom = 20,
+            threshold = 4, detectionType = 1, detectionAreaLeft = 0, detectionAreaTop = 0, detectionAreaRight = 1080, detectionAreaBottom = 1920)
+        val change = CompleteActionEntity(ActionEntity(1, 10, name = "Remember X", type = ActionType.CHANGE_COUNTER,
+            counterName = "X", counterOperation = ChangeCounterOperationType.SET,
+            counterOperationValueType = CounterOperationValueType.CONDITION, counterOperationConditionId = 100,
+            counterOperationConditionPositionType = CounterOperationConditionPositionType.CONDITION_CENTER_X))
+        val original = event(10, listOf(Json.encodeToJsonElement(change).jsonObject, pause(2)))
+        val screenEvent = JsonObject(original + mapOf(
+            "event" to JsonObject(original.obj("event") + ("type" to JsonPrimitive("IMAGE_EVENT"))),
+            "conditions" to JsonArray(listOf(Json.encodeToJsonElement(image)))))
+        val source = smart(listOf(screenEvent))
+        val withCounter = JsonObject(source + ("scenario" to JsonObject(source.obj("scenario") +
+            ("counters" to JsonArray(listOf(Json.encodeToJsonElement(CountersEntity("X", 42, 0.0))))))))
+        val result = analyze(withCounter)
+        assertTrue(result.issues.toString(), result.issues.isEmpty())
+        val scenario = Json.decodeFromJsonElement<ScenarioBackup>(result.json!!).scenario
+        assertEquals(CounterOperationValueType.CONDITION, scenario.events.single().actions.first().action.counterOperationValueType)
+        val projection = KlickrCompatibilityProjector.projectSmartScenario(scenario)
+        assertEquals(listOf(2L), projection.value!!.events.single().actions.map { it.action.id })
+        assertTrue(projection.losses.any { "Remember X" in it.componentNames })
+    }
+
     private fun analyze(source: JsonObject) = BackupImportAnalyzer().analyze(source, BackupArchiveFormat.KLICKR_COMPATIBLE, false)
     private fun smart(events: List<JsonObject>) = buildJsonObject {
         put("version", 25); put("screenWidth", 1080); put("screenHeight", 1920)

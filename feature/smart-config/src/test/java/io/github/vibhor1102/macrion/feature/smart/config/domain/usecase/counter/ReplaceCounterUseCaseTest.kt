@@ -20,6 +20,9 @@ import android.graphics.Rect
 import android.os.Build
 
 import io.github.vibhor1102.macrion.core.base.identifier.Identifier
+import io.github.vibhor1102.macrion.core.domain.model.action.Click
+import io.github.vibhor1102.macrion.core.domain.model.action.SplitAction
+import io.github.vibhor1102.macrion.core.domain.model.action.PositionCounters
 import io.github.vibhor1102.macrion.core.domain.model.action.Action
 import io.github.vibhor1102.macrion.core.domain.model.action.ChangeCounter
 import io.github.vibhor1102.macrion.core.domain.model.action.Notification
@@ -59,6 +62,16 @@ class ReplaceCounterUseCaseTest {
     @Before
     fun setUp() {
         useCase = ReplaceCounterUseCase(mockEditionRepository)
+    }
+
+    @Test fun `replacing counter rewrites axes inside combined gestures`() {
+        val child = Click(Identifier(databaseId = 2), Identifier(databaseId = 1), "Remembered", 0, 100,
+            Click.PositionType.USER_SELECTED, positionCounters = PositionCounters(FROM_COUNTER_NAME, "Other"))
+        val group = SplitAction(Identifier(databaseId = 3), child.eventId, "Group", 0, listOf(child, child.copy(id = Identifier(databaseId = 4))))
+        every { mockEditionState.getAllEditedEvents() } returns listOf(event(actions = listOf(group)))
+        useCase(FROM_COUNTER, TO_COUNTER)
+        val expected = group.copy(subActions = group.subActions.map { (it as Click).copy(positionCounters = PositionCounters(TO_COUNTER_NAME, "Other")) })
+        verify { mockEditionRepository.updateEditedAction(expected) }
     }
 
     @Test

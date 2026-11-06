@@ -20,6 +20,8 @@ package io.github.vibhor1102.macrion.feature.smart.config.domain.usecase.copy.re
 import io.github.vibhor1102.macrion.core.base.identifier.Identifier
 import io.github.vibhor1102.macrion.core.common.actions.text.findCounterReferences
 import io.github.vibhor1102.macrion.core.domain.IRepository
+import io.github.vibhor1102.macrion.core.domain.model.action.positionCounterNames
+import io.github.vibhor1102.macrion.core.domain.model.action.referencedPositionConditions
 import io.github.vibhor1102.macrion.core.domain.model.action.Action
 import io.github.vibhor1102.macrion.core.domain.model.action.ChangeCounter
 import io.github.vibhor1102.macrion.core.domain.model.action.Click
@@ -80,9 +82,16 @@ class GetActionMissingReferencesUseCase @Inject constructor(
             is SplitAction -> action.subActions.flatMap { invoke(it, eventsToCopy).missingReferences }
         }
 
+        val positionReferences = action.positionCounterNames()
+            .filter { editionRepository.editionState.getCounter(it) == null }
+            .map { MissingCopyReference.CounterReference(it) }
+        val conditionReferences = action.referencedPositionConditions().mapNotNull { id ->
+            if (copyResultEvents[action.eventId]?.conditions?.any { it.id == id } == true) null
+            else smartRepository.getConditionName(id)?.let { name -> MissingCopyReference.ScreenConditionReference(name, id) }
+        }
         return ItemWithMissingReferences.ActionItem(
             item = action,
-            missingReferences = missingReferences,
+            missingReferences = (missingReferences + positionReferences + conditionReferences).distinct(),
         )
     }
 

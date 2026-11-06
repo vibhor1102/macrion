@@ -18,6 +18,7 @@
 package io.github.vibhor1102.macrion.feature.smart.config.domain.usecase.counter
 
 import io.github.vibhor1102.macrion.core.common.actions.text.findCounterReferences
+import io.github.vibhor1102.macrion.core.domain.model.action.positionCounterNames
 import io.github.vibhor1102.macrion.core.domain.model.action.Action
 import io.github.vibhor1102.macrion.core.domain.model.action.ChangeCounter
 import io.github.vibhor1102.macrion.core.domain.model.action.Click
@@ -96,6 +97,7 @@ class GetCounterReadReferencesUseCase @Inject constructor(
     private fun List<Action>.getActionsCounterReferences(event: Event): Map<String, Set<CounterReference>> =
         buildMap {
             this@getActionsCounterReferences.forEach { action ->
+                action.positionCounterNames().forEach { addReference(event, it, action) }
                 when (action) {
                     is Notification -> {
                         action.messageText.findCounterReferences().forEach { counterName ->

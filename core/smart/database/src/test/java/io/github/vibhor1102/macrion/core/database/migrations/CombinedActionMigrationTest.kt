@@ -17,6 +17,28 @@ import org.robolectric.annotation.Config
 class CombinedActionMigrationTest {
     @get:Rule val helper = MigrationTestHelper(InstrumentationRegistry.getInstrumentation(), ClickDatabase::class.java)
 
+    @Test fun coordinateMigrationPreservesExistingActionsAndAddsNullableOverrides() {
+        val path = ApplicationProvider.getApplicationContext<Context>().getDatabasePath("coordinate-migration").path
+        helper.createDatabase(path, 34).use { db ->
+            db.execSQL("INSERT INTO scenario_table (id, name, detection_quality, compute_rate, randomize, keep_screen_on) VALUES (1, 'Scenario', 600, 0, 0, 0)")
+            db.execSQL("INSERT INTO event_table (id, scenario_id, name, operator, priority, enabled_on_start, type) VALUES (1, 1, 'Event', 0, 0, 1, 'IMAGE_EVENT')")
+            db.execSQL("INSERT INTO action_table (id, eventId, name, type, priority, fromX, fromY, toX, toY) VALUES (1, 1, 'Swipe', 'SWIPE', 0, 10, 20, 30, 40)")
+            db.execSQL("INSERT INTO split_action_item_table (id, action_id, priority, type, from_x, from_y, duration, start_offset) VALUES (1, 1, 0, 'CLICK', 10, 20, 100, 0)")
+        }
+        helper.runMigrationsAndValidate(path, 35, true).use { db ->
+            db.query("SELECT fromX, toY, position_counters, from_counters, to_counters, counter_operation_condition_id, counter_operation_condition_position_type FROM action_table").use { cursor ->
+                assertTrue(cursor.moveToFirst())
+                assertEquals(10, cursor.getInt(0)); assertEquals(40, cursor.getInt(1))
+                (2..6).forEach { assertTrue(cursor.isNull(it)) }
+            }
+            db.query("SELECT from_x, from_y, position_counters, from_counters, to_counters FROM split_action_item_table").use { cursor ->
+                assertTrue(cursor.moveToFirst())
+                assertEquals(10, cursor.getInt(0)); assertEquals(20, cursor.getInt(1))
+                (2..4).forEach { assertTrue(cursor.isNull(it)) }
+            }
+        }
+    }
+
     @Test fun existingTouchesAndDelaysSurviveMigration() {
         val path = ApplicationProvider.getApplicationContext<Context>().getDatabasePath("combined-migration").path
         helper.createDatabase(path, 32).use { db ->

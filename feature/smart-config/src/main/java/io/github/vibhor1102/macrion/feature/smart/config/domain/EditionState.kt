@@ -19,6 +19,7 @@ package io.github.vibhor1102.macrion.feature.smart.config.domain
 import io.github.vibhor1102.macrion.core.base.identifier.Identifier
 import io.github.vibhor1102.macrion.core.base.interfaces.sortedByPriority
 import io.github.vibhor1102.macrion.core.domain.model.OR
+import io.github.vibhor1102.macrion.core.domain.model.action.referencedPositionConditions
 import io.github.vibhor1102.macrion.core.domain.model.action.Action
 import io.github.vibhor1102.macrion.core.domain.model.action.Click
 import io.github.vibhor1102.macrion.core.domain.model.action.ToggleEvent
@@ -242,13 +243,12 @@ internal class EditionState internal constructor(
 
     override fun isEditedConditionReferencedByClick(): Boolean {
         val event = getEditedEvent() ?: return false
-        if (event.conditionOperator == OR) return false
 
         val condition = getEditedCondition<Condition>() ?: return false
         val actions = editor.currentEventEditor.value?.actionsEditor?.editedList?.value ?: return false
 
         return actions.find { action ->
-            action is Click && action.clickOnConditionId == condition.id
+            condition.id in action.referencedPositionConditions()
         } != null
     }
 }

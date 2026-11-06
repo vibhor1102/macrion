@@ -16,7 +16,10 @@
  */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.action.swipe
 
+import io.github.vibhor1102.macrion.core.domain.model.action.Swipe
+
 data class SwipeUiState(
+    val configuredAction: Swipe,
     val canBeSaved: Boolean,
     val hasUnsavedModifications: Boolean,
     val name: String?,

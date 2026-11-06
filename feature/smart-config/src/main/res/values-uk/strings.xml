@@ -648,4 +648,24 @@
         <item quantity="many">%1$d дій дотику</item>
         <item quantity="other">%1$d дії дотику</item>
     </plurals>
+
+    <!-- Position-aware automation and live debugging -->
+    <string name="coordinate_axis_x">Координата X</string>
+    <string name="coordinate_axis_y">Координата Y</string>
+    <string name="coordinate_fixed_value">Фіксована: %1$s</string>
+    <string name="coordinate_counters_title">Лічильники координат</string>
+    <string name="coordinate_start_counters_title">Лічильники початкової точки</string>
+    <string name="coordinate_end_counters_title">Лічильники кінцевої точки</string>
+    <string name="coordinate_curve_hint">Координати з лічильників потребують прямого свайпу.</string>
+    <string name="coordinate_source">Джерело значення</string>
+    <string name="coordinate_detected_condition">Позиція виявленої умови</string>
+    <string name="coordinate_select_condition">Виберіть умову</string>
+    <string name="coordinate_missing_hint">Якщо умову не виявлено, значення лічильника не змінюється.</string>
+    <string name="coordinate_counters_hint">Кожен лічильник замінює свою координату. Якщо значення відсутнє або хибне, дія пропускається.</string>
+    <string name="coordinate_center_x">Центр X</string>
+    <string name="coordinate_center_y">Центр Y</string>
+    <string name="coordinate_left">Ліворуч</string>
+    <string name="coordinate_right">Праворуч</string>
+    <string name="coordinate_top">Вгорі</string>
+    <string name="coordinate_bottom">Внизу</string>
 </resources>

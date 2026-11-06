@@ -57,7 +57,7 @@ import kotlinx.serialization.Serializable
         )
     ]
 )
-@TypeConverters(SwipePathRoomConverter::class)
+@TypeConverters(SwipePathRoomConverter::class, PositionCountersConverter::class)
 @Serializable
 data class SplitActionItemEntity(
     @PrimaryKey(autoGenerate = true) override var id: Long = 0,
@@ -73,8 +73,13 @@ data class SplitActionItemEntity(
     @ColumnInfo(name = "from_y") val fromY: Int? = null,
     @ColumnInfo(name = "to_x") val toX: Int? = null,
     @ColumnInfo(name = "to_y") val toY: Int? = null,
+
     @ColumnInfo(name = "duration") val duration: Long? = null,
     @ColumnInfo(name = "swipe_path") val swipePath: SwipePath? = null,
     @ColumnInfo(name = "start_offset") val startOffset: Long = 0L,
     @ColumnInfo(name = "wait_after_ms") val waitAfterMs: Long? = null,
+
+    @ColumnInfo(name = "position_counters") val positionCounters: PositionCountersEntity? = null,
+    @ColumnInfo(name = "from_counters") val fromCounters: PositionCountersEntity? = null,
+    @ColumnInfo(name = "to_counters") val toCounters: PositionCountersEntity? = null,
 ) : EntityWithId
