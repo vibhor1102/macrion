@@ -17,6 +17,9 @@
 package io.github.vibhor1102.macrion.core.smart.debugging.data
 
 import android.content.Context
+import io.github.vibhor1102.macrion.core.smart.debugging.domain.model.live.LiveDebugOptions
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import android.content.SharedPreferences
 import androidx.core.content.edit
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -33,6 +36,20 @@ internal class DebugConfigurationLocalDataSource @Inject constructor(
         DEBUG_CONFIGURATION_PREFERENCES_NAME,
         Context.MODE_PRIVATE,
     )
+
+    private val _liveOptions = MutableStateFlow(LiveDebugOptions(
+        showEventStatistics = sharedPreferences.getBoolean("Live_Event_Statistics", true),
+        showActionIcons = sharedPreferences.getBoolean("Live_Action_Icons", true),
+    ))
+    val liveOptions = _liveOptions.asStateFlow()
+
+    fun setLiveOptions(options: LiveDebugOptions) {
+        sharedPreferences.edit {
+            putBoolean("Live_Event_Statistics", options.showEventStatistics)
+            putBoolean("Live_Action_Icons", options.showActionIcons)
+        }
+        _liveOptions.value = options
+    }
 
     /** @return the isEnabled value for the debug view. */
     fun isDebugViewEnabled(): Boolean =

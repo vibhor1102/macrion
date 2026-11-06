@@ -611,4 +611,6 @@
     <string name="coordinate_right">右側</string>
     <string name="coordinate_top">頂部</string>
     <string name="coordinate_bottom">底部</string>
+    <string name="debug_show_statistics">顯示事件統計</string>
+    <string name="debug_show_actions">顯示事件操作</string>
 </resources>

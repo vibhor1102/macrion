@@ -473,4 +473,6 @@
     <string name="coordinate_right">右</string>
     <string name="coordinate_top">上</string>
     <string name="coordinate_bottom">下</string>
+    <string name="debug_show_statistics">イベント統計を表示</string>
+    <string name="debug_show_actions">イベントのアクションを表示</string>
 </resources>

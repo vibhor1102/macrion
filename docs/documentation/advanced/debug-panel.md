@@ -8,6 +8,8 @@ Macrion incorporates an integrated debugging engine ([`DebugEngine`](https://git
 
 ## Live Debugging Overlay
 
+Under the scenario’s **More** settings, enable **Show debug view** to display the latest triggered event. Separate switches control event statistics (execution count and duration) and action icons. These display choices apply immediately, persist across restarts, and do not change whether a debug report is generated.
+
 When **Debug Mode** is enabled in Scenario Settings, Macrion projects a transparent diagnostic layer over your screen during automation runs.
 
 ```

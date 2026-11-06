@@ -472,4 +472,6 @@
     <string name="coordinate_right">Phải</string>
     <string name="coordinate_top">Trên</string>
     <string name="coordinate_bottom">Dưới</string>
+    <string name="debug_show_statistics">Hiển thị thống kê Sự kiện</string>
+    <string name="debug_show_actions">Hiển thị hành động của Sự kiện</string>
 </resources>
