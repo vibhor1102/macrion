@@ -1,0 +1,1 @@
+Import supported Klick’r 4.1 gestures with clearer compatibility warnings and optional recovery for newer backups. Fix compatible exports losing clicks/events. Store detected coordinates in counters and use them for touches. Improve lock-screen controls, permission returns, gesture recording and memory use. Suggest available updates after a crash.

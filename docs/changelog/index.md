@@ -12,6 +12,45 @@ All notable changes to the **Macrion** project are documented on this page. Each
 
 ---
 
+## Macrion 0.7.0 — Keeping up with Klick’r 4.1 {#v0-7-0}
+
+<div class="release-actions">
+  <a href="https://github.com/vibhor1102/macrion/releases/tag/v0.7.0" target="_blank" rel="noopener noreferrer" class="release-tag-link">
+    <svg class="release-gh-icon" viewBox="0 0 16 16" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
+    <span>View Release on GitHub</span>
+  </a>
+</div>
+
+
+### Safer Backups and Klick’r Imports
+
+- Import supported Klick’r 4.1 clicks, presses, straight swipes, and multi-touch gestures.
+- Flag unsupported backup content before import, with optional partial recovery for recognizable newer backups.
+- Fix compatible exports losing valid clicks or entire events, and preserve supported timing, offsets, and repetitions.
+
+### Counters for Touch Coordinates
+
+- Counters can now store coordinates from detected conditions, including their centers and edges.
+- Use those counters to position clicks, set click offsets, and choose straight-swipe endpoints, including inside multi-touch groups.
+- Skip touches whose coordinates are missing or invalid.
+
+### Bug Fixes & Refinements
+
+- Hide floating controls while locked by default, with an Advanced setting to keep them visible.
+- Ask for unlock before starting from Quick Settings; stopping remains available while locked.
+- Improve returning from permission, screenshot-folder, and OCR-language screens, including after rotation.
+- Make gesture recording handle repeated taps reliably, stop at about one minute, and reject recordings beyond supported limits.
+- Improve validation of simple scenarios and multi-touch actions before playback.
+- Reduce memory use during image detection and improve quality-indicator initialization.
+- Suggest an available stable update after a crash, matching the detected installation source.
+
+
+
+> [!NOTE]
+> Some complex features may not transfer fully between Klick’r and Macrion. Keep a native Macrion backup.
+
+---
+
 ## Macrion 0.6.5 {#v0-6-5}
 
 <div class="release-actions">
