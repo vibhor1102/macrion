@@ -26,6 +26,9 @@ import android.view.WindowManager
 import androidx.lifecycle.Lifecycle
 
 import io.github.vibhor1102.macrion.core.base.Dumpable
+import io.github.vibhor1102.macrion.core.base.di.Dispatcher
+import io.github.vibhor1102.macrion.core.base.di.HiltCoroutineDispatchers.Main
+import io.github.vibhor1102.macrion.core.settings.domain.SettingsRepository
 import io.github.vibhor1102.macrion.core.base.addDumpTabulationLvl
 import io.github.vibhor1102.macrion.core.common.overlays.base.BaseOverlay
 import io.github.vibhor1102.macrion.core.display.config.DisplayConfigManager
@@ -42,6 +45,14 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 
 import java.io.PrintWriter
 import javax.inject.Inject
@@ -55,6 +66,9 @@ import javax.inject.Singleton
 class OverlayManager @Inject internal constructor(
     private val displayConfigManager: DisplayConfigManager,
     private val menuPositionDataSource: OverlayMenuPositionDataSource,
+    private val keyguardStateDataSource: KeyguardStateDataSource,
+    private val settingsRepository: SettingsRepository,
+    @Dispatcher(Main) mainDispatcher: CoroutineDispatcher,
 ): Dumpable {
 
     companion object {
@@ -91,6 +105,9 @@ class OverlayManager @Inject internal constructor(
     /** The tells if the stack is hidden by [hideAll]. */
     private val _isStackHidden: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val isStackHidden: StateFlow<Boolean> = _isStackHidden
+    private var isHiddenByKeyguard = false
+    private var topOverlaySavedState: Lifecycle.State? = null
+    private val mainScope = CoroutineScope(SupervisorJob() + mainDispatcher)
 
     /** Flow on the top of the overlay stack. Null if the stack is empty. */
     val backStackTopFlow: Flow<Overlay?> = isNavigating
@@ -101,6 +118,14 @@ class OverlayManager @Inject internal constructor(
         }
         .distinctUntilChanged()
 
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val keyguardObservation = overlayBackStack.topFlow
+        .combine(settingsRepository.showOverlaysOnLockScreenFlow) { top, show -> top != null && !show }
+        .distinctUntilChanged()
+        .flatMapLatest { observe -> if (observe) keyguardStateDataSource.isKeyguardVisibleFlow else flowOf(false) }
+        .onEach(::onKeyguardStateChanged)
+        .launchIn(mainScope)
+
     /** @return the top of the overlay back stack. */
     fun getBackStackTop(): Overlay? =
         overlayBackStack.top
@@ -110,6 +135,8 @@ class OverlayManager @Inject internal constructor(
 
     /** Display the provided overlay and pause the current one, if any. */
     fun navigateTo(context: Context, newOverlay: Overlay, hideCurrent: Boolean = false) {
+        // Do not attach a visible window before the broadcast collector gets its first value.
+        onKeyguardStateChanged(!settingsRepository.showOverlaysOnLockScreen() && keyguardStateDataSource.isKeyguardVisible())
         Log.d(
             TAG, "Pushing NavigateTo request: HideCurrent=$hideCurrent, Overlay=${newOverlay.hashCode()}" +
                     ", currently navigating: ${isNavigating.value}")
@@ -161,6 +188,8 @@ class OverlayManager @Inject internal constructor(
         overlayNavigationRequestStack.clear()
         lifecyclesRegistry.clearStates()
         topOverlay?.destroy()
+        topOverlay = null
+        topOverlaySavedState = null
         repeat(overlayBackStack.size) {
             overlayNavigationRequestStack.push(OverlayNavigationRequest.NavigateUp)
         }
@@ -188,11 +217,7 @@ class OverlayManager @Inject internal constructor(
 
         Log.d(TAG, "Hide all overlays from the stack")
 
-        // Save the overlays states to restore them when restoreAll is called
-        lifecyclesRegistry.saveStates(overlayBackStack.toList())
-        // Hide from top to bottom of the stack
-        overlayBackStack.forEachReversed { it.hide() }
-
+        if (!isHiddenByKeyguard) hideStack()
         _isStackHidden.update { true }
     }
 
@@ -203,8 +228,19 @@ class OverlayManager @Inject internal constructor(
     fun restoreVisibility() {
         if (!isOverlayStackHidden()) return
 
+        _isStackHidden.update { false }
+        if (!isHiddenByKeyguard) showStack()
+    }
+
+    private fun hideStack() {
+        lifecyclesRegistry.saveStates(overlayBackStack.toList())
+        topOverlaySavedState = topOverlay?.lifecycle?.currentState
+        topOverlay?.hide()
+        overlayBackStack.forEachReversed { it.hide() }
+    }
+
+    private fun showStack() {
         val overlayStates = lifecyclesRegistry.restoreStates()
-        if (overlayBackStack.isEmpty() || overlayStates.isEmpty()) return
 
         Log.d(TAG, "Restore overlays visibility")
 
@@ -222,7 +258,22 @@ class OverlayManager @Inject internal constructor(
             } ?: Log.w(TAG, "State for overlay ${overlay.hashCode()} not found, can't restore state")
         }
 
-        _isStackHidden.update { false }
+        when (topOverlaySavedState) {
+            Lifecycle.State.RESUMED -> topOverlay?.resume()
+            Lifecycle.State.STARTED -> topOverlay?.start()
+            else -> Unit
+        }
+        topOverlaySavedState = null
+    }
+
+    private fun isHiddenForAnyReason(): Boolean = isOverlayStackHidden() || isHiddenByKeyguard
+
+    private fun onKeyguardStateChanged(hidden: Boolean) {
+        if (hidden == isHiddenByKeyguard) return
+        val wasHidden = isHiddenForAnyReason()
+        isHiddenByKeyguard = hidden
+        if (!wasHidden && hidden) hideStack()
+        else if (wasHidden && !isHiddenForAnyReason()) showStack()
     }
 
     /** @return true if the overlay stack has been hidden via [hideAll], false if not. */
@@ -238,7 +289,7 @@ class OverlayManager @Inject internal constructor(
      * foreground interaction that should not be interrupted by an external scenario replacement.
      */
     fun hasVisibleOverlayAboveRoot(): Boolean =
-        !isOverlayStackHidden() && overlayBackStack.size > 1
+        !isHiddenForAnyReason() && overlayBackStack.size > 1
 
     /** @return true when a child overlay is open above a scenario's main menu, even if the stack is hidden. */
     fun hasOverlayAboveRoot(): Boolean = overlayBackStack.size > 1
@@ -259,7 +310,7 @@ class OverlayManager @Inject internal constructor(
                 dismissListener = { _, _ -> topOverlay = null },
             )
 
-            resume()
+            if (isHiddenForAnyReason()) topOverlaySavedState = Lifecycle.State.RESUMED else resume()
         }
     }
 
@@ -269,6 +320,7 @@ class OverlayManager @Inject internal constructor(
 
         topOverlay?.destroy()
         topOverlay = null
+        topOverlaySavedState = null
     }
 
     fun lockMenuPosition(position: Point) {
@@ -312,11 +364,15 @@ class OverlayManager @Inject internal constructor(
 
         // Update current lifecycle
         currentOverlay?.apply {
-            pause()
-            if (request.hideCurrent) stop()
+            if (isHiddenForAnyReason()) {
+                lifecyclesRegistry.saveNewOverlayState(this, if (request.hideCurrent) Lifecycle.State.CREATED else Lifecycle.State.STARTED)
+            } else {
+                pause()
+                if (request.hideCurrent) stop()
+            }
         }
 
-        if (isOverlayStackHidden()) {
+        if (isHiddenForAnyReason()) {
             Log.d(TAG, "Stack is hidden, stay in created state")
             lifecyclesRegistry.saveNewOverlayState(request.overlay, Lifecycle.State.RESUMED)
         } else {
@@ -356,10 +412,11 @@ class OverlayManager @Inject internal constructor(
         // If there is no more navigation requests, resume the top overlay
         if (overlayBackStack.isNotEmpty()) {
             // If the overlay stack was requested hidden, do nothing
-            if (!isOverlayStackHidden()) {
+            if (!isHiddenForAnyReason()) {
                 Log.d(TAG, "No more pending request, resume stack top overlay")
                 overlayBackStack.peek().resume()
             } else {
+                lifecyclesRegistry.saveNewOverlayState(overlayBackStack.peek(), Lifecycle.State.RESUMED)
                 Log.d(TAG, "No more pending request, but stack is hidden, delaying resume...")
             }
 

@@ -45,6 +45,7 @@ import io.github.vibhor1102.macrion.core.settings.domain.SettingsRepository
 import io.github.vibhor1102.macrion.core.smart.debugging.domain.DebuggingRepository
 import io.github.vibhor1102.macrion.feature.revenue.IRevenueRepository
 import io.github.vibhor1102.macrion.feature.review.ReviewRepository
+import io.github.vibhor1102.macrion.core.base.lifecycle.ActivityLifecycleTracker
 import io.github.vibhor1102.macrion.localservice.LocalService
 import io.github.vibhor1102.macrion.core.domain.IRepository
 import io.github.vibhor1102.macrion.feature.externallaunch.domain.ExternalLaunchActionHandler
@@ -86,6 +87,7 @@ class SmartAutoClickerService : AccessibilityService() {
     @Inject lateinit var revenueRepository: IRevenueRepository
     @Inject lateinit var externalLaunchRepository: ExternalLaunchRepository
     @Inject lateinit var reviewRepository: ReviewRepository
+    @Inject lateinit var activityLifecycleTracker: ActivityLifecycleTracker
     @Inject lateinit var appComponentsProvider: AppComponentsProvider
     @Inject lateinit var actionExecutor: AndroidActionExecutor
     @Inject lateinit var debuggingRepository: DebuggingRepository
@@ -198,7 +200,7 @@ class SmartAutoClickerService : AccessibilityService() {
         reviewRepository.onUserSessionStopped()
         actionExecutor.resetState()
 
-        if (reviewRepository.isUserCandidateForReview()) {
+        if (!activityLifecycleTracker.hasActiveActivity() && reviewRepository.isUserCandidateForReview()) {
             Log.i(TAG, "User is candidate for review")
 
             reviewRepository.getReviewActivityIntent(this)?.let { intent ->

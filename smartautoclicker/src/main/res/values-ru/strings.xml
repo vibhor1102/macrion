@@ -278,4 +278,7 @@
     <string name="crash_update_message">Macrion %1$s доступен на %2$s. Обновление может решить эту проблему.</string>
     <string name="crash_update_later">Не сейчас</string>
     <string name="crash_update_view">Посмотреть обновление</string>
+
+    <string name="settings_lock_screen_overlays_title">Показывать на экране блокировки</string>
+    <string name="settings_lock_screen_overlays_desc">Оставлять плавающее меню видимым, когда устройство заблокировано.</string>
 </resources>

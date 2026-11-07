@@ -271,4 +271,7 @@
     <string name="crash_update_message">Macrion %1$s est disponible sur %2$s. La mise à jour pourrait résoudre ce problème.</string>
     <string name="crash_update_later">Pas maintenant</string>
     <string name="crash_update_view">Voir la mise à jour</string>
+
+    <string name="settings_lock_screen_overlays_title">Afficher sur l\'écran de verrouillage</string>
+    <string name="settings_lock_screen_overlays_desc">Garder le menu flottant visible lorsque l\'appareil est verrouillé.</string>
 </resources>

@@ -48,13 +48,18 @@ class PermissionsController @Inject constructor() {
         permissions: List<Permission>,
         onAllGranted: () -> Unit,
         onMandatoryDenied: (() -> Unit)? = null,
+        resumeExisting: Boolean = false,
     ) {
         if (permissions.isEmpty()) return
 
-        permissionsRequestedLeft.clear()
         allGrantedCallback = onAllGranted
         mandatoryDeniedCallback = onMandatoryDenied
         currentContext = activity
+        // ActivityRetainedScoped: replace callbacks capturing the old Activity after rotation,
+        // while preserving a permission dialog/result already in progress.
+        if (resumeExisting && _uiState.value != PermissionUiState.Idle) return
+
+        permissionsRequestedLeft.clear()
 
         permissions.forEach { permission ->
             if (!permission.checkIfGranted(activity)) permissionsRequestedLeft.add(permission)

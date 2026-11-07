@@ -23,6 +23,7 @@ import io.github.vibhor1102.macrion.crash.initializeLocalCrashReporting
 import io.github.vibhor1102.macrion.crash.captureHistoricalNativeCrash
 import io.github.vibhor1102.macrion.ComponentConfig
 import io.github.vibhor1102.macrion.core.base.data.AppComponentsManager
+import io.github.vibhor1102.macrion.core.base.lifecycle.ActivityLifecycleTracker
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
 
@@ -30,6 +31,7 @@ import javax.inject.Inject
 class SmartAutoClickerApplication : Application() {
 
     @Inject lateinit var appComponentsManager: AppComponentsManager
+    @Inject lateinit var activityLifecycleTracker: ActivityLifecycleTracker
 
     override fun attachBaseContext(base: Context) {
         super.attachBaseContext(base)
@@ -38,6 +40,7 @@ class SmartAutoClickerApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        registerActivityLifecycleCallbacks(activityLifecycleTracker)
 
         // Group keys add no continuous composition tracing and survive release minification.
         androidx.compose.runtime.Composer.setDiagnosticStackTraceMode(

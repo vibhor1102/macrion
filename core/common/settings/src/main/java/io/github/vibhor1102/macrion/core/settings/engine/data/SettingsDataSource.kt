@@ -45,6 +45,8 @@ internal class SettingsDataSource @Inject constructor(
     internal companion object {
         const val PREFERENCES_FILE_NAME = "settings"
 
+        val KEY_SHOW_OVERLAYS_ON_LOCK_SCREEN = booleanPreferencesKey("showOverlaysOnLockScreen")
+
         val KEY_TOOLBAR_SCALE_PERCENT: Preferences.Key<Int> =
             intPreferencesKey("toolbarScalePercent")
         val KEY_IS_FILTER_SCENARIO_UI_ENABLED: Preferences.Key<Boolean> =
@@ -84,6 +86,14 @@ internal class SettingsDataSource @Inject constructor(
             fileName = PREFERENCES_FILE_NAME,
             migrations = listOf(LegacySettingsMigration(context, ioDispatcher))
         )
+
+    internal fun showOverlaysOnLockScreen(): Flow<Boolean> = dataStore.data.map {
+        it[KEY_ARE_ADVANCED_SETTINGS_ENABLED] == true && it[KEY_SHOW_OVERLAYS_ON_LOCK_SCREEN] == true
+    }
+
+    internal suspend fun setShowOverlaysOnLockScreen(show: Boolean) = dataStore.edit {
+        it[KEY_SHOW_OVERLAYS_ON_LOCK_SCREEN] = show
+    }
 
     internal fun isFilterScenarioUiEnabled(): Flow<Boolean> =
         dataStore.data.map { preferences -> preferences[KEY_IS_FILTER_SCENARIO_UI_ENABLED] ?: true }
@@ -157,6 +167,7 @@ internal class SettingsDataSource @Inject constructor(
     internal suspend fun setAdvancedSettingsEnabled(enabled: Boolean) =
         dataStore.edit { preferences ->
             preferences[KEY_ARE_ADVANCED_SETTINGS_ENABLED] = enabled
+            if (!enabled) preferences[KEY_SHOW_OVERLAYS_ON_LOCK_SCREEN] = false
         }
 
     internal fun hasSeenAdvancedWarning(): Flow<Boolean> =

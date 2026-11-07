@@ -155,6 +155,10 @@ class SettingsViewModel @Inject constructor(
         settingsRepository.togglePreviewHandleEditing()
     }
 
+    val showOverlaysOnLockScreen: Flow<Boolean> = settingsRepository.showOverlaysOnLockScreenFlow
+
+    fun setShowOverlaysOnLockScreen(show: Boolean) = settingsRepository.setShowOverlaysOnLockScreen(show)
+
     val toolbarAutoHideDelaySeconds: Flow<Int> =
         settingsRepository.toolbarAutoHideDelaySecondsFlow
 

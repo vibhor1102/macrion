@@ -115,6 +115,7 @@ internal fun SettingsRoute(
     val allowPreviewHandleEditing by viewModel.allowPreviewHandleEditing.collectAsStateWithLifecycle(true)
     val toolbarAutoHideDelaySeconds by viewModel.toolbarAutoHideDelaySeconds.collectAsStateWithLifecycle(60)
     val areAdvancedSettingsEnabled by viewModel.areAdvancedSettingsEnabled.collectAsStateWithLifecycle(false)
+    val showOverlaysOnLockScreen by viewModel.showOverlaysOnLockScreen.collectAsStateWithLifecycle(false)
     val hasSeenAdvancedWarning by viewModel.hasSeenAdvancedWarning.collectAsStateWithLifecycle(false)
     val maxToleratedDifference by viewModel.maxToleratedDifference.collectAsStateWithLifecycle(20)
 
@@ -255,6 +256,12 @@ internal fun SettingsRoute(
                                 description = R.string.settings_enable_advanced_desc,
                                 checked = areAdvancedSettingsEnabled,
                                 childItems = listOf(
+                                    SettingsItem.Switch(
+                                        title = R.string.settings_lock_screen_overlays_title,
+                                        description = R.string.settings_lock_screen_overlays_desc,
+                                        checked = showOverlaysOnLockScreen,
+                                        onClick = { viewModel.setShowOverlaysOnLockScreen(!showOverlaysOnLockScreen) },
+                                    ),
                                     SettingsItem.Action(
                                         title = R.string.settings_max_difference_title,
                                         value = maxDiffLabel,

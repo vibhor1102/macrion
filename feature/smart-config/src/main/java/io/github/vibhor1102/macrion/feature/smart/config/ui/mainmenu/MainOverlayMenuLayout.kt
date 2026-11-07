@@ -66,6 +66,7 @@ internal fun createMainOverlayMenu(
     context: Context,
     debugContent: @Composable () -> Unit,
     playPauseContent: @Composable () -> Unit,
+    debugContentHeightDp: @Composable () -> Int,
 ): MainMenuViews {
     val errorBadgeAnchor = OverlayMenuContentAnchor(context, initiallyVisible = false).apply {
         id = R.id.error_badge
@@ -84,6 +85,7 @@ internal fun createMainOverlayMenu(
         content = { MacrionTheme { debugContent() } },
         contentWidthDp = 200,
         contentHeightDp = 100,
+        contentHeightDpProvider = debugContentHeightDp,
         contentInitiallyVisible = false,
         contentId = R.id.layout_debug,
         buttonModifier = { button, performClick ->
@@ -146,7 +148,7 @@ internal fun MainLiveDebugPanel(
     )
     val small = normal.copy(fontSize = 13.sp)
 
-    Box(Modifier.width(200.dp).height((32 + (if (options.showEventStatistics) 34 else 0) + (if (options.showActionIcons) 34 else 0)).dp)) {
+    Box(Modifier.width(200.dp).height(options.panelHeightDp.dp)) {
         Box(Modifier.width(2.dp).fillMaxHeight().background(divider))
         Column(Modifier.fillMaxWidth().fillMaxHeight()) {
             Row(
@@ -191,6 +193,9 @@ internal fun MainLiveDebugPanel(
         }
     }
 }
+
+internal val LiveDebugOptions.panelHeightDp: Int
+    get() = 32 + (if (showEventStatistics) 34 else 0) + (if (showActionIcons) 34 else 0)
 
 @Composable
 private fun DebugMetric(

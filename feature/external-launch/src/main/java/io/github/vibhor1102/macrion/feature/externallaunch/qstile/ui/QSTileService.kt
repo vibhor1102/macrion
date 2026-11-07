@@ -111,8 +111,16 @@ class QSTileService : TileService() {
             Tile.STATE_ACTIVE ->
                 qsTileRepository.stopScenarios()
             Tile.STATE_INACTIVE ->
-                startActivityAndCollapseCompat(QSTileLauncherActivity.getLaunchIntent(this, scenarioId, isSmart))
+                startLauncherActivity(scenarioId, isSmart)
         }
+    }
+
+    private fun startLauncherActivity(scenarioId: Long, isSmart: Boolean) {
+        val launch = {
+            startActivityAndCollapseCompat(QSTileLauncherActivity.getLaunchIntent(this, scenarioId, isSmart))
+        }
+        // Starting behind the keyguard can stop/restart a permission activity mid-request.
+        if (isLocked) unlockAndRun { launch() } else launch()
     }
 
     // Called when the user removes your tile.

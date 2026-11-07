@@ -56,9 +56,13 @@ class QSTileLauncherActivity : ComponentActivity() {
 
     /** The result launcher for the projection permission dialog. */
     private val mediaProjectionRequest: MediaProjectionRequest = MediaProjectionRequest()
+    private var projectionRequested = false
+    private var isRecreated = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        isRecreated = savedInstanceState != null
+        projectionRequested = savedInstanceState?.getBoolean("projectionRequested") == true
         setContent {
             MacrionTheme {
                 PermissionsHost(viewModel.permissionController)
@@ -78,9 +82,15 @@ class QSTileLauncherActivity : ComponentActivity() {
         else onCreateDumbScenarioLauncher(scenarioId)
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putBoolean("projectionRequested", projectionRequested)
+        super.onSaveInstanceState(outState)
+    }
+
     private fun onCreateDumbScenarioLauncher(scenarioId: Long) {
         viewModel.startPermissionFlowIfNeeded(
             activity = this,
+            resumeExisting = isRecreated,
             onMandatoryDenied = ::finish,
             onAllGranted = {
                 Log.i(TAG, "All permissions are granted, start scenario")
@@ -93,23 +103,31 @@ class QSTileLauncherActivity : ComponentActivity() {
     private fun onCreateSmartScenarioLauncher(scenarioId: Long) {
         mediaProjectionRequest.registerForActivityResult(this)
 
+        if (projectionRequested) {
+            showMediaProjectionWarning(scenarioId, launchRequest = false)
+            return
+        }
+
         viewModel.startPermissionFlowIfNeeded(
             activity = this,
+            resumeExisting = isRecreated,
             onMandatoryDenied = ::finish,
             onAllGranted = { showMediaProjectionWarning(scenarioId) },
         )
     }
 
     /** Show the media projection start warning. */
-    private fun showMediaProjectionWarning(scenarioId: Long) {
+    private fun showMediaProjectionWarning(scenarioId: Long, launchRequest: Boolean = true) {
         Log.i(TAG, "All permissions are granted, request media projection")
+        projectionRequested = true
 
         mediaProjectionRequest.showMediaProjectionWarning(
             context = this,
             forceEntireScreen = viewModel.isEntireScreenCaptureForced(),
             onSuccess = { resultCode, data -> launchScenario(resultCode, data, scenarioId) },
             onFailure = { showProjectionDeniedToast() },
-            onError = { showUnsupportedDeviceDialog() },
+            onError = { projectionRequested = false; showUnsupportedDeviceDialog() },
+            launchRequest = launchRequest,
         )
     }
 

@@ -200,4 +200,7 @@
     <string name="crash_update_message">Macrion %1$s 已在 %2$s 上发布。更新可能会解决此问题。</string>
     <string name="crash_update_later">暂不更新</string>
     <string name="crash_update_view">查看更新</string>
+
+    <string name="settings_lock_screen_overlays_title">在锁屏上显示</string>
+    <string name="settings_lock_screen_overlays_desc">设备锁定时保持悬浮菜单可见。</string>
 </resources>

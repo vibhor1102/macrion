@@ -25,6 +25,7 @@ import android.provider.DocumentsContract
 import android.util.Log
 import android.widget.FrameLayout
 import androidx.activity.ComponentActivity
+import androidx.activity.addCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import dagger.hilt.android.AndroidEntryPoint
 import io.github.vibhor1102.macrion.core.common.overlays.manager.OverlayManager
@@ -43,6 +44,7 @@ class PickFolderActivity : ComponentActivity() {
 
     @Inject lateinit var editionRepository: EditionRepository
     @Inject lateinit var overlayManager: OverlayManager
+    private var pickerStarted = false
 
     private val openDocumentTreeLauncher = registerForActivityResult(
         ActivityResultContracts.OpenDocumentTree()
@@ -74,7 +76,11 @@ class PickFolderActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(FrameLayout(this).apply { setBackgroundColor(Color.TRANSPARENT) })
+        onBackPressedDispatcher.addCallback(this) { finishActivity() }
+        pickerStarted = savedInstanceState?.getBoolean("folderPickerStarted") == true
+        if (pickerStarted) return
         try {
+            pickerStarted = true
             openDocumentTreeLauncher.launch(null)
         } catch (e: Exception) {
             Log.e(TAG, "Failed to launch OPEN_DOCUMENT_TREE", e)
@@ -82,7 +88,13 @@ class PickFolderActivity : ComponentActivity() {
         }
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putBoolean("folderPickerStarted", pickerStarted)
+        super.onSaveInstanceState(outState)
+    }
+
     private fun finishActivity() {
+        if (isFinishing) return
         overlayManager.navigateUp(this)
         finish()
     }

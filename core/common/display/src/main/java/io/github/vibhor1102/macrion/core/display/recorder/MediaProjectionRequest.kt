@@ -55,17 +55,26 @@ class MediaProjectionRequest {
           onSuccess: (resultCode: Int, data: Intent) -> Unit,
           onFailure: () -> Unit,
           onError: () -> Unit,
+          launchRequest: Boolean = true,
      ) {
+          successListener = onSuccess
+          failureListener = onFailure
+          // Rebind a recreated Activity to its pending ActivityResult without launching twice.
+          if (!launchRequest) return
           val projectionManager = ContextCompat
-               .getSystemService(context, MediaProjectionManager::class.java) ?: return
+               .getSystemService(context, MediaProjectionManager::class.java)
+          if (projectionManager == null) {
+               successListener = null
+               failureListener = null
+               onError()
+               return
+          }
 
           // The component name defined in com.android.internal.R.string.config_mediaProjectionPermissionDialogComponent
           // specifying the dialog to start to request the permission is invalid on some devices (Chinese Honor6X Android 10).
           // There is nothing to do in those cases, the app can't be used.
           try {
                Log.i(TAG, "Requesting MediaProjection")
-               successListener = onSuccess
-               failureListener = onFailure
                resultLauncher.launch(projectionManager.createScreenCaptureIntentCompat(forceEntireScreen))
           } catch (ex: Exception) {
                Log.e(TAG, "Can't start projection permission screen", ex)
@@ -76,15 +85,16 @@ class MediaProjectionRequest {
      }
 
      private fun onResult(result: ActivityResult) {
-          val projectionIntent = result.data
-          if (result.resultCode == RESULT_OK && projectionIntent != null) {
-               successListener?.invoke(result.resultCode, projectionIntent)
-          } else {
-               failureListener?.invoke()
-          }
-
+          val success = successListener
+          val failure = failureListener
           successListener = null
           failureListener = null
+          val projectionIntent = result.data
+          if (result.resultCode == RESULT_OK && projectionIntent != null) {
+               success?.invoke(result.resultCode, projectionIntent)
+          } else {
+               failure?.invoke()
+          }
      }
 
      private fun MediaProjectionManager.createScreenCaptureIntentCompat(forceEntireScreen: Boolean): Intent =

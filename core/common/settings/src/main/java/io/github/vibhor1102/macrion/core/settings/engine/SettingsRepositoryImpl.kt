@@ -49,6 +49,14 @@ internal class SettingsRepositoryImpl @Inject constructor(
 
     private val coroutineScope: CoroutineScope = CoroutineScope(ioDispatcher + SupervisorJob())
 
+    private val _showOverlaysOnLockScreen = dataSource.showOverlaysOnLockScreen()
+        .stateIn(coroutineScope, SharingStarted.Eagerly, false)
+    override val showOverlaysOnLockScreenFlow: Flow<Boolean> = _showOverlaysOnLockScreen
+    override fun showOverlaysOnLockScreen(): Boolean = _showOverlaysOnLockScreen.value
+    override fun setShowOverlaysOnLockScreen(show: Boolean) {
+        coroutineScope.launch { dataSource.setShowOverlaysOnLockScreen(show) }
+    }
+
     private val _isLegacyNotificationUiEnabledFlow: StateFlow<Boolean> = dataSource.isLegacyNotificationUiEnabled()
         .stateIn(coroutineScope, SharingStarted.Eagerly, false)
     override val isLegacyNotificationUiEnabledFlow: Flow<Boolean> = _isLegacyNotificationUiEnabledFlow

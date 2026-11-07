@@ -298,4 +298,7 @@
     <string name="crash_update_message">الإصدار %1$s من Macrion متاح على %2$s. قد يؤدي التحديث إلى حل هذه المشكلة.</string>
     <string name="crash_update_later">ليس الآن</string>
     <string name="crash_update_view">عرض التحديث</string>
+
+    <string name="settings_lock_screen_overlays_title">الإظهار على شاشة القفل</string>
+    <string name="settings_lock_screen_overlays_desc">إبقاء القائمة العائمة مرئية عندما يكون الجهاز مقفلاً.</string>
 </resources>

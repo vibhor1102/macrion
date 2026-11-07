@@ -30,7 +30,6 @@
             android:theme="@style/AppTheme.TranslucentActivity"
             android:taskAffinity=""
             android:excludeFromRecents="true"
-            android:noHistory="true"
             android:exported="false"/>
 
         <activity
@@ -38,7 +37,6 @@
             android:theme="@style/AppTheme.TranslucentActivity"
             android:taskAffinity=""
             android:excludeFromRecents="true"
-            android:noHistory="true"
             android:exported="false"/>
 
         <activity
@@ -46,7 +44,6 @@
             android:theme="@style/AppTheme.TranslucentActivity"
             android:taskAffinity=""
             android:excludeFromRecents="true"
-            android:noHistory="true"
             android:exported="false"/>
 
         <activity
@@ -54,7 +51,6 @@
             android:theme="@style/AppTheme.TranslucentActivity"
             android:taskAffinity=""
             android:excludeFromRecents="true"
-            android:noHistory="true"
             android:exported="false"/>
 
     </application>

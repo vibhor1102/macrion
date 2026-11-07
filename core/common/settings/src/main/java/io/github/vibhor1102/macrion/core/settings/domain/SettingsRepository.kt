@@ -23,6 +23,10 @@ import kotlinx.coroutines.flow.Flow
 
 interface SettingsRepository {
 
+    val showOverlaysOnLockScreenFlow: Flow<Boolean>
+    fun showOverlaysOnLockScreen(): Boolean
+    fun setShowOverlaysOnLockScreen(show: Boolean)
+
     val isLegacyNotificationUiEnabledFlow: Flow<Boolean>
     fun isLegacyNotificationUiEnabled(): Boolean
     fun toggleLegacyNotificationUi()

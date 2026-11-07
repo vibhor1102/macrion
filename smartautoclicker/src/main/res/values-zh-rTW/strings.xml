@@ -200,4 +200,7 @@
     <string name="crash_update_message">Macrion %1$s 已在 %2$s 上發布。更新可能會解決此問題。</string>
     <string name="crash_update_later">稍後再說</string>
     <string name="crash_update_view">查看更新</string>
+
+    <string name="settings_lock_screen_overlays_title">在鎖定畫面上顯示</string>
+    <string name="settings_lock_screen_overlays_desc">裝置鎖定時保持懸浮選單可見。</string>
 </resources>

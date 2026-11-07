@@ -260,4 +260,7 @@
     <string name="settings_screenshot_rate_limit_dialog_desc">Enter the maximum number of screenshots allowed per rolling minute. Enter 0 to disable the limit.</string>
     <string name="settings_screenshot_rate_limit_dialog_label">Screenshots per minute</string>
     <string name="settings_screenshot_rate_limit_invalid">Please enter a valid number (0 or greater)</string>
+
+    <string name="settings_lock_screen_overlays_title">Show on lock screen</string>
+    <string name="settings_lock_screen_overlays_desc">Keep the floating menu visible when the device is locked.</string>
 </resources>

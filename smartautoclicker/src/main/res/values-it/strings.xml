@@ -268,4 +268,7 @@
     <string name="crash_update_message">Macrion %1$s è disponibile su %2$s. L’aggiornamento potrebbe risolvere questo problema.</string>
     <string name="crash_update_later">Non ora</string>
     <string name="crash_update_view">Visualizza aggiornamento</string>
+
+    <string name="settings_lock_screen_overlays_title">Mostra nella schermata di blocco</string>
+    <string name="settings_lock_screen_overlays_desc">Mantieni il menù fluttuante visibile quando il dispositivo è bloccato.</string>
 </resources>

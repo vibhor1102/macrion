@@ -107,8 +107,15 @@ class AlphabetActivity : ComponentActivity() {
         }
     }
 
+    override fun onStop() {
+        super.onStop()
+        // This selection sheet owns no pending system permission result. Close it when left,
+        // but keep it through configuration changes so its model/download state is retained.
+        if (!isChangingConfigurations) finish()
+    }
+
     override fun onDestroy() {
-        overlayManager.restoreVisibility()
+        if (isFinishing) overlayManager.restoreVisibility()
         super.onDestroy()
     }
 }

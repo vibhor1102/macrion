@@ -52,7 +52,7 @@ class QSTileLauncherViewModel @Inject constructor(
 ) : ViewModel() {
 
 
-    fun startPermissionFlowIfNeeded(activity: Context, onAllGranted: () -> Unit, onMandatoryDenied: () -> Unit) {
+    fun startPermissionFlowIfNeeded(activity: Context, onAllGranted: () -> Unit, onMandatoryDenied: () -> Unit, resumeExisting: Boolean = false) {
         permissionController.startPermissionsUiFlow(
             activity = activity,
             permissions = listOf(
@@ -65,6 +65,7 @@ class QSTileLauncherViewModel @Inject constructor(
             ),
             onAllGranted = onAllGranted,
             onMandatoryDenied = onMandatoryDenied,
+            resumeExisting = resumeExisting,
         )
     }
 

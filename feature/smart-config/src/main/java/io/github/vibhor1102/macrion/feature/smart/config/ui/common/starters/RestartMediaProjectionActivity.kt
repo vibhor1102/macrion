@@ -24,6 +24,7 @@ import android.util.Log
 import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.addCallback
 import androidx.activity.viewModels
 
 import io.github.vibhor1102.macrion.core.common.overlays.manager.OverlayManager
@@ -50,22 +51,34 @@ class RestartMediaProjectionActivity : ComponentActivity() {
 
     /** The result launcher for the projection permission dialog. */
     private val mediaProjectionRequest: MediaProjectionRequest = MediaProjectionRequest()
+    private var requestStarted = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(FrameLayout(this).apply { setBackgroundColor(Color.TRANSPARENT) })
 
         mediaProjectionRequest.registerForActivityResult(this)
+        onBackPressedDispatcher.addCallback(this) { finishActivity() }
+        requestStarted = savedInstanceState?.getBoolean("projectionRequestStarted") == true
+        val shouldLaunch = !requestStarted
+        requestStarted = true
         mediaProjectionRequest.showMediaProjectionWarning(
             context = this,
             forceEntireScreen = viewModel.isEntireScreenCaptureForced(),
             onSuccess = { resultCode, data -> restartScreenRecord(resultCode, data) },
             onFailure = { showProjectionDeniedToast() },
-            onError = { showUnsupportedDeviceDialog() },
+            onError = { requestStarted = false; showUnsupportedDeviceDialog() },
+            launchRequest = shouldLaunch,
         )
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putBoolean("projectionRequestStarted", requestStarted)
+        super.onSaveInstanceState(outState)
+    }
+
     private fun finishActivity() {
+        if (isFinishing) return
         overlayManager.navigateUp(this)
         finish()
     }

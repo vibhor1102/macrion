@@ -153,6 +153,10 @@ class MainMenu(
                 val options by debuggingViewModel.liveOptions.collectAsStateWithLifecycle()
                 MainLiveDebugPanel(liveDebugUiState, options)
             },
+            debugContentHeightDp = {
+                val options by debuggingViewModel.liveOptions.collectAsStateWithLifecycle()
+                options.panelHeightDp
+            },
             playPauseContent = {
                 AnimatedPlayPauseIcon(isDetecting)
             },

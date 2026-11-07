@@ -1,0 +1,94 @@
+/*
+ * Copyright (C) 2026 Kevin Buzeau
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package io.github.vibhor1102.macrion.core.common.overlays.manager
+
+import android.app.KeyguardManager
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.os.PowerManager
+import android.util.Log
+
+import io.github.vibhor1102.macrion.core.base.SafeBroadcastReceiver
+
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.map
+import javax.inject.Inject
+import javax.inject.Singleton
+
+
+/**
+ * Monitor the state of the keyguard on the device.
+ * It will always assume the keyguard as displayed when the screen is off.
+ */
+@Singleton
+internal class KeyguardStateDataSource @Inject constructor(
+    @ApplicationContext context: Context,
+) {
+
+    private val keyguardManager: KeyguardManager = context.getSystemService(KeyguardManager::class.java)
+    private val powerManager: PowerManager = context.getSystemService(PowerManager::class.java)
+
+    val isKeyguardVisibleFlow: Flow<Boolean> = context
+        .keyguardBroadcastsFlow()
+        .map { intent -> toKeyguardVisibleState(intent) }
+
+
+
+    fun isKeyguardVisible(): Boolean =
+        !powerManager.isInteractive || keyguardManager.isKeyguardLocked
+
+    private fun toKeyguardVisibleState(intent: Intent?): Boolean =
+        when (intent?.action) {
+            Intent.ACTION_SCREEN_OFF -> true
+            Intent.ACTION_USER_PRESENT -> isKeyguardVisible()
+            Intent.ACTION_SCREEN_ON -> isKeyguardVisible()
+            else -> isKeyguardVisible()
+        }
+
+    private fun Context.keyguardBroadcastsFlow(): Flow<Intent?> =
+        callbackFlow {
+            val receiver = object : SafeBroadcastReceiver(KEYGUARD_INTENT_FILTER) {
+                override fun onReceive(context: Context?, intent: Intent?) {
+                    Log.d(TAG, "Keyguard broadcast received: ${intent?.action}")
+                    trySend(intent)
+                }
+            }
+
+            // Weirdly, ACTION_USER_PRESENT requires the receiver to be exported on some devices. It's normally not the
+            // case with system intents.
+            Log.d(TAG, "Registering keyguard intent filters")
+            receiver.register(this@keyguardBroadcastsFlow, exported = true)
+
+            trySend(null)
+            awaitClose {
+                Log.d(TAG, "Unregistering keyguard intent filters")
+                receiver.unregister()
+            }
+        }
+}
+
+private val KEYGUARD_INTENT_FILTER = IntentFilter().apply {
+    addAction(Intent.ACTION_SCREEN_OFF)     // Received when screen is off
+    addAction(Intent.ACTION_SCREEN_ON)      // Received when screen is on
+    addAction(Intent.ACTION_USER_PRESENT)   // Received when keyguard is unlocked by user
+}
+
+private const val TAG = "KeyguardStateDataSource"

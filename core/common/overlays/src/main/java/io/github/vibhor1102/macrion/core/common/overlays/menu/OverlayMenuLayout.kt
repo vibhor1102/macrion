@@ -164,6 +164,7 @@ fun createOverlayMenuLayout(
     @IdRes contentId: Int? = null,
     buttonModifier: (@Composable (OverlayMenuButton, performClick: () -> Unit) -> Modifier)? = null,
     buttonContent: (@Composable (OverlayMenuButton) -> Unit)? = null,
+    contentHeightDpProvider: (@Composable () -> Int)? = null,
 ): ViewGroup {
     val root = ComposeOverlayMenuHost(context)
     buttons.forEach { button ->
@@ -230,7 +231,8 @@ fun createOverlayMenuLayout(
                 val isDockedOnLeft = root.isDockedOnLeft
                 val panelVisible = !isTucked && contentAnchor != null && contentAnchor.composeVisibility != View.GONE
                 val panelWidthPx = if (panelVisible) with(density) { contentWidthDp.dp.roundToPx() } else 0
-                val panelHeightPx = if (panelVisible) with(density) { contentHeightDp.dp.roundToPx() } else 0
+                val currentContentHeightDp = contentHeightDpProvider?.invoke() ?: contentHeightDp
+                val panelHeightPx = if (panelVisible) with(density) { currentContentHeightDp.dp.roundToPx() } else 0
                 val buttonHeightPx = with(density) { (8 + 48 * root.buttons.count { it.composeVisibility != View.GONE }).dp.roundToPx() }
                 val buttonWidthPx = with(density) { 56.dp.roundToPx() }
                 val tuckedWidthPx = with(density) { 24.dp.roundToPx() }

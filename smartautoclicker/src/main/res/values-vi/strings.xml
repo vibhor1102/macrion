@@ -181,4 +181,7 @@
     <string name="crash_update_message">Macrion %1$s hiện có trên %2$s. Cập nhật có thể khắc phục sự cố này.</string>
     <string name="crash_update_later">Để sau</string>
     <string name="crash_update_view">Xem bản cập nhật</string>
+
+    <string name="settings_lock_screen_overlays_title">Hiển thị trên màn hình khóa</string>
+    <string name="settings_lock_screen_overlays_desc">Giữ menu nổi hiển thị khi thiết bị bị khóa.</string>
 </resources>

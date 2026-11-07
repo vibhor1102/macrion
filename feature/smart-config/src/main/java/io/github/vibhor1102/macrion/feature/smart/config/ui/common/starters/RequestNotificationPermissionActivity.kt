@@ -21,6 +21,7 @@ import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.addCallback
 import androidx.activity.compose.setContent
 
 import io.github.vibhor1102.macrion.core.common.overlays.manager.OverlayManager
@@ -54,17 +55,25 @@ class RequestNotificationPermissionActivity : ComponentActivity() {
         }
 
         overlayManager.hideAll()
+        onBackPressedDispatcher.addCallback(this) { finishActivity() }
         permissionController.startPermissionsUiFlow(
             this,
             listOf(PermissionPostNotification()),
             onAllGranted = ::finishActivity,
             onMandatoryDenied = ::finishActivity,
+            resumeExisting = savedInstanceState != null,
         )
     }
 
     private fun finishActivity() {
+        if (isFinishing) return
         overlayManager.restoreVisibility()
         overlayManager.navigateUp(this)
         finish()
+    }
+
+    override fun onDestroy() {
+        if (isFinishing) overlayManager.restoreVisibility()
+        super.onDestroy()
     }
 }
