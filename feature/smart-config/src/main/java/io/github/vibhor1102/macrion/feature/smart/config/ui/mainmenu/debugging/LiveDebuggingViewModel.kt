@@ -46,7 +46,6 @@ class LiveDebuggingViewModel @Inject constructor(
 
     /** Tells if the current detection is running in debug mode. */
     val isDebugging = debuggingRepository.isLiveDebugging
-    val liveOptions = debuggingRepository.liveOptions
 
     /** The info on the last positive detection. */
     val debugLastPositive: Flow<LiveDebuggingUiState?> = debugDetectionResultUseCase

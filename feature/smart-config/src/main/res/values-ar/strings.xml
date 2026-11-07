@@ -686,6 +686,4 @@
     <string name="coordinate_right">يمين</string>
     <string name="coordinate_top">أعلى</string>
     <string name="coordinate_bottom">أسفل</string>
-    <string name="debug_show_statistics">عرض إحصائيات الأحداث</string>
-    <string name="debug_show_actions">عرض إجراءات الحدث</string>
 </resources>

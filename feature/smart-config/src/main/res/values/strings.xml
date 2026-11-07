@@ -737,6 +737,4 @@
     <string name="coordinate_right">Right</string>
     <string name="coordinate_top">Top</string>
     <string name="coordinate_bottom">Bottom</string>
-    <string name="debug_show_statistics">Show event statistics</string>
-    <string name="debug_show_actions">Show event actions</string>
 </resources>

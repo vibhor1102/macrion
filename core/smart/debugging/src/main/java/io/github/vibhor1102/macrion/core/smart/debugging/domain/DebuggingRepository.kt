@@ -17,8 +17,6 @@
  */
 package io.github.vibhor1102.macrion.core.smart.debugging.domain
 
-import io.github.vibhor1102.macrion.core.smart.debugging.domain.model.live.LiveDebugOptions
-
 import io.github.vibhor1102.macrion.core.smart.debugging.domain.model.live.DebugLiveEventOccurrence
 import io.github.vibhor1102.macrion.core.smart.debugging.domain.model.report.DebugReportCounterInitialValue
 import io.github.vibhor1102.macrion.core.smart.debugging.domain.model.report.DebugReportEventOccurrence
@@ -29,9 +27,6 @@ import kotlinx.coroutines.flow.StateFlow
 
 
 interface DebuggingRepository {
-    val liveOptions: StateFlow<LiveDebugOptions>
-    fun setLiveOptions(options: LiveDebugOptions)
-
 
     /** Tells if a detection session is currently live debugged, iow, displaying the debug overlay while detecting. */
     val isLiveDebugging: Flow<Boolean>

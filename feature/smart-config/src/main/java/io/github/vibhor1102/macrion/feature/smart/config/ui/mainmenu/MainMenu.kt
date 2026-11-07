@@ -16,7 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.mainmenu
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 
@@ -149,14 +148,7 @@ class MainMenu(
     override fun onCreateMenu(layoutInflater: LayoutInflater): ViewGroup {
         viewBinding = createMainOverlayMenu(
             context = context,
-            debugContent = {
-                val options by debuggingViewModel.liveOptions.collectAsStateWithLifecycle()
-                MainLiveDebugPanel(liveDebugUiState, options)
-            },
-            debugContentHeightDp = {
-                val options by debuggingViewModel.liveOptions.collectAsStateWithLifecycle()
-                options.panelHeightDp
-            },
+            debugContent = { MainLiveDebugPanel(liveDebugUiState) },
             playPauseContent = {
                 AnimatedPlayPauseIcon(isDetecting)
             },

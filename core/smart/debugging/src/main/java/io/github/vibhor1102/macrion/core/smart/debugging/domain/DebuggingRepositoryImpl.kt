@@ -17,8 +17,6 @@
  */
 package io.github.vibhor1102.macrion.core.smart.debugging.domain
 
-import io.github.vibhor1102.macrion.core.smart.debugging.domain.model.live.LiveDebugOptions
-
 import io.github.vibhor1102.macrion.core.base.di.Dispatcher
 import io.github.vibhor1102.macrion.core.base.di.HiltCoroutineDispatchers.IO
 import io.github.vibhor1102.macrion.core.smart.debugging.data.DebugConfigurationLocalDataSource
@@ -53,10 +51,6 @@ internal class DebuggingRepositoryImpl @Inject constructor(
 
 
     private val ioScope: CoroutineScope = CoroutineScope(ioDispatcher + SupervisorJob())
-
-    override val liveOptions = debugConfigurationDataSource.liveOptions
-    override fun setLiveOptions(options: LiveDebugOptions) =
-        debugConfigurationDataSource.setLiveOptions(options)
 
     override val isLiveDebugging: Flow<Boolean> = debugEngine.isDebuggingSession.map { isDebuggingSession ->
         isDebuggingSession && isDebugViewEnabled()

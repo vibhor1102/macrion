@@ -633,6 +633,4 @@
     <string name="coordinate_right">Destra</string>
     <string name="coordinate_top">Alto</string>
     <string name="coordinate_bottom">Basso</string>
-    <string name="debug_show_statistics">Mostra statistiche degli eventi</string>
-    <string name="debug_show_actions">Mostra azioni dell\'evento</string>
 </resources>

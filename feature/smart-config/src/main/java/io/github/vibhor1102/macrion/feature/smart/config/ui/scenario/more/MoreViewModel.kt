@@ -40,14 +40,6 @@ class MoreViewModel @Inject constructor(
     private val debuggingRepository: DebuggingRepository,
 ) : ViewModel() {
 
-    val liveOptions = debuggingRepository.liveOptions
-    fun toggleEventStatistics() = debuggingRepository.setLiveOptions(liveOptions.value.copy(
-        showEventStatistics = !liveOptions.value.showEventStatistics,
-    ))
-    fun toggleActionIcons() = debuggingRepository.setLiveOptions(liveOptions.value.copy(
-        showActionIcons = !liveOptions.value.showActionIcons,
-    ))
-
     /** Tells if the debug view is enabled or not. */
     private val _isDebugViewEnabled = MutableStateFlow(debuggingRepository.isDebugViewEnabled())
     val isDebugViewEnabled: Flow<Boolean> = _isDebugViewEnabled

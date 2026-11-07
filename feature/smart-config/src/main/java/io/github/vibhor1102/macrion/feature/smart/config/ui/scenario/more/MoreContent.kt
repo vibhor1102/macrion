@@ -39,7 +39,6 @@ class MoreContent(appContext: Context) : NavBarDialogContent(appContext) {
     override fun onViewCreated() = Unit
 
     @Composable private fun Content() {
-        val liveOptions = viewModel.liveOptions.collectAsStateWithLifecycle().value
         val debugView = viewModel.isDebugViewEnabled.collectAsStateWithLifecycle(false).value
         val debugReport = viewModel.isDebugReportEnabled.collectAsStateWithLifecycle(false).value
         val reportAvailable = viewModel.showDebugReportEnabled.collectAsStateWithLifecycle(false).value
@@ -51,14 +50,8 @@ class MoreContent(appContext: Context) : NavBarDialogContent(appContext) {
                     SelectorField(context.getString(R.string.field_counters_title), counters, true, ::showCountersConfigDialog)
                 }
                 ElevatedCard(Modifier.fillMaxWidth()) {
-                    Column {
-                        SwitchField(context.getString(R.string.field_show_debug_view_title),
-                            context.getString(R.string.field_show_debug_view_desc), debugView, viewModel::toggleIsDebugViewEnabled)
-                        if (debugView) {
-                            SwitchField(context.getString(R.string.debug_show_statistics), "", liveOptions.showEventStatistics, viewModel::toggleEventStatistics)
-                            SwitchField(context.getString(R.string.debug_show_actions), "", liveOptions.showActionIcons, viewModel::toggleActionIcons)
-                        }
-                    }
+                    SwitchField(context.getString(R.string.field_show_debug_view_title),
+                        context.getString(R.string.field_show_debug_view_desc), debugView, viewModel::toggleIsDebugViewEnabled)
                 }
                 ElevatedCard(Modifier.fillMaxWidth()) { Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
                     SwitchField(context.getString(R.string.item_title_debug_generate_report),
@@ -79,7 +72,7 @@ class MoreContent(appContext: Context) : NavBarDialogContent(appContext) {
         Row(Modifier.fillMaxWidth().clickable(onClick = onToggle).padding(contentPadding), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f).padding(end = 16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(title, style = MaterialTheme.typography.bodyLarge)
-                if (description.isNotBlank()) Text(description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             VerticalDivider(Modifier.height(48.dp)); Spacer(Modifier.width(12.dp))
             Switch(checked, { onToggle() })

@@ -1,8 +1,6 @@
 /* Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.mainmenu
 
-import io.github.vibhor1102.macrion.core.smart.debugging.domain.model.live.LiveDebugOptions
-
 import io.github.vibhor1102.macrion.core.common.overlays.menu.ComposeOverlayMenuHost
 import io.github.vibhor1102.macrion.core.common.overlays.menu.OverlayMenuContentAnchor
 import io.github.vibhor1102.macrion.core.common.overlays.menu.findOverlayView
@@ -66,7 +64,6 @@ internal fun createMainOverlayMenu(
     context: Context,
     debugContent: @Composable () -> Unit,
     playPauseContent: @Composable () -> Unit,
-    debugContentHeightDp: @Composable () -> Int,
 ): MainMenuViews {
     val errorBadgeAnchor = OverlayMenuContentAnchor(context, initiallyVisible = false).apply {
         id = R.id.error_badge
@@ -85,7 +82,6 @@ internal fun createMainOverlayMenu(
         content = { MacrionTheme { debugContent() } },
         contentWidthDp = 200,
         contentHeightDp = 100,
-        contentHeightDpProvider = debugContentHeightDp,
         contentInitiallyVisible = false,
         contentId = R.id.layout_debug,
         buttonModifier = { button, performClick ->
@@ -133,10 +129,7 @@ internal fun createMainOverlayMenu(
 
 
 @Composable
-internal fun MainLiveDebugPanel(
-    state: LiveDebuggingUiState?,
-    options: LiveDebugOptions,
-) {
+internal fun MainLiveDebugPanel(state: LiveDebuggingUiState?) {
     val primary = colorResource(R.color.overlayViewPrimary)
     val iconColor = colorResource(R.color.overlayMenuButtons)
     val divider = primary.copy(alpha = 19f / 255f)
@@ -148,7 +141,7 @@ internal fun MainLiveDebugPanel(
     )
     val small = normal.copy(fontSize = 13.sp)
 
-    Box(Modifier.width(200.dp).height(options.panelHeightDp.dp)) {
+    Box(Modifier.width(200.dp).height(100.dp)) {
         Box(Modifier.width(2.dp).fillMaxHeight().background(divider))
         Column(Modifier.fillMaxWidth().fillMaxHeight()) {
             Row(
@@ -165,37 +158,30 @@ internal fun MainLiveDebugPanel(
                     style = normal,
                 )
             }
-            if (options.showEventStatistics) {
-                HorizontalDivider(thickness = 2.dp, color = divider)
-                Row(Modifier.fillMaxWidth().weight(1f), verticalAlignment = Alignment.CenterVertically) {
-                    DebugMetric(R.drawable.ic_confirm, state?.eventFulfilledCount, small, Modifier.weight(1f), iconColor, primary)
-                    Spacer(Modifier.width(2.dp).fillMaxHeight().background(divider))
-                    DebugMetric(R.drawable.ic_duration, state?.eventDuration, small, Modifier.weight(1f), iconColor, primary)
-                }
+            HorizontalDivider(thickness = 2.dp, color = divider)
+            Row(Modifier.fillMaxWidth().weight(1f), verticalAlignment = Alignment.CenterVertically) {
+                DebugMetric(R.drawable.ic_confirm, state?.eventFulfilledCount, small, Modifier.weight(1f), iconColor, primary)
+                Spacer(Modifier.width(2.dp).fillMaxHeight().background(divider))
+                DebugMetric(R.drawable.ic_duration, state?.eventDuration, small, Modifier.weight(1f), iconColor, primary)
             }
-            if (options.showActionIcons) {
-                HorizontalDivider(thickness = 2.dp, color = divider)
-                Row(
-                    Modifier.fillMaxWidth().weight(1f).padding(horizontal = 4.dp),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    state?.actions?.forEach { action ->
-                        Icon(
-                            painterResource(action.icon),
-                            null,
-                            Modifier.width(32.dp).height(24.dp).padding(horizontal = 4.dp),
-                            tint = primary,
-                        )
-                    }
+            HorizontalDivider(thickness = 2.dp, color = divider)
+            Row(
+                Modifier.fillMaxWidth().weight(1f).padding(horizontal = 4.dp),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                state?.actions?.forEach { action ->
+                    Icon(
+                        painterResource(action.icon),
+                        null,
+                        Modifier.width(32.dp).height(24.dp).padding(horizontal = 4.dp),
+                        tint = primary,
+                    )
                 }
             }
         }
     }
 }
-
-internal val LiveDebugOptions.panelHeightDp: Int
-    get() = 32 + (if (showEventStatistics) 34 else 0) + (if (showActionIcons) 34 else 0)
 
 @Composable
 private fun DebugMetric(

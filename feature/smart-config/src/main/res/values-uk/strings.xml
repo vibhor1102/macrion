@@ -668,6 +668,4 @@
     <string name="coordinate_right">Праворуч</string>
     <string name="coordinate_top">Вгорі</string>
     <string name="coordinate_bottom">Внизу</string>
-    <string name="debug_show_statistics">Показувати статистику подій</string>
-    <string name="debug_show_actions">Показувати дії події</string>
 </resources>

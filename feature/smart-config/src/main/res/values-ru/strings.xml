@@ -565,6 +565,4 @@
     <string name="coordinate_right">Справа</string>
     <string name="coordinate_top">Сверху</string>
     <string name="coordinate_bottom">Снизу</string>
-    <string name="debug_show_statistics">Показывать статистику событий</string>
-    <string name="debug_show_actions">Показывать действия события</string>
 </resources>
