@@ -457,7 +457,6 @@ class KlickrCompatibilityProjectorTests {
         assertTrue("Referential integrity violations: $violations", violations.isEmpty())
 
         val eventIds = completeScenario.events.map { it.event.id }.toSet()
-        val conditionIds = completeScenario.events.flatMap { it.conditions }.map { it.id }.toSet()
 
         for (event in completeScenario.events) {
             assertTrue("Event must have actions", event.actions.isNotEmpty())
@@ -475,8 +474,9 @@ class KlickrCompatibilityProjectorTests {
                 if (action.action.type == ActionType.CLICK && action.action.clickPositionType == ClickPositionType.ON_DETECTED_CONDITION) {
                     val condId = action.action.clickOnConditionId
                     assertTrue(
-                        "Click action ${action.action.id} references non-existent condition $condId. Surviving conditions: $conditionIds",
-                        condId != null && condId in conditionIds,
+                        "Click action ${action.action.id} references non-existent condition $condId. Event: ${event.event.id}",
+                        event.event.type == EventType.IMAGE_EVENT &&
+                            (event.event.conditionOperator == 2 || event.conditions.any { it.id == condId && it.shouldBeDetected == true }),
                     )
                 }
             }

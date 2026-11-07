@@ -53,8 +53,11 @@ internal class ScenarioSerializer : ScenarioBackupSerializer<ScenarioBackup> {
      * @param scenarioBackup the scenario to serialize.
      * @param outputStream the stream to serialize into.
      */
-    override fun serialize(scenarioBackup: ScenarioBackup, outputStream: OutputStream) =
-        Json.encodeToStream(scenarioBackup, outputStream)
+    override fun serialize(scenarioBackup: ScenarioBackup, outputStream: OutputStream) {
+        if (scenarioBackup.format == null && scenarioBackup.version == 23)
+            Json.encodeToStream(scenarioBackup.toKlickrLegacySmartJson(), outputStream)
+        else Json.encodeToStream(scenarioBackup, outputStream)
+    }
 
     /**
      * Deserialize a scenario.

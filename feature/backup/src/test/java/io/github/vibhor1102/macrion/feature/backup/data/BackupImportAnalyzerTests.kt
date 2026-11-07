@@ -269,7 +269,7 @@ class BackupImportAnalyzerTests {
         assertEquals(CounterOperationValueType.CONDITION, scenario.events.single().actions.first().action.counterOperationValueType)
         val projection = KlickrCompatibilityProjector.projectSmartScenario(scenario)
         assertEquals(listOf(2L), projection.value!!.events.single().actions.map { it.action.id })
-        assertTrue(projection.losses.any { "Remember X" in it.componentNames })
+        assertTrue(projection.losses.any { it.componentNames.any { name -> name.endsWith("Remember X") } })
     }
 
     private fun analyze(source: JsonObject) = BackupImportAnalyzer().analyze(source, BackupArchiveFormat.KLICKR_COMPATIBLE, false)

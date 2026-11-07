@@ -99,11 +99,37 @@ internal object KlickrCompatibilityProjector {
     }
 
     fun projectSmartScenario(scenario: CompleteScenario): KlickrCompatibilityProjection<CompleteScenario> {
-        val detached = scenario.detachedCopy()
+        val detached = scenario.detachedCopy().let { it.copy(events = it.events.map(CompleteEventEntity::normalizeIgnoredClickTargets)) }
         val losses = mutableListOf<KlickrCompatibilityLoss>()
 
+        val folderNames = (detached.scenario.folders.map { it.name } + detached.events.mapNotNull { it.event.folderName }).distinct()
+        if (folderNames.isNotEmpty()) losses += KlickrCompatibilityLoss(
+            reason = KlickrCompatibilityLossReason.UNSUPPORTED_COMPONENT,
+            componentCount = folderNames.size,
+            scenarioId = detached.scenario.id,
+            componentNames = folderNames,
+        )
+
         // Pass 1: Filter out action types unsupported by the target Klick'r profile
-        var currentEvents = detached.events.map { event ->
+        var currentEvents = detached.events.mapNotNull { event ->
+            val rateLimited = event.conditions.filter { it.computeRate > 0.0 }
+            if (rateLimited.isNotEmpty()) {
+                // Ignoring a condition's evaluation rate can change when the event executes.
+                // Omit the whole event rather than weakening its conditions or silently changing its cadence.
+                losses += KlickrCompatibilityLoss(
+                    reason = KlickrCompatibilityLossReason.UNSUPPORTED_COMPONENT,
+                    componentCount = rateLimited.size,
+                    scenarioId = detached.scenario.id,
+                    componentNames = rateLimited.map { "${event.event.name} → ${it.name}" },
+                )
+                losses += KlickrCompatibilityLoss(
+                    reason = KlickrCompatibilityLossReason.MEANINGLESS_EVENT,
+                    componentCount = 1,
+                    scenarioId = detached.scenario.id,
+                    componentNames = listOf(event.event.name),
+                )
+                return@mapNotNull null
+            }
             val curvedSwipeCount = event.actions.count { action ->
                 action.action.type == ActionType.SWIPE && action.action.swipePath?.isCurved == true
             }
@@ -113,27 +139,22 @@ internal object KlickrCompatibilityProjector {
                 scenarioId = detached.scenario.id,
                 componentNames = event.actions.filter { it.action.type == ActionType.SWIPE && it.action.swipePath?.isCurved == true }.map { it.action.name },
             )
-            val compatibleActions = event.actions.filterNot { action ->
-                action.action.type == ActionType.EXTERNAL_ACTION ||
-                    action.action.type == ActionType.PLAY_SOUND ||
-                    action.action.type == ActionType.CAPTURE_SCREENSHOT ||
-                    action.action.type == ActionType.SPLIT_ACTION ||
-                    action.action.positionCounters != null || action.action.fromCounters != null || action.action.toCounters != null ||
-                    action.action.counterOperationValueType == CounterOperationValueType.CONDITION ||
-                    (action.action.type == ActionType.SWIPE && action.action.swipePath?.isCurved == true)
-            }.map { action ->
-                if (action.action.type == ActionType.SWIPE) action.copy(action = action.action.copy(swipePath = null))
-                else action
+            val (removedActions, retainedActions) = event.actions.partition { it.action.isUnsupportedByLegacyKlickr() }
+            val compatibleActions = retainedActions.map { complete ->
+                // These fields are either unused by this action or already excluded above.
+                complete.copy(action = complete.action.copy(
+                    swipePath = null, positionCounters = null, fromCounters = null, toCounters = null,
+                    counterOperationConditionId = null, counterOperationConditionPositionType = null,
+                    counterOperationValueType = complete.action.counterOperationValueType.takeIf { complete.action.type == ActionType.CHANGE_COUNTER },
+                ))
             }
-            val removedActionCount = event.actions.size - compatibleActions.size - curvedSwipeCount
-            if (removedActionCount > 0) {
+            val unsupported = removedActions.filterNot { it.action.type == ActionType.SWIPE && it.action.swipePath?.isCurved == true }
+            if (unsupported.isNotEmpty()) {
                 losses += KlickrCompatibilityLoss(
                     reason = KlickrCompatibilityLossReason.UNSUPPORTED_COMPONENT,
-                    componentCount = removedActionCount,
+                    componentCount = unsupported.size,
                     scenarioId = detached.scenario.id,
-                    componentNames = event.actions.filter { action -> action !in compatibleActions &&
-                        !(action.action.type == ActionType.SWIPE && action.action.swipePath?.isCurved == true)
-                    }.map { it.action.name },
+                    componentNames = unsupported.map { "${event.event.name} → ${it.action.name}" },
                 )
             }
             event.copy(actions = compatibleActions)
@@ -145,11 +166,6 @@ internal object KlickrCompatibilityProjector {
                 .filter { it.actions.isNotEmpty() && it.conditions.isNotEmpty() }
                 .map { it.event.id }
                 .toSet()
-            val viableConditionIds = currentEvents
-                .filter { it.actions.isNotEmpty() && it.conditions.isNotEmpty() }
-                .flatMap { it.conditions }
-                .map { it.id }
-                .toSet()
 
             var changed = false
             val nextEvents = mutableListOf<CompleteEventEntity>()
@@ -159,6 +175,9 @@ internal object KlickrCompatibilityProjector {
 
                 for (action in event.actions) {
                     when {
+                        action.action.type == ActionType.TOGGLE_EVENT && action.action.toggleAll == true ->
+                            repairedActions += action.copy(eventsToggle = emptyList())
+
                         action.action.type == ActionType.TOGGLE_EVENT -> {
                             val survivingToggles = action.eventsToggle.filter { it.toggleEventId in viableEventIds }
                             val droppedToggles = action.eventsToggle.size - survivingToggles.size
@@ -167,6 +186,7 @@ internal object KlickrCompatibilityProjector {
                                     reason = KlickrCompatibilityLossReason.BROKEN_REFERENCE,
                                     componentCount = droppedToggles,
                                     scenarioId = detached.scenario.id,
+                                    componentNames = listOf("${event.event.name} → ${action.action.name}"),
                                 )
                                 changed = true
                             }
@@ -176,6 +196,7 @@ internal object KlickrCompatibilityProjector {
                                     reason = KlickrCompatibilityLossReason.BROKEN_REFERENCE,
                                     componentCount = 1,
                                     scenarioId = detached.scenario.id,
+                                    componentNames = listOf("${event.event.name} → ${action.action.name}"),
                                 )
                                 changed = true
                             } else {
@@ -185,12 +206,12 @@ internal object KlickrCompatibilityProjector {
 
                         action.action.type == ActionType.CLICK &&
                             action.action.clickPositionType == ClickPositionType.ON_DETECTED_CONDITION -> {
-                            val condId = action.action.clickOnConditionId
-                            if (condId == null || condId !in viableConditionIds) {
+                            if (!event.hasValidClickTarget(action.action.clickPositionType, action.action.clickOnConditionId)) {
                                 losses += KlickrCompatibilityLoss(
                                     reason = KlickrCompatibilityLossReason.BROKEN_REFERENCE,
                                     componentCount = 1,
                                     scenarioId = detached.scenario.id,
+                                    componentNames = listOf("${event.event.name} → ${action.action.name}"),
                                 )
                                 changed = true
                             } else {
@@ -207,6 +228,7 @@ internal object KlickrCompatibilityProjector {
                         reason = KlickrCompatibilityLossReason.MEANINGLESS_EVENT,
                         componentCount = 1,
                         scenarioId = detached.scenario.id,
+                        componentNames = listOf(event.event.name),
                     )
                     changed = true
                 } else {
@@ -264,7 +286,6 @@ internal object KlickrCompatibilityProjector {
     fun validateReferentialIntegrity(scenario: CompleteScenario): List<String> {
         val violations = mutableListOf<String>()
         val eventIds = scenario.events.map { it.event.id }.toSet()
-        val conditionIds = scenario.events.flatMap { it.conditions }.map { it.id }.toSet()
 
         for (event in scenario.events) {
             if (event.actions.isEmpty()) {
@@ -273,11 +294,11 @@ internal object KlickrCompatibilityProjector {
             if (event.conditions.isEmpty()) {
                 violations += "Event ${event.event.id} has no conditions"
             }
+            if (event.conditions.any { it.computeRate > 0.0 }) {
+                violations += "Event ${event.event.id} uses unsupported condition scan rates"
+            }
             for (action in event.actions) {
-                if (action.action.type == ActionType.EXTERNAL_ACTION ||
-                    action.action.type == ActionType.PLAY_SOUND ||
-                    action.action.type == ActionType.CAPTURE_SCREENSHOT
-                ) {
+                if (action.action.isUnsupportedByLegacyKlickr()) {
                     violations += "Action ${action.action.id} has unsupported type ${action.action.type}"
                 }
                 if (action.action.type == ActionType.TOGGLE_EVENT && action.action.toggleAll != true) {
@@ -292,7 +313,7 @@ internal object KlickrCompatibilityProjector {
                 }
                 if (action.action.type == ActionType.CLICK && action.action.clickPositionType == ClickPositionType.ON_DETECTED_CONDITION) {
                     val condId = action.action.clickOnConditionId
-                    if (condId == null || condId !in conditionIds) {
+                    if (!event.hasValidClickTarget(action.action.clickPositionType, condId)) {
                         violations += "Click action ${action.action.id} references missing condition $condId"
                     }
                 }

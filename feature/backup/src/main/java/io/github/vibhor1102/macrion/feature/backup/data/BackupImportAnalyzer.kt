@@ -96,11 +96,12 @@ internal class BackupImportAnalyzer {
             catch (error: NoSuchElementException) { omittedEvent(name, error.message.orEmpty().take(160)) }
         }
         val cleanBody = JsonObject(body + ("events" to JsonArray(cleanEvents)))
-        val canonical = if ((format == BackupArchiveFormat.MACRION_NATIVE && version < 31) ||
+        val parsed = if ((format == BackupArchiveFormat.MACRION_NATIVE && version < 31) ||
             (format == BackupArchiveFormat.KLICKR_COMPATIBLE && version < 24)) {
             ScenarioSerializer().deserialize(JsonObject(source.filterKeys { it in setOf("format", "version", "screenWidth", "screenHeight", "scenario") } +
                 ("scenario" to cleanBody)).toString().byteInputStream(), format)?.scenario ?: return null
         } else Json.decodeFromJsonElement<CompleteScenario>(cleanBody)
+        val canonical = parsed.copy(events = parsed.events.map(CompleteEventEntity::normalizeIgnoredClickTargets))
         if (version < 20) {
             // Historical adapters deliberately create counters, aggregate toggles, and add a stop event.
             // Inspect the migrated native shape, rather than mistaking those migrations for data loss.
@@ -159,6 +160,9 @@ internal class BackupImportAnalyzer {
                     action.intentExtras.all { it.actionId == action.action.id } && action.eventsToggle.all { it.actionId == action.action.id }
                 if (!valid) issue(action.action.name, ImportIssueKind.ACTION, action.action.type.name)
                 valid
+            }.map { complete ->
+                if (complete.action.type == ActionType.TOGGLE_EVENT && complete.action.toggleAll == true)
+                    complete.copy(eventsToggle = emptyList()) else complete
             }
             if (actions.isEmpty()) omittedEvent(name, "") else event.copy(actions = actions)
         }
@@ -166,20 +170,16 @@ internal class BackupImportAnalyzer {
         while (true) {
             val eventIds = events.map { it.event.id }.toSet()
             val next = events.mapNotNull { event ->
-                val conditionIds = event.conditions.filter { it.type in screenConditionTypes }.map { it.id }.toSet()
-                fun validClick(type: ClickPositionType?, id: Long?): Boolean = type != ClickPositionType.ON_DETECTED_CONDITION ||
-                    (event.event.type == EventType.IMAGE_EVENT && ((id == null && event.event.conditionOperator == 2) || id in conditionIds))
                 val actions = event.actions.filter { complete ->
                     val action = complete.action
                     val counterNames = canonical.counters.map { it.name }.toSet()
-                    val positionNames = listOfNotNull(action.positionCounters, action.fromCounters, action.toCounters).flatMap { it.names() } +
-                        complete.splitItems.flatMap { item -> listOfNotNull(item.positionCounters, item.fromCounters, item.toCounters).flatMap { it.names() } }
+                    val positionNames = action.positionCounterNames() + complete.splitItems.flatMap { it.positionCounterNames() }
                     val valid = positionNames.all { it in counterNames } &&
-                        (action.counterOperationValueType != CounterOperationValueType.CONDITION ||
+                        (action.type != ActionType.CHANGE_COUNTER || action.counterOperationValueType != CounterOperationValueType.CONDITION ||
                             (event.event.type == EventType.IMAGE_EVENT && event.conditions.any {
-                                it.id == action.counterOperationConditionId && it.shouldBeDetected == true
-                            })) && validClick(action.clickPositionType, action.clickOnConditionId) &&
-                        complete.splitItems.all { validClick(it.clickPositionType, it.clickOnConditionId) } &&
+                                it.id == action.counterOperationConditionId && it.shouldBeDetected != false
+                            })) && (action.type != ActionType.CLICK || event.hasValidClickTarget(action.clickPositionType, action.clickOnConditionId)) &&
+                        complete.splitItems.all { it.type != ActionType.CLICK || event.hasValidClickTarget(it.clickPositionType, it.clickOnConditionId) } &&
                         (action.type != ActionType.TOGGLE_EVENT || action.toggleAll == true || complete.eventsToggle.all { it.toggleEventId in eventIds })
                     if (!valid) issue(action.name, ImportIssueKind.REFERENCE, "")
                     valid
