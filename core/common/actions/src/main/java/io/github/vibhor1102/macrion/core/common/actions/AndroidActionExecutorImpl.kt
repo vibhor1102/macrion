@@ -25,12 +25,17 @@ import android.util.AndroidRuntimeException
 import android.util.Log
 
 import io.github.vibhor1102.macrion.core.common.actions.gesture.GestureExecutor
+import io.github.vibhor1102.macrion.core.common.actions.gesture.GestureDispatchResult
 import io.github.vibhor1102.macrion.core.common.actions.model.ActionNotificationRequest
 import io.github.vibhor1102.macrion.core.common.actions.notification.NotificationRequestExecutor
 import io.github.vibhor1102.macrion.core.common.actions.text.TextExecutor
 import io.github.vibhor1102.macrion.core.common.actions.external.ExternalActionEventContract
 
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.withContext
 import java.io.PrintWriter
 import java.lang.ref.WeakReference
 import javax.inject.Inject
@@ -51,6 +56,7 @@ internal class AndroidActionExecutorImpl @Inject constructor(
 
     /** Keep the service in a week reference to avoid potential leak. */
     private var accessibilityServiceRef: WeakReference<AccessibilityService>? = null
+    private var onGestureFailure: ((AccessibilityService) -> Unit)? = null
     private val accessibilityService: AccessibilityService?
         get() {
             val ref = accessibilityServiceRef ?: let {
@@ -63,8 +69,9 @@ internal class AndroidActionExecutorImpl @Inject constructor(
             }
         }
 
-    override fun init(service: AccessibilityService) {
+    override fun init(service: AccessibilityService, onGestureFailure: (AccessibilityService) -> Unit) {
         accessibilityServiceRef = WeakReference(service)
+        this.onGestureFailure = onGestureFailure
         notificationRequestExecutor.init(service)
     }
 
@@ -79,14 +86,18 @@ internal class AndroidActionExecutorImpl @Inject constructor(
         resetState()
         soundExecutor.clear()
         accessibilityServiceRef = null
+        onGestureFailure = null
     }
 
-    override suspend fun dispatchGesture(gestureDescription: GestureDescription) {
-        val service = accessibilityService ?: return
-
-        if (!gestureExecutor.dispatchGesture(service, gestureDescription)) {
-            Log.w(TAG, "System did not execute the gesture properly, delaying processing to avoid spamming slow system")
-            delay(500)
+    override suspend fun dispatchGesture(gestureDescription: GestureDescription): Unit = withContext(Dispatchers.Main.immediate) {
+        val service = accessibilityService
+        val result = service?.let { gestureExecutor.dispatchGesture(it, gestureDescription) }
+        currentCoroutineContext().ensureActive()
+        if (result != GestureDispatchResult.COMPLETED) {
+            Log.w(TAG, "Pausing execution after unresolved gesture result: $result")
+            if (service != null) onGestureFailure?.invoke(service)
+            // Do not advance to later actions, and do not turn a user Stop into an automatic retry.
+            throw CancellationException("Gesture did not complete: $result")
         }
     }
 

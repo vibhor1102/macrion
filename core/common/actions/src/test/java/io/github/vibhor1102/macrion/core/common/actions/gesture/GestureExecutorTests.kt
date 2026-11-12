@@ -21,106 +21,200 @@ import android.accessibilityservice.AccessibilityService.GestureResultCallback
 import android.accessibilityservice.GestureDescription
 import android.graphics.Path
 import android.os.Build
-
+import io.github.vibhor1102.macrion.core.base.gesture.GestureInteractionGuard
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceTimeBy
+import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
-
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
+import kotlinx.coroutines.test.setMain
+import org.junit.After
+import org.junit.Assert.*
+import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.doThrow
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.times
-import org.mockito.Mockito.verify
+import org.mockito.Mockito.*
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
-import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [Build.VERSION_CODES.Q])
 class GestureExecutorTests {
+    private lateinit var service: AccessibilityService
+    private lateinit var guard: GestureInteractionGuard
+    private lateinit var executor: GestureExecutor
+    private lateinit var callbacks: ArgumentCaptor<GestureResultCallback>
 
-    @Test
-    fun dispatchGesture_completedCallback_returnsTrue() = runTest {
-        val service = mock(AccessibilityService::class.java)
-        val executor = GestureExecutor()
-        val callbackCaptor = ArgumentCaptor.forClass(GestureResultCallback::class.java)
-
-        val result = async { executor.dispatchGesture(service, gesture()) }
-        runCurrent()
-        verify(service).dispatchGesture(any(), callbackCaptor.capture(), any())
-
-        callbackCaptor.value.onCompleted(null)
-
-        assertTrue(result.await())
+    @Before fun setup() {
+        Dispatchers.setMain(StandardTestDispatcher())
+        service = mock(AccessibilityService::class.java)
+        `when`(service.dispatchGesture(any(), any(), any())).thenReturn(true)
+        guard = GestureInteractionGuard()
+        executor = GestureExecutor(guard)
+        callbacks = ArgumentCaptor.forClass(GestureResultCallback::class.java)
     }
 
-    @Test
-    fun dispatchGesture_missingCallback_timesOut_andReturnsFalse() = runTest {
-        val service = mock(AccessibilityService::class.java)
-        val executor = GestureExecutor()
+    @After fun teardown() = Dispatchers.resetMain()
 
-        val result = async { executor.dispatchGesture(service, gesture()) }
+    @Test fun completedCallbackReturnsSuccessWithoutRetry() = runTest {
+        val pending = async { executor.dispatchGesture(service, gesture()) }
         runCurrent()
-        advanceTimeBy(200.milliseconds)
-
-        assertFalse(result.await())
+        verify(service).dispatchGesture(any(), callbacks.capture(), any())
+        callbacks.value.onCompleted(null)
+        assertEquals(GestureDispatchResult.COMPLETED, pending.await())
+        verify(service, times(1)).dispatchGesture(any(), any(), any())
     }
 
-    @Test
-    fun dispatchGesture_dispatchException_returnsFalse() = runTest {
-        val service = mock(AccessibilityService::class.java)
-        doThrow(IllegalStateException("Accessibility service is unavailable"))
-            .`when`(service)
-            .dispatchGesture(any(), any(), any())
-
-        assertFalse(GestureExecutor().dispatchGesture(service, gesture()))
+    @Test fun rejectionIsRecognizedImmediatelyAndRetriedOnce() = runTest {
+        `when`(service.dispatchGesture(any(), any(), any())).thenReturn(false, true)
+        val pending = async { executor.dispatchGesture(service, gesture()) }
+        runCurrent()
+        advanceTimeBy(499)
+        verify(service, times(1)).dispatchGesture(any(), any(), any())
+        advanceTimeBy(1)
+        runCurrent()
+        verify(service, times(2)).dispatchGesture(any(), callbacks.capture(), any())
+        callbacks.value.onCompleted(null)
+        assertEquals(GestureDispatchResult.COMPLETED, pending.await())
+        assertEquals(500L, testScheduler.currentTime)
     }
 
-    @Test
-    fun dispatchGesture_lateCallbackAfterTimeout_doesNotCompleteNextGesture() = runTest {
-        val service = mock(AccessibilityService::class.java)
-        val executor = GestureExecutor()
-        val callbackCaptor = ArgumentCaptor.forClass(GestureResultCallback::class.java)
-
-        val timedOutResult = async { executor.dispatchGesture(service, gesture()) }
+    @Test fun cancelledGestureWaitsForRecoveryAndRetriesSameGesture() = runTest {
+        val gesture = gesture()
+        val pending = async { executor.dispatchGesture(service, gesture) }
         runCurrent()
-        verify(service).dispatchGesture(any(), callbackCaptor.capture(), any())
-        val timedOutCallback = callbackCaptor.value
-
-        advanceTimeBy(200.milliseconds)
-        assertFalse(timedOutResult.await())
-
-        val nextResult = async { executor.dispatchGesture(service, gesture()) }
+        verify(service).dispatchGesture(eq(gesture), callbacks.capture(), any())
+        callbacks.value.onCancelled(null)
         runCurrent()
-        verify(service, times(2)).dispatchGesture(any(), callbackCaptor.capture(), any())
-
-        timedOutCallback.onCompleted(null)
+        advanceTimeBy(499)
+        verify(service, times(1)).dispatchGesture(any(), any(), any())
+        advanceTimeBy(1)
         runCurrent()
-        assertFalse(nextResult.isCompleted)
-
-        callbackCaptor.allValues.last().onCompleted(null)
-
-        assertTrue(nextResult.await())
+        verify(service, times(2)).dispatchGesture(eq(gesture), callbacks.capture(), any())
+        callbacks.value.onCompleted(null)
+        assertEquals(GestureDispatchResult.COMPLETED, pending.await())
     }
 
-    private fun gesture(): GestureDescription = GestureDescription.Builder()
-        .addStroke(
-            GestureDescription.StrokeDescription(
-                Path().apply {
-                    moveTo(0f, 0f)
-                    lineTo(1f, 1f)
-                },
-                0L,
-                100L,
-            )
-        )
-        .build()
+    @Test fun secondRejectionDoesNotRetryAgain() = runTest {
+        `when`(service.dispatchGesture(any(), any(), any())).thenReturn(false)
+        assertEquals(GestureDispatchResult.REJECTED, executor.dispatchGesture(service, gesture()))
+        verify(service, times(2)).dispatchGesture(any(), any(), any())
+    }
+
+    @Test fun secondCancellationDoesNotRetryAgain() = runTest {
+        doAnswer {
+            it.getArgument<GestureResultCallback>(1).onCancelled(null)
+            true
+        }.`when`(service).dispatchGesture(any(), any(), any())
+        assertEquals(GestureDispatchResult.CANCELLED, executor.dispatchGesture(service, gesture()))
+        verify(service, times(2)).dispatchGesture(any(), any(), any())
+    }
+
+    @Test fun missingCallbackTimesOutWithoutRetryingUnknownOutcome() = runTest {
+        assertEquals(GestureDispatchResult.TIMED_OUT, executor.dispatchGesture(service, gesture()))
+        verify(service, times(1)).dispatchGesture(any(), any(), any())
+        assertEquals(200L, testScheduler.currentTime)
+    }
+
+    @Test fun longGestureIsNotDeclaredFailedAtFiveHundredMilliseconds() = runTest {
+        val pending = async { executor.dispatchGesture(service, gesture(durationMs = 1_000)) }
+        runCurrent()
+        verify(service).dispatchGesture(any(), callbacks.capture(), any())
+        advanceTimeBy(500)
+        assertFalse(pending.isCompleted)
+        callbacks.value.onCompleted(null)
+        assertEquals(GestureDispatchResult.COMPLETED, pending.await())
+    }
+
+    @Test fun submissionExceptionDoesNotBlindlyRetry() = runTest {
+        doThrow(IllegalStateException("Accessibility service unavailable"))
+            .`when`(service).dispatchGesture(any(), any(), any())
+        assertEquals(GestureDispatchResult.ERROR, executor.dispatchGesture(service, gesture()))
+        verify(service, times(1)).dispatchGesture(any(), any(), any())
+    }
+
+    @Test fun stopDuringRecoveryCancelsRetryAndReleasesDispatchLock() = runTest {
+        val pending = async { executor.dispatchGesture(service, gesture()) }
+        runCurrent()
+        verify(service).dispatchGesture(any(), callbacks.capture(), any())
+        callbacks.value.onCancelled(null)
+        runCurrent()
+        pending.cancel()
+        advanceTimeBy(1_000)
+        verify(service, times(1)).dispatchGesture(any(), any(), any())
+
+        val next = async { executor.dispatchGesture(service, gesture()) }
+        runCurrent()
+        verify(service, times(2)).dispatchGesture(any(), callbacks.capture(), any())
+        callbacks.value.onCompleted(null)
+        assertEquals(GestureDispatchResult.COMPLETED, next.await())
+    }
+
+    @Test fun waitingForToolbarDoesNotSubmitOrStartCallbackTimeout() = runTest {
+        val owner = Any()
+        guard.onTouchStarted(owner)
+        val pending = async { executor.dispatchGesture(service, gesture()) }
+        advanceTimeBy(10_000)
+        assertFalse(pending.isCompleted)
+        verify(service, never()).dispatchGesture(any(), any(), any())
+        pending.cancel()
+        guard.onTouchFinished(owner)
+        advanceTimeBy(1_000)
+        verify(service, never()).dispatchGesture(any(), any(), any())
+    }
+
+    @Test fun retryRemainsPendingWhileToolbarIsHeld() = runTest {
+        val pending = async { executor.dispatchGesture(service, gesture()) }
+        runCurrent()
+        verify(service).dispatchGesture(any(), callbacks.capture(), any())
+        callbacks.value.onCancelled(null)
+        runCurrent()
+        val owner = Any()
+        guard.onTouchStarted(owner)
+        advanceTimeBy(5_000)
+        assertFalse(pending.isCompleted)
+        verify(service, times(1)).dispatchGesture(any(), any(), any())
+        pending.cancel()
+        guard.onTouchFinished(owner)
+    }
+
+    @Test fun lateCallbackCannotCompleteNextSubmission() = runTest {
+        val first = async { executor.dispatchGesture(service, gesture()) }
+        runCurrent()
+        verify(service).dispatchGesture(any(), callbacks.capture(), any())
+        val lateCallback = callbacks.value
+        assertEquals(GestureDispatchResult.TIMED_OUT, first.await())
+        val second = async { executor.dispatchGesture(service, gesture()) }
+        runCurrent()
+        verify(service, times(2)).dispatchGesture(any(), callbacks.capture(), any())
+        lateCallback.onCompleted(null)
+        runCurrent()
+        assertFalse(second.isCompleted)
+        callbacks.value.onCompleted(null)
+        assertEquals(GestureDispatchResult.COMPLETED, second.await())
+    }
+
+    @Test fun submissionsAreSerializedUntilPreviousGestureCompletes() = runTest {
+        val first = async { executor.dispatchGesture(service, gesture()) }
+        val second = async { executor.dispatchGesture(service, gesture()) }
+        runCurrent()
+        verify(service, times(1)).dispatchGesture(any(), callbacks.capture(), any())
+        callbacks.value.onCompleted(null)
+        runCurrent()
+        verify(service, times(2)).dispatchGesture(any(), callbacks.capture(), any())
+        callbacks.value.onCompleted(null)
+        assertEquals(GestureDispatchResult.COMPLETED, first.await())
+        assertEquals(GestureDispatchResult.COMPLETED, second.await())
+    }
+
+    private fun gesture(durationMs: Long = 100L): GestureDescription = GestureDescription.Builder()
+        .addStroke(GestureDescription.StrokeDescription(
+            Path().apply { moveTo(0f, 0f); lineTo(1f, 1f) }, 0L, durationMs,
+        )).build()
 }

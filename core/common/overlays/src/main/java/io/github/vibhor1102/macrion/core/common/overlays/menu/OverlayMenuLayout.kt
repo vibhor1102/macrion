@@ -5,6 +5,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Outline
 import android.view.MotionEvent
+import android.view.InputDevice
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewOutlineProvider
@@ -121,6 +122,43 @@ class OverlayMenuContentAnchor(
 
 /** WindowManager needs a View root. Lookups must work before composition attaches. */
 class ComposeOverlayMenuHost(context: Context) : FrameLayout(context) {
+    internal var gestureInteractionGuard = try {
+        EntryPoints.get(context.applicationContext, OverlaysEntryPoint::class.java).gestureInteractionGuard()
+    } catch (_: IllegalStateException) {
+        null // Plain contexts used by overlay previews and tests have no application component.
+    }
+
+    override fun dispatchTouchEvent(event: MotionEvent): Boolean {
+        val physicalTouch = event.deviceId >= 0 && event.isFromSource(InputDevice.SOURCE_TOUCHSCREEN)
+        if (physicalTouch && event.actionMasked == MotionEvent.ACTION_DOWN) {
+            gestureInteractionGuard?.onTouchStarted(this)
+        }
+        return try {
+            super.dispatchTouchEvent(event)
+        } finally {
+            if (physicalTouch && (event.actionMasked == MotionEvent.ACTION_UP ||
+                    event.actionMasked == MotionEvent.ACTION_CANCEL)) {
+                // Finish after click handlers, so Pause/Stop cancel execution before the gate opens.
+                gestureInteractionGuard?.onTouchFinished(this)
+            }
+        }
+    }
+
+    override fun onDetachedFromWindow() {
+        gestureInteractionGuard?.onTouchFinished(this)
+        super.onDetachedFromWindow()
+    }
+
+    override fun onWindowVisibilityChanged(visibility: Int) {
+        if (visibility != View.VISIBLE) gestureInteractionGuard?.onTouchFinished(this)
+        super.onWindowVisibilityChanged(visibility)
+    }
+
+    override fun onVisibilityChanged(changedView: View, visibility: Int) {
+        if (visibility != View.VISIBLE) gestureInteractionGuard?.onTouchFinished(this)
+        super.onVisibilityChanged(changedView, visibility)
+    }
+
     val anchors = mutableMapOf<Int, View>()
     val buttons = mutableListOf<OverlayMenuButtonView>()
     var isTucked by mutableStateOf(false)

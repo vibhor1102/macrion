@@ -85,4 +85,5 @@
     </plurals>
     <string name="condition_operator_and">かつ</string>
     <string name="condition_operator_or">または</string>
+    <string name="message_gesture_execution_paused">タッチ操作を確認できませんでした。シナリオを一時停止しました。</string>
 </resources>

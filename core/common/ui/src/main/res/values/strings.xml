@@ -171,4 +171,5 @@
         <item quantity="one">%d needs setup</item>
         <item quantity="other">%d need setup</item>
     </plurals>
+    <string name="message_gesture_execution_paused">Touch gesture not confirmed. Scenario paused.</string>
 </resources>

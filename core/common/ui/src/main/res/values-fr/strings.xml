@@ -162,4 +162,5 @@
         <item quantity="many">%d configurations requises</item>
         <item quantity="other">%d configurations requises</item>
     </plurals>
+    <string name="message_gesture_execution_paused">Geste tactile non confirmé. Scénario en pause.</string>
 </resources>

@@ -164,4 +164,5 @@
         <item quantity="many">%d precisam ser configurados</item>
         <item quantity="other">%d precisam ser configurados</item>
     </plurals>
+    <string name="message_gesture_execution_paused">Gesto de toque não confirmado. Cenário pausado.</string>
 </resources>

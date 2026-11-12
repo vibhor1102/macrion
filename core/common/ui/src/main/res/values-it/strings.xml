@@ -163,4 +163,5 @@
         <item quantity="other">%d da configurare</item>
         <item quantity="many">%d da configurare</item>
     </plurals>
+    <string name="message_gesture_execution_paused">Gesto tattile non confermato. Scenario in pausa.</string>
 </resources>

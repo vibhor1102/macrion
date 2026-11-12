@@ -34,7 +34,7 @@ interface AndroidActionExecutor: Dumpable {
      * reference to avoid any potential leak, so if actions are not executed after init call, you might need to check if
      * the service is correctly started.
      */
-    fun init(service: AccessibilityService)
+    fun init(service: AccessibilityService, onGestureFailure: (AccessibilityService) -> Unit = {})
 
     /** Reset internal state. Actions currently executing will be cancelled. */
     fun resetState()
@@ -49,7 +49,8 @@ interface AndroidActionExecutor: Dumpable {
      * Dispatch a gesture to the touch screen.
      *
      * Any gestures currently in progress, whether from the user, this service, or another service, will be cancelled.
-     * Method will return only once the gesture is dispatched.
+     * Waits for toolbar touches to finish and for Android to confirm completion. Explicit rejection or cancellation
+     * is retried once; unresolved failure pauses execution via the initialization callback and cancels this action.
      *
      * The gesture will be dispatched as if it were performed directly on the screen by a user, so the events may be
      * affected by features such as magnification and explore by touch.

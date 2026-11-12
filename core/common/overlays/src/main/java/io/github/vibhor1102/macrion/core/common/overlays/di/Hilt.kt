@@ -29,6 +29,8 @@ import dagger.hilt.components.SingletonComponent
 @InstallIn(SingletonComponent::class)
 interface OverlaysEntryPoint {
 
+    fun gestureInteractionGuard(): io.github.vibhor1102.macrion.core.base.gesture.GestureInteractionGuard
+
     fun overlayManager(): OverlayManager
     fun overlayMenuPositionDataSource(): OverlayMenuPositionDataSource
     fun overlayScaleProvider(): OverlayScaleProvider

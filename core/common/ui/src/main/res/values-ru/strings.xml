@@ -170,4 +170,5 @@
         <item quantity="many">%d требуют настройки</item>
         <item quantity="other">%d требуют настройки</item>
     </plurals>
+    <string name="message_gesture_execution_paused">Сенсорный жест не подтверждён. Сценарий приостановлен.</string>
 </resources>

@@ -54,6 +54,9 @@ import io.mockk.verify
 import kotlinx.coroutines.channels.Channel
 
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceTimeBy
@@ -61,6 +64,7 @@ import kotlinx.coroutines.test.runTest
 
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -262,6 +266,22 @@ class DetectorEngineDetectionOrientationTests {
 
         assertEquals(DetectorState.RECORDING, engine.state.value)
         verify(exactly = 1) { mockImageDetector.close() }
+    }
+
+    @Test
+    fun `pause cancels pending processing before asynchronous cleanup runs`() = runTest {
+        var processingContext: kotlin.coroutines.CoroutineContext? = null
+        coEvery { mockDisplayRecorder.acquireLatestBitmap() } coAnswers {
+            processingContext = currentCoroutineContext()
+            awaitCancellation()
+        }
+        val (engine, _) = startDetectionAndCaptureOrientationListener()
+
+        engine.stopDetection()
+
+        assertFalse("Pending gesture waits must be cancelled synchronously", processingContext!!.isActive)
+        advanceTimeBy(1)
+        assertEquals(DetectorState.RECORDING, engine.state.value)
     }
 
     // ---- helpers ----

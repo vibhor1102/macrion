@@ -23,6 +23,7 @@ import android.content.Intent
 import android.util.Log
 import android.view.KeyEvent
 import android.view.accessibility.AccessibilityEvent
+import android.widget.Toast
 
 import io.github.vibhor1102.macrion.core.base.Dumpable
 import io.github.vibhor1102.macrion.core.base.data.AppComponentsProvider
@@ -110,7 +111,10 @@ class SmartAutoClickerService : AccessibilityService() {
         }
 
         qualityMetricsMonitor.onServiceConnected()
-        actionExecutor.init(this)
+        actionExecutor.init(this) { service ->
+            // Do not retain this service through the singleton executor's failure callback.
+            (service as SmartAutoClickerService).onGestureExecutionFailed()
+        }
 
         externalLaunchRepository.setActionHandler(
             object : ExternalLaunchActionHandler {
@@ -170,6 +174,16 @@ class SmartAutoClickerService : AccessibilityService() {
                 onAccessibilityLoss = ::onAccessibilityServiceLost,
             )
         )
+    }
+
+    private fun onGestureExecutionFailed() {
+        if (smartProcessingRepository.isDetectionActive()) smartProcessingRepository.stopDetection()
+        if (dumbEngine.isRunning.value) dumbEngine.stopDumbScenario()
+        Toast.makeText(
+            this,
+            io.github.vibhor1102.macrion.core.ui.R.string.message_gesture_execution_paused,
+            Toast.LENGTH_LONG,
+        ).show()
     }
 
     override fun onUnbind(intent: Intent?): Boolean {

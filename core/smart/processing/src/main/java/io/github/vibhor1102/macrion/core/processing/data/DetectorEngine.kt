@@ -377,6 +377,9 @@ class DetectorEngine @Inject constructor(
         }
         _detectionStopSequence.update { it + 1 }
 
+        // Stop pending gesture waits/retries immediately, before asynchronous resource cleanup begins.
+        processingJob?.cancel()
+
         processingShutdownJob = processingScope?.launch {
             Log.i(TAG, "stopDetection")
 

@@ -164,4 +164,5 @@
     </plurals>
     <string name="condition_operator_and">Y</string>
     <string name="condition_operator_or">O</string>
+    <string name="message_gesture_execution_paused">No se confirmó el gesto táctil. Escenario en pausa.</string>
 </resources>

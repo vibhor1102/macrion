@@ -105,4 +105,5 @@
     <plurals name="multi_touch_brief_setup_count">
         <item quantity="other">%d mục cần thiết lập</item>
     </plurals>
+    <string name="message_gesture_execution_paused">Chưa xác nhận được thao tác chạm. Đã tạm dừng kịch bản.</string>
 </resources>

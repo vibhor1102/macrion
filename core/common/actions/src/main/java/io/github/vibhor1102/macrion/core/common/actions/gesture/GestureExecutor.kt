@@ -23,64 +23,90 @@ import android.util.Log
 
 import io.github.vibhor1102.macrion.core.base.Dumpable
 import io.github.vibhor1102.macrion.core.base.addDumpTabulationLvl
+import io.github.vibhor1102.macrion.core.base.gesture.GestureInteractionGuard
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.io.PrintWriter
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.time.Duration.Companion.milliseconds
 
 
 @Singleton
-internal class GestureExecutor @Inject constructor() : Dumpable {
+internal class GestureExecutor @Inject constructor(
+    private val interactionGuard: GestureInteractionGuard,
+) : Dumpable {
+
+    private val dispatchMutex = Mutex()
 
     private var completedGestures: Long = 0L
     private var cancelledGestures: Long = 0L
     private var errorGestures: Long = 0L
+    private var retriedGestures: Long = 0L
 
 
     fun clear() {
         completedGestures = 0L
         cancelledGestures = 0L
         errorGestures = 0L
+        retriedGestures = 0L
     }
 
-    suspend fun dispatchGesture(service: AccessibilityService, gesture: GestureDescription): Boolean {
-        val result = withTimeoutOrNull(gesture.timeoutDurationMs().milliseconds) {
-            suspendCancellableCoroutine { continuation ->
-                try {
-                    service.dispatchGesture(
-                        /* gesture = */ gesture,
-                        /* callback = */ object : GestureResultCallback() {
-                            override fun onCompleted(g: GestureDescription?) = continuation.safeResume(true)
-                            override fun onCancelled(g: GestureDescription?) = continuation.safeResume(false)
-                        },
-                        /* handler = */ null,
-                    )
-                } catch (rEx: RuntimeException) {
-                    Log.w(TAG, "System is not responsive, the user might be spamming gesture too quickly", rEx)
-                    continuation.safeResume(false)
-                }
+    suspend fun dispatchGesture(service: AccessibilityService, gesture: GestureDescription): GestureDispatchResult =
+        withContext(Dispatchers.Main.immediate) {
+            dispatchMutex.withLock {
+                interactionGuard.awaitIdle()
+                val first = dispatchOnce(service, gesture)
+                if (!first.canRetry) return@withLock first
+
+                Log.i(TAG, "Gesture $first; waiting for recovery before one retry")
+                delay(GESTURE_RECOVERY_DELAY_MS)
+                interactionGuard.awaitIdle(quietPeriodMs = GESTURE_RECOVERY_DELAY_MS)
+                currentCoroutineContext().ensureActive()
+                retriedGestures++
+                dispatchOnce(service, gesture)
             }
         }
 
-        if (result == null) {
-            Log.w(TAG, "Gesture error, timeout or system error occurred.")
-            errorGestures++
-            return false
-        }
+    private suspend fun dispatchOnce(service: AccessibilityService, gesture: GestureDescription): GestureDispatchResult {
+        val result = withTimeoutOrNull(gesture.timeoutDurationMs().milliseconds) {
+            suspendCancellableCoroutine<GestureDispatchResult> { continuation ->
+                fun complete(result: GestureDispatchResult) {
+                    if (continuation.isActive) continuation.resume(result)
+                }
+                try {
+                    val accepted = service.dispatchGesture(
+                        /* gesture = */ gesture,
+                        /* callback = */ object : GestureResultCallback() {
+                            override fun onCompleted(g: GestureDescription?) = complete(GestureDispatchResult.COMPLETED)
+                            override fun onCancelled(g: GestureDescription?) = complete(GestureDispatchResult.CANCELLED)
+                        },
+                        /* handler = */ null,
+                    )
+                    if (!accepted) complete(GestureDispatchResult.REJECTED)
+                } catch (rEx: RuntimeException) {
+                    Log.w(TAG, "Gesture submission failed", rEx)
+                    complete(GestureDispatchResult.ERROR)
+                }
+            }
+        } ?: GestureDispatchResult.TIMED_OUT
 
-        if (!result) {
-            Log.w(TAG, "Gesture has been cancelled.")
-            cancelledGestures ++
-            return false
+        when (result) {
+            GestureDispatchResult.COMPLETED -> completedGestures++
+            GestureDispatchResult.CANCELLED -> cancelledGestures++
+            else -> errorGestures++
         }
-
-        completedGestures++
-        return true
+        if (result != GestureDispatchResult.COMPLETED) Log.w(TAG, "Gesture result: $result")
+        return result
     }
 
     override fun dump(writer: PrintWriter, prefix: CharSequence) {
@@ -91,17 +117,14 @@ internal class GestureExecutor @Inject constructor() : Dumpable {
             append(contentPrefix).append("Completed=$completedGestures").println()
             append(contentPrefix).append("Cancelled=$cancelledGestures").println()
             append(contentPrefix).append("Error=$errorGestures").println()
+            append(contentPrefix).append("Retried=$retriedGestures").println()
         }
     }
 }
 
-private fun <T> Continuation<T>.safeResume(value: T): Unit =
-    try {
-        resume(value)
-    } catch (isEx: IllegalStateException) {
-        Log.w(TAG, "Continuation have already been resumed. Did the same event got two results ?", isEx)
-        Unit
-    }
+internal enum class GestureDispatchResult(val canRetry: Boolean = false) {
+    COMPLETED, REJECTED(true), CANCELLED(true), TIMED_OUT, ERROR,
+}
 
 private fun GestureDescription.durationMs(): Long {
     var maxEndTime = 0L
@@ -120,5 +143,6 @@ private fun GestureDescription.timeoutDurationMs(): Long =
 private const val GESTURE_CALLBACK_TIMEOUT_MIN_MS = 100L
 private const val GESTURE_CALLBACK_TIMEOUT_MAX_MS = 65_000L
 private const val GESTURE_CALLBACK_TIMEOUT_DURATION_RATIO_MS = 2
+private const val GESTURE_RECOVERY_DELAY_MS = 500L
 
 private const val TAG = "GestureExecutor"

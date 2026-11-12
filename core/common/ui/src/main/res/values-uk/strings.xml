@@ -168,4 +168,5 @@
     <string name="multi_touch_done_renaming">Перейменування дотику %1$d завершено</string>
     <string name="multi_touch_rename_touch">Перейменувати дотик %1$d</string>
     <string name="multi_touch_touch_description">Дотик %1$d із %2$d: %3$s</string>
+    <string name="message_gesture_execution_paused">Сенсорний жест не підтверджено. Сценарій призупинено.</string>
 </resources>

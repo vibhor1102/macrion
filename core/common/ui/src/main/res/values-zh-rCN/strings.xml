@@ -85,4 +85,5 @@
     <string name="multi_touch_brief_no_touches">未配置触摸</string>
     <string name="condition_operator_and">且</string>
     <string name="condition_operator_or">或</string>
+    <string name="message_gesture_execution_paused">未确认触控手势。场景已暂停。</string>
 </resources>

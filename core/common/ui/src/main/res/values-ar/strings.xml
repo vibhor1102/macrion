@@ -173,4 +173,5 @@
     </plurals>
     <string name="condition_operator_and">و</string>
     <string name="condition_operator_or">أو</string>
+    <string name="message_gesture_execution_paused">لم يتم تأكيد إيماءة اللمس. تم إيقاف السيناريو مؤقتًا.</string>
 </resources>
