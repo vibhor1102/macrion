@@ -196,20 +196,87 @@ class GestureExecutorTests {
         guard.onTouchFinished(owner)
     }
 
-    @Test fun lateCallbackCannotCompleteNextSubmission() = runTest {
+    @Test fun timeoutBlocksFurtherSubmissionUntilLateTerminalCallback() = runTest {
         val first = async { executor.dispatchGesture(service, gesture()) }
         runCurrent()
         verify(service).dispatchGesture(any(), callbacks.capture(), any())
         val lateCallback = callbacks.value
         assertEquals(GestureDispatchResult.TIMED_OUT, first.await())
+        assertEquals(GestureDispatchResult.TIMED_OUT, executor.dispatchGesture(service, gesture()))
+        verify(service, times(1)).dispatchGesture(any(), any(), any())
+        lateCallback.onCompleted(null)
         val second = async { executor.dispatchGesture(service, gesture()) }
         runCurrent()
         verify(service, times(2)).dispatchGesture(any(), callbacks.capture(), any())
-        lateCallback.onCompleted(null)
-        runCurrent()
+        // Even a duplicate old callback must not release the new gesture's barrier.
+        lateCallback.onCancelled(null)
         assertFalse(second.isCompleted)
         callbacks.value.onCompleted(null)
         assertEquals(GestureDispatchResult.COMPLETED, second.await())
+    }
+
+    @Test fun stopReturnsImmediatelyButRestartWaitsForAcceptedGesture() = runTest {
+        val first = async { executor.dispatchGesture(service, gesture(durationMs = 5_000)) }
+        runCurrent()
+        verify(service).dispatchGesture(any(), callbacks.capture(), any())
+        val firstCallback = callbacks.value
+        first.cancel()
+        first.join()
+        executor.clear() // Scenario cleanup must clear only counters, not platform ownership.
+        val next = async { executor.dispatchGesture(service, gesture()) }
+        advanceTimeBy(1_000)
+        runCurrent()
+        verify(service, times(1)).dispatchGesture(any(), any(), any())
+        firstCallback.onCompleted(null)
+        runCurrent()
+        verify(service, times(2)).dispatchGesture(any(), callbacks.capture(), any())
+        callbacks.value.onCompleted(null)
+        assertEquals(GestureDispatchResult.COMPLETED, next.await())
+    }
+
+    @Test fun missingCallbackAfterStopPausesRestartWithoutSendingAnotherGesture() = runTest {
+        val first = async { executor.dispatchGesture(service, gesture()) }
+        runCurrent()
+        first.cancel()
+        first.join()
+        assertEquals(GestureDispatchResult.TIMED_OUT, executor.dispatchGesture(service, gesture()))
+        assertEquals(GestureDispatchResult.TIMED_OUT, executor.dispatchGesture(service, gesture()))
+        verify(service, times(1)).dispatchGesture(any(), any(), any())
+    }
+
+    @Test fun reconnectRecoversUnknownOutcomeAndOldCallbackCannotReleaseNewGesture() = runTest {
+        val first = async { executor.dispatchGesture(service, gesture()) }
+        runCurrent()
+        verify(service).dispatchGesture(any(), callbacks.capture(), any())
+        val oldCallback = callbacks.value
+        assertEquals(GestureDispatchResult.TIMED_OUT, first.await())
+        executor.resetConnection()
+        val second = async { executor.dispatchGesture(service, gesture()) }
+        runCurrent()
+        verify(service, times(2)).dispatchGesture(any(), callbacks.capture(), any())
+        val secondCallback = callbacks.value
+        oldCallback.onCompleted(null)
+        second.cancel()
+        second.join()
+        val third = async { executor.dispatchGesture(service, gesture()) }
+        runCurrent()
+        verify(service, times(2)).dispatchGesture(any(), any(), any())
+        secondCallback.onCancelled(null)
+        runCurrent()
+        verify(service, times(3)).dispatchGesture(any(), callbacks.capture(), any())
+        callbacks.value.onCompleted(null)
+        assertEquals(GestureDispatchResult.COMPLETED, third.await())
+    }
+
+    @Test fun reconnectDuringRecoveryDoesNotRetryOnOldConnection() = runTest {
+        val pending = async { executor.dispatchGesture(service, gesture()) }
+        runCurrent()
+        verify(service).dispatchGesture(any(), callbacks.capture(), any())
+        callbacks.value.onCancelled(null)
+        runCurrent()
+        executor.resetConnection()
+        assertEquals(GestureDispatchResult.ERROR, pending.await())
+        verify(service, times(1)).dispatchGesture(any(), any(), any())
     }
 
     @Test fun submissionsAreSerializedUntilPreviousGestureCompletes() = runTest {

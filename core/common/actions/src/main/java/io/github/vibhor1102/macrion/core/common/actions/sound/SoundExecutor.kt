@@ -22,74 +22,93 @@ import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.util.Log
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
+import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicLong
+import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-internal class SoundExecutor @Inject constructor(
-    @param:ApplicationContext private val context: Context,
+internal class SoundExecutor internal constructor(
+    private val context: Context,
+    private val workerDispatcher: CoroutineDispatcher?,
+    private val createPlayer: () -> MediaPlayer,
 ) {
-    private var activePlayer: MediaPlayer? = null
+    @Inject constructor(@ApplicationContext context: Context) : this(context, null, ::MediaPlayer)
 
-    @Synchronized
+    // MediaPlayer operations stay on one worker thread. Neither UI cleanup nor callbacks wait for preparation.
+    private val workerDelegate = lazy {
+        CoroutineScope(SupervisorJob() +
+            (workerDispatcher ?: Executors.newSingleThreadExecutor { task ->
+                Thread(task, "MacrionSound").apply { isDaemon = true }
+            }.asCoroutineDispatcher()))
+    }
+    private val generation = AtomicLong()
+    private var activePlayer: MediaPlayer? = null // Worker-confined.
+
     fun playSound(soundUri: String) {
-        stopSound()
-        try {
-            val uri = soundUri.toUri()
-            val player = MediaPlayer().apply {
-                setAudioAttributes(
+        val request = generation.incrementAndGet()
+        workerDelegate.value.launch {
+            if (generation.get() != request) return@launch
+            releaseActivePlayer()
+            var candidate: MediaPlayer? = null
+            try {
+                val player = createPlayer().also { candidate = it }
+                player.setAudioAttributes(
                     AudioAttributes.Builder()
                         .setUsage(AudioAttributes.USAGE_NOTIFICATION_EVENT)
                         .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
                         .build()
                 )
-                setDataSource(context, uri)
-                setOnCompletionListener { mp ->
-                    synchronized(this@SoundExecutor) {
-                        if (activePlayer === mp) {
-                            activePlayer = null
-                        }
-                    }
-                    mp.release()
-                }
-                setOnErrorListener { mp, what, extra ->
+                player.setDataSource(context, soundUri.toUri())
+                player.setOnCompletionListener { completed -> releaseWhenActive(completed) }
+                player.setOnErrorListener { failed, what, extra ->
                     Log.w(TAG, "MediaPlayer error: what=$what, extra=$extra")
-                    synchronized(this@SoundExecutor) {
-                        if (activePlayer === mp) {
-                            activePlayer = null
-                        }
-                    }
-                    mp.release()
+                    releaseWhenActive(failed)
                     true
                 }
-                prepare()
-                start()
-            }
-            activePlayer = player
-        } catch (e: Exception) {
-            Log.w(TAG, "Failed to play sound: $soundUri", e)
-        }
-    }
-
-    @Synchronized
-    fun stopSound() {
-        activePlayer?.let { player ->
-            try {
-                if (player.isPlaying) {
-                    player.stop()
+                player.prepare()
+                // Stop invalidates this request immediately, even while prepare() is blocked.
+                if (generation.get() == request) {
+                    activePlayer = player
+                    candidate = null
+                    player.start()
                 }
             } catch (e: Exception) {
-                Log.w(TAG, "Error stopping sound player", e)
+                Log.w(TAG, "Failed to play sound: $soundUri", e)
+                releaseActivePlayer()
             } finally {
-                player.release()
+                candidate?.release()
             }
         }
-        activePlayer = null
     }
 
-    fun clear() {
-        stopSound()
+    fun stopSound() {
+        val request = generation.incrementAndGet()
+        if (!workerDelegate.isInitialized()) return
+        workerDelegate.value.launch {
+            // A late cleanup request must not stop a newer scenario's sound.
+            if (generation.get() == request) releaseActivePlayer()
+        }
     }
+
+    private fun releaseWhenActive(player: MediaPlayer) {
+        workerDelegate.value.launch {
+            if (activePlayer === player) releaseActivePlayer()
+        }
+    }
+
+    private fun releaseActivePlayer() {
+        val player = activePlayer ?: return
+        activePlayer = null
+        player.release()
+    }
+
+    fun clear() = stopSound()
 }
 
 private const val TAG = "SoundExecutor"

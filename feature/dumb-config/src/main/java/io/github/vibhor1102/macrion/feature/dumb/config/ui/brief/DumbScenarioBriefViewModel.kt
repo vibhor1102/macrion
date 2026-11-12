@@ -44,6 +44,7 @@ import io.github.vibhor1102.macrion.feature.dumb.config.ui.actions.copy.toDumbAc
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -67,6 +68,10 @@ class DumbScenarioBriefViewModel @Inject constructor(
     private val dumbEngine: DumbEngine,
 ) : ViewModel() {
 
+
+    private var actionTestJob: Job? = null
+    private var actionTestGeneration = 0L
+    private var onActionTestCompleted: (() -> Unit)? = null
 
     private val briefVisualizationState: MutableStateFlow<BriefVisualizationState> =
         MutableStateFlow(BriefVisualizationState(0, false))
@@ -140,19 +145,40 @@ class DumbScenarioBriefViewModel @Inject constructor(
         val actions = dumbEditionRepository.editedDumbScenario.value?.dumbActions
         if (actions.isNullOrEmpty() || index !in actions.indices) return
 
-        viewModelScope.launch {
+        if (onActionTestCompleted != null) return
+        val generation = ++actionTestGeneration
+        onActionTestCompleted = onCompleted
+        actionTestJob = viewModelScope.launch {
             delay(500)
-            dumbEngine.tryDumbAction(actions[index]) {
-                viewModelScope.launch(mainDispatcher) { onCompleted() }
+            val started = dumbEngine.tryDumbAction(actions[index]) {
+                viewModelScope.launch(mainDispatcher) {
+                    if (generation == actionTestGeneration) finishActionTest()
+                }
             }
+            if (!started && generation == actionTestGeneration) finishActionTest()
         }
     }
 
     fun stopAction(): Boolean {
-        if (!dumbEngine.isRunning.value) return false
-
+        if (onActionTestCompleted == null && !dumbEngine.isRunning.value) return false
+        ++actionTestGeneration
+        actionTestJob?.cancel()
+        actionTestJob = null
         dumbEngine.stopDumbScenario()
+        finishActionTest()
         return true
+    }
+
+    private fun finishActionTest() {
+        val completed = onActionTestCompleted
+        onActionTestCompleted = null
+        actionTestJob = null
+        completed?.invoke()
+    }
+
+    override fun onCleared() {
+        if (onActionTestCompleted != null) stopAction()
+        super.onCleared()
     }
 
     fun createNewDumbClick(context: Context, position: Point): DumbAction.DumbClick =

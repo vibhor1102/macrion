@@ -21,13 +21,16 @@ import android.util.Log
 
 import io.github.vibhor1102.macrion.core.base.Dumpable
 import io.github.vibhor1102.macrion.core.base.addDumpTabulationLvl
+import io.github.vibhor1102.macrion.core.base.di.Dispatcher
+import io.github.vibhor1102.macrion.core.base.di.HiltCoroutineDispatchers.IO
 import io.github.vibhor1102.macrion.core.dumb.domain.IDumbRepository
 import io.github.vibhor1102.macrion.core.dumb.domain.model.DumbAction
 import io.github.vibhor1102.macrion.core.dumb.domain.model.DumbScenario
 import io.github.vibhor1102.macrion.core.settings.domain.SettingsRepository
 
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
@@ -49,11 +52,14 @@ import javax.inject.Singleton
 class DumbEngine @Inject constructor(
     private val dumbRepository: IDumbRepository,
     private val dumbActionExecutor: DumbActionExecutor,
-    private val settingsRepository: SettingsRepository
+    private val settingsRepository: SettingsRepository,
+    @param:Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ): Dumpable {
 
     /** Coroutine scope for the dumb scenario processing. */
     private var processingScope: CoroutineScope? = null
+    private var startJob: Job? = null
+    private var executionGeneration = 0L
     /** Job for the scenario auto stop. */
     private var timeoutJob: Job? = null
     /** Job for the scenario execution. */
@@ -73,76 +79,102 @@ class DumbEngine @Inject constructor(
     private val _isRunning: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val isRunning: StateFlow<Boolean> = _isRunning
 
+    @Synchronized
     fun init(dumbScenario: DumbScenario) {
+        release()
         dumbActionExecutor.setUnblockWorkaround(settingsRepository.isInputBlockWorkaroundEnabled())
         dumbScenarioDbId.value = dumbScenario.id.databaseId
 
-        processingScope = CoroutineScope(Dispatchers.IO)
+        processingScope = CoroutineScope(ioDispatcher)
         processingScope?.launch {
             dumbRepository.markAsUsed(dumbScenario.id)
         }
     }
 
+    @Synchronized
     fun startDumbScenario() {
         if (_isRunning.value) return
-
-        processingScope?.launch {
-            dumbScenarioDbId.value?.let { dbId ->
-                dumbRepository.getDumbScenario(dbId)?.let { scenario ->
-                    startEngine(scenario)
+        val scope = processingScope ?: return
+        val dbId = dumbScenarioDbId.value ?: return
+        val generation = ++executionGeneration
+        // Pending loading is part of playback ownership: Pause must cancel it, too.
+        _isRunning.value = true
+        startJob = scope.launch(start = CoroutineStart.LAZY) {
+            var started = false
+            try {
+                val scenario = dumbRepository.getDumbScenario(dbId)
+                synchronized(this@DumbEngine) {
+                    if (generation == executionGeneration && scenario != null) {
+                        startJob = null
+                        startEngine(scenario, generation)
+                        started = true
+                    }
                 }
+            } finally {
+                if (!started) stopIfCurrent(generation)
             }
         }
+        startJob?.start()
     }
 
-    fun tryDumbAction(dumbAction: DumbAction, completionListener: () -> Unit) {
+    @Synchronized
+    fun tryDumbAction(dumbAction: DumbAction, completionListener: () -> Unit): Boolean {
+        if (_isRunning.value || processingScope == null) return false
         Log.i(TAG, "Trying dumb action: $dumbAction")
         onTryCompletedListener = completionListener
-        startEngine(dumbAction.toDumbScenarioTry())
+        _isRunning.value = true
+        startEngine(dumbAction.toDumbScenarioTry(), ++executionGeneration)
+        return true
     }
 
+    @Synchronized
     fun stopDumbScenario() {
-        if (!isRunning.value) return
+        ++executionGeneration
         _isRunning.value = false
-
-        Log.d(TAG, "stopDumbScenario")
-
+        startJob?.cancel()
+        startJob = null
         timeoutJob?.cancel()
         timeoutJob = null
         executionJob?.cancel()
         executionJob = null
-
-        onTryCompletedListener?.invoke()
+        val completed = onTryCompletedListener
         onTryCompletedListener = null
+        completed?.invoke()
     }
 
+    @Synchronized
     fun release() {
-        if (isRunning.value) stopDumbScenario()
-
+        stopDumbScenario()
         dumbScenarioDbId.value = null
         processingScope?.cancel()
         processingScope = null
     }
 
-    private fun startEngine(scenario: DumbScenario) {
-        if (_isRunning.value || scenario.dumbActions.isEmpty()) return
-        _isRunning.value = true
-
+    /** Called under this engine's monitor; no database or gesture work runs inside it. */
+    private fun startEngine(scenario: DumbScenario, generation: Long) {
+        if (scenario.dumbActions.isEmpty()) {
+            stopDumbScenario()
+            return
+        }
         Log.d(TAG, "startDumbScenario ${scenario.id} with ${scenario.dumbActions.size} actions")
-
-        if (!scenario.isDurationInfinite) timeoutJob = startTimeoutJob(scenario.maxDurationMin)
-        executionJob = startScenarioExecutionJob(scenario)
+        if (!scenario.isDurationInfinite) timeoutJob = startTimeoutJob(scenario.maxDurationMin, generation)
+        executionJob = startScenarioExecutionJob(scenario, generation)
     }
 
-    private fun startTimeoutJob(timeoutDurationMinutes: Int): Job? =
+    @Synchronized
+    private fun stopIfCurrent(generation: Long) {
+        if (generation == executionGeneration) stopDumbScenario()
+    }
+
+    private fun startTimeoutJob(timeoutDurationMinutes: Int, generation: Long): Job? =
         processingScope?.launch {
             Log.d(TAG, "startTimeoutJob: timeoutDurationMinutes=$timeoutDurationMinutes")
             delay(timeoutDurationMinutes.minutes.inWholeMilliseconds)
 
-            processingScope?.launch { stopDumbScenario() }
+            stopIfCurrent(generation)
         }
 
-    private fun startScenarioExecutionJob(dumbScenario: DumbScenario): Job? =
+    private fun startScenarioExecutionJob(dumbScenario: DumbScenario, generation: Long): Job? =
         processingScope?.launch {
             dumbScenario.repeat {
                 dumbScenario.dumbActions.forEach { dumbAction ->
@@ -152,7 +184,7 @@ class DumbEngine @Inject constructor(
                 dumbActionExecutor.onScenarioLoopFinished()
             }
 
-            processingScope?.launch { stopDumbScenario() }
+            stopIfCurrent(generation)
         }
 
     override fun dump(writer: PrintWriter, prefix: CharSequence) {

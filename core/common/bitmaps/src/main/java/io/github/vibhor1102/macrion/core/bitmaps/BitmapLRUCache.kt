@@ -41,8 +41,10 @@ internal class BitmapLRUCache @Inject constructor() : LruCache<String, Bitmap>(D
         put(getImageConditionKey(path, width, height), bitmap)
     }
 
-    fun getImageConditionBitmapOrDefault(path: String, width: Int, height: Int, insert: () -> Bitmap?) =
-        getOrDefault(getImageConditionKey(path, width, height), insert)
+    suspend fun getImageConditionBitmapOrDefault(path: String, width: Int, height: Int, insert: suspend () -> Bitmap?) =
+        get(getImageConditionKey(path, width, height)) ?: insert()?.also {
+            putImageConditionBitmap(path, width, height, it)
+        }
 
     fun getDisplayRecorderBitmapOrDefault(width: Int, height: Int, insert: () -> Bitmap?) =
         getOrDefault(getDisplayRecorderKey(width, height), insert)

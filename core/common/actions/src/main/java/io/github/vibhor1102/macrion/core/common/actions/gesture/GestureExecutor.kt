@@ -26,10 +26,10 @@ import io.github.vibhor1102.macrion.core.base.addDumpTabulationLvl
 import io.github.vibhor1102.macrion.core.base.gesture.GestureInteractionGuard
 
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
-import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.sync.Mutex
@@ -37,7 +37,6 @@ import kotlinx.coroutines.sync.withLock
 import java.io.PrintWriter
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlin.coroutines.resume
 import kotlin.time.Duration.Companion.milliseconds
 
 
@@ -47,6 +46,21 @@ internal class GestureExecutor @Inject constructor(
 ) : Dumpable {
 
     private val dispatchMutex = Mutex()
+    // Android owns an accepted dispatch even if its caller stops waiting. Never attach this deferred to that job.
+    private var inFlight: InFlightGesture? = null
+    private var connectionGeneration = 0L
+
+    private class InFlightGesture(val timeoutMs: Long) {
+        val result = CompletableDeferred<GestureDispatchResult>()
+        var unresolvedFailure: GestureDispatchResult? = null
+    }
+
+    /** Only accessibility connection teardown/reinitialization resolves an unknown platform outcome. */
+    fun resetConnection() {
+        connectionGeneration++
+        inFlight?.result?.complete(GestureDispatchResult.ERROR)
+        inFlight = null
+    }
 
     private var completedGestures: Long = 0L
     private var cancelledGestures: Long = 0L
@@ -63,8 +77,18 @@ internal class GestureExecutor @Inject constructor(
 
     suspend fun dispatchGesture(service: AccessibilityService, gesture: GestureDescription): GestureDispatchResult =
         withContext(Dispatchers.Main.immediate) {
+            val generation = connectionGeneration
             dispatchMutex.withLock {
+                val previous = inFlight
+                if (previous != null) {
+                    previous.unresolvedFailure?.let { return@withLock it }
+                    val terminal = awaitResult(previous)
+                    if (terminal == GestureDispatchResult.TIMED_OUT || terminal == GestureDispatchResult.ERROR) {
+                        return@withLock terminal
+                    }
+                }
                 interactionGuard.awaitIdle()
+                if (generation != connectionGeneration) return@withLock GestureDispatchResult.ERROR
                 val first = dispatchOnce(service, gesture)
                 if (!first.canRetry) return@withLock first
 
@@ -72,33 +96,38 @@ internal class GestureExecutor @Inject constructor(
                 delay(GESTURE_RECOVERY_DELAY_MS)
                 interactionGuard.awaitIdle(quietPeriodMs = GESTURE_RECOVERY_DELAY_MS)
                 currentCoroutineContext().ensureActive()
+                if (generation != connectionGeneration) return@withLock GestureDispatchResult.ERROR
                 retriedGestures++
                 dispatchOnce(service, gesture)
             }
         }
 
     private suspend fun dispatchOnce(service: AccessibilityService, gesture: GestureDescription): GestureDispatchResult {
-        val result = withTimeoutOrNull(gesture.timeoutDurationMs().milliseconds) {
-            suspendCancellableCoroutine<GestureDispatchResult> { continuation ->
-                fun complete(result: GestureDispatchResult) {
-                    if (continuation.isActive) continuation.resume(result)
-                }
-                try {
-                    val accepted = service.dispatchGesture(
-                        /* gesture = */ gesture,
-                        /* callback = */ object : GestureResultCallback() {
-                            override fun onCompleted(g: GestureDescription?) = complete(GestureDispatchResult.COMPLETED)
-                            override fun onCancelled(g: GestureDescription?) = complete(GestureDispatchResult.CANCELLED)
-                        },
-                        /* handler = */ null,
-                    )
-                    if (!accepted) complete(GestureDispatchResult.REJECTED)
-                } catch (rEx: RuntimeException) {
-                    Log.w(TAG, "Gesture submission failed", rEx)
-                    complete(GestureDispatchResult.ERROR)
-                }
-            }
-        } ?: GestureDispatchResult.TIMED_OUT
+        currentCoroutineContext().ensureActive()
+        val pending = InFlightGesture(gesture.timeoutDurationMs())
+        inFlight = pending
+        fun complete(result: GestureDispatchResult) {
+            // Late callbacks resolve platform ownership without ever completing a later dispatch.
+            if (inFlight === pending) inFlight = null
+            pending.result.complete(result)
+        }
+        try {
+            val accepted = service.dispatchGesture(
+                /* gesture = */ gesture,
+                /* callback = */ object : GestureResultCallback() {
+                    override fun onCompleted(g: GestureDescription?) = complete(GestureDispatchResult.COMPLETED)
+                    override fun onCancelled(g: GestureDescription?) = complete(GestureDispatchResult.CANCELLED)
+                },
+                /* handler = */ null,
+            )
+            if (!accepted) complete(GestureDispatchResult.REJECTED)
+        } catch (rEx: RuntimeException) {
+            Log.w(TAG, "Gesture submission failed", rEx)
+            // An exception cannot confirm whether Android already accepted some work.
+            pending.unresolvedFailure = GestureDispatchResult.ERROR
+            pending.result.complete(GestureDispatchResult.ERROR)
+        }
+        val result = awaitResult(pending)
 
         when (result) {
             GestureDispatchResult.COMPLETED -> completedGestures++
@@ -109,6 +138,10 @@ internal class GestureExecutor @Inject constructor(
         return result
     }
 
+    private suspend fun awaitResult(pending: InFlightGesture): GestureDispatchResult =
+        withTimeoutOrNull(pending.timeoutMs.milliseconds) { pending.result.await() }
+            ?: GestureDispatchResult.TIMED_OUT.also { pending.unresolvedFailure = it }
+
     override fun dump(writer: PrintWriter, prefix: CharSequence) {
         val contentPrefix = "${prefix.addDumpTabulationLvl()}- "
 
@@ -118,6 +151,7 @@ internal class GestureExecutor @Inject constructor(
             append(contentPrefix).append("Cancelled=$cancelledGestures").println()
             append(contentPrefix).append("Error=$errorGestures").println()
             append(contentPrefix).append("Retried=$retriedGestures").println()
+            append(contentPrefix).append("AwaitingPlatformGesture=${inFlight != null}").println()
         }
     }
 }

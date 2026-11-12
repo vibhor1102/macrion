@@ -18,6 +18,8 @@ package io.github.vibhor1102.macrion.feature.tutorial.ui.dialogs
 
 import android.content.Context
 import android.view.WindowManager
+import android.view.InputDevice
+import android.view.MotionEvent
 import androidx.activity.ComponentDialog
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -53,6 +55,9 @@ import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.Tip
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionDialogSurface
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.core.ui.utils.getDynamicColorsContext
+import dagger.hilt.android.EntryPointAccessors
+import io.github.vibhor1102.macrion.core.base.gesture.GestureInteractionGuard
+import io.github.vibhor1102.macrion.core.common.overlays.di.OverlaysEntryPoint
 import io.github.vibhor1102.macrion.feature.tutorial.R
 import io.github.vibhor1102.macrion.core.ui.R as UiR
 
@@ -116,7 +121,9 @@ internal fun Context.createStopWithVolumeDownTutorialDialog(
         }
     }
 
-    dialog = ComponentDialog(dialogContext).apply {
+    val guard = EntryPointAccessors.fromApplication(applicationContext, OverlaysEntryPoint::class.java)
+        .gestureInteractionGuard()
+    dialog = GestureCoordinatedTipDialog(dialogContext, guard).apply {
         setContentView(content)
         window?.apply {
             setBackgroundDrawableResource(android.R.color.transparent)
@@ -129,6 +136,31 @@ internal fun Context.createStopWithVolumeDownTutorialDialog(
         }
     }
     return dialog
+}
+
+/** This separate window starts playback on dismissal, so its final touch must also establish quiet time. */
+internal class GestureCoordinatedTipDialog(
+    context: Context,
+    private val guard: GestureInteractionGuard,
+) : ComponentDialog(context) {
+    override fun dispatchTouchEvent(event: MotionEvent): Boolean {
+        val physical = event.deviceId >= 0 && event.isFromSource(InputDevice.SOURCE_TOUCHSCREEN)
+        if (physical && event.actionMasked == MotionEvent.ACTION_DOWN) guard.onTouchStarted(this)
+        return try {
+            super.dispatchTouchEvent(event)
+        } finally {
+            if (physical && (event.actionMasked == MotionEvent.ACTION_UP || event.actionMasked == MotionEvent.ACTION_CANCEL)) {
+                guard.onTouchFinished(this)
+            }
+        }
+    }
+
+    override fun onStop() {
+        // Also cover Back/outside/programmatic dismissal; playback starts in the dismissal listener.
+        guard.onTouchStarted(this)
+        guard.onTouchFinished(this)
+        super.onStop()
+    }
 }
 
 @Composable

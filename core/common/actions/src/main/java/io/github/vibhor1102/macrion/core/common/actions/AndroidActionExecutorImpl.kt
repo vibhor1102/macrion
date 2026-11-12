@@ -70,6 +70,7 @@ internal class AndroidActionExecutorImpl @Inject constructor(
         }
 
     override fun init(service: AccessibilityService, onGestureFailure: (AccessibilityService) -> Unit) {
+        gestureExecutor.resetConnection()
         accessibilityServiceRef = WeakReference(service)
         this.onGestureFailure = onGestureFailure
         notificationRequestExecutor.init(service)
@@ -83,6 +84,7 @@ internal class AndroidActionExecutorImpl @Inject constructor(
     }
 
     override fun clear() {
+        gestureExecutor.resetConnection()
         resetState()
         soundExecutor.clear()
         accessibilityServiceRef = null

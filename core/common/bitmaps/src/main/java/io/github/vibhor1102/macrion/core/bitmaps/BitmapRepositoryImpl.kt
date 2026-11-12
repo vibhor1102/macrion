@@ -20,7 +20,6 @@ import android.graphics.Bitmap
 import android.util.Log
 import androidx.core.graphics.createBitmap
 import io.github.vibhor1102.macrion.core.base.addDumpTabulationLvl
-import kotlinx.coroutines.runBlocking
 import java.io.PrintWriter
 import javax.inject.Inject
 
@@ -37,7 +36,7 @@ internal class BitmapRepositoryImpl @Inject constructor(
 
     override suspend fun getImageConditionBitmap(path: String, width: Int, height: Int): Bitmap? =
         bitmapLRUCache.getImageConditionBitmapOrDefault(path, width, height) {
-            runBlocking { conditionBitmapsDataSource.loadBitmap(path, width, height) }
+            conditionBitmapsDataSource.loadBitmap(path, width, height)
         }
 
     override fun getDisplayRecorderBitmap(width: Int, height: Int): Bitmap =
