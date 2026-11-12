@@ -119,7 +119,19 @@ class GestureExecutorTests {
     @Test fun missingCallbackTimesOutWithoutRetryingUnknownOutcome() = runTest {
         assertEquals(GestureDispatchResult.TIMED_OUT, executor.dispatchGesture(service, gesture()))
         verify(service, times(1)).dispatchGesture(any(), any(), any())
-        assertEquals(200L, testScheduler.currentTime)
+        assertEquals(600L, testScheduler.currentTime)
+    }
+
+    @Test fun shortGestureGetsCallbackGraceInsteadOfPausingAtOneHundredMilliseconds() = runTest {
+        val pending = async { executor.dispatchGesture(service, gesture(durationMs = 50)) }
+        runCurrent()
+        verify(service).dispatchGesture(any(), callbacks.capture(), any())
+        // On-device capture showed UP arriving 118 ms after DOWN, beyond the previous 100 ms deadline.
+        advanceTimeBy(150)
+        assertFalse(pending.isCompleted)
+        callbacks.value.onCompleted(null)
+        assertEquals(GestureDispatchResult.COMPLETED, pending.await())
+        verify(service, times(1)).dispatchGesture(any(), any(), any())
     }
 
     @Test fun longGestureIsNotDeclaredFailedAtFiveHundredMilliseconds() = runTest {

@@ -136,11 +136,15 @@ private fun GestureDescription.durationMs(): Long {
     return maxEndTime
 }
 
-private fun GestureDescription.timeoutDurationMs(): Long =
-    (durationMs() * GESTURE_CALLBACK_TIMEOUT_DURATION_RATIO_MS)
-        .coerceIn(GESTURE_CALLBACK_TIMEOUT_MIN_MS, GESTURE_CALLBACK_TIMEOUT_MAX_MS)
+private fun GestureDescription.timeoutDurationMs(): Long {
+    val duration = durationMs()
+    // Short gestures also need room for system scheduling and the completion callback. Doubling a 50 ms press
+    // alone can time out while Android is still delivering its UP event under ordinary load.
+    return maxOf(duration * GESTURE_CALLBACK_TIMEOUT_DURATION_RATIO_MS, duration + GESTURE_CALLBACK_GRACE_MS)
+        .coerceAtMost(GESTURE_CALLBACK_TIMEOUT_MAX_MS)
+}
 
-private const val GESTURE_CALLBACK_TIMEOUT_MIN_MS = 100L
+private const val GESTURE_CALLBACK_GRACE_MS = 500L
 private const val GESTURE_CALLBACK_TIMEOUT_MAX_MS = 65_000L
 private const val GESTURE_CALLBACK_TIMEOUT_DURATION_RATIO_MS = 2
 private const val GESTURE_RECOVERY_DELAY_MS = 500L
