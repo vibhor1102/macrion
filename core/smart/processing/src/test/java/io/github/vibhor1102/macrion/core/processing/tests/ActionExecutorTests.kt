@@ -37,6 +37,7 @@ import io.github.vibhor1102.macrion.core.domain.model.OR
 import io.github.vibhor1102.macrion.core.domain.model.action.Action
 import io.github.vibhor1102.macrion.core.domain.model.action.CaptureScreenshot
 import io.github.vibhor1102.macrion.core.domain.model.action.Click
+import io.github.vibhor1102.macrion.core.domain.model.action.PlaySound
 import io.github.vibhor1102.macrion.core.domain.model.action.Pause
 import io.github.vibhor1102.macrion.core.domain.model.action.Swipe
 import io.github.vibhor1102.macrion.core.domain.model.condition.ScreenCondition
@@ -271,6 +272,43 @@ class ActionExecutorTests {
         val gestureCaptor = argumentCaptor<GestureDescription>()
         verify(mockAndroidExecutor).dispatchGesture(gestureCaptor.capture())
         assertActionGesture(gestureCaptor.lastValue)
+    }
+
+    @Test fun soundPreparationFinishesBeforePauseAndFollowingSound() = runTest {
+        val soundStarted = CompletableDeferred<Unit>()
+        whenever(mockAndroidExecutor.playSound("content://sound/one")).doSuspendableAnswer { soundStarted.await() }
+        val first = PlaySound(Identifier(databaseId = 1), TEST_EVENT_ID, soundUri = "content://sound/one")
+        val second = PlaySound(Identifier(databaseId = 3), TEST_EVENT_ID, soundUri = "content://sound/two")
+        val pending = async {
+            actionExecutor.executeActions(getNewDefaultEvent(actions = listOf(first, getNewDefaultPause(2), second)))
+        }
+        runCurrent()
+        advanceTimeBy(1_000) // Preparation takes longer than the configured pause.
+        verify(mockAndroidExecutor, never()).playSound("content://sound/two")
+        soundStarted.complete(Unit)
+        runCurrent()
+        advanceTimeBy(TEST_DURATION - 1)
+        runCurrent()
+        verify(mockAndroidExecutor, never()).playSound("content://sound/two")
+        advanceTimeBy(1)
+        runCurrent()
+        verify(mockAndroidExecutor).playSound("content://sound/two")
+        assertTrue(pending.await())
+        assertEquals(1_000L + TEST_DURATION, currentTime)
+    }
+
+    @Test fun stopWhileWaitingForSoundStartNeverRunsFollowingAction() = runTest {
+        val soundStarted = CompletableDeferred<Unit>()
+        whenever(mockAndroidExecutor.playSound(any())).doSuspendableAnswer { soundStarted.await() }
+        val sound = PlaySound(Identifier(databaseId = 1), TEST_EVENT_ID, soundUri = "content://sound/one")
+        val pending = async {
+            actionExecutor.executeActions(getNewDefaultEvent(actions = listOf(sound, getNewDefaultClickUserPos(2))))
+        }
+        runCurrent()
+        pending.cancelAndJoin()
+        soundStarted.complete(Unit)
+        runCurrent()
+        verify(mockAndroidExecutor, never()).dispatchGesture(anyNotNull())
     }
 
     @Test

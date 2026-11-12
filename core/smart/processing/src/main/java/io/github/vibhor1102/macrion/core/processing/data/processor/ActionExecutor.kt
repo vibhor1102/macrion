@@ -429,7 +429,7 @@ internal class ActionExecutor(
         }
     }
 
-    private fun executePlaySound(action: PlaySound) {
+    private suspend fun executePlaySound(action: PlaySound) {
         val soundUri = action.soundUri ?: return
         androidExecutor.playSound(soundUri)
     }

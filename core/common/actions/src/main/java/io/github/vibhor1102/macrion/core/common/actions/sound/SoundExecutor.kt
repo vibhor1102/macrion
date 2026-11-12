@@ -29,6 +29,10 @@ import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicLong
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
+import kotlin.coroutines.resume
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -50,45 +54,59 @@ internal class SoundExecutor internal constructor(
     private val generation = AtomicLong()
     private var activePlayer: MediaPlayer? = null // Worker-confined.
 
-    fun playSound(soundUri: String) {
-        val request = generation.incrementAndGet()
-        workerDelegate.value.launch {
-            if (generation.get() != request) return@launch
-            releaseActivePlayer()
-            var candidate: MediaPlayer? = null
-            try {
-                val player = createPlayer().also { candidate = it }
-                player.setAudioAttributes(
-                    AudioAttributes.Builder()
-                        .setUsage(AudioAttributes.USAGE_NOTIFICATION_EVENT)
-                        .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-                        .build()
-                )
-                player.setDataSource(context, soundUri.toUri())
-                player.setOnCompletionListener { completed -> releaseWhenActive(completed) }
-                player.setOnErrorListener { failed, what, extra ->
-                    Log.w(TAG, "MediaPlayer error: what=$what, extra=$extra")
-                    releaseWhenActive(failed)
-                    true
+    /** Wait for preparation and start(), not for the sound's completion. Only the scenario is suspended. */
+    suspend fun playSound(soundUri: String) {
+        currentCoroutineContext().ensureActive()
+        suspendCancellableCoroutine<Unit> { continuation ->
+            val request = generation.incrementAndGet()
+            continuation.invokeOnCancellation {
+                // Invalidate immediately, even while the worker is blocked in native preparation. A cancelled
+                // request must neither start later nor stop a newer request that has already replaced it.
+                if (generation.compareAndSet(request, request + 1)) releaseWhenCurrent(request + 1)
+            }
+            workerDelegate.value.launch {
+                var candidate: MediaPlayer? = null
+                try {
+                    if (generation.get() != request) return@launch
+                    releaseActivePlayer()
+                    val player = createPlayer().also { candidate = it }
+                    player.setAudioAttributes(
+                        AudioAttributes.Builder()
+                            .setUsage(AudioAttributes.USAGE_NOTIFICATION_EVENT)
+                            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                            .build()
+                    )
+                    player.setDataSource(context, soundUri.toUri())
+                    player.setOnCompletionListener { completed -> releaseWhenActive(completed) }
+                    player.setOnErrorListener { failed, what, extra ->
+                        Log.w(TAG, "MediaPlayer error: what=$what, extra=$extra")
+                        releaseWhenActive(failed)
+                        true
+                    }
+                    player.prepare()
+                    if (generation.get() == request) {
+                        activePlayer = player
+                        candidate = null
+                        player.start()
+                    }
+                } catch (e: Exception) {
+                    Log.w(TAG, "Failed to play sound: $soundUri", e)
+                    releaseActivePlayer()
+                } finally {
+                    try {
+                        candidate?.release()
+                    } finally {
+                        // Preserve best-effort sound failures, but never advance a stopped scenario.
+                        if (continuation.isActive) continuation.resume(Unit)
+                    }
                 }
-                player.prepare()
-                // Stop invalidates this request immediately, even while prepare() is blocked.
-                if (generation.get() == request) {
-                    activePlayer = player
-                    candidate = null
-                    player.start()
-                }
-            } catch (e: Exception) {
-                Log.w(TAG, "Failed to play sound: $soundUri", e)
-                releaseActivePlayer()
-            } finally {
-                candidate?.release()
             }
         }
     }
 
-    fun stopSound() {
-        val request = generation.incrementAndGet()
+    fun stopSound() = releaseWhenCurrent(generation.incrementAndGet())
+
+    private fun releaseWhenCurrent(request: Long) {
         if (!workerDelegate.isInitialized()) return
         workerDelegate.value.launch {
             // A late cleanup request must not stop a newer scenario's sound.

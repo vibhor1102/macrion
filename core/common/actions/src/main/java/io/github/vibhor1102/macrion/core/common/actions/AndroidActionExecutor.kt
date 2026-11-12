@@ -116,8 +116,8 @@ interface AndroidActionExecutor: Dumpable {
     /** Fire a named external automation event. */
     fun fireExternalAction(externalActionName: String)
 
-    /** Play an audio notification sound from the given URI. */
-    fun playSound(soundUri: String)
+    /** Prepare and start a sound without blocking the UI; return before audio playback finishes. */
+    suspend fun playSound(soundUri: String)
 
     /** Capture a screenshot and save it to storage. Returns false if rate limit was exceeded. */
     suspend fun captureScreenshot(folderUri: String?, folderName: String?): Boolean

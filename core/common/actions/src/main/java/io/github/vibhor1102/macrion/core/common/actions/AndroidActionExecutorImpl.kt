@@ -162,7 +162,7 @@ internal class AndroidActionExecutorImpl @Inject constructor(
         }
     }
 
-    override fun playSound(soundUri: String) {
+    override suspend fun playSound(soundUri: String) {
         soundExecutor.playSound(soundUri)
     }
 
