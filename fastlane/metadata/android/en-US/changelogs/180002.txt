@@ -1,0 +1,1 @@
+Improve playback stability around floating controls. Retry interrupted touches once and pause when completion cannot be confirmed. Improve Pause/Stop during startup and action tests, preserve sound action order, and keep sound/image loading responsive.
