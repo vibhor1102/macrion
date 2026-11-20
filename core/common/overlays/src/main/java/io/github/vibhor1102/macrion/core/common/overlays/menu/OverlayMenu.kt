@@ -351,12 +351,12 @@ abstract class OverlayMenu(
         if (pendingOrientationChange || (lastAppliedOrientation != Configuration.ORIENTATION_UNDEFINED && lastAppliedOrientation != currentOrientation)) {
             pendingOrientationChange = false
             lastAppliedOrientation = currentOrientation
-            loadMenuPosition(currentOrientation)
+            if (!isMenuTucked) loadMenuPosition(currentOrientation)
             applyOrientationChangeToViews()
         }
 
         super.start()
-        loadMenuPosition(displayConfigManager.displayConfig.orientation)
+        if (!isMenuTucked) loadMenuPosition(currentOrientation)
 
         // Start the show animation for the menu
         Log.d(TAG, "Start show overlay ${hashCode()} animation...")
@@ -400,12 +400,46 @@ abstract class OverlayMenu(
         super.resume()
     }
 
-    final override fun stop() {
+    final override fun hide() {
+        if (!isMenuTucked || destroyOnceHidden) {
+            super.hide()
+            return
+        }
         if (!lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) return
+
+        // A stack hide is temporary. Keep the docked tab and commit the hide before
+        // Android can request a restore while the screen is waking up.
+        if (isTuckedDragging) {
+            val host = menuLayout as ComposeOverlayMenuHost
+            val tabWidth = (24 * scaledDensity).roundToInt()
+            val displayWidth = displayConfigManager.displayConfig.sizePx.x
+            menuLayoutParams.x = if (host.isDockedOnLeft) 0 else (displayWidth - tabWidth).coerceAtLeast(0)
+            menuLayoutParams.y = tuckedInitialWindowY
+            windowManager.safeUpdateViewLayout(menuLayout, menuLayoutParams)
+        }
+        clearTuckedDrag()
+        animations.cancel()
+        resumeOnceShown = false
+        hideMenuViews()
+        super.stop()
+    }
+
+    private fun clearTuckedDrag() {
         dismissTargetController?.destroy()
         dismissTargetController = null
         isTuckedHoveringDismiss = false
         isTuckedDragging = false
+    }
+
+    private fun hideMenuViews() {
+        menuLayout.visibility = View.GONE
+        menuBackground.visibility = View.GONE
+        screenOverlayView?.visibility = View.GONE
+    }
+
+    final override fun stop() {
+        if (!lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) return
+        clearTuckedDrag()
         if (animations.hideAnimationIsRunning) return
         val wasTucked = isMenuTucked
         wasTuckedBeforeStop = wasTucked
@@ -421,9 +455,7 @@ abstract class OverlayMenu(
         animations.startHideAnimation(menuBackground, animatedOverlayView) {
             Log.d(TAG, "Hide overlay ${hashCode()} animation ended")
 
-            menuLayout.visibility = View.GONE
-            menuBackground.visibility = View.GONE
-            screenOverlayView?.visibility = View.GONE
+            hideMenuViews()
 
             if (wasTucked) {
                 isMenuTucked = false
@@ -442,10 +474,7 @@ abstract class OverlayMenu(
 
     final override fun destroy() {
         if (!lifecycle.currentState.isAtLeast(Lifecycle.State.CREATED)) return
-        dismissTargetController?.destroy()
-        dismissTargetController = null
-        isTuckedHoveringDismiss = false
-        isTuckedDragging = false
+        clearTuckedDrag()
         if (lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) stop()
 
         if (animations.hideAnimationIsRunning) {
@@ -475,10 +504,7 @@ abstract class OverlayMenu(
      * orientation.
      */
     override fun onOrientationChanged() {
-        dismissTargetController?.destroy()
-        dismissTargetController = null
-        isTuckedHoveringDismiss = false
-        isTuckedDragging = false
+        clearTuckedDrag()
         val wasTucked = isMenuTucked
         val currentOrientation = displayConfigManager.displayConfig.orientation
         val previousOrientation =

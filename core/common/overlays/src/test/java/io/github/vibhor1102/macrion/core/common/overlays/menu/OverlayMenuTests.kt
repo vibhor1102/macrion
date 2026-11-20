@@ -21,6 +21,7 @@ import android.content.SharedPreferences
 import android.content.res.Resources
 import android.graphics.Point
 import android.os.Build
+import android.util.DisplayMetrics
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -306,6 +307,35 @@ class OverlayMenuTests {
         val wmAddedView = captureWindowManagerAddedMenuView(mockWindowManager)
         assertEquals("X position should be restored", 84, wmAddedView.params.x)
         assertEquals("Y position should remain on the top edge", 0, wmAddedView.params.y)
+    }
+
+    @Test
+    fun temporaryHideRestoresTuckedTabAtTheSamePosition() {
+        mockWhen(mockResources.displayMetrics).thenReturn(DisplayMetrics().apply { density = 1f })
+        mockWhen(mockOverlayMenuPositionDataSource.loadMenuPosition(anyInt()))
+            .thenReturn(Point(600, 42))
+        val menuView = mock(ComposeOverlayMenuHost::class.java)
+        mockViewsFromImpl(menuView)
+        val menu = OverlayMenuTestImpl(overlayMenuControllerImpl)
+
+        menu.create(mockContext)
+        menu.start()
+        menu.tuckMenu()
+        val params = captureWindowManagerAddedMenuView(mockWindowManager).params
+        val tuckedPosition = Point(params.x, params.y)
+        assertEquals(Point(TEST_DATA_DISPLAY_WIDTH - 24, 42), tuckedPosition)
+
+        clearInvocations(menuView, mockOverlayMenuPositionDataSource)
+        menu.hide()
+        assertEquals(Lifecycle.State.CREATED, menu.lifecycle.currentState)
+        verify(menuView, atLeastOnce()).visibility = View.GONE
+        menu.resume()
+
+        assertEquals(true, menu.isMenuTucked)
+        assertEquals(tuckedPosition, Point(params.x, params.y))
+        verify(menuView, never()).isTucked = false
+        verify(menuView, atLeastOnce()).visibility = View.VISIBLE
+        verifyNoInteractions(mockOverlayMenuPositionDataSource)
     }
 
     @Test

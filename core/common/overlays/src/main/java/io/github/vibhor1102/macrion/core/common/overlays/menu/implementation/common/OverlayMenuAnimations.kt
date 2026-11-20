@@ -55,6 +55,13 @@ internal class OverlayMenuAnimations : Dumpable {
         }
     }
 
+    fun cancel() {
+        animation?.cancel()
+        animation = null
+        showAnimationIsRunning = false
+        hideAnimationIsRunning = false
+    }
+
     fun release() { scope.cancel() }
 
     override fun dump(writer: PrintWriter, prefix: CharSequence) {
