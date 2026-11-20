@@ -18,10 +18,12 @@ package io.github.vibhor1102.macrion.core.common.overlays.dialog
 
 import io.github.vibhor1102.macrion.core.base.crash.CrashDiagnostics
 import android.app.Dialog
+import android.os.Build
 import android.view.Gravity
 import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowInsets
 import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
 
@@ -144,12 +146,19 @@ abstract class OverlayDialog(@StyleRes theme: Int? = null) : BaseOverlay(theme, 
                 setBackgroundDrawableResource(android.R.color.transparent)
                 setDimAmount(0.6f)
                 addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
-                // Overlay dialogs still rely on this deprecated window flag to resize above the IME.
+                // Older Android versions use the legacy resize path.
                 @Suppress("DEPRECATION")
                 setSoftInputMode(
                     WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN or
                         WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE,
                 )
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+                    // Edge-to-edge disables automatic inset fitting, even with ADJUST_RESIZE.
+                    attributes = attributes.apply {
+                        setFitInsetsTypes(WindowInsets.Type.systemBars() or WindowInsets.Type.ime())
+                        setFitInsetsSides(WindowInsets.Side.all())
+                    }
+                }
             }
         }
 
