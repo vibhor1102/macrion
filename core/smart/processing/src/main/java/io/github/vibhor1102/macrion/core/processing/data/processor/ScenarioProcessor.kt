@@ -64,6 +64,7 @@ internal class ScenarioProcessor(
     private val debugReportTimingListener: DebugReportTimingListener? = null,
     private val reportSessionStartNs: Long? = null,
     private val elapsedRealtimeNanos: () -> Long = SystemClock::elapsedRealtimeNanos,
+    canDispatchGesture: (() -> Boolean)? = null,
 ) {
 
     /** Handle the processing state of the scenario. */
@@ -89,6 +90,7 @@ internal class ScenarioProcessor(
         randomize = randomize,
         unblockWorkaroundEnabled = unblockWorkaroundEnabled,
         onScreenshotRateLimitExceeded = onScreenshotRateLimitExceeded,
+        canDispatchGesture = canDispatchGesture,
     )
 
     fun onScenarioStart(context: Context) {

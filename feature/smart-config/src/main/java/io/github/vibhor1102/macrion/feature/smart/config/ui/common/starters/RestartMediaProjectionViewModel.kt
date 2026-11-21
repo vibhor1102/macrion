@@ -18,32 +18,24 @@ package io.github.vibhor1102.macrion.feature.smart.config.ui.common.starters
 
 import android.content.Intent
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 
-import io.github.vibhor1102.macrion.core.base.di.Dispatcher
-import io.github.vibhor1102.macrion.core.base.di.HiltCoroutineDispatchers
 import io.github.vibhor1102.macrion.core.processing.domain.SmartProcessingRepository
 import io.github.vibhor1102.macrion.core.settings.domain.SettingsRepository
 
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 
 @HiltViewModel
 class RestartMediaProjectionViewModel @Inject constructor(
-    @param:Dispatcher(HiltCoroutineDispatchers.IO) private val ioDispatcher: CoroutineDispatcher,
     private val smartProcessingRepository: SmartProcessingRepository,
     private val settingsRepository: SettingsRepository
 ) : ViewModel() {
 
     fun restartScreenRecord(resultCode: Int, data: Intent) {
-        viewModelScope.launch(ioDispatcher) {
-            smartProcessingRepository.startScreenRecord(resultCode, data)
-        }
+        smartProcessingRepository.startScreenRecord(resultCode, data)
     }
 
     fun isEntireScreenCaptureForced(): Boolean =
-        settingsRepository.isEntireScreenCaptureForced()
+        smartProcessingRepository.needsEntireScreenCapture.value || settingsRepository.isEntireScreenCaptureForced()
 }

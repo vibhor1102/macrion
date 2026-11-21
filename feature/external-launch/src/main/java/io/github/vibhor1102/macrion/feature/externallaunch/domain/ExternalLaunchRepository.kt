@@ -59,6 +59,7 @@ import kotlinx.coroutines.launch
 
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.Job
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @Singleton
@@ -187,7 +188,7 @@ class ExternalLaunchRepository @Inject constructor(
     internal fun replaceDumbScenario(scenario: DumbScenario) =
         actionHandler?.replaceDumbScenario(scenario)
 
-    internal fun replaceSmartScenario(resultCode: Int, data: Intent, scenario: Scenario, autoStart: Boolean = false) =
+    internal fun replaceSmartScenario(resultCode: Int, data: Intent, scenario: Scenario, autoStart: Boolean = false): Job? =
         actionHandler?.replaceSmartScenario(resultCode, data, scenario, autoStart = autoStart)
 
     internal fun replaceSmartScenarioWithCurrentProjection(scenario: Scenario) =

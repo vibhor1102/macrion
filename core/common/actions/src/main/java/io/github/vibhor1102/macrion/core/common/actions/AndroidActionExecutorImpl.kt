@@ -23,6 +23,7 @@ import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.util.AndroidRuntimeException
 import android.util.Log
+import android.widget.Toast
 
 import io.github.vibhor1102.macrion.core.common.actions.gesture.GestureExecutor
 import io.github.vibhor1102.macrion.core.common.actions.gesture.GestureDispatchResult
@@ -56,6 +57,7 @@ internal class AndroidActionExecutorImpl @Inject constructor(
 
     /** Keep the service in a week reference to avoid potential leak. */
     private var accessibilityServiceRef: WeakReference<AccessibilityService>? = null
+    @Volatile private var intentFailureReported = false
     private var onGestureFailure: ((AccessibilityService) -> Unit)? = null
     private val accessibilityService: AccessibilityService?
         get() {
@@ -77,6 +79,7 @@ internal class AndroidActionExecutorImpl @Inject constructor(
     }
 
     override fun resetState() {
+        intentFailureReported = false
         gestureExecutor.clear()
         notificationRequestExecutor.clear()
         soundExecutor.stopSound()
@@ -91,11 +94,17 @@ internal class AndroidActionExecutorImpl @Inject constructor(
         onGestureFailure = null
     }
 
-    override suspend fun dispatchGesture(gestureDescription: GestureDescription): Unit = withContext(Dispatchers.Main.immediate) {
+    override suspend fun dispatchGesture(gestureDescription: GestureDescription) =
+        dispatchGesture(gestureDescription) { true }
+
+    override suspend fun dispatchGesture(
+        gestureDescription: GestureDescription,
+        canDispatch: () -> Boolean,
+    ): Unit = withContext(Dispatchers.Main.immediate) {
         val service = accessibilityService
-        val result = service?.let { gestureExecutor.dispatchGesture(it, gestureDescription) }
+        val result = service?.let { gestureExecutor.dispatchGesture(it, gestureDescription, canDispatch) }
         currentCoroutineContext().ensureActive()
-        if (result != GestureDispatchResult.COMPLETED) {
+        if (result != GestureDispatchResult.COMPLETED && result != GestureDispatchResult.SKIPPED) {
             Log.w(TAG, "Pausing execution after unresolved gesture result: $result")
             if (service != null) onGestureFailure?.invoke(service)
             // Do not advance to later actions, and do not turn a user Stop into an automatic retry.
@@ -124,6 +133,7 @@ internal class AndroidActionExecutorImpl @Inject constructor(
 
         try {
             service.startActivity(intent)
+            return
         } catch (anfe: ActivityNotFoundException) {
             Log.w(TAG, "Can't start activity, it is not found.", anfe)
         } catch (arex: AndroidRuntimeException) {
@@ -135,6 +145,14 @@ internal class AndroidActionExecutorImpl @Inject constructor(
         } catch (npe: NullPointerException) {
             Log.w(TAG, "Can't start activity with intent $intent, intent is invalid", npe)
         }
+
+        reportIntentFailure(service)
+    }
+
+    private fun reportIntentFailure(service: AccessibilityService) {
+        if (intentFailureReported) return
+        intentFailureReported = true
+        Toast.makeText(service, R.string.toast_intent_action_failed, Toast.LENGTH_LONG).show()
     }
 
     override fun sendBroadcast(intent: Intent) {
@@ -144,6 +162,10 @@ internal class AndroidActionExecutorImpl @Inject constructor(
             service.sendBroadcast(intent)
         } catch (iaex: IllegalArgumentException) {
             Log.w(TAG, "Can't send broadcast, Intent is invalid: $intent", iaex)
+            reportIntentFailure(service)
+        } catch (secEx: SecurityException) {
+            Log.w(TAG, "Can't send broadcast, permission is denied by the system", secEx)
+            reportIntentFailure(service)
         }
     }
 

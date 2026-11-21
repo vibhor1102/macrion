@@ -84,6 +84,13 @@ class GestureFailurePauseTest {
         verify(service, times(1)).dispatchGesture(any(), any(), any())
     }
 
+    @Test fun staleGestureDoesNotPauseTheScenario() = runTest {
+        executor.dispatchGesture(gesture()) { false }
+
+        assertEquals(0, pauseCount)
+        verify(service, never()).dispatchGesture(any(), any(), any())
+    }
+
     private fun gesture(): GestureDescription = GestureDescription.Builder()
         .addStroke(GestureDescription.StrokeDescription(Path().apply { moveTo(1f, 1f) }, 0L, 50L))
         .build()

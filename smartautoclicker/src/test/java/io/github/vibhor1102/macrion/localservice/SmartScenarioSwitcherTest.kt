@@ -201,12 +201,14 @@ private class TestProcessingRepository(initialScenarioId: Identifier) : SmartPro
     override val detectionState: Flow<DetectionState> = detectionStateValue
     override val detectionPhase = flowOf(io.github.vibhor1102.macrion.core.processing.domain.model.DetectionPhase.RECORDING)
     override val detectionStopSequence = MutableStateFlow(0L)
+    override val needsEntireScreenCapture = MutableStateFlow(false)
     override val screenshotRateLimitError: Flow<Int> = emptyFlow()
 
     override fun getScenarioId() = scenarioIdValue.value
     override fun isRunning() = detectionStateValue.value == DetectionState.DETECTING
     override fun isDetectionActive() = isRunning()
     override fun isScreenRecordActive() = true
+    override fun canRequestDetection() = isScreenRecordActive()
     override fun isFullyStopped() = detectionStateValue.value == DetectionState.INACTIVE
     override fun setScenarioId(identifier: Identifier, markAsUsed: Boolean) { scenarioIdValue.value = identifier }
     override suspend fun setScenarioIdAndMarkAsUsed(identifier: Identifier) {
@@ -214,7 +216,6 @@ private class TestProcessingRepository(initialScenarioId: Identifier) : SmartPro
         markedAsUsed += identifier
         scenarioIdValue.value = identifier
     }
-    override fun setProjectionErrorHandler(handler: () -> Unit) = Unit
     override fun startScreenRecord(resultCode: Int, data: Intent) { startScreenRecordCalls++ }
     override suspend fun startDetection(context: Context, liveDebugging: Boolean, generateReport: Boolean, autoStopDuration: Duration?) = true
     override fun scheduleAutoStop(duration: Duration?) = Unit

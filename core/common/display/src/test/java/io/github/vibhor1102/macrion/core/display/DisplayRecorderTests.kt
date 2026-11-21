@@ -32,6 +32,8 @@ import android.view.Surface
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.github.vibhor1102.macrion.core.bitmaps.BitmapRepository
+import io.github.vibhor1102.macrion.core.display.config.DisplayConfig
+import io.github.vibhor1102.macrion.core.display.config.DisplayConfigManager
 import io.github.vibhor1102.macrion.core.display.recorder.DisplayRecorder
 import io.github.vibhor1102.macrion.core.display.recorder.ImageReaderProxy
 import io.github.vibhor1102.macrion.core.display.recorder.MediaProjectionProxy
@@ -44,6 +46,8 @@ import kotlinx.coroutines.runBlocking
 
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -91,6 +95,7 @@ class DisplayRecorderTests {
     @Mock private lateinit var mockVirtualDisplay: VirtualDisplay
     @Mock private lateinit var mockStoppedListener: StoppedListener
     @Mock private lateinit var mockBitmapRepository: BitmapRepository
+    @Mock private lateinit var mockDisplayConfigManager: DisplayConfigManager
 
     /** The object under tests. */
     private lateinit var displayRecorder: DisplayRecorder
@@ -123,7 +128,15 @@ class DisplayRecorderTests {
             null)
         ).thenReturn(mockVirtualDisplay)
 
-        displayRecorder = DisplayRecorder(mockContext, MediaProjectionProxy(), ImageReaderProxy(mockBitmapRepository))
+        mockWhen(mockDisplayConfigManager.displayConfig).thenReturn(
+            DisplayConfig(TEST_DATA_DISPLAY_SIZE, Configuration.ORIENTATION_LANDSCAPE, 0, emptyMap()),
+        )
+        displayRecorder = DisplayRecorder(
+            mockContext,
+            MediaProjectionProxy(),
+            ImageReaderProxy(mockBitmapRepository),
+            mockDisplayConfigManager,
+        )
     }
 
     @After
@@ -218,6 +231,38 @@ class DisplayRecorderTests {
         verify(mockVirtualDisplay, never()).release()
         verify(mockImageReader, never()).setOnImageAvailableListener(null, null)
         verify(mockImageReader, never()).close()
+    }
+
+    @Test
+    @Config(sdk = [Build.VERSION_CODES.UPSIDE_DOWN_CAKE])
+    fun capturedContentResizeIsDeliveredOnlyForActiveProjection() = runBlocking {
+        val sizes = mutableListOf<Point>()
+        displayRecorder.startProjection(
+            TEST_DATA_RESULT_CODE,
+            TEST_DATA_PROJECTION_DATA_INTENT,
+            stoppedListener = mockStoppedListener::onStopped,
+            onContentResize = sizes::add,
+        )
+
+        val callback = ArgumentCaptor.forClass(MediaProjection.Callback::class.java)
+        verify(mockMediaProjection).registerCallback(callback.capture(), anyNotNull())
+        displayRecorder.startScreenRecord(TEST_DATA_DISPLAY_SIZE)
+        assertFalse(displayRecorder.isCaptureGeometryReady())
+
+        callback.value.onCapturedContentResize(800, 600)
+        assertTrue(displayRecorder.isCaptureGeometryReady())
+        callback.value.onCapturedContentResize(600, 500)
+        assertFalse(displayRecorder.isCaptureGeometryReady())
+        assertTrue(displayRecorder.isCaptureAreaIncompatible())
+        callback.value.onCapturedContentResize(800, 600)
+        assertFalse(displayRecorder.isCaptureGeometryReady())
+        displayRecorder.resizeDisplay(TEST_DATA_DISPLAY_SIZE)
+        assertTrue(displayRecorder.isCaptureGeometryReady())
+
+        displayRecorder.stopProjection()
+        callback.value.onCapturedContentResize(600, 800)
+
+        assertEquals(listOf(Point(800, 600), Point(600, 500), Point(800, 600)), sizes)
     }
 
     @Test

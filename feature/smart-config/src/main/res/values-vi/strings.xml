@@ -472,4 +472,5 @@
     <string name="coordinate_right">Phải</string>
     <string name="coordinate_top">Trên</string>
     <string name="coordinate_bottom">Dưới</string>
+    <string name="toast_capture_requires_entire_screen">Đã dừng chụp vì vùng chia sẻ thay đổi. Hãy cho phép chụp toàn bộ màn hình để tiếp tục.</string>
 </resources>

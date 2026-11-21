@@ -99,6 +99,8 @@ class MainMenuModel @Inject constructor(
             UiState.Idle,
         )
 
+    val needsEntireScreenCapture = smartProcessingRepository.needsEntireScreenCapture
+
     val isMediaProjectionStarted: StateFlow<Boolean> = smartProcessingRepository.detectionState
         .map { it == DetectionState.RECORDING || it == DetectionState.DETECTING }
         .stateIn(viewModelScope, SharingStarted.Eagerly, true)
@@ -279,8 +281,11 @@ class MainMenuModel @Inject constructor(
     fun shouldDownloadModels(): Boolean =
         !allModelsInstalled.value
 
-    fun shouldRestartMediaProjection(): Boolean =
-        !isMediaProjectionStarted.value
+    fun isScreenCaptureReady(): Boolean = smartProcessingRepository.isScreenRecordActive()
+
+    fun canRequestDetection(): Boolean = smartProcessingRepository.canRequestDetection()
+
+    fun shouldRestartMediaProjection(): Boolean = smartProcessingRepository.isFullyStopped()
 
     fun shouldShowStopVolumeDownTutorialDialog(): Boolean =
         detectionState.value == UiState.Idle && shouldShowStopWithVolumeDownTip.value

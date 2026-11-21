@@ -38,6 +38,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlinx.coroutines.withContext
 
 
 @HiltViewModel
@@ -69,11 +70,9 @@ class QSTileLauncherViewModel @Inject constructor(
         )
     }
 
-    fun launchSmartScenario(resultCode: Int, data: Intent, scenarioId: Long) {
-        viewModelScope.launch(ioDispatcher) {
-            val scenario = smartRepository.getScenario(scenarioId) ?: return@launch
-            qsTileRepository.launchSmartScenario(resultCode, data, scenario)
-        }
+    suspend fun launchSmartScenario(resultCode: Int, data: Intent, scenarioId: Long) {
+        val scenario = withContext(ioDispatcher) { smartRepository.getScenario(scenarioId) } ?: return
+        qsTileRepository.launchSmartScenario(resultCode, data, scenario)
     }
 
     fun launchDumbScenario(scenarioId: Long) {

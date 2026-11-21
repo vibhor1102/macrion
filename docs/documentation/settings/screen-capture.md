@@ -46,19 +46,9 @@ If a user leaves the default setting on "A single app":
 
 To solve this fragmentation on modern Android versions, Macrion includes the **Force entire screen** setting.
 
-### How It Works Under the Hood
+Macrion requests whole-display capture when this setting is enabled. Android can override the requested capture scope, and Android 15 and later may redact sensitive content even in whole-display captures.
 
-When **Force entire screen** is enabled on Android 15+ (`Build.VERSION_CODES.VANILLA_ICE_CREAM`), Macrion modifies the screen capture intent creation in `MediaProjectionRequest.kt`:
-
-```kotlin
-private fun MediaProjectionManager.createScreenCaptureIntentCompat(forceEntireScreen: Boolean): Intent =
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM && forceEntireScreen)
-        createScreenCaptureIntent(MediaProjectionConfig.createConfigForDefaultDisplay())
-    else 
-        createScreenCaptureIntent()
-```
-
-By providing `MediaProjectionConfig.createConfigForDefaultDisplay()`, Android is instructed to bypass the "Single app" dropdown entirely. The system dialog prompts directly for whole-display capture, ensuring uninterrupted vision across all apps, sub-windows, and orientations.
+If the captured area is smaller than the display, Macrion stops recording because it cannot safely translate positions in the capture to positions on the device. The next capture request asks for the entire display. Any unsaved scenario edits stay open.
 
 ::: tip When to Enable
 If your device runs Android 15 or newer and you notice image detection freezing when switching menus or apps, turn on **Force entire screen** in Macrion Settings.

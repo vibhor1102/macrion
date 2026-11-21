@@ -75,35 +75,45 @@ internal class GestureExecutor @Inject constructor(
         retriedGestures = 0L
     }
 
-    suspend fun dispatchGesture(service: AccessibilityService, gesture: GestureDescription): GestureDispatchResult =
-        withContext(Dispatchers.Main.immediate) {
-            val generation = connectionGeneration
-            dispatchMutex.withLock {
-                val previous = inFlight
-                if (previous != null) {
-                    previous.unresolvedFailure?.let { return@withLock it }
-                    val terminal = awaitResult(previous)
-                    if (terminal == GestureDispatchResult.TIMED_OUT || terminal == GestureDispatchResult.ERROR) {
-                        return@withLock terminal
-                    }
+    suspend fun dispatchGesture(
+        service: AccessibilityService,
+        gesture: GestureDescription,
+        canDispatch: () -> Boolean = { true },
+    ): GestureDispatchResult = withContext(Dispatchers.Main.immediate) {
+        val generation = connectionGeneration
+        dispatchMutex.withLock {
+            val previous = inFlight
+            if (previous != null) {
+                previous.unresolvedFailure?.let { return@withLock it }
+                val terminal = awaitResult(previous)
+                if (terminal == GestureDispatchResult.TIMED_OUT || terminal == GestureDispatchResult.ERROR) {
+                    return@withLock terminal
                 }
-                interactionGuard.awaitIdle()
-                if (generation != connectionGeneration) return@withLock GestureDispatchResult.ERROR
-                val first = dispatchOnce(service, gesture)
-                if (!first.canRetry) return@withLock first
-
-                Log.i(TAG, "Gesture $first; waiting for recovery before one retry")
-                delay(GESTURE_RECOVERY_DELAY_MS)
-                interactionGuard.awaitIdle(quietPeriodMs = GESTURE_RECOVERY_DELAY_MS)
-                currentCoroutineContext().ensureActive()
-                if (generation != connectionGeneration) return@withLock GestureDispatchResult.ERROR
-                retriedGestures++
-                dispatchOnce(service, gesture)
             }
-        }
+            interactionGuard.awaitIdle()
+            if (generation != connectionGeneration) return@withLock GestureDispatchResult.ERROR
+            val first = dispatchOnce(service, gesture, canDispatch)
+            if (!first.canRetry) return@withLock first
 
-    private suspend fun dispatchOnce(service: AccessibilityService, gesture: GestureDescription): GestureDispatchResult {
+            Log.i(TAG, "Gesture $first; waiting for recovery before one retry")
+            delay(GESTURE_RECOVERY_DELAY_MS)
+            interactionGuard.awaitIdle(quietPeriodMs = GESTURE_RECOVERY_DELAY_MS)
+            currentCoroutineContext().ensureActive()
+            if (generation != connectionGeneration) return@withLock GestureDispatchResult.ERROR
+            dispatchOnce(service, gesture, canDispatch, isRetry = true)
+        }
+    }
+
+    private suspend fun dispatchOnce(
+        service: AccessibilityService,
+        gesture: GestureDescription,
+        canDispatch: () -> Boolean,
+        isRetry: Boolean = false,
+    ): GestureDispatchResult {
         currentCoroutineContext().ensureActive()
+        if (!canDispatch()) return GestureDispatchResult.SKIPPED
+
+        if (isRetry) retriedGestures++
         val pending = InFlightGesture(gesture.timeoutDurationMs())
         inFlight = pending
         fun complete(result: GestureDispatchResult) {
@@ -157,7 +167,7 @@ internal class GestureExecutor @Inject constructor(
 }
 
 internal enum class GestureDispatchResult(val canRetry: Boolean = false) {
-    COMPLETED, REJECTED(true), CANCELLED(true), TIMED_OUT, ERROR,
+    COMPLETED, SKIPPED, REJECTED(true), CANCELLED(true), TIMED_OUT, ERROR,
 }
 
 private fun GestureDescription.durationMs(): Long {

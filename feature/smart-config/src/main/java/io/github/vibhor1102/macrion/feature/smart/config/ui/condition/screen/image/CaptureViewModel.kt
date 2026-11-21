@@ -23,6 +23,7 @@ import android.graphics.Rect
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 
+import io.github.vibhor1102.macrion.core.processing.domain.SmartProcessingRepository
 import io.github.vibhor1102.macrion.core.display.recorder.DisplayRecorder
 import io.github.vibhor1102.macrion.core.domain.model.condition.ScreenCondition
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.MonitoredViewsManager
@@ -38,9 +39,12 @@ import kotlin.time.Duration.Companion.milliseconds
 
 class CaptureViewModel @Inject constructor(
     private val displayRecorder: DisplayRecorder,
+    private val smartProcessingRepository: SmartProcessingRepository,
     private val editionRepository: EditionRepository,
     private val monitoredViewsManager: MonitoredViewsManager,
 ) : ViewModel()  {
+
+    fun needsScreenCapture(): Boolean = smartProcessingRepository.isFullyStopped()
 
     fun takeScreenshot(resultCallback: (Bitmap?) -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {

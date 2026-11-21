@@ -77,6 +77,7 @@ internal class ActionExecutor(
     randomize: Boolean,
     unblockWorkaroundEnabled: Boolean = false,
     private val onScreenshotRateLimitExceeded: (() -> Unit)? = null,
+    private val canDispatchGesture: (() -> Boolean)? = null,
 ) {
 
     init { androidExecutor.resetState() }
@@ -89,11 +90,17 @@ internal class ActionExecutor(
         else null
 
 
+    private suspend fun dispatchGesture(gesture: GestureDescription) {
+        val canDispatch = canDispatchGesture
+        if (canDispatch == null) androidExecutor.dispatchGesture(gesture)
+        else androidExecutor.dispatchGesture(gesture, canDispatch)
+    }
+
     suspend fun onScenarioLoopFinished() {
         if (unblockGestureScheduler?.shouldTrigger() == true) {
             withContext(Dispatchers.Main) {
                 Log.i(TAG, "Injecting unblock gesture")
-                androidExecutor.dispatchGesture(
+                dispatchGesture(
                     GestureDescription.Builder().buildUnblockGesture()
                 )
             }
@@ -168,7 +175,7 @@ internal class ActionExecutor(
         )
 
         withContext(Dispatchers.Main) {
-            androidExecutor.dispatchGesture(clickGesture)
+            dispatchGesture(clickGesture)
         }
 
         click.waitAfterMs?.takeIf { it > 0 }?.let { delay(it) }
@@ -215,7 +222,7 @@ internal class ActionExecutor(
         )
 
         withContext(Dispatchers.Main) {
-            androidExecutor.dispatchGesture(swipeGesture)
+            dispatchGesture(swipeGesture)
         }
 
         swipe.waitAfterMs?.takeIf { it > 0 }?.let { delay(it) }
@@ -272,7 +279,7 @@ internal class ActionExecutor(
         if (hasValidStroke) {
             val gesture = builder.build()
             withContext(Dispatchers.Main) {
-                androidExecutor.dispatchGesture(gesture)
+                dispatchGesture(gesture)
             }
             val maxWaitAfter = combinedTouchTailDelay(
                 (0 until gesture.strokeCount).map { gesture.getStroke(it).let { stroke -> stroke.startTime + stroke.duration } },

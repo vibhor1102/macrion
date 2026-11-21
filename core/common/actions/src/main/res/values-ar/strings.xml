@@ -20,4 +20,5 @@
     <string name="notification_scenario_channel_low_name">قليل</string>
     <string name="notification_scenario_channel_default_name">طبيعي</string>
     <string name="notification_scenario_channel_high_name">عالي</string>
+    <string name="toast_intent_action_failed">تعذّر على Macrion إكمال إجراء Intent. تحقّق من الإجراء والوجهة.</string>
 </resources>

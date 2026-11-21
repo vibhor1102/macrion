@@ -37,6 +37,7 @@ import io.github.vibhor1102.macrion.core.processing.domain.SmartProcessingReposi
 import io.github.vibhor1102.macrion.core.processing.domain.model.DetectionState
 import io.github.vibhor1102.macrion.core.settings.domain.SettingsRepository
 import io.github.vibhor1102.macrion.core.smart.debugging.domain.DebuggingRepository
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.starters.requestScreenCapture
 import io.github.vibhor1102.macrion.feature.smart.config.ui.mainmenu.MainMenu
 import io.github.vibhor1102.macrion.feature.dumb.config.ui.DumbMainMenu
 import io.github.vibhor1102.macrion.feature.notifications.ServiceNotificationController
@@ -60,6 +61,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeoutOrNull
+import io.github.vibhor1102.macrion.core.processing.domain.model.DetectionPhase
 
 class LocalService(
     private val context: Context,
@@ -238,7 +240,6 @@ class LocalService(
 
             smartProcessingRepository.apply {
                 setScenarioId(scenario.id, markAsUsed = true)
-                setProjectionErrorHandler { mainMenu.onMediaProjectionLost() }
             }
 
             overlayManager.navigateTo(
@@ -251,7 +252,10 @@ class LocalService(
                 data = data,
             )
 
-            if (autoStart) {
+            if (autoStart &&
+                smartProcessingRepository.detectionPhase.first { it != DetectionPhase.PROJECTION_TRANSITION } ==
+                    DetectionPhase.RECORDING && state.isSmartLoaded
+            ) {
                 if (shouldStartPaywall()) startPaywall(onlyIfRootVisible = true)
                 else startSmartScenario(onlyIfRootVisible = true)
             }
@@ -298,11 +302,9 @@ class LocalService(
         data: Intent,
         scenario: Scenario,
         autoStart: Boolean,
-    ) {
-        serviceScope.launch {
-            scenarioChangeMutex.withLock {
-                if (stopAndWait()) launchSmartScenario(resultCode, data, scenario, autoStart = autoStart)
-            }
+    ): Job = serviceScope.launch {
+        scenarioChangeMutex.withLock {
+            if (stopAndWait()) launchSmartScenario(resultCode, data, scenario, autoStart = autoStart)
         }
     }
 
@@ -449,10 +451,22 @@ class LocalService(
             // scenario different from the one the user saw when they pressed Play.
             if (!smartScenarioTransitionMutex.tryLock()) return@launch
             try {
-                if (!state.isSmartLoaded || smartProcessingRepository.isDetectionActive()) return@launch
+                val sessionId = state.sessionId
+                val phase = smartProcessingRepository.detectionPhase.first {
+                    it != DetectionPhase.PROJECTION_TRANSITION && it != DetectionPhase.STOPPING
+                }
+                if (!state.isSmartLoaded || state.sessionId != sessionId ||
+                    smartProcessingRepository.isDetectionActive()
+                ) return@launch
                 if (onlyIfRootVisible &&
                     (overlayManager.isOverlayStackHidden() || overlayManager.hasOverlayAboveRoot())
                 ) return@launch
+
+                if (phase == DetectionPhase.INACTIVE) {
+                    if (overlayManager.isOverlayStackHidden()) overlayManager.restoreVisibility()
+                    overlayManager.requestScreenCapture(context)
+                    return@launch
+                }
 
                 smartProcessingRepository.startDetection(
                     context = context,

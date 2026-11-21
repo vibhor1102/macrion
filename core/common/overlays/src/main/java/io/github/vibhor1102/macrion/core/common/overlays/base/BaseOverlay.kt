@@ -332,6 +332,8 @@ abstract class BaseOverlay internal constructor(
         }
     }
 
+    override fun changeDisplaySize() = onDisplaySizeChanged()
+
     override fun handleKeyEvent(keyEvent: KeyEvent): Boolean =
         onKeyEvent(keyEvent)
 

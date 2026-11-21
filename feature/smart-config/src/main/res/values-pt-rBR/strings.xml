@@ -653,4 +653,5 @@
     <string name="coordinate_right">Direita</string>
     <string name="coordinate_top">Superior</string>
     <string name="coordinate_bottom">Inferior</string>
+    <string name="toast_capture_requires_entire_screen">A captura foi interrompida porque a área compartilhada mudou. Permita capturar a tela inteira para continuar.</string>
 </resources>

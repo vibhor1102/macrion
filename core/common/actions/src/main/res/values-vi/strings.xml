@@ -22,4 +22,5 @@
     <string name="notification_scenario_channel_default_name">Bình thường</string>
     <string name="notification_scenario_channel_high_name">Cao</string>
 
+    <string name="toast_intent_action_failed">Macrion không thể hoàn thành thao tác Intent. Hãy kiểm tra thao tác và đích đến.</string>
 </resources>

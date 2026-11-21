@@ -73,7 +73,7 @@ class CaptureViewModelTest {
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
-        viewModel = CaptureViewModel(mockDisplayRecorder, mockEditionRepository, mockMonitoredViewsManager)
+        viewModel = CaptureViewModel(mockDisplayRecorder, mockk(), mockEditionRepository, mockMonitoredViewsManager)
     }
 
     @After

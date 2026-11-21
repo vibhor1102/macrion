@@ -66,7 +66,9 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
+import java.util.concurrent.atomic.AtomicLong
 
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -125,7 +127,11 @@ class DetectorEngine @Inject constructor(
      */
     @Volatile private var orientationChangeRequested: Boolean = false
 
-    private val screenOrientationListener: (Context) -> Unit = { onScreenOrientationChanged() }
+    private val geometryRevision = AtomicLong()
+    @Volatile private var appliedGeometryRevision = 0L
+    private val _needsEntireScreenCapture = MutableStateFlow(false)
+    val needsEntireScreenCapture: StateFlow<Boolean> = _needsEntireScreenCapture
+    private val displayGeometryListener: (Context) -> Unit = { onScreenGeometryChanged() }
 
     /** Backing property for [state].*/
     private val _state = MutableStateFlow(DetectorState.CREATED)
@@ -158,13 +164,10 @@ class DetectorEngine @Inject constructor(
      * [android.app.Activity.onActivityResult]
      * @param data the data intent provided by the screen capture intent activity result callback
      * [android.app.Activity.onActivityResult]
-     * @param onRecordingStopped called when the screen recording is no longer running and a new request for media
-     * projection should be done.
      */
     internal fun startScreenRecord(
         resultCode: Int,
         data: Intent,
-        onRecordingStopped: (() -> Unit)?,
     ) {
         if (_state.value != DetectorState.CREATED) {
             Log.w(TAG, "startScreenRecord: Screen record is already started")
@@ -177,28 +180,33 @@ class DetectorEngine @Inject constructor(
             return
         }
 
+        _needsEntireScreenCapture.value = false
         _state.value = DetectorState.TRANSITIONING
 
         Log.i(TAG, "startScreenRecord")
 
         processingScope = CoroutineScope(ioDispatcher.limitedParallelism(1))
 
-        displayConfigManager.addOrientationListener(screenOrientationListener)
+        displayConfigManager.addDisplayGeometryListener(displayGeometryListener)
 
         recordingStartJob = processingScope?.launch {
             displayRecorder.apply {
-                startProjection(resultCode, data) {
-                    Log.w(TAG, "projection lost")
-                    this@DetectorEngine.stopScreenRecord()
-                    onRecordingStopped?.invoke()
-                }
+                startProjection(
+                    resultCode,
+                    data,
+                    stoppedListener = {
+                        Log.w(TAG, "projection lost")
+                        this@DetectorEngine.stopScreenRecord()
+                    },
+                    onContentResize = { onScreenGeometryChanged() },
+                )
                 startScreenRecord(displaySize)
             }
 
-            _state.emit(
-                if (!displayRecorder.validateScreenCapture()) DetectorState.ERROR_SCREEN_IMAGE_CAPTURE_FAILED
-                else DetectorState.RECORDING
-            )
+            val ready = displayRecorder.validateScreenCapture()
+            if (recordingStopJob?.isActive != true) {
+                _state.emit(if (ready) DetectorState.RECORDING else DetectorState.ERROR_SCREEN_IMAGE_CAPTURE_FAILED)
+            }
         }
     }
 
@@ -224,6 +232,8 @@ class DetectorEngine @Inject constructor(
             Log.w(TAG, "startDetection: Screen record is not started.")
             return false
         }
+
+        if (displayRecorder.isCaptureAreaIncompatible()) return false
 
         val detector = imageDetectorFactory()
         if (detector == null) {
@@ -261,11 +271,12 @@ class DetectorEngine @Inject constructor(
             bitmapRepository.clearCache()
 
             // Set the display projection to the scaled size
+            val physicalDisplaySize = displayConfigManager.displayConfig.sizePx
             val scaledScreenSize = scalingManager.startScaling(
                 quality = scenario.detectionQuality.toDouble(),
                 screenEvents = screenEvents,
             )
-            displayRecorder.resizeDisplay(scaledScreenSize)
+            displayRecorder.resizeDisplay(scaledScreenSize, physicalDisplaySize)
             bitmapRepository.resizeCacheForDetection(computeDetectionBitmapsBytes(scaledScreenSize, screenEvents))
             currentCoroutineContext().ensureActive()
 
@@ -315,6 +326,7 @@ class DetectorEngine @Inject constructor(
                 progressListener = if (liveDebugging || generateReport) debuggingListener else null,
                 debugReportTimingListener = activeDebugReportTimingListener,
                 reportSessionStartNs = debugReportSessionStartNs,
+                canDispatchGesture = ::isReadyToProcessFrame,
             )
             currentCoroutineContext().ensureActive()
             scenarioProcessor?.onScenarioStart(context)
@@ -326,29 +338,50 @@ class DetectorEngine @Inject constructor(
     }
 
     /**
-     * Called when the orientation of the screen changes.
-     * As we now have different screen metrics, we need to stop and start the virtual display with the correct one.
+     * Update the existing virtual display after a geometry change. Capture areas smaller than the device display
+     * have no exposed screen origin, so their frame coordinates cannot safely drive screen gestures.
      */
-    private fun onScreenOrientationChanged() {
-        if (_state.value != DetectorState.DETECTING && _state.value != DetectorState.RECORDING) return
+    private fun onScreenGeometryChanged() {
+        if (recordingStopJob?.isActive == true) return
 
-        Log.d(TAG, "onOrientationChanged")
+        Log.d(TAG, "onScreenGeometryChanged")
 
+        val revision = geometryRevision.incrementAndGet()
         orientationChangeJob?.cancel()
         orientationChangeJob = processingScope?.launch {
             delay(ORIENTATION_CHANGE_DEBOUNCE_MS.milliseconds)
+            if (displayRecorder.isCaptureAreaIncompatible()) {
+                delay(CAPTURE_MISMATCH_GRACE_MS.milliseconds)
+                if (displayRecorder.isCaptureAreaIncompatible()) {
+                    Log.w(TAG, "Captured content size does not match display size")
+                    _needsEntireScreenCapture.value = true
+                    stopScreenRecord()
+                    return@launch
+                }
+            }
 
+            recordingStartJob?.join()
+            val stateAfterSetup = _state.first {
+                it != DetectorState.STARTING_DETECTION && it != DetectorState.STOPPING_DETECTION
+            }
+            if (stateAfterSetup != DetectorState.DETECTING && stateAfterSetup != DetectorState.RECORDING) return@launch
             if (_state.value == DetectorState.DETECTING) {
                 // Signal the loop to exit after the current frame so in-progress actions finish cleanly.
                 orientationChangeRequested = true
-                processingJob?.join()
-                orientationChangeRequested = false
+                try {
+                    processingJob?.join()
+                } finally {
+                    orientationChangeRequested = false
+                }
                 debuggingListener.onEventsProcessingCancelled()
             }
 
+            val physicalDisplaySize = displayConfigManager.displayConfig.sizePx
             displayRecorder.resizeDisplay(
                 displaySize = scalingManager.refreshScaling(),
+                sourceDisplaySize = physicalDisplaySize,
             )
+            appliedGeometryRevision = revision
 
             if (_state.value == DetectorState.DETECTING) {
                 processingScope?.launchProcessingJob {
@@ -449,17 +482,24 @@ class DetectorEngine @Inject constructor(
             debugReportSessionStartNs = null
             scalingManager.stopScaling()
 
-            displayConfigManager.removeOrientationListener(screenOrientationListener)
+            displayConfigManager.removeDisplayGeometryListener(displayGeometryListener)
+            orientationChangeJob?.cancel()
+            orientationChangeJob = null
+            orientationChangeRequested = false
             displayRecorder.stopProjection()
+            appliedGeometryRevision = geometryRevision.get()
             bitmapRepository.clearCache()
             bitmapRepository.resetCacheSize()
-            _state.emit(DetectorState.CREATED)
-
-            processingScope?.cancel()
+            val stoppedScope = processingScope
             processingScope = null
             recordingStopJob = null
+            _state.value = DetectorState.CREATED
+            stoppedScope?.cancel()
         }
     }
+
+    private fun isReadyToProcessFrame(): Boolean =
+        appliedGeometryRevision == geometryRevision.get() && displayRecorder.isCaptureGeometryReady()
 
     /** Process the latest images provided by the [DisplayRecorder]. */
     private suspend fun processScreenImages() {
@@ -470,7 +510,12 @@ class DetectorEngine @Inject constructor(
 
         var processingDurationNs: Long
         while (processingJob?.isActive == true && !orientationChangeRequested) {
+            if (!isReadyToProcessFrame()) {
+                delay(NO_IMAGE_DELAY_MS.milliseconds)
+                continue
+            }
             displayRecorder.acquireLatestBitmap()?.let { screenFrame ->
+                if (!isReadyToProcessFrame()) return@let
                 processingDurationNs = measureNanoTime {
                     scenarioProcessor?.process(screenFrame)
                 }
@@ -619,6 +664,7 @@ internal enum class DetectorState {
 private const val NO_IMAGE_DELAY_MS = 20L
 /** Debounce delay for orientation changes, to avoid restarting detection on every intermediate rotation event. */
 private const val ORIENTATION_CHANGE_DEBOUNCE_MS = 100L
+private const val CAPTURE_MISMATCH_GRACE_MS = 200L
 
 /** The value of 1 second in nanoseconds. */
 private const val ONE_SECOND_IN_NANO = 1000000000L

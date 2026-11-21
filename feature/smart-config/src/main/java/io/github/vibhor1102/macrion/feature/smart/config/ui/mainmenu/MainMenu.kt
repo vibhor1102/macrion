@@ -42,7 +42,7 @@ import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring
 import io.github.vibhor1102.macrion.core.ui.compose.createMacrionMessageDialog
 import io.github.vibhor1102.macrion.feature.smart.config.R
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
-import io.github.vibhor1102.macrion.feature.smart.config.ui.common.starters.newRestartMediaProjectionStarterOverlay
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.starters.requestScreenCapture
 import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.text.alphabet.AlphabetActivity
 import io.github.vibhor1102.macrion.feature.smart.config.ui.mainmenu.debugging.LiveDebuggingUiState
 import io.github.vibhor1102.macrion.feature.smart.config.ui.mainmenu.debugging.LiveDebuggingViewModel
@@ -54,6 +54,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import android.widget.Toast
 
 /**
  * [OverlayMenu] implementation for displaying the main menu overlay.
@@ -188,6 +189,13 @@ class MainMenu(
                 launch { viewModel.toolbarDetectionState.collect(::updateDetectionState) }
                 launch { viewModel.nativeLibError.collect(::showNativeLibErrorDialogIfNeeded) }
                 launch { viewModel.screenCaptureError.collect(::showScreenCaptureErrorDialogIfNeeded) }
+                launch {
+                    viewModel.needsEntireScreenCapture.collect { needsEntireScreen ->
+                        if (needsEntireScreen) {
+                            Toast.makeText(context, R.string.toast_capture_requires_entire_screen, Toast.LENGTH_LONG).show()
+                        }
+                    }
+                }
                 launch { viewModel.screenshotRateLimitError.collect(::showScreenshotRateLimitErrorDialog) }
                 launch { debuggingViewModel.isDebugging.collect(::updateDebugOverlayViewVisibility) }
                 launch {
@@ -303,16 +311,9 @@ class MainMenu(
     }
 
 
-    fun onMediaProjectionLost() {
-        if (!lifecycle.currentState.isAtLeast(Lifecycle.State.CREATED)) return
-
-        overlayManager.navigateUpToRoot(context)
-        viewModel.cancelScenarioChanges()
-    }
-
     private fun onConfigureClicked() {
-        if (viewModel.shouldRestartMediaProjection()) {
-            showRestartMediaProjectionScreen()
+        if (!viewModel.isScreenCaptureReady()) {
+            if (viewModel.shouldRestartMediaProjection()) overlayManager.requestScreenCapture(context)
             return
         }
 
@@ -330,8 +331,8 @@ class MainMenu(
             return
         }
 
-        if (viewModel.shouldRestartMediaProjection()) {
-            showRestartMediaProjectionScreen()
+        if (!viewModel.canRequestDetection()) {
+            if (viewModel.shouldRestartMediaProjection()) overlayManager.requestScreenCapture(context)
             return
         }
 
@@ -525,13 +526,4 @@ class MainMenu(
             onConfirm = {},
         ).showAsOverlay()
     }
-
-    private fun showRestartMediaProjectionScreen() {
-        overlayManager.navigateTo(
-            context = context,
-            newOverlay = newRestartMediaProjectionStarterOverlay(context),
-            hideCurrent = true,
-        )
-    }
-
 }

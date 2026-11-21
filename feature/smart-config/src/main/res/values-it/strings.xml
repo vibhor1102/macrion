@@ -633,4 +633,5 @@
     <string name="coordinate_right">Destra</string>
     <string name="coordinate_top">Alto</string>
     <string name="coordinate_bottom">Basso</string>
+    <string name="toast_capture_requires_entire_screen">La cattura è stata interrotta perché l’area condivisa è cambiata. Consenti la cattura dell’intero schermo per continuare.</string>
 </resources>

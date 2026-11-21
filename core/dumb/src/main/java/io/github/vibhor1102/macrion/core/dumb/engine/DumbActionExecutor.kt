@@ -50,14 +50,10 @@ class DumbActionExecutor @Inject constructor(
         get() = randomSource.takeIf { randomize }
     private var randomize: Boolean = false
 
-    private var unblockWorkaroundEnabled: Boolean = false
-
-    private val unblockGestureScheduler: UnblockGestureScheduler? =
-        if (unblockWorkaroundEnabled) UnblockGestureScheduler()
-        else null
+    @Volatile private var unblockGestureScheduler: UnblockGestureScheduler? = null
 
     fun setUnblockWorkaround(isEnabled: Boolean) {
-        unblockWorkaroundEnabled = isEnabled
+        unblockGestureScheduler = if (isEnabled) UnblockGestureScheduler() else null
     }
 
     suspend fun onScenarioLoopFinished() {

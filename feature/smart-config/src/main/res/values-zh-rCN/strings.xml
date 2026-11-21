@@ -611,4 +611,5 @@
     <string name="coordinate_right">右侧</string>
     <string name="coordinate_top">顶部</string>
     <string name="coordinate_bottom">底部</string>
+    <string name="toast_capture_requires_entire_screen">共享区域已更改，屏幕捕获已停止。请允许捕获整个屏幕以继续。</string>
 </resources>

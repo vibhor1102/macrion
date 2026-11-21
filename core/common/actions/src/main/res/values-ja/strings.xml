@@ -4,4 +4,5 @@
     <string name="notification_scenario_channel_low_name">低</string>
     <string name="notification_scenario_channel_default_name">通常</string>
     <string name="notification_scenario_channel_high_name">高</string>
+    <string name="toast_intent_action_failed">Macrion は Intent アクションを完了できませんでした。アクションと送信先を確認してください。</string>
 </resources>

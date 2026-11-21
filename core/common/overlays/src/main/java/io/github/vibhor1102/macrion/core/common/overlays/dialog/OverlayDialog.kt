@@ -24,6 +24,7 @@ import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowInsets
+import android.view.Window
 import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
 
@@ -152,13 +153,7 @@ abstract class OverlayDialog(@StyleRes theme: Int? = null) : BaseOverlay(theme, 
                     WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN or
                         WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE,
                 )
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
-                    // Edge-to-edge disables automatic inset fitting, even with ADJUST_RESIZE.
-                    attributes = attributes.apply {
-                        setFitInsetsTypes(WindowInsets.Type.systemBars() or WindowInsets.Type.ime())
-                        setFitInsetsSides(WindowInsets.Side.all())
-                    }
-                }
+                fitOverlayEditorInsets()
             }
         }
 
@@ -217,5 +212,15 @@ abstract class OverlayDialog(@StyleRes theme: Int? = null) : BaseOverlay(theme, 
         writer.append(contentPrefix)
             .append("isDialogShown=$isShown; ")
             .println()
+    }
+}
+
+internal fun Window.fitOverlayEditorInsets() {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.VANILLA_ICE_CREAM) return
+
+    // Edge-to-edge disables automatic inset fitting, even with ADJUST_RESIZE.
+    attributes = attributes.apply {
+        setFitInsetsTypes(WindowInsets.Type.systemBars() or WindowInsets.Type.ime())
+        setFitInsetsSides(WindowInsets.Side.all())
     }
 }

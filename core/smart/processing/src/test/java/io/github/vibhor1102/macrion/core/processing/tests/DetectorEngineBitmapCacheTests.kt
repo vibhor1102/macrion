@@ -112,6 +112,7 @@ class DetectorEngineBitmapCacheTests {
         every { mockScalingManager.startScaling(any(), any()) } returns TEST_SCALED_DISPLAY_SIZE
         every { mockScalingManager.getScreenConditionScalingInfo(any()) } returns null
         coEvery { mockDisplayRecorder.validateScreenCapture() } returns true
+        every { mockDisplayRecorder.isCaptureGeometryReady() } returns true
         every { mockSettingsRepository.isInputBlockWorkaroundEnabled() } returns false
         every { mockAppComponentsProvider.originalAppId } returns "test.app"
         coEvery { mockDisplayRecorder.acquireLatestBitmap() } returns null
@@ -247,7 +248,7 @@ class DetectorEngineBitmapCacheTests {
             ocrModelsRepository = mockOcrModelsRepository,
         )
 
-        engine.startScreenRecord(0, mockIntent, null)
+        engine.startScreenRecord(0, mockIntent)
         advanceTimeBy(1)
 
         engine.startDetection(

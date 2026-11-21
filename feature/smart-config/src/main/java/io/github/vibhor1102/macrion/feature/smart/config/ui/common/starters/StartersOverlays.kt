@@ -24,6 +24,7 @@ import androidx.annotation.RequiresApi
 import io.github.vibhor1102.macrion.core.base.data.getNotificationSettingsIntent
 import io.github.vibhor1102.macrion.core.base.data.getOpenWebBrowserIntent
 import io.github.vibhor1102.macrion.core.base.data.getOpenWebBrowserPickerIntent
+import io.github.vibhor1102.macrion.core.common.overlays.manager.OverlayManager
 import io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.ActivityStarterOverlayMenu
 
 
@@ -32,9 +33,17 @@ internal fun newWebBrowserStarterOverlay(uri: Uri) = ActivityStarterOverlayMenu(
     fallbackIntent = getOpenWebBrowserPickerIntent(uri),
 )
 
-internal fun newRestartMediaProjectionStarterOverlay(context: Context) = ActivityStarterOverlayMenu(
-    intent = RestartMediaProjectionActivity.getStartIntent(context),
-)
+fun OverlayManager.requestScreenCapture(context: Context) {
+    if (getBackStackTop() is ScreenCaptureStarterOverlay) return
+    navigateTo(
+        context = context,
+        newOverlay = ScreenCaptureStarterOverlay(context),
+        hideCurrent = true,
+    )
+}
+
+private class ScreenCaptureStarterOverlay(context: Context) :
+    ActivityStarterOverlayMenu(RestartMediaProjectionActivity.getStartIntent(context))
 
 internal fun newNotificationPermissionStarterOverlay(context: Context) = ActivityStarterOverlayMenu(
     intent = RequestNotificationPermissionActivity.getStartIntent(context)

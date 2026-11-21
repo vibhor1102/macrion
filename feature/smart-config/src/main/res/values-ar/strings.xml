@@ -686,4 +686,5 @@
     <string name="coordinate_right">يمين</string>
     <string name="coordinate_top">أعلى</string>
     <string name="coordinate_bottom">أسفل</string>
+    <string name="toast_capture_requires_entire_screen">توقف التقاط الشاشة لأن المنطقة المشتركة تغيّرت. اسمح بالتقاط الشاشة بالكامل للمتابعة.</string>
 </resources>

@@ -565,4 +565,5 @@
     <string name="coordinate_right">Справа</string>
     <string name="coordinate_top">Сверху</string>
     <string name="coordinate_bottom">Снизу</string>
+    <string name="toast_capture_requires_entire_screen">Захват экрана остановлен из-за изменения области трансляции. Для продолжения разрешите захват всего экрана.</string>
 </resources>

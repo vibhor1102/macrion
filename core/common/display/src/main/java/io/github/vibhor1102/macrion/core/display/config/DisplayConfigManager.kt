@@ -58,8 +58,8 @@ class DisplayConfigManager @Inject constructor(
     /** The display to get the value from. It will always be the first one available. */
     private val display = displayManager.getDisplay(0)
 
-    /** The listeners upon orientation changes. */
-    private val orientationListeners: MutableSet<((Context) -> Unit)> = mutableSetOf()
+    /** The listeners for display size and orientation changes. */
+    private val geometryListeners: MutableSet<((Context) -> Unit)> = mutableSetOf()
 
     /** Listen to display changes directly from DisplayManager for near-instant orientation detection. */
     private val displayListener = object : DisplayManager.DisplayListener {
@@ -72,22 +72,21 @@ class DisplayConfigManager @Inject constructor(
         }
     }
 
-    /** Listen to the configuration changes and calls [orientationListeners] when needed. */
+    /** Listen to the configuration changes and calls [geometryListeners] when needed. */
     private val configChangedReceiver = object : SafeBroadcastReceiver(IntentFilter(Intent.ACTION_CONFIGURATION_CHANGED)) {
         override fun onReceive(context: Context, intent: Intent) {
             onAndroidConfigurationChanged(context)
         }
     }
 
-    var displayConfig: DisplayConfig = getCurrentDisplayConfig()
+    private var lastRawDisplayConfig = getCurrentDisplayConfig()
+
+    @Volatile var displayConfig: DisplayConfig = lastRawDisplayConfig
         private set
 
     /** Start the monitoring of the screen metrics. */
     fun startMonitoring(context: Context) {
-        displayConfig = applyInfoPatches(
-            current = displayConfig,
-            configToPatch = getCurrentDisplayConfig(),
-        )
+        onAndroidConfigurationChanged(context)
 
         configChangedReceiver.register(context)
         displayManager?.registerDisplayListener(displayListener, Handler(Looper.getMainLooper()))
@@ -97,30 +96,31 @@ class DisplayConfigManager @Inject constructor(
     fun stopMonitoring() {
         configChangedReceiver.unregister()
         displayManager?.unregisterDisplayListener(displayListener)
-        orientationListeners.clear()
+        geometryListeners.clear()
     }
 
     /**
-     * Register a new orientation listener.
+     * Register a new display geometry listener.
      *
      * @param listener the listener to be registered.
      */
-    fun addOrientationListener(listener: (Context) -> Unit) {
-        orientationListeners.add(listener)
+    fun addDisplayGeometryListener(listener: (Context) -> Unit) {
+        geometryListeners.add(listener)
     }
 
-    /** Unregister a previously registered listener. */
-    fun removeOrientationListener(listener: (Context) -> Unit) {
-        orientationListeners.remove(listener)
+    /** Unregister a previously registered display geometry listener. */
+    fun removeDisplayGeometryListener(listener: (Context) -> Unit) {
+        geometryListeners.remove(listener)
     }
 
     private fun onAndroidConfigurationChanged(context: Context) {
         Log.i(TAG, "onAndroidConfigurationChanged")
 
-        val newConfigPatched = applyInfoPatches(
-            current = displayConfig,
-            configToPatch = getCurrentDisplayConfig(),
-        )
+        val rawConfig = getCurrentDisplayConfig()
+        // Some devices send more than one event before their window metrics reflect a rotation.
+        if (rawConfig == lastRawDisplayConfig) return
+        lastRawDisplayConfig = rawConfig
+        val newConfigPatched = applyInfoPatches(current = displayConfig, configToPatch = rawConfig)
 
         if (newConfigPatched == displayConfig) {
             Log.i(TAG, "Same DisplayConfig, skip update")
@@ -128,11 +128,11 @@ class DisplayConfigManager @Inject constructor(
         }
 
         Log.i(TAG, "New DisplayConfig: $newConfigPatched")
-        val orientationChanged = displayConfig.orientation != newConfigPatched.orientation
+        val geometryChanged = displayConfig.orientation != newConfigPatched.orientation ||
+            displayConfig.sizePx != newConfigPatched.sizePx
         displayConfig = newConfigPatched
 
-        // Notify for orientation changes if needed
-        if (orientationChanged) orientationListeners.forEach { it.invoke(context) }
+        if (geometryChanged) geometryListeners.toList().forEach { it.invoke(context) }
     }
 
     private fun getCurrentDisplayConfig(): DisplayConfig =

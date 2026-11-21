@@ -20,4 +20,5 @@
     <string name="notification_scenario_channel_low_name">Baixa</string>
     <string name="notification_scenario_channel_default_name">Normal</string>
     <string name="notification_scenario_channel_high_name">Alta</string>
+    <string name="toast_intent_action_failed">O Macrion não conseguiu concluir uma ação Intent. Verifique a ação e o destino.</string>
 </resources>

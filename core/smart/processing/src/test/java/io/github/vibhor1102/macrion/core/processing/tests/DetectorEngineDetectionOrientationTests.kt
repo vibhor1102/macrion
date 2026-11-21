@@ -53,6 +53,7 @@ import io.mockk.verify
 
 import kotlinx.coroutines.channels.Channel
 
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.currentCoroutineContext
@@ -133,6 +134,7 @@ class DetectorEngineDetectionOrientationTests {
         every { mockScalingManager.startScaling(any(), any()) } returns TEST_DISPLAY_SIZE
         every { mockScalingManager.refreshScaling() } returns TEST_DISPLAY_SIZE
         coEvery { mockDisplayRecorder.validateScreenCapture() } returns true
+        every { mockDisplayRecorder.isCaptureGeometryReady() } returns true
         every { mockSettingsRepository.isInputBlockWorkaroundEnabled() } returns false
         every { mockAppComponentsProvider.originalAppId } returns "test.app"
         // Return null so the processing loop stays in the lightweight null-delay branch.
@@ -284,6 +286,31 @@ class DetectorEngineDetectionOrientationTests {
         assertEquals(DetectorState.RECORDING, engine.state.value)
     }
 
+    @Test
+    fun `geometry change during detector setup is applied before frame reads`() = runTest {
+        val finishSetupResize = CompletableDeferred<Unit>()
+        var resizeCount = 0
+        coEvery { mockDisplayRecorder.resizeDisplay(TEST_DISPLAY_SIZE, TEST_DISPLAY_SIZE) } coAnswers {
+            if (++resizeCount == 1) finishSetupResize.await()
+        }
+        val (engine, geometryListener) = startDetectionAndCaptureOrientationListener(advanceToDetecting = false)
+
+        geometryListener(mockContext)
+        advanceTimeBy(ADVANCE_MS)
+        assertEquals(DetectorState.STARTING_DETECTION, engine.state.value)
+        verify(exactly = 0) { mockScalingManager.refreshScaling() }
+
+        finishSetupResize.complete(Unit)
+        advanceTimeBy(ADVANCE_MS)
+        verify(exactly = 1) { mockScalingManager.refreshScaling() }
+        coVerifyOrder {
+            mockScalingManager.refreshScaling()
+            mockDisplayRecorder.resizeDisplay(TEST_DISPLAY_SIZE, TEST_DISPLAY_SIZE)
+            mockDisplayRecorder.acquireLatestBitmap()
+        }
+        stopDetection(engine)
+    }
+
     // ---- helpers ----
 
     private fun TestScope.startDetectionAndCaptureOrientationListener(
@@ -304,11 +331,11 @@ class DetectorEngineDetectionOrientationTests {
         )
 
         var capturedListener: ((Context) -> Unit)? = null
-        every { mockDisplayConfigManager.addOrientationListener(any()) } answers {
+        every { mockDisplayConfigManager.addDisplayGeometryListener(any()) } answers {
             capturedListener = firstArg()
         }
 
-        engine.startScreenRecord(0, mockIntent, null)
+        engine.startScreenRecord(0, mockIntent)
         // 1 ms: enough to run the startScreenRecord coroutine (no internal delays),
         // reaching state = RECORDING without advancing any detection-loop delays.
         advanceTimeBy(1)

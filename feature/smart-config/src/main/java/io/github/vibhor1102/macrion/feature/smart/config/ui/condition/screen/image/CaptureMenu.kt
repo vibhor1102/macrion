@@ -35,6 +35,7 @@ import io.github.vibhor1102.macrion.core.common.overlays.menu.OverlayMenu
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.Tip
 import io.github.vibhor1102.macrion.core.domain.model.condition.ScreenCondition
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.starters.requestScreenCapture
 import io.github.vibhor1102.macrion.feature.smart.config.R
 import io.github.vibhor1102.macrion.feature.smart.config.ui.createValidationOverlayToolbar
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
@@ -212,6 +213,10 @@ class CaptureMenu(
     }
 
     private fun onTakeScreenshotClicked() {
+        if (viewModel.needsScreenCapture()) {
+            overlayManager.requestScreenCapture(context)
+            return
+        }
         state = CAPTURE
         viewModel.takeScreenshot { screenshot ->
             if (screenshot == null) {

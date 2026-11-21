@@ -28,7 +28,6 @@ import android.util.Log
 import io.github.vibhor1102.macrion.core.base.addDumpTabulationLvl
 import io.github.vibhor1102.macrion.core.base.di.Dispatcher
 import io.github.vibhor1102.macrion.core.base.di.HiltCoroutineDispatchers.IO
-import io.github.vibhor1102.macrion.core.base.di.HiltCoroutineDispatchers.Main
 import io.github.vibhor1102.macrion.core.base.dumpWithTimeout
 import io.github.vibhor1102.macrion.core.base.identifier.Identifier
 import io.github.vibhor1102.macrion.core.domain.IRepository
@@ -79,14 +78,11 @@ import kotlin.time.Duration
 @Singleton
 internal class SmartProcessingRepositoryImpl @Inject constructor(
     @ApplicationContext context: Context,
-    @Dispatcher(Main) mainDispatcher: CoroutineDispatcher,
     @Dispatcher(IO) ioDispatcher: CoroutineDispatcher,
     private val scenarioRepository: IRepository,
     private val detectorEngine: DetectorEngine,
 ): SmartProcessingRepository {
 
-    private val coroutineScopeMain: CoroutineScope =
-        CoroutineScope(SupervisorJob() + mainDispatcher)
     private val coroutineScopeIo: CoroutineScope =
         CoroutineScope(SupervisorJob() + ioDispatcher)
 
@@ -98,7 +94,6 @@ internal class SmartProcessingRepositoryImpl @Inject constructor(
             }
         }
 
-    private var projectionErrorHandler: (() -> Unit)? = null
 
     /** Stop the detection automatically after selected delay */
     private var autoStopJob: Job? = null
@@ -115,6 +110,8 @@ internal class SmartProcessingRepositoryImpl @Inject constructor(
         .map { it.toDetectionPhase() }
 
     override val detectionStopSequence: StateFlow<Long> = detectorEngine.detectionStopSequence
+
+    override val needsEntireScreenCapture: StateFlow<Boolean> = detectorEngine.needsEntireScreenCapture
 
     override val screenshotRateLimitError: Flow<Int> = detectorEngine.screenshotRateLimitError
 
@@ -162,10 +159,6 @@ internal class SmartProcessingRepositoryImpl @Inject constructor(
         _scenarioId.value = identifier
     }
 
-    override fun setProjectionErrorHandler(handler: () -> Unit) {
-        projectionErrorHandler = handler
-    }
-
     override fun getScenarioId(): Identifier? = _scenarioId.value
 
     override fun isRunning(): Boolean =
@@ -179,12 +172,16 @@ internal class SmartProcessingRepositoryImpl @Inject constructor(
         detectorEngine.state.value == DetectorState.RECORDING ||
             detectorEngine.state.value == DetectorState.DETECTING
 
+    override fun canRequestDetection(): Boolean = when (detectorEngine.state.value) {
+        DetectorState.RECORDING, DetectorState.STARTING_DETECTION, DetectorState.DETECTING,
+        DetectorState.STOPPING_DETECTION -> true
+        else -> false
+    }
+
     override fun isFullyStopped(): Boolean = detectorEngine.state.value == DetectorState.CREATED
 
     override fun startScreenRecord(resultCode: Int, data: Intent) {
-        detectorEngine.startScreenRecord(resultCode, data) {
-            coroutineScopeMain.launch { projectionErrorHandler?.invoke() }
-        }
+        detectorEngine.startScreenRecord(resultCode, data)
     }
 
     override suspend fun startDetection(context: Context, liveDebugging: Boolean, generateReport: Boolean, autoStopDuration: Duration?): Boolean {
@@ -247,7 +244,6 @@ internal class SmartProcessingRepositoryImpl @Inject constructor(
     }
 
     override fun stopScreenRecord() {
-        projectionErrorHandler = null
         synchronized(detectionSessionLock) {
             detectionSessionId++
             autoStopJob?.cancel()

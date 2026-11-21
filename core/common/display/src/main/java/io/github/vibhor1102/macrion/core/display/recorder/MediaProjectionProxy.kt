@@ -48,18 +48,41 @@ internal class MediaProjectionProxy @Inject constructor() {
     private var getProjectionRetries: Int = 0
     /** Listener to notify upon projection ends. */
     private var onStopListener: (() -> Unit)? = null
+    @Volatile private var projectionCallback: MediaProjection.Callback? = null
 
 
     fun isMediaProjectionStarted(): Boolean =
         projection != null
 
-    suspend fun startMediaProjection(context: Context, resultCode: Int, data: Intent, stopListener: () -> Unit): Boolean {
+    suspend fun startMediaProjection(
+        context: Context,
+        resultCode: Int,
+        data: Intent,
+        onContentResize: (Point) -> Unit,
+        stopListener: () -> Unit,
+    ): Boolean {
         Log.i(TAG, "Get MediaProjection")
 
         onStopListener = stopListener
 
         projection = getMediaProjectionWithRetryDelay(context.getAndroidMediaProjectionManager(), resultCode, data)
-            ?.apply { registerCallback(projectionCallback, Handler(Looper.getMainLooper())) }
+        projection?.let { activeProjection ->
+            val callback = object : MediaProjection.Callback() {
+                override fun onStop() {
+                    if (projectionCallback !== this) return
+                    Log.i(TAG, "Projection stopped")
+                    stopListener()
+                }
+
+                override fun onCapturedContentResize(width: Int, height: Int) {
+                    if (projectionCallback === this && width > 0 && height > 0) {
+                        onContentResize(Point(width, height))
+                    }
+                }
+            }
+            projectionCallback = callback
+            activeProjection.registerCallback(callback, Handler(Looper.getMainLooper()))
+        }
 
         if (projection == null) {
             onStopListener = null
@@ -89,8 +112,10 @@ internal class MediaProjectionProxy @Inject constructor() {
     fun stopMediaProjection() {
         Log.i(TAG, "Stop MediaProjection")
 
+        val callback = projectionCallback
+        projectionCallback = null
         projection?.apply {
-            unregisterCallback(projectionCallback)
+            callback?.let(::unregisterCallback)
             stop()
         }
         projection = null
@@ -118,15 +143,7 @@ internal class MediaProjectionProxy @Inject constructor() {
         }
     }
 
-    /** Called when the user have stopped the projection by clicking on the 'Cast' icon in the status bar. */
-    private val projectionCallback = object : MediaProjection.Callback() {
 
-        override fun onStop() {
-            Log.i(TAG, "Projection stopped by the user")
-            // We only notify, we let the detector take care of calling stopScreenRecord
-            onStopListener?.invoke()
-        }
-    }
 }
 
 private fun Context.getAndroidMediaProjectionManager(): MediaProjectionManager =

@@ -528,11 +528,26 @@ abstract class OverlayMenu(
         }
     }
 
-    private fun applyOrientationChangeToViews() {
+    override fun onDisplaySizeChanged() {
+        clearTuckedDrag()
+        val host = menuLayout as? ComposeOverlayMenuHost
+        if (isMenuTucked && host != null) {
+            val size = displayConfigManager.displayConfig.sizePx
+            val tabWidthPx = (24 * scaledDensity).roundToInt()
+            val tabHeightPx = (56 * scaledDensity).roundToInt()
+            menuLayoutParams.x = if (host.isDockedOnLeft) 0 else (size.x - tabWidthPx).coerceAtLeast(0)
+            menuLayoutParams.y = menuLayoutParams.y.coerceIn(0, (size.y - tabHeightPx).coerceAtLeast(0))
+        } else {
+            updateMenuPosition(Point(menuLayoutParams.x, menuLayoutParams.y))
+        }
+        applyOrientationChangeToViews(recreateForRotation = false)
+    }
+
+    private fun applyOrientationChangeToViews(recreateForRotation: Boolean = true) {
         windowManager.safeUpdateViewLayout(menuLayout, menuLayoutParams)
 
         val overlayView = screenOverlayView ?: return
-        if (recreateOverlayViewOnRotation) {
+        if (recreateForRotation && recreateOverlayViewOnRotation) {
             recreateOverlayViewForRotation(overlayView)
             return
         }
@@ -949,10 +964,8 @@ abstract class OverlayMenu(
     /** Safe setter for the position of the overlay menu ensuring it will not be displayed outside the screen. */
     private fun updateMenuPosition(position: Point) {
         val displaySize = displayConfigManager.displayConfig.sizePx
-        if (displaySize.x < menuLayout.width || displaySize.y < menuLayout.height) return
-
-        val newX = position.x.coerceIn(0, displaySize.x - menuLayout.width)
-        val newY = position.y.coerceIn(0, displaySize.y - menuLayout.height)
+        val newX = position.x.coerceIn(0, (displaySize.x - menuLayout.width).coerceAtLeast(0))
+        val newY = position.y.coerceIn(0, (displaySize.y - menuLayout.height).coerceAtLeast(0))
 
         if (newX != menuLayoutParams.x || newY != menuLayoutParams.y) {
             menuLayoutParams.x = newX

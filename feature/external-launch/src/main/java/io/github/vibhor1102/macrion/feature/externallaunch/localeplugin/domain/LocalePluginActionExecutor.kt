@@ -22,6 +22,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.Job
 
 @Singleton
 internal class LocalePluginActionExecutor @Inject constructor(
@@ -65,7 +66,7 @@ internal class LocalePluginActionExecutor @Inject constructor(
         data: Intent,
         action: ResolvedLocalePluginAction.LaunchSmart,
         autoRun: Boolean = false,
-    ) =
+    ): Job? =
         externalLaunchRepository.replaceSmartScenario(resultCode, data, action.scenario, autoStart = autoRun)
 
     fun launchSmartWithCurrentProjection(action: ResolvedLocalePluginAction.LaunchSmart): Boolean {

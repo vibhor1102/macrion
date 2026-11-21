@@ -69,6 +69,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.menu.OverlayMenu
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.starters.requestScreenCapture
 import io.github.vibhor1102.macrion.feature.smart.config.R
 import io.github.vibhor1102.macrion.feature.smart.config.ui.createColorCaptureOverlayToolbar
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
@@ -125,8 +126,11 @@ class ColorCaptureMenu (
 
         when (viewId) {
             R.id.btn_confirm -> when (captureStep) {
-                ColorCaptureMenuStep.SCREENSHOT_SELECTION -> viewModel.captureScreen(initialPosition) {
-                    Toast.makeText(context, R.string.toast_capture_failed, Toast.LENGTH_LONG).show()
+                ColorCaptureMenuStep.SCREENSHOT_SELECTION -> {
+                    if (viewModel.needsScreenCapture()) overlayManager.requestScreenCapture(context)
+                    else viewModel.captureScreen(initialPosition) {
+                        Toast.makeText(context, R.string.toast_capture_failed, Toast.LENGTH_LONG).show()
+                    }
                 }
                 ColorCaptureMenuStep.PIXEL_SELECTION -> {
                     viewModel.getPixelSelection()?.let { (position, color) ->

@@ -76,6 +76,7 @@ class ColorCaptureViewModelTest {
             ioDispatcher = testDispatcher,
             displayConfigManager = mockDisplayConfigManager,
             displayRecorder = mockDisplayRecorder,
+            smartProcessingRepository = mockk(),
             monitoredViewsManager = mockMonitoredViewsManager,
         )
     }

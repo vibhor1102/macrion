@@ -668,4 +668,5 @@
     <string name="coordinate_right">Праворуч</string>
     <string name="coordinate_top">Вгорі</string>
     <string name="coordinate_bottom">Внизу</string>
+    <string name="toast_capture_requires_entire_screen">Захоплення екрана припинено, оскільки змінилася область трансляції. Щоб продовжити, дозвольте захоплення всього екрана.</string>
 </resources>

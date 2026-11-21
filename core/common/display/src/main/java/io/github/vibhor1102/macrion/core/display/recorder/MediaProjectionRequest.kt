@@ -98,7 +98,7 @@ class MediaProjectionRequest {
      }
 
      private fun MediaProjectionManager.createScreenCaptureIntentCompat(forceEntireScreen: Boolean): Intent =
-          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM && forceEntireScreen)
+          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE && forceEntireScreen)
                createScreenCaptureIntent(MediaProjectionConfig.createConfigForDefaultDisplay())
           else createScreenCaptureIntent()
 

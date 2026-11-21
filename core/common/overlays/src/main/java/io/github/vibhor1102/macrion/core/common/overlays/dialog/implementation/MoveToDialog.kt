@@ -64,6 +64,7 @@ import androidx.lifecycle.setViewTreeLifecycleOwner
 import androidx.lifecycle.setViewTreeViewModelStoreOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 
+import io.github.vibhor1102.macrion.core.common.overlays.dialog.fitOverlayEditorInsets
 import io.github.vibhor1102.macrion.core.common.overlays.R
 import io.github.vibhor1102.macrion.core.common.overlays.base.BaseOverlay
 import io.github.vibhor1102.macrion.core.common.overlays.manager.OverlayManager
@@ -170,6 +171,7 @@ class MoveToDialog(
                 setType(OverlayManager.OVERLAY_WINDOW_TYPE)
                 setDimAmount(0.6f)
                 addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
+                fitOverlayEditorInsets()
             }
         }
     }

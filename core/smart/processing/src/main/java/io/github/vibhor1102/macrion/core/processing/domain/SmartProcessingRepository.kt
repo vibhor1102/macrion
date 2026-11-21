@@ -53,6 +53,7 @@ interface SmartProcessingRepository : Dumpable {
     val detectionStopSequence: StateFlow<Long>
 
     /** Emits the screenshot rate limit whenever execution is paused due to exceeding it. */
+    val needsEntireScreenCapture: StateFlow<Boolean>
     val screenshotRateLimitError: Flow<Int>
 
 
@@ -67,6 +68,10 @@ interface SmartProcessingRepository : Dumpable {
 
     /** @return true if screen capture is currently active, whether detection is running or only loaded. */
     fun isScreenRecordActive(): Boolean
+
+    /** Whether the current recording can accept a Play request, including during detection cleanup. */
+    fun canRequestDetection(): Boolean
+
     /** True only after all detector resources have reached their initial state. */
     fun isFullyStopped(): Boolean
 
@@ -92,7 +97,6 @@ interface SmartProcessingRepository : Dumpable {
      *
      * @param handler the callback to be called.
      */
-    fun setProjectionErrorHandler(handler: () -> Unit)
 
     /**
      * Start the screen recording.

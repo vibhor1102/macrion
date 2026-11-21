@@ -25,16 +25,19 @@ import android.media.Image
 import android.media.ImageReader
 import android.media.projection.MediaProjection
 import android.media.projection.MediaProjectionManager
+import android.os.Build
 import android.util.Log
 import androidx.annotation.MainThread
 import androidx.annotation.WorkerThread
 import dagger.hilt.android.qualifiers.ApplicationContext
+import io.github.vibhor1102.macrion.core.display.config.DisplayConfigManager
 import kotlinx.coroutines.delay
 
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import javax.inject.Inject
 import javax.inject.Singleton
+import java.util.concurrent.atomic.AtomicLong
 import kotlin.time.Duration.Companion.milliseconds
 
 /**
@@ -57,6 +60,7 @@ class DisplayRecorder @Inject internal constructor(
     @param:ApplicationContext private val context: Context,
     private val mediaProjectionProxy: MediaProjectionProxy,
     private val imageReaderProxy: ImageReaderProxy,
+    private val displayConfigManager: DisplayConfigManager,
 ) {
 
     /** Synchronization mutex. */
@@ -64,8 +68,11 @@ class DisplayRecorder @Inject internal constructor(
 
     /** Virtual display capturing the content of the screen. */
     private var virtualDisplay: VirtualDisplay? = null
-    /** Listener to notify upon projection ends. */
-    private var stopListener: (() -> Unit)? = null
+    @Volatile private var capturedContentSize: Point? = null
+    private val capturedContentRevision = AtomicLong()
+    @Volatile private var readerGeometry: ReaderGeometry? = null
+
+    private data class ReaderGeometry(val displaySize: Point, val contentRevision: Long)
 
     /**
      * Start the media projection.
@@ -87,7 +94,12 @@ class DisplayRecorder @Inject internal constructor(
      * [android.app.Activity.onActivityResult]
      * @param stoppedListener listener called when the projection have been stopped unexpectedly.
      */
-    suspend fun startProjection(resultCode: Int, data: Intent, stoppedListener: () -> Unit) = mutex.withLock {
+    suspend fun startProjection(
+        resultCode: Int,
+        data: Intent,
+        stoppedListener: () -> Unit,
+        onContentResize: (Point) -> Unit = {},
+    ) = mutex.withLock {
         if (mediaProjectionProxy.isMediaProjectionStarted()) {
             Log.w(TAG, "Attempting to start media projection while already started.")
             return@withLock
@@ -95,7 +107,15 @@ class DisplayRecorder @Inject internal constructor(
 
         Log.d(TAG, "Start media projection")
 
-        if (!mediaProjectionProxy.startMediaProjection(context, resultCode, data, stoppedListener)) {
+        capturedContentSize = null
+        if (!mediaProjectionProxy.startMediaProjection(context, resultCode, data, { size ->
+                if (capturedContentSize != size) {
+                    if (capturedContentSize != null) capturedContentRevision.incrementAndGet()
+                    capturedContentSize = size
+                    onContentResize(size)
+                }
+            }, stoppedListener)
+        ) {
             Log.e(TAG, "Failed to start media projection")
             stoppedListener()
         }
@@ -115,16 +135,20 @@ class DisplayRecorder @Inject internal constructor(
 
         Log.i(TAG, "Start screen record with display size $displaySize")
 
+        val contentRevision = capturedContentRevision.get()
         imageReaderProxy.resize(displaySize)
         virtualDisplay = mediaProjectionProxy.createVirtualDisplay(
             displaySize = displaySize,
             densityDpi = context.resources.configuration.densityDpi,
             surface = imageReaderProxy.surface,
         )
+        if (virtualDisplay != null) readerGeometry = ReaderGeometry(displaySize, contentRevision)
     }
 
-    suspend fun resizeDisplay(displaySize: Point): Unit = mutex.withLock {
+    suspend fun resizeDisplay(displaySize: Point, sourceDisplaySize: Point = displaySize): Unit = mutex.withLock {
         val vDisplay = virtualDisplay ?: return
+        readerGeometry = null
+        val contentRevision = capturedContentRevision.get()
 
         Log.i(TAG, "Resizing virtual display to $displaySize")
 
@@ -135,6 +159,17 @@ class DisplayRecorder @Inject internal constructor(
             displaySize.y,
             context.resources.configuration.densityDpi,
         )
+        readerGeometry = ReaderGeometry(sourceDisplaySize, contentRevision)
+    }
+
+    fun isCaptureAreaIncompatible(): Boolean =
+        capturedContentSize?.let { it != displayConfigManager.displayConfig.sizePx } == true
+
+    fun isCaptureGeometryReady(): Boolean {
+        val displaySize = displayConfigManager.displayConfig.sizePx
+        val geometry = readerGeometry ?: return false
+        return geometry.displaySize == displaySize && geometry.contentRevision == capturedContentRevision.get() &&
+            (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE || capturedContentSize == displaySize)
     }
 
     suspend fun validateScreenCapture(): Boolean {
@@ -154,7 +189,8 @@ class DisplayRecorder @Inject internal constructor(
 
     /** @return the last image of the screen, or null if they have been processed. */
     suspend fun acquireLatestBitmap(): Bitmap? = mutex.withLock {
-        imageReaderProxy.getLastFrame()
+        if (!isCaptureGeometryReady()) return@withLock null
+        imageReaderProxy.getLastFrame()?.takeIf { isCaptureGeometryReady() }
     }
 
     suspend fun takeScreenshot(): Bitmap? {
@@ -162,7 +198,7 @@ class DisplayRecorder @Inject internal constructor(
         val startTimeMs: Long = System.currentTimeMillis()
 
         do {
-            result = imageReaderProxy.getLastFrame()
+            result = acquireLatestBitmap()
             if (result == null) delay(40.milliseconds)
 
         } while (result == null && System.currentTimeMillis() < (startTimeMs + SCREEN_CAPTURE_SCREENSHOT_TIMEOUT_MS))
@@ -176,6 +212,7 @@ class DisplayRecorder @Inject internal constructor(
      */
     suspend fun stopScreenRecord() = mutex.withLock {
         Log.d(TAG, "Stop screen record")
+        readerGeometry = null
 
         virtualDisplay?.apply {
             release()
@@ -197,6 +234,7 @@ class DisplayRecorder @Inject internal constructor(
 
         mutex.withLock {
             mediaProjectionProxy.stopMediaProjection()
+            capturedContentSize = null
         }
     }
 }

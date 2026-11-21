@@ -155,8 +155,11 @@ class LocalePluginExecutionActivity : ComponentActivity() {
                                 close()
                                 return@success
                             }
-                            viewModel.launchSmart(resultCode, data, action, autoRun = autoRun)
-                            close()
+                            lifecycleScope.launch {
+                                // Keep the consent initiator visible until the service is promoted.
+                                viewModel.launchSmart(resultCode, data, action, autoRun = autoRun)?.join()
+                                close()
+                            }
                         },
                         onFailure = {
                             directLaunchTracker.clearAwaitingProjection(currentRequestId)

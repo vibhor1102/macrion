@@ -82,8 +82,10 @@ class OverlayManager @Inject internal constructor(
     }
 
 
-    /** The listener upon screen rotation. */
-    private val orientationListener: (Context) -> Unit = { onOrientationChanged() }
+    private var lastDisplayOrientation: Int? = null
+
+    /** The listener for rotation and display resize. */
+    private val displayGeometryListener: (Context) -> Unit = { onDisplayGeometryChanged() }
 
     /** Contains all overlays, from root to top visible overlay. */
     private val overlayBackStack: LifoStack<Overlay> = LifoStack()
@@ -349,8 +351,9 @@ class OverlayManager @Inject internal constructor(
         // Get the current top overlay
         val currentOverlay: Overlay? =
             if (overlayBackStack.isEmpty()) {
-                // First item ? Start listening for orientation.
-                displayConfigManager.addOrientationListener(orientationListener)
+                // The first overlay establishes the orientation before listening for changes.
+                lastDisplayOrientation = displayConfigManager.displayConfig.orientation
+                displayConfigManager.addDisplayGeometryListener(displayGeometryListener)
                 null
             } else {
                 overlayBackStack.peek()
@@ -402,7 +405,8 @@ class OverlayManager @Inject internal constructor(
 
         // If there is no more overlays, no need to keep track of the orientation
         if (overlayBackStack.isEmpty()) {
-            displayConfigManager.removeOrientationListener(orientationListener)
+            displayConfigManager.removeDisplayGeometryListener(displayGeometryListener)
+            lastDisplayOrientation = null
         }
 
         executeNextNavigationRequest(context)
@@ -427,9 +431,13 @@ class OverlayManager @Inject internal constructor(
         isNavigating.value = null
     }
 
-    private fun onOrientationChanged() {
-        overlayBackStack.forEach { it.changeOrientation() }
-        topOverlay?.changeOrientation()
+    private fun onDisplayGeometryChanged() {
+        val orientation = displayConfigManager.displayConfig.orientation
+        val isRotation = lastDisplayOrientation != orientation
+        lastDisplayOrientation = orientation
+        val update: (Overlay) -> Unit = if (isRotation) Overlay::changeOrientation else Overlay::changeDisplaySize
+        overlayBackStack.forEach(update)
+        topOverlay?.let(update)
     }
 
     override fun dump(writer: PrintWriter, prefix: CharSequence) {

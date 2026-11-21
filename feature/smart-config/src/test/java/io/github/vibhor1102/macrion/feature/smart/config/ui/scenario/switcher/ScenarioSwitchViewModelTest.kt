@@ -148,15 +148,16 @@ private class TestProcessingRepository(
     override val canStartDetection: Flow<Boolean> = emptyFlow()
     override val detectionPhase = flowOf(io.github.vibhor1102.macrion.core.processing.domain.model.DetectionPhase.RECORDING)
     override val detectionStopSequence = MutableStateFlow(0L)
+    override val needsEntireScreenCapture = MutableStateFlow(false)
     override val screenshotRateLimitError: Flow<Int> = emptyFlow()
     override fun getScenarioId() = scenarioId.value
     override fun isRunning() = false
     override fun isDetectionActive() = false
     override fun isScreenRecordActive() = false
+    override fun canRequestDetection() = isScreenRecordActive()
     override fun isFullyStopped() = true
     override fun setScenarioId(identifier: Identifier, markAsUsed: Boolean) = Unit
     override suspend fun setScenarioIdAndMarkAsUsed(identifier: Identifier) = Unit
-    override fun setProjectionErrorHandler(handler: () -> Unit) = Unit
     override fun startScreenRecord(resultCode: Int, data: Intent) = Unit
     override suspend fun startDetection(context: Context, liveDebugging: Boolean, generateReport: Boolean, autoStopDuration: Duration?) = true
     override fun scheduleAutoStop(duration: Duration?) = Unit

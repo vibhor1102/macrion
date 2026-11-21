@@ -62,6 +62,8 @@ abstract class Overlay : LifecycleOwner, ViewModelStoreOwner, HasDefaultViewMode
     /** The device screen orientation have changed. */
     protected open fun onOrientationChanged() = Unit
 
+    protected open fun onDisplaySizeChanged() = Unit
+
     /**
      * Callback that allows an overlay to observe the key events before they are passed to the rest
      * of the system. This means that the events are first delivered here before they are passed to
@@ -99,6 +101,7 @@ abstract class Overlay : LifecycleOwner, ViewModelStoreOwner, HasDefaultViewMode
     internal abstract fun handleKeyEvent(keyEvent: KeyEvent): Boolean
     /** Change the orientation of the overlay. */
     internal abstract fun changeOrientation()
+    internal abstract fun changeDisplaySize()
 
     /**
      * Tag for tutorial monitoring.

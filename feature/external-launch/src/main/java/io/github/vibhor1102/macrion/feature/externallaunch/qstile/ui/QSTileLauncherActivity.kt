@@ -34,6 +34,8 @@ import io.github.vibhor1102.macrion.core.ui.errors.createNoMediaProjectionDialog
 import io.github.vibhor1102.macrion.feature.externallaunch.R
 
 import dagger.hilt.android.AndroidEntryPoint
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class QSTileLauncherActivity : ComponentActivity() {
@@ -132,8 +134,10 @@ class QSTileLauncherActivity : ComponentActivity() {
     }
 
     private fun launchScenario(resultCode: Int, data: Intent, scenarioId: Long) {
-        viewModel.launchSmartScenario(resultCode, data, scenarioId)
-        finish()
+        lifecycleScope.launch {
+            viewModel.launchSmartScenario(resultCode, data, scenarioId)
+            finish()
+        }
     }
 
     private fun showProjectionDeniedToast() {

@@ -423,6 +423,22 @@ class OverlayMenuTests {
     }
 
     @Test
+    fun sameOrientationResizeDoesNotSaveRotationPositionOrRecreateOverlay() {
+        val testController = OverlayMenuTestImpl(overlayMenuControllerImpl, recreateOverlayViewOnRotation = true)
+        mockViewsFromImpl(mock(ComposeOverlayMenuHost::class.java), mock(View::class.java))
+        testController.create(mockContext)
+        clearInvocations(mockSharedPrefs)
+
+        mockWhen(mockDisplayConfigManager.displayConfig).thenReturn(
+            DEFAULT_DISPLAY_CONFIG.copy(sizePx = Point(400, 600)),
+        )
+        testController.changeDisplaySize()
+
+        verify(mockSharedPrefs, never()).edit()
+        verify(overlayMenuControllerImpl, times(1)).onCreateOverlayView()
+    }
+
+    @Test
     fun changeOrientation_whenStopped_isDeferredUntilStart() {
         val testController = OverlayMenuTestImpl(overlayMenuControllerImpl, recreateOverlayViewOnRotation = true)
         val overlayView1 = mock(View::class.java)

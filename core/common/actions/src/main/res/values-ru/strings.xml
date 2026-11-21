@@ -20,4 +20,5 @@
     <string name="notification_scenario_channel_low_name">Низкий</string>
     <string name="notification_scenario_channel_default_name">Нормальный</string>
     <string name="notification_scenario_channel_high_name">Высокий</string>
+    <string name="toast_intent_action_failed">Macrion не удалось выполнить действие Intent. Проверьте действие и получателя.</string>
 </resources>

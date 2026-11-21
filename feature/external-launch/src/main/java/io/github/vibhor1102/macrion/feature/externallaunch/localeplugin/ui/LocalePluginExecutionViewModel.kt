@@ -24,6 +24,7 @@ import io.github.vibhor1102.macrion.feature.externallaunch.localeplugin.domain.R
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlinx.coroutines.Job
 
 @HiltViewModel
 internal class LocalePluginExecutionViewModel @Inject constructor(
@@ -70,7 +71,7 @@ internal class LocalePluginExecutionViewModel @Inject constructor(
         data: Intent,
         action: ResolvedLocalePluginAction.LaunchSmart,
         autoRun: Boolean = false,
-    ) =
+    ): Job? =
         executor.launchSmart(resultCode, data, action, autoRun = autoRun)
 
     fun executeStop() = executor.executeStop()

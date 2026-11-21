@@ -41,6 +41,8 @@ import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.*
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import org.robolectric.shadows.ShadowSystemClock
+import java.time.Duration
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
@@ -179,6 +181,34 @@ class GestureExecutorTests {
         guard.onTouchFinished(owner)
         advanceTimeBy(1_000)
         verify(service, never()).dispatchGesture(any(), any(), any())
+    }
+
+    @Test fun skipsGestureInvalidatedWhileWaitingForToolbar() = runTest {
+        val owner = Any()
+        guard.onTouchStarted(owner)
+        var valid = true
+        val pending = async { executor.dispatchGesture(service, gesture()) { valid } }
+        runCurrent()
+
+        valid = false
+        guard.onTouchFinished(owner)
+        ShadowSystemClock.advanceBy(Duration.ofMillis(150))
+
+        assertEquals(GestureDispatchResult.SKIPPED, pending.await())
+        verify(service, never()).dispatchGesture(any(), any(), any())
+    }
+
+    @Test fun skipsRetryIfCoordinatesBecomeInvalidDuringRecovery() = runTest {
+        `when`(service.dispatchGesture(any(), any(), any())).thenReturn(false)
+        var valid = true
+        val pending = async { executor.dispatchGesture(service, gesture()) { valid } }
+        runCurrent()
+        verify(service, times(1)).dispatchGesture(any(), any(), any())
+
+        valid = false
+
+        assertEquals(GestureDispatchResult.SKIPPED, pending.await())
+        verify(service, times(1)).dispatchGesture(any(), any(), any())
     }
 
     @Test fun retryRemainsPendingWhileToolbarIsHeld() = runTest {

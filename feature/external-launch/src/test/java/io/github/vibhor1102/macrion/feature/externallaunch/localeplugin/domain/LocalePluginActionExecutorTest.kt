@@ -74,6 +74,7 @@ class LocalePluginActionExecutorTest {
         assertTrue(action is ResolvedLocalePluginAction.LaunchSmart)
         assertSame(scenario, (action as ResolvedLocalePluginAction.LaunchSmart).scenario)
         val projectionData = mockk<Intent>()
+        every { externalLaunchRepository.replaceSmartScenario(RESULT_OK, projectionData, scenario, autoStart = false) } returns null
         executor.launchSmart(RESULT_OK, projectionData, action)
         verify(exactly = 1) {
             externalLaunchRepository.replaceSmartScenario(RESULT_OK, projectionData, scenario, autoStart = false)
@@ -85,6 +86,7 @@ class LocalePluginActionExecutorTest {
         val scenario = mockk<Scenario>()
         val action = ResolvedLocalePluginAction.LaunchSmart(scenario)
         val projectionData = mockk<Intent>()
+        every { externalLaunchRepository.replaceSmartScenario(RESULT_OK, projectionData, scenario, autoStart = true) } returns null
         executor.launchSmart(RESULT_OK, projectionData, action, autoRun = true)
         verify(exactly = 1) {
             externalLaunchRepository.replaceSmartScenario(RESULT_OK, projectionData, scenario, autoStart = true)

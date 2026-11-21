@@ -20,6 +20,7 @@ package io.github.vibhor1102.macrion.feature.externallaunch.domain
 import android.content.Intent
 import io.github.vibhor1102.macrion.core.domain.model.scenario.Scenario
 import io.github.vibhor1102.macrion.core.dumb.domain.model.DumbScenario
+import kotlinx.coroutines.Job
 
 interface ExternalLaunchActionHandler {
     fun isRunning(): Boolean
@@ -33,7 +34,7 @@ interface ExternalLaunchActionHandler {
     fun launchDumbScenario(dumbScenario: DumbScenario)
     fun launchSmartScenario(resultCode: Int, data: Intent, scenario: Scenario)
     fun replaceDumbScenario(dumbScenario: DumbScenario)
-    fun replaceSmartScenario(resultCode: Int, data: Intent, scenario: Scenario, autoStart: Boolean = false)
+    fun replaceSmartScenario(resultCode: Int, data: Intent, scenario: Scenario, autoStart: Boolean = false): Job?
     fun replaceSmartScenarioWithCurrentProjection(scenario: Scenario)
     fun runCurrentScenario()
     fun stop()

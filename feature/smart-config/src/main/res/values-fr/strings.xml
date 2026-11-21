@@ -636,4 +636,5 @@
     <string name="coordinate_right">Droite</string>
     <string name="coordinate_top">Haut</string>
     <string name="coordinate_bottom">Bas</string>
+    <string name="toast_capture_requires_entire_screen">La capture a été arrêtée, car la zone partagée a changé. Autorisez la capture de tout l’écran pour continuer.</string>
 </resources>

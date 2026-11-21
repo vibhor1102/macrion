@@ -23,6 +23,7 @@ import androidx.core.graphics.get
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 
+import io.github.vibhor1102.macrion.core.processing.domain.SmartProcessingRepository
 import io.github.vibhor1102.macrion.core.base.di.Dispatcher
 import io.github.vibhor1102.macrion.core.base.di.HiltCoroutineDispatchers.Main
 import io.github.vibhor1102.macrion.core.base.di.HiltCoroutineDispatchers.IO
@@ -50,6 +51,7 @@ class ColorCaptureViewModel @Inject constructor(
     @param:Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
     private val displayConfigManager: DisplayConfigManager,
     private val displayRecorder: DisplayRecorder,
+    private val smartProcessingRepository: SmartProcessingRepository,
     private val monitoredViewsManager: MonitoredViewsManager,
 ) : ViewModel() {
 
@@ -58,6 +60,8 @@ class ColorCaptureViewModel @Inject constructor(
     private val _uiState: MutableStateFlow<ColorCaptureUiState> = MutableStateFlow(screenshotSelectionState())
     val uiState: StateFlow<ColorCaptureUiState> = _uiState
 
+
+    fun needsScreenCapture(): Boolean = smartProcessingRepository.isFullyStopped()
 
     fun getPixelSelection(): Pair<PointF, Int>? {
         val pixelSelectionState = uiState.value.pixelSelectionUiState ?: return null
