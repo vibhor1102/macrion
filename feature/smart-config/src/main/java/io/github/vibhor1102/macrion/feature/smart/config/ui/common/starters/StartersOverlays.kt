@@ -26,6 +26,7 @@ import io.github.vibhor1102.macrion.core.base.data.getOpenWebBrowserIntent
 import io.github.vibhor1102.macrion.core.base.data.getOpenWebBrowserPickerIntent
 import io.github.vibhor1102.macrion.core.common.overlays.manager.OverlayManager
 import io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.ActivityStarterOverlayMenu
+import java.util.UUID
 
 
 internal fun newWebBrowserStarterOverlay(uri: Uri) = ActivityStarterOverlayMenu(
@@ -42,8 +43,15 @@ fun OverlayManager.requestScreenCapture(context: Context) {
     )
 }
 
-private class ScreenCaptureStarterOverlay(context: Context) :
-    ActivityStarterOverlayMenu(RestartMediaProjectionActivity.getStartIntent(context))
+internal fun OverlayManager.ownsScreenCaptureRequest(requestId: String?): Boolean {
+    val starter = getBackStackTop() as? ScreenCaptureStarterOverlay ?: return false
+    return starter.requestId == requestId && isCurrentOverlay(starter)
+}
+
+private class ScreenCaptureStarterOverlay(
+    context: Context,
+    val requestId: String = UUID.randomUUID().toString(),
+) : ActivityStarterOverlayMenu(RestartMediaProjectionActivity.getStartIntent(context, requestId))
 
 internal fun newNotificationPermissionStarterOverlay(context: Context) = ActivityStarterOverlayMenu(
     intent = RequestNotificationPermissionActivity.getStartIntent(context)

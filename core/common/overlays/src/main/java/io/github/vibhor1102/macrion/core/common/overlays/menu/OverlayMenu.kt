@@ -128,10 +128,8 @@ abstract class OverlayMenu(
     private var pendingOrientationChange: Boolean = false
     private var lastAppliedOrientation: Int = Configuration.ORIENTATION_UNDEFINED
 
-    internal var resumeOnceShown: Boolean = false
-        private set
-    internal var destroyOnceHidden: Boolean = false
-        private set
+    private var resumeOnceShown = false
+    private var destroyOnceHidden = false
 
     /** The Android window manager. Used to add/remove the overlay menu and view. */
     private lateinit var windowManager: WindowManager
@@ -335,6 +333,28 @@ abstract class OverlayMenu(
         }
     }
 
+    private var startOnAttachPending = false
+    private val startOnAttach = Runnable {
+        if (startOnAttachPending) {
+            startOnAttachPending = false
+            start()
+        }
+    }
+
+    internal val stateToRestoreAfterHide: Lifecycle.State
+        get() = when {
+            destroyOnceHidden -> Lifecycle.State.DESTROYED
+            resumeOnceShown -> Lifecycle.State.RESUMED
+            startOnAttachPending -> Lifecycle.State.STARTED
+            else -> lifecycle.currentState
+        }
+
+    private fun cancelPendingStart() {
+        if (startOnAttachPending) menuLayout.removeCallbacks(startOnAttach)
+        startOnAttachPending = false
+        resumeOnceShown = false
+    }
+
     final override fun start() {
         if (lifecycle.currentState != Lifecycle.State.CREATED) return
         if (animations.showAnimationIsRunning) return
@@ -343,8 +363,16 @@ abstract class OverlayMenu(
         // that attachment is complete, while the show animation immediately measures its target.
         // Unattached ComposeView children cannot resolve a window recomposer during that measure.
         if (!menuLayout.isAttachedToWindow) {
-            menuLayout.post(::start)
+            if (!startOnAttachPending) {
+                startOnAttachPending = true
+                menuLayout.post(startOnAttach)
+            }
             return
+        }
+
+        if (startOnAttachPending) {
+            menuLayout.removeCallbacks(startOnAttach)
+            startOnAttachPending = false
         }
 
         val currentOrientation = displayConfigManager.displayConfig.orientation
@@ -358,7 +386,10 @@ abstract class OverlayMenu(
         super.start()
         if (!isMenuTucked) loadMenuPosition(currentOrientation)
 
-        // Start the show animation for the menu
+        showMenuViews()
+    }
+
+    private fun showMenuViews() {
         Log.d(TAG, "Start show overlay ${hashCode()} animation...")
 
         val animatedOverlayView = if (animateOverlayView()) screenOverlayView else null
@@ -387,7 +418,13 @@ abstract class OverlayMenu(
                 return
             }
         }
-        if (lifecycle.currentState != Lifecycle.State.STARTED) return
+        if (lifecycle.currentState != Lifecycle.State.STARTED || destroyOnceHidden) return
+
+        // A child dialog can close while navigation is still fading out the parent toolbar.
+        if (animations.hideAnimationIsRunning) {
+            wasTuckedBeforeStop = false
+            showMenuViews()
+        }
 
         if (animations.showAnimationIsRunning) {
             Log.d(TAG, "Show overlay ${hashCode()} animation is running, delaying resume...")
@@ -401,14 +438,11 @@ abstract class OverlayMenu(
     }
 
     final override fun hide() {
-        if (!isMenuTucked || destroyOnceHidden) {
-            super.hide()
-            return
-        }
-        if (!lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) return
+        if (destroyOnceHidden) return
+        cancelPendingStart()
 
-        // A stack hide is temporary. Keep the docked tab and commit the hide before
-        // Android can request a restore while the screen is waking up.
+        // Commit temporary stack hides synchronously so a restore cannot race a fade-out.
+        // Keep a tucked tab at its saved position.
         if (isTuckedDragging) {
             val host = menuLayout as ComposeOverlayMenuHost
             val tabWidth = (24 * scaledDensity).roundToInt()
@@ -419,7 +453,6 @@ abstract class OverlayMenu(
         }
         clearTuckedDrag()
         animations.cancel()
-        resumeOnceShown = false
         hideMenuViews()
         super.stop()
     }
@@ -438,6 +471,7 @@ abstract class OverlayMenu(
     }
 
     final override fun stop() {
+        cancelPendingStart()
         if (!lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) return
         clearTuckedDrag()
         if (animations.hideAnimationIsRunning) return
@@ -474,6 +508,7 @@ abstract class OverlayMenu(
 
     final override fun destroy() {
         if (!lifecycle.currentState.isAtLeast(Lifecycle.State.CREATED)) return
+        cancelPendingStart()
         clearTuckedDrag()
         if (lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) stop()
 

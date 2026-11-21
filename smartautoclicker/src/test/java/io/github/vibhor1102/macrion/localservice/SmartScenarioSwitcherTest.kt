@@ -153,11 +153,14 @@ class SmartScenarioSwitcherTest {
     }
 
     @Test
-    fun `service stop during persistence keeps the successful switch but skips the callback`() = runTest {
-        processingRepository.onMarkAsUsed = { serviceAvailable = false }
+    fun `service stop during persistence rejects the switch and skips the callback`() = runTest {
+        processingRepository.onMarkAsUsed = {
+            serviceAvailable = false
+            processingRepository.stopScreenRecord()
+        }
 
-        assertEquals(ScenarioSwitchResult.Success, switcher.switchTo(targetScenario))
-        assertEquals(targetScenario.id, processingRepository.getScenarioId())
+        assertEquals(ScenarioSwitchResult.ServiceUnavailable, switcher.switchTo(targetScenario))
+        assertEquals(null, processingRepository.getScenarioId())
         assertEquals(emptyList<Scenario>(), changedScenarios)
     }
 
@@ -211,16 +214,19 @@ private class TestProcessingRepository(initialScenarioId: Identifier) : SmartPro
     override fun canRequestDetection() = isScreenRecordActive()
     override fun isFullyStopped() = detectionStateValue.value == DetectionState.INACTIVE
     override fun setScenarioId(identifier: Identifier, markAsUsed: Boolean) { scenarioIdValue.value = identifier }
-    override suspend fun setScenarioIdAndMarkAsUsed(identifier: Identifier) {
+    override suspend fun setScenarioIdAndMarkAsUsed(expectedScenario: Identifier, identifier: Identifier): Boolean {
         onMarkAsUsed()
         markedAsUsed += identifier
-        scenarioIdValue.value = identifier
+        return scenarioIdValue.compareAndSet(expectedScenario, identifier)
     }
     override fun startScreenRecord(resultCode: Int, data: Intent) { startScreenRecordCalls++ }
     override suspend fun startDetection(context: Context, liveDebugging: Boolean, generateReport: Boolean, autoStopDuration: Duration?) = true
     override fun scheduleAutoStop(duration: Duration?) = Unit
     override fun stopDetection() = Unit
-    override fun stopScreenRecord() { stopScreenRecordCalls++ }
+    override fun stopScreenRecord() {
+        stopScreenRecordCalls++
+        scenarioIdValue.value = null
+    }
     override suspend fun tryEvent(context: Context, scenario: Scenario, event: ScreenEvent) = Unit
     override suspend fun tryScreenCondition(context: Context, scenario: Scenario, condition: ScreenCondition) = Unit
     override suspend fun tryAction(context: Context, scenario: Scenario, action: Action) = Unit

@@ -116,7 +116,23 @@ class FullscreenOverlayTests {
     }
 
     @Test
+    fun destroyRemovesPendingWindowBeforeDestroyingLifecycle() {
+        overlay.create(mockContext)
+        overlay.start()
+        Mockito.doAnswer {
+            Assert.assertEquals(Lifecycle.State.CREATED, overlay.lifecycle.currentState)
+            null
+        }.`when`(mockWindowManager).removeViewImmediate(mockView)
+
+        overlay.destroy()
+
+        Mockito.verify(mockWindowManager).removeViewImmediate(mockView)
+        Assert.assertEquals(Lifecycle.State.DESTROYED, overlay.lifecycle.currentState)
+    }
+
+    @Test
     fun stop() {
+        Mockito.`when`(mockView.isAttachedToWindow).thenReturn(true)
         overlay.create(mockContext)
         overlay.start()
         Mockito.clearInvocations(overlayControllerImpl)

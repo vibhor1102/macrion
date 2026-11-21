@@ -40,9 +40,12 @@ class RestartMediaProjectionActivity : ComponentActivity() {
 
     companion object {
 
-        fun getStartIntent(context: Context): Intent =
+        private const val EXTRA_REQUEST_ID = "projectionRequestId"
+
+        internal fun getStartIntent(context: Context, requestId: String): Intent =
             Intent(context, RestartMediaProjectionActivity::class.java)
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                .putExtra(EXTRA_REQUEST_ID, requestId)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
     }
 
     private val viewModel: RestartMediaProjectionViewModel by viewModels()
@@ -55,6 +58,11 @@ class RestartMediaProjectionActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (!ownsRequest()) {
+            finish()
+            return
+        }
+
         setContentView(FrameLayout(this).apply { setBackgroundColor(Color.TRANSPARENT) })
 
         mediaProjectionRequest.registerForActivityResult(this)
@@ -77,13 +85,21 @@ class RestartMediaProjectionActivity : ComponentActivity() {
         super.onSaveInstanceState(outState)
     }
 
+    private fun ownsRequest(): Boolean =
+        !isFinishing && overlayManager.ownsScreenCaptureRequest(intent.getStringExtra(EXTRA_REQUEST_ID))
+
     private fun finishActivity() {
         if (isFinishing) return
-        overlayManager.navigateUp(this)
+        if (ownsRequest()) overlayManager.navigateUp(this)
         finish()
     }
 
     private fun restartScreenRecord(resultCode: Int, data: Intent) {
+        if (!ownsRequest()) {
+            finish()
+            return
+        }
+
         Log.i(TAG, "Media projection permission granted, restart recording")
         viewModel.restartScreenRecord(resultCode, data)
         finishActivity()
@@ -91,12 +107,14 @@ class RestartMediaProjectionActivity : ComponentActivity() {
 
     private fun showProjectionDeniedToast() {
         Log.i(TAG, "Media projection permission rejected")
-        Toast.makeText(this, R.string.toast_denied_screen_sharing_permission, Toast.LENGTH_SHORT).show()
+        if (ownsRequest()) {
+            Toast.makeText(this, R.string.toast_denied_screen_sharing_permission, Toast.LENGTH_SHORT).show()
+        }
         finishActivity()
     }
 
     private fun showUnsupportedDeviceDialog() {
-        createNoMediaProjectionDialog { finishActivity() }.show()
+        if (ownsRequest()) createNoMediaProjectionDialog { finishActivity() }.show() else finish()
     }
 }
 

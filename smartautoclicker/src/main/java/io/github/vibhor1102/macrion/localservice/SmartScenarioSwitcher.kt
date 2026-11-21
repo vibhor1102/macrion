@@ -73,15 +73,20 @@ internal class SmartScenarioSwitcher(
             try {
                 // This is the only usage-marking call for a switch. It completes before Success is returned and
                 // leaves the active screen projection untouched.
-                smartProcessingRepository.setScenarioIdAndMarkAsUsed(storedScenario.id)
+                if (!smartProcessingRepository.setScenarioIdAndMarkAsUsed(currentScenarioId, storedScenario.id)) {
+                    return@transitionLock if (!isServiceAvailable() || serviceSessionId() != switchingSessionId) {
+                        ScenarioSwitchResult.ServiceUnavailable
+                    } else {
+                        validatePausedRecordingState() ?: ScenarioSwitchResult.InvalidProcessingState
+                    }
+                }
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Exception) {
                 return@transitionLock ScenarioSwitchResult.PersistenceFailure
             }
 
-            // A service stop can race the final persistence call. The scenario and its usage have already been saved,
-            // so report that successful choice accurately, but do not send callbacks into a torn-down service.
+            // The switch committed while the recording was current. The service may have stopped since then.
             if (isServiceAvailable() && serviceSessionId() == switchingSessionId) {
                 try {
                     onScenarioChanged(storedScenario)

@@ -157,7 +157,7 @@ private class TestProcessingRepository(
     override fun canRequestDetection() = isScreenRecordActive()
     override fun isFullyStopped() = true
     override fun setScenarioId(identifier: Identifier, markAsUsed: Boolean) = Unit
-    override suspend fun setScenarioIdAndMarkAsUsed(identifier: Identifier) = Unit
+    override suspend fun setScenarioIdAndMarkAsUsed(expectedScenario: Identifier, identifier: Identifier) = true
     override fun startScreenRecord(resultCode: Int, data: Intent) = Unit
     override suspend fun startDetection(context: Context, liveDebugging: Boolean, generateReport: Boolean, autoStopDuration: Duration?) = true
     override fun scheduleAutoStop(duration: Duration?) = Unit

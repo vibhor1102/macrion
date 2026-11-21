@@ -50,6 +50,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mock
 import org.mockito.Mockito.*
@@ -307,6 +308,66 @@ class OverlayMenuTests {
         val wmAddedView = captureWindowManagerAddedMenuView(mockWindowManager)
         assertEquals("X position should be restored", 84, wmAddedView.params.x)
         assertEquals("Y position should remain on the top edge", 0, wmAddedView.params.y)
+    }
+
+    @Test
+    fun hideCancelsPendingResumeAndPreservesTheStateToRestore() {
+        val menuView = mock(ComposeOverlayMenuHost::class.java)
+        mockViewsFromImpl(menuView)
+        mockWhen(menuView.isAttachedToWindow).thenReturn(false)
+        val menu = OverlayMenuTestImpl(overlayMenuControllerImpl)
+        menu.create(mockContext)
+        menu.resume()
+
+        val posted = ArgumentCaptor.forClass(Runnable::class.java)
+        verify(menuView).post(posted.capture())
+        assertEquals(Lifecycle.State.RESUMED, menu.stateToRestoreAfterHide)
+
+        menu.hide()
+        verify(menuView).removeCallbacks(posted.value)
+        mockWhen(menuView.isAttachedToWindow).thenReturn(true)
+        posted.value.run()
+
+        assertEquals(Lifecycle.State.CREATED, menu.lifecycle.currentState)
+        verify(overlayMenuControllerImpl, never()).onShow()
+
+        menu.resume()
+        verify(overlayMenuControllerImpl).onShow()
+    }
+
+    @Test
+    fun temporaryHideOfExpandedToolbarCommitsBeforeRestore() {
+        val menuView = mock(ComposeOverlayMenuHost::class.java)
+        mockViewsFromImpl(menuView)
+        val menu = OverlayMenuTestImpl(overlayMenuControllerImpl)
+        menu.create(mockContext)
+        menu.resume()
+        menu.finishShowAnimationForTest()
+
+        menu.hide()
+        assertEquals(Lifecycle.State.CREATED, menu.lifecycle.currentState)
+        verify(menuView, atLeastOnce()).visibility = View.GONE
+
+        menu.resume()
+        assertEquals(Lifecycle.State.STARTED, menu.lifecycle.currentState)
+        verify(overlayMenuControllerImpl, times(2)).onShow()
+    }
+
+    @Test
+    fun resumeReversesThePendingNavigationHide() {
+        val menuView = mock(ComposeOverlayMenuHost::class.java)
+        mockViewsFromImpl(menuView)
+        val menu = OverlayMenuTestImpl(overlayMenuControllerImpl)
+        menu.create(mockContext)
+        menu.resume()
+        menu.finishShowAnimationForTest()
+        menu.stop()
+        clearInvocations(menuView)
+
+        menu.resume()
+
+        verify(menuView, atLeastOnce()).visibility = View.VISIBLE
+        assertEquals(Lifecycle.State.RESUMED, menu.stateToRestoreAfterHide)
     }
 
     @Test

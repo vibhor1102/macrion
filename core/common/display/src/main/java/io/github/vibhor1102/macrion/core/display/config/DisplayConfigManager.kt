@@ -38,6 +38,7 @@ import io.github.vibhor1102.macrion.core.base.addDumpTabulationLvl
 import dagger.hilt.android.qualifiers.ApplicationContext
 
 import java.io.PrintWriter
+import java.util.concurrent.CopyOnWriteArraySet
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -59,7 +60,7 @@ class DisplayConfigManager @Inject constructor(
     private val display = displayManager.getDisplay(0)
 
     /** The listeners for display size and orientation changes. */
-    private val geometryListeners: MutableSet<((Context) -> Unit)> = mutableSetOf()
+    private val geometryListeners = CopyOnWriteArraySet<(Context) -> Unit>()
 
     /** Listen to display changes directly from DisplayManager for near-instant orientation detection. */
     private val displayListener = object : DisplayManager.DisplayListener {
@@ -132,7 +133,7 @@ class DisplayConfigManager @Inject constructor(
             displayConfig.sizePx != newConfigPatched.sizePx
         displayConfig = newConfigPatched
 
-        if (geometryChanged) geometryListeners.toList().forEach { it.invoke(context) }
+        if (geometryChanged) geometryListeners.forEach { it.invoke(context) }
     }
 
     private fun getCurrentDisplayConfig(): DisplayConfig =

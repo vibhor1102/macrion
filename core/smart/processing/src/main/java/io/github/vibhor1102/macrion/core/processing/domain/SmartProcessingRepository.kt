@@ -85,12 +85,10 @@ interface SmartProcessingRepository : Dumpable {
     fun setScenarioId(identifier: Identifier, markAsUsed: Boolean = false)
 
     /**
-     * Persist usage and set the current scenario as one operation.
-     *
-     * This is used for scenario changes where reporting success before the usage count has been saved would be
-     * misleading to the user.
+     * Persist usage, then select [identifier] only if the same paused recording still owns [expectedScenario].
+     * Returns false if a stop or another scenario change invalidates the switch.
      */
-    suspend fun setScenarioIdAndMarkAsUsed(identifier: Identifier)
+    suspend fun setScenarioIdAndMarkAsUsed(expectedScenario: Identifier, identifier: Identifier): Boolean
 
     /**
      * Set the callback upon Android Media Projection errors.

@@ -99,6 +99,7 @@ internal class SmartProcessingRepositoryImpl @Inject constructor(
     private var autoStopJob: Job? = null
     private val detectionSessionLock = Any()
     private var detectionSessionId = 0L
+    private var scenarioRevision = 0L
 
     private val _scenarioId: MutableStateFlow<Identifier?> = MutableStateFlow(null)
     override val scenarioId: StateFlow<Identifier?> = _scenarioId
@@ -143,20 +144,38 @@ internal class SmartProcessingRepositoryImpl @Inject constructor(
     }
 
     override fun setScenarioId(identifier: Identifier, markAsUsed: Boolean) {
-        _scenarioId.value = identifier
+        synchronized(detectionSessionLock) {
+            scenarioRevision++
+            _scenarioId.value = identifier
+        }
 
         if (markAsUsed) {
             coroutineScopeIo.launch { scenarioRepository.markAsUsed(identifier) }
         }
     }
 
-    override suspend fun setScenarioIdAndMarkAsUsed(identifier: Identifier): Unit = withContext(NonCancellable) {
-        // Persist before exposing the new scenario as loaded. This makes a successful switch mean that its usage
-        // count and last-used timestamp have already been accepted by the database. Once that transaction begins,
-        // complete the in-memory part too: cancelling between the two would otherwise record a use for a scenario
-        // that was never made current.
-        scenarioRepository.markAsUsed(identifier)
-        _scenarioId.value = identifier
+    override suspend fun setScenarioIdAndMarkAsUsed(
+        expectedScenario: Identifier,
+        identifier: Identifier,
+    ): Boolean {
+        val revision = synchronized(detectionSessionLock) {
+            if (_scenarioId.value != expectedScenario || detectorEngine.state.value != DetectorState.RECORDING) {
+                return false
+            }
+            scenarioRevision
+        }
+
+        return withContext(NonCancellable) {
+            scenarioRepository.markAsUsed(identifier)
+            synchronized(detectionSessionLock) {
+                if (scenarioRevision != revision || detectorEngine.state.value != DetectorState.RECORDING) {
+                    return@synchronized false
+                }
+                scenarioRevision++
+                _scenarioId.value = identifier
+                true
+            }
+        }
     }
 
     override fun getScenarioId(): Identifier? = _scenarioId.value
@@ -249,9 +268,9 @@ internal class SmartProcessingRepositoryImpl @Inject constructor(
             autoStopJob?.cancel()
             autoStopJob = null
             detectorEngine.stopScreenRecord()
+            scenarioRevision++
+            _scenarioId.value = null
         }
-
-        _scenarioId.value = null
     }
 
     override suspend fun tryEvent(context: Context, scenario: Scenario, event: ScreenEvent) {

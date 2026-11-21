@@ -94,6 +94,7 @@ abstract class FullscreenOverlay(@StyleRes theme: Int? = null) : BaseOverlay(the
 
     @CallSuper
     override fun onStop() {
-        windowManager.safeRemoveView(view)
+        showAnimator.cancel()
+        windowManager.safeRemoveView(view, immediate = !view.isAttachedToWindow)
     }
 }

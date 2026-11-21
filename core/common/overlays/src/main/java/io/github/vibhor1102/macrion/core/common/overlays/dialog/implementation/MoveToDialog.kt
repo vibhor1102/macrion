@@ -157,9 +157,11 @@ class MoveToDialog(
                     false
                 }
             }
-            setOnDismissListener {
-                dialog = null
-                destroy()
+            setOnDismissListener { dismissedDialog ->
+                if (dialog === dismissedDialog) {
+                    dialog = null
+                    destroy()
+                }
             }
             create()
             window?.apply {
@@ -199,6 +201,7 @@ class MoveToDialog(
     }
 
     override fun onDestroy() {
+        dialog?.setOnDismissListener(null)
         dialog?.dismiss()
         dialog = null
     }

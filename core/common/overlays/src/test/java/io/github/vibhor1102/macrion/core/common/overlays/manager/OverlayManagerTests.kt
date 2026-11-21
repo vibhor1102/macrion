@@ -106,6 +106,21 @@ class OverlayManagerTests {
         Mockito.`when`(this.lifecycle).thenReturn(lifecycle)
     }
 
+    @Test fun anOverlayLosesOwnershipAsSoonAsTeardownStarts() {
+        mockOverlay1.withLifecycle()
+        overlayManager.navigateTo(mockContext, mockOverlay1)
+        mockOverlay1.setupDismissMock()
+        mockOverlay2.withLifecycle()
+        overlayManager.navigateTo(mockContext, mockOverlay2)
+        Assert.assertTrue(overlayManager.isCurrentOverlay(mockOverlay2))
+
+        // Leave the top overlay's asynchronous destruction pending.
+        overlayManager.navigateUp(mockContext)
+        Assert.assertSame(mockOverlay2, overlayManager.getBackStackTop())
+        Assert.assertFalse(overlayManager.isCurrentOverlay(mockOverlay2))
+        Assert.assertFalse(overlayManager.isCurrentOverlay(mockOverlay1))
+    }
+
     @Test fun lockingHidesAndUnlockingRestoresStackAndFullscreenOverlay() {
         mockOverlay1.withLifecycle()
         overlayManager.navigateTo(mockContext, mockOverlay1)

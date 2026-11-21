@@ -132,6 +132,10 @@ class OverlayManager @Inject internal constructor(
     fun getBackStackTop(): Overlay? =
         overlayBackStack.top
 
+    /** Whether [overlay] still owns the top of the stack and no navigation is in progress. */
+    fun isCurrentOverlay(overlay: Overlay): Boolean =
+        isNavigating.value == null && overlayBackStack.top === overlay
+
     /** Whether no overlay from a previous scenario session remains. */
     fun isEmpty(): Boolean = topOverlay == null && overlayBackStack.isEmpty()
 
