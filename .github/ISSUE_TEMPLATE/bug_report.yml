@@ -11,12 +11,14 @@ body:
     validations:
       required: true
 
-  - type: input
+  - type: dropdown
     id: installation
     attributes:
       label: Installation source
       description: Where did you install Macrion from?
-      placeholder: F-Droid, GitHub, or another source
+      options:
+        - GitHub
+        - F-Droid
     validations:
       required: false
 
