@@ -79,7 +79,7 @@ jobs:
           find output/rec -maxdepth 1 -name "*.zip" -exec cp {} dist/ \;
 
       - name: Publish release assets
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: dist/*
           tag_name: ${{ steps.tag.outputs.name }}
