@@ -45,9 +45,9 @@ fun WindowManager.safeUpdateViewLayout(view: View, params: WindowManager.LayoutP
     }
 }
 
-fun WindowManager.safeRemoveView(view: View) {
+fun WindowManager.safeRemoveView(view: View, immediate: Boolean = false) {
     try {
-        removeView(view)
+        if (immediate) removeViewImmediate(view) else removeView(view)
     } catch (_: IllegalArgumentException) {}
 }
 

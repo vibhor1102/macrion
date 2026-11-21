@@ -490,8 +490,9 @@ abstract class OverlayMenu(
             saveMenuPosition(displayConfigManager.displayConfig.orientation)
         }
 
-        windowManager.safeRemoveView(menuLayout)
-        screenOverlayView?.let { windowManager.safeRemoveView(it) }
+        // Cancel pending attachments before destroying the lifecycle Compose observes on attach.
+        windowManager.safeRemoveView(menuLayout, immediate = !menuLayout.isAttachedToWindow)
+        screenOverlayView?.let { windowManager.safeRemoveView(it, immediate = !it.isAttachedToWindow) }
         screenOverlayView = null
 
         animations.release()

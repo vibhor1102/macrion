@@ -485,11 +485,33 @@ class OverlayMenuTests {
     }
 
     @Test
+    fun destroy_removesPendingWindowsBeforeDestroyingLifecycle() {
+        overlayMenuController = OverlayMenuTestImpl(overlayMenuControllerImpl)
+        val menuView = mock(ComposeOverlayMenuHost::class.java)
+        val overlayView = mock(View::class.java)
+        mockViewsFromImpl(menuView, overlayView)
+        mockWhen(menuView.isAttachedToWindow).thenReturn(false)
+        overlayMenuController.create(mockContext)
+
+        doAnswer {
+            assertEquals(Lifecycle.State.CREATED, overlayMenuController.lifecycle.currentState)
+            null
+        }.`when`(mockWindowManager).removeViewImmediate(any(View::class.java))
+
+        overlayMenuController.destroy()
+
+        verify(mockWindowManager).removeViewImmediate(menuView)
+        verify(mockWindowManager).removeViewImmediate(overlayView)
+        assertEquals(Lifecycle.State.DESTROYED, overlayMenuController.lifecycle.currentState)
+    }
+
+    @Test
     fun destroy_removeAllViews() {
         overlayMenuController = OverlayMenuTestImpl(overlayMenuControllerImpl)
         val menuView = mock(ComposeOverlayMenuHost::class.java)
         val overlayView = mock(View::class.java)
         mockViewsFromImpl(menuView, overlayView)
+        mockWhen(overlayView.isAttachedToWindow).thenReturn(true)
         overlayMenuController.create(mockContext)
 
         overlayMenuController.destroy()
