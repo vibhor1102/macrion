@@ -60,6 +60,11 @@ class SettingsActivity : ComponentActivity() {
     private fun createBugReportUrl(): String = BUG_REPORT_URL.toUri().buildUpon()
         .appendQueryParameter("template", BUG_REPORT_TEMPLATE)
         .appendQueryParameter("app-version", BuildConfig.VERSION_NAME)
+        .apply {
+            detectInstallationSource(this@SettingsActivity, allowSideloadGuess = false).displayName?.let { source ->
+                appendQueryParameter("installation", source)
+            }
+        }
         .appendQueryParameter("device-type", "${Build.MANUFACTURER} ${Build.MODEL}".trim())
         .appendQueryParameter("android-version", "${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT})")
         .build()

@@ -1,49 +1,19 @@
 # Macrion
 
-Macrion is an open-source Android automation app that can react to what is visible on screen and perform actions for you. It supports image-aware scenarios as well as straightforward, position-based auto-clicking.
+Macrion is an open-source Android automation app. Use **Smart scenarios** to react to images, text, colors, or device events. Use **Simple scenarios** to repeat taps and swipes at fixed positions.
 
-Macrion is derived from [Klick'r](https://github.com/Nain57/Smart-AutoClicker), created by Kevin Buzeau and its contributors. It is now developed as an independent app with its own package name, releases, and direction.
+[Get it on F-Droid](https://f-droid.org/packages/io.github.vibhor1102.macrion/) · [Download an APK from GitHub](https://github.com/vibhor1102/macrion/releases/latest) · [Read the docs](https://vibhor1102.github.io/macrion/)
 
-> [!WARNING]
-> Macrion is currently an early release. Back up important scenarios before upgrading, and expect some inherited Klick'r wording or structure while the migration continues.
+Macrion runs on Android 7.0 and later. If you're downloading an APK and aren't sure which one to choose, use the universal APK.
 
-## Features
+## Klick'r compatibility and what's next
 
-- Automate clicks, long presses, and swipes.
-- Detect images and screen states before taking action.
-- Build regular, position-based auto-clicking scenarios.
-- Use counters, timers, flow control, Android intents, and broadcast triggers.
-- Launch and control scenarios from compatible external automation apps.
-- Export and import scenario backups, including a Klick'r-compatible export option.
-- Generate Debug Reports with condition-performance information.
+Macrion is an independent project built on [Klick'r](https://github.com/Nain57/Smart-AutoClicker) by Kevin Buzeau and its contributors. Current releases aim to keep familiar workflows and backup compatibility. Macrion imports supported Klick'r backups and shows what would be omitted or changed before exporting a Klick'r-compatible copy.
 
-## Installation
+Longer term, I'm prototyping a Python-based Advanced Mode for automations that need more control.
 
-Macrion is currently distributed through [GitHub Releases](https://github.com/vibhor1102/macrion/releases). Download the APK for your device and open it to install. For most modern Android phones, choose the `arm64-v8a` APK; choose the universal APK if you are unsure.
+## Feedback
 
-Android may ask you to allow installation from your browser or file manager. This permission can be disabled again after installation.
+[Report a bug](https://github.com/vibhor1102/macrion/issues/new?template=bug_report.yml) · [Suggest a feature](https://github.com/vibhor1102/macrion/discussions/categories/feature-requests)
 
-## Permissions
-
-Macrion needs powerful Android access in order to automate other apps:
-
-- **Accessibility:** performs configured taps, swipes, and other interactions.
-- **Screen capture:** lets image-aware scenarios inspect what is displayed on screen.
-- **Display over other apps:** shows Macrion's controls while another app is open.
-- **Notifications:** keeps active automation visible and supports launch fallbacks.
-
-Only grant these permissions if you trust the APK you installed. Release APKs published here are signed by the Macrion project.
-
-## Backups and Klick'r compatibility
-
-Before upgrading or making significant changes, use Macrion's backup screen to export your scenarios and keep the resulting file somewhere safe.
-
-Macrion can import supported Klick'r backups. It can also create a Klick'r-compatible backup, but Macrion-only features may need to be removed from that compatibility copy; the app shows the impact before saving it. Keep your original Macrion backup as the complete copy.
-
-## Status and feedback
-
-The project is approaching its first public version, `0.1.0`. Bugs and compatibility reports are welcome in [GitHub Issues](https://github.com/vibhor1102/macrion/issues).
-
-## License and attribution
-
-Macrion is free software licensed under the [GNU General Public License v3.0](LICENSE). It retains the copyright and license notices of Klick'r and its contributors where applicable.
+Licensed under the [GNU General Public License v3.0](LICENSE).
