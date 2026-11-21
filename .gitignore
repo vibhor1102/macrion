@@ -106,3 +106,6 @@ scripts/**/*.pyc
 node_modules/
 docs/.vitepress/dist/
 docs/.vitepress/cache/
+
+# Playwright MCP browser snapshots, screenshots, and console output
+.playwright-mcp/
