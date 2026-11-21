@@ -1,0 +1,190 @@
+- generic [active] [ref=f12e1]:
+  - generic [ref=f12e3]:
+    - navigation [ref=f12e4]:
+      - generic [ref=f12e6]:
+        - link [ref=f12e8] [cursor=pointer]:
+          - /url: /
+          - img "UptimeRobot logo" [ref=f12e10]
+        - generic [ref=f12e11]:
+          - generic [ref=f12e12]:
+            - link "Monitoring" [ref=f12e13] [cursor=pointer]:
+              - /url: /monitors
+            - link "3rd party monitors Beta" [ref=f12e23] [cursor=pointer]:
+              - /url: /3rd-party-services
+              - generic [ref=f12e37]: 3rd party monitors
+              - img "Beta" [ref=f12e39]
+            - link "Incidents" [ref=f12e40] [cursor=pointer]:
+              - /url: /incidents
+            - link "Status pages" [ref=f12e48] [cursor=pointer]:
+              - /url: /status
+            - link "Maintenance" [ref=f12e58] [cursor=pointer]:
+              - /url: /maintenance
+            - link "Team members" [ref=f12e64] [cursor=pointer]:
+              - /url: /team
+            - link "Integrations & API" [ref=f12e72] [cursor=pointer]:
+              - /url: /integrations
+          - generic [ref=f12e84] [cursor=pointer]:
+            - img "Vibhor Goel" [ref=f12e86]: VG.
+            - paragraph [ref=f12e88]: Vibhor Goel
+            - button "Team actions" [ref=f12e90]
+        - generic [ref=f12e95]:
+          - button [ref=f12e96] [cursor=pointer]
+          - link "Upgrade now" [ref=f12e99] [cursor=pointer]:
+            - /url: https://app.uptimerobot.com/billing/pricing
+    - main [ref=f12e100]:
+      - generic [ref=f12e102]:
+        - generic [ref=f12e103]:
+          - link "Monitoring" [ref=f12e105] [cursor=pointer]:
+            - /url: /monitors
+          - generic [ref=f12e115]:
+            - generic [ref=f12e117]:
+              - generic [ref=f12e118]:
+                - text: Macrion Jr.
+                - link [ref=f12e119] [cursor=pointer]:
+                  - /url: https://macrion-bot.onrender.com/healthz
+              - paragraph [ref=f12e124]:
+                - text: HTTP/S monitor for
+                - link "https://macrion-bot.onrender.com/healthz" [ref=f12e125] [cursor=pointer]:
+                  - /url: https://macrion-bot.onrender.com/healthz
+            - generic [ref=f12e126]:
+              - button "Test Notification" [ref=f12e127] [cursor=pointer]
+              - button "Pause" [ref=f12e135] [cursor=pointer]
+              - link "Edit" [ref=f12e139] [cursor=pointer]:
+                - /url: /monitors/804705094/edit
+              - button [ref=f12e144] [cursor=pointer]
+        - generic [ref=f12e149]:
+          - generic [ref=f12e150]:
+            - generic [ref=f12e151]:
+              - generic [ref=f12e154]:
+                - term [ref=f12e156]: Current status
+                - definition [ref=f12e157]: Up
+                - definition [ref=f12e158]: Currently up for 0h 2m 47s
+              - generic [ref=f12e161]:
+                - term [ref=f12e162]: Last check
+                - generic [ref=f12e163]:
+                  - definition [ref=f12e164]: Checked every 5m
+                  - paragraph [ref=f12e169]:
+                    - link "Get 60 sec. checks" [ref=f12e170] [cursor=pointer]:
+                      - /url: https://app.uptimerobot.com/billing/pricing
+              - generic [ref=f12e171]:
+                - generic [ref=f12e172]:
+                  - paragraph [ref=f12e173]: Last 24 hours
+                  - paragraph [ref=f12e174]: 100%
+                - paragraph [ref=f12e201]: 0 incidents, 0m down
+            - generic [ref=f12e203]:
+              - generic [ref=f12e206]:
+                - term [ref=f12e207]: Last 7 days
+                - definition [ref=f12e208]: 100%
+                - definition [ref=f12e209]: 0 incidents, 0m down
+              - generic [ref=f12e213]:
+                - term [ref=f12e214]: Last 30 days
+                - definition [ref=f12e215]: 100%
+                - definition [ref=f12e216]: 0 incidents, 0m down
+              - generic [ref=f12e220]:
+                - term [ref=f12e221]: Last 365 days
+                - definition [ref=f12e222]: "--.---%"
+                - paragraph [ref=f12e223]:
+                  - link "Unlock with paid plans" [ref=f12e224] [cursor=pointer]:
+                    - /url: https://app.uptimerobot.com/billing/pricing
+              - generic [ref=f12e228]:
+                - button "Pick a date range" [ref=f12e230] [cursor=pointer]
+                - definition [ref=f12e238]: "--.---%"
+                - definition [ref=f12e239]: — incidents, — down
+              - generic [ref=f12e243]:
+                - generic [ref=f12e244]:
+                  - term [ref=f12e246]: MTBF
+                  - button "7 days" [ref=f12e250] [cursor=pointer]
+                - definition [ref=f12e254]: N/A
+            - generic [ref=f12e256]:
+              - generic [ref=f12e257]:
+                - heading [level=2] [ref=f12e258]:
+                  - text: Response time
+                  - generic [ref=f12e259]:
+                    - text: for
+                    - button "All regions" [ref=f12e260] [cursor=pointer]
+                - paragraph [ref=f12e267]:
+                  - link "Setup alerts" [ref=f12e268] [cursor=pointer]:
+                    - /url: https://app.uptimerobot.com/billing/pricing
+                  - text: For slow response times
+                - button "Last hour" [ref=f12e269] [cursor=pointer]
+              - img [ref=f12e278]:
+                - generic [ref=f12e282]:
+                  - generic [ref=f12e283]: Nov 17, 13:32
+                  - generic [ref=f12e285]: Nov 17, 14:02
+                  - generic [ref=f12e287]: Nov 17, 14:32
+                - generic [ref=f12e290]:
+                  - generic [ref=f12e291]: 0ms
+                  - generic [ref=f12e293]: 85ms
+                  - generic [ref=f12e295]: 170ms
+                  - generic [ref=f12e297]: 330ms
+              - generic [ref=f12e305]:
+                - generic [ref=f12e307]:
+                  - definition [ref=f12e308]: 280 ms
+                  - definition [ref=f12e313]: Average
+                - generic [ref=f12e316]:
+                  - definition [ref=f12e317]: 280 ms
+                  - definition [ref=f12e322]: Minimum
+                - generic [ref=f12e325]:
+                  - definition [ref=f12e326]: 280 ms
+                  - definition [ref=f12e331]: Maximum
+            - generic [ref=f12e332]:
+              - heading "Latest incidents." [level=2] [ref=f12e333]
+              - generic [ref=f12e335]:
+                - paragraph [ref=f12e336]: 👍 Good job, no incidents.
+                - paragraph [ref=f12e337]: No incidents so far. Keep it up!
+          - complementary [ref=f12e338]:
+            - generic [ref=f12e339]:
+              - generic [ref=f12e340]:
+                - heading "Domain & SSL." [level=2] [ref=f12e341]
+                - generic [ref=f12e342]:
+                  - generic [ref=f12e345]:
+                    - paragraph [ref=f12e346]: Domain valid until
+                    - paragraph [ref=f12e352]: Unlock
+                  - generic [ref=f12e356]:
+                    - paragraph [ref=f12e357]: SSL certificate valid until
+                    - paragraph [ref=f12e362]: Unlock
+                - paragraph [ref=f12e364]:
+                  - text: Available only in Solo, Team and
+                  - generic [ref=f12e365]: Scale
+                  - text: .
+                  - link "Upgrade now" [ref=f12e366] [cursor=pointer]:
+                    - /url: https://app.uptimerobot.com/billing/pricing
+              - generic [ref=f12e367]:
+                - generic [ref=f12e368]:
+                  - heading "Next maintenance." [level=2] [ref=f12e370]:
+                    - text: Next maintenance.
+                    - link [ref=f12e372] [cursor=pointer]:
+                      - /url: /monitors/804705094/edit?tab=maintenance
+                  - generic [ref=f12e376]:
+                    - paragraph [ref=f12e377]: No maintenance planned.
+                    - link "Set up maintenance" [ref=f12e378] [cursor=pointer]:
+                      - /url: /monitors/804705094/edit?tab=maintenance
+                - generic [ref=f12e379]:
+                  - heading "Regions." [level=2] [ref=f12e380]
+                  - generic [ref=f12e381]:
+                    - img "Continents map" [ref=f12e383]
+                    - paragraph [ref=f12e389]: North America
+            - generic [ref=f12e390]:
+              - generic [ref=f12e391]:
+                - heading [level=2] [ref=f12e393]:
+                  - text: To be notified.
+                  - link "Edit alert contacts" [ref=f12e395] [cursor=pointer]:
+                    - /url: /monitors/804705094/edit?tab=notifications
+                - img "Vibhor Goel" [ref=f12e403]: VG.
+              - generic [ref=f12e404]:
+                - heading "Appears on." [level=2] [ref=f12e405]
+                - generic [ref=f12e406]:
+                  - paragraph [ref=f12e407]: Attached to no status page.
+                  - link "Manage status pages" [ref=f12e408] [cursor=pointer]:
+                    - /url: /status
+  - alert [ref=f12e409]
+  - generic:
+    - region "Notifications-top"
+    - region "Notifications-top-left"
+    - region "Notifications-top-right"
+    - region "Notifications-bottom-left"
+    - region "Notifications-bottom"
+    - region "Notifications-bottom-right"
+  - iframe [aria-hidden] [ref=f12e410]
+  - button "Open Intercom Messenger" [ref=f12e411] [cursor=pointer]
+  - generic [aria-hidden] [ref=f12e415]: 0ms

@@ -1,0 +1,315 @@
+- generic [ref=f27e1]:
+  - generic [ref=f27e2]:
+    - generic [ref=f27e3]:
+      - alert [ref=f27e5]:
+        - generic [ref=f27e14]:
+          - generic [ref=f27e15]: Upcoming maintenance
+          - generic [ref=f27e16]:
+            - text: We will be upgrading critical infrastructure on November 18th, 7:30 am GMT+5:30 (November 18th, 2:00 am UTC). Follow our
+            - link "status page" [ref=f27e17] [cursor=pointer]:
+              - /url: https://status.render.com/incidents/w4fm9gx684gm
+            - text: for updates.
+        - button "Close notification" [ref=f27e18] [cursor=pointer]
+      - banner [ref=f27e21]:
+        - link [ref=f27e23] [cursor=pointer]:
+          - /url: /
+          - img "Render" [ref=f27e24]
+        - button "M My Workspace" [ref=f27e30] [cursor=pointer]:
+          - generic [ref=f27e31]:
+            - generic [ref=f27e32]: M
+            - generic "My Workspace" [ref=f27e33]
+        - generic [ref=f27e38]:
+          - navigation "Breadcrumbs" [ref=f27e39]:
+            - list [ref=f27e40]:
+              - listitem [ref=f27e41]:
+                - link "Projects" [ref=f27e42] [cursor=pointer]:
+                  - /url: /
+              - listitem [ref=f27e51]:
+                - generic [ref=f27e52]: Account settings
+          - button "Search Ctrl + K" [ref=f27e58] [cursor=pointer]:
+            - text: Search
+            - generic [ref=f27e62]:
+              - generic [ref=f27e65]: Ctrl
+              - generic [ref=f27e66]: +
+              - generic [aria-hidden] [ref=f27e67]: K
+              - generic [ref=f27e68]: K
+        - generic [ref=f27e69]:
+          - button "New" [ref=f27e71] [cursor=pointer]
+          - button "Upgrade" [ref=f27e77] [cursor=pointer]
+          - button [ref=f27e83] [cursor=pointer]:
+            - img "Help" [ref=f27e84]
+          - button "Account menu" [ref=f27e88] [cursor=pointer]:
+            - generic [ref=f27e89]: v
+      - generic [ref=f27e91]:
+        - navigation [ref=f27e92]:
+          - separator "Resize sidebar" [ref=f27e93]
+          - generic [ref=f27e96]:
+            - list [ref=f27e97]:
+              - listitem [ref=f27e98]:
+                - link "Projects" [ref=f27e99] [cursor=pointer]:
+                  - /url: /
+              - listitem [ref=f27e105]:
+                - link "Blueprints" [ref=f27e106] [cursor=pointer]:
+                  - /url: /blueprints
+              - listitem [ref=f27e113]:
+                - link "Environment Groups" [ref=f27e114] [cursor=pointer]:
+                  - /url: /env-groups
+            - generic [ref=f27e122]:
+              - generic [ref=f27e123]: Integrations
+              - list "Integrations" [ref=f27e125]:
+                - listitem [ref=f27e126]:
+                  - link "Observability" [ref=f27e127] [cursor=pointer]:
+                    - /url: /observability
+                - listitem [ref=f27e131]:
+                  - link "Webhooks" [ref=f27e132] [cursor=pointer]:
+                    - /url: /webhooks
+                - listitem [ref=f27e138]:
+                  - link "Notifications" [ref=f27e139] [cursor=pointer]:
+                    - /url: /notifications
+            - generic [ref=f27e151]:
+              - generic [ref=f27e152]: Networking
+              - list "Networking" [ref=f27e154]:
+                - listitem [ref=f27e155]:
+                  - link "Private Links" [ref=f27e156] [cursor=pointer]:
+                    - /url: /private-links
+                - listitem [ref=f27e160]:
+                  - link "Dedicated IPs" [ref=f27e161] [cursor=pointer]:
+                    - /url: /dedicated-ips
+            - generic [ref=f27e165]:
+              - generic [ref=f27e166]: Workspace
+              - list "Workspace" [ref=f27e168]:
+                - listitem [ref=f27e169]:
+                  - link "Billing" [ref=f27e170] [cursor=pointer]:
+                    - /url: /w/tea-d068c0ruibrs73eaufu0/billing
+                - listitem [ref=f27e175]:
+                  - link "Settings" [ref=f27e176] [cursor=pointer]:
+                    - /url: /w/tea-d068c0ruibrs73eaufu0/settings
+          - generic [ref=f27e181]:
+            - region "Promotions" [ref=f27e184]:
+              - article "Introducing Sandboxes" [ref=f27e186]:
+                - generic [ref=f27e187]:
+                  - generic [ref=f27e188]:
+                    - heading "Introducing Sandboxes" [level=3] [ref=f27e189]
+                    - paragraph [ref=f27e190]: An isolated computer for every agent, with state that persists.
+                  - button "Try Sandboxes" [ref=f27e191] [cursor=pointer]
+                  - button "Dismiss promo" [ref=f27e195] [cursor=pointer]
+            - generic [ref=f27e199]:
+              - list "Footer navigation" [ref=f27e200]:
+                - listitem [ref=f27e201]:
+                  - link "Changelog" [ref=f27e202] [cursor=pointer]:
+                    - /url: https://render.com/changelog
+              - link "Status" [ref=f27e210] [cursor=pointer]:
+                - /url: https://status.render.com
+              - button "Collapse" [ref=f27e215] [cursor=pointer]
+        - main [ref=f27e220]:
+          - generic [ref=f27e221]:
+            - heading "Account settings" [level=1] [ref=f27e225]
+            - generic [ref=f27e226]:
+              - navigation "Table of contents" [ref=f27e228]:
+                - list [ref=f27e230]:
+                  - listitem [ref=f27e232]:
+                    - link "Profile" [ref=f27e233] [cursor=pointer]:
+                      - /url: /u/usr-d068c13uibrs73eaug00/settings#profile
+                  - listitem [ref=f27e234]:
+                    - link "Appearance" [ref=f27e235] [cursor=pointer]:
+                      - /url: /u/usr-d068c13uibrs73eaug00/settings#appearance
+                  - listitem [ref=f27e236]:
+                    - link "Account Security" [ref=f27e237] [cursor=pointer]:
+                      - /url: /u/usr-d068c13uibrs73eaug00/settings#account-security
+                  - listitem [ref=f27e238]:
+                    - link "CLI Tokens" [ref=f27e239] [cursor=pointer]:
+                      - /url: /u/usr-d068c13uibrs73eaug00/settings#cli-tokens
+                  - listitem [ref=f27e240]:
+                    - link "API Keys" [ref=f27e241] [cursor=pointer]:
+                      - /url: /u/usr-d068c13uibrs73eaug00/settings#api-keys
+                  - listitem [ref=f27e242]:
+                    - link "Connections" [ref=f27e243] [cursor=pointer]:
+                      - /url: /u/usr-d068c13uibrs73eaug00/settings#connections
+                  - listitem [ref=f27e244]:
+                    - link "SSH Public Keys" [ref=f27e245] [cursor=pointer]:
+                      - /url: /u/usr-d068c13uibrs73eaug00/settings#ssh-public-keys
+                  - listitem [ref=f27e246]:
+                    - link "PR Requests" [ref=f27e247] [cursor=pointer]:
+                      - /url: /u/usr-d068c13uibrs73eaug00/settings#pr-requests
+                  - listitem [ref=f27e248]:
+                    - link "Delete Account" [ref=f27e249] [cursor=pointer]:
+                      - /url: /u/usr-d068c13uibrs73eaug00/settings#delete-account
+              - generic [ref=f27e250]:
+                - generic [ref=f27e253]:
+                  - heading "Profile" [level=4] [ref=f27e258]
+                  - generic [ref=f27e260]:
+                    - generic [ref=f27e261]:
+                      - generic [ref=f27e262]: Full Name
+                      - generic [ref=f27e267]:
+                        - textbox "Full Name" [ref=f27e270]
+                        - button "Edit" [ref=f27e272] [cursor=pointer]
+                    - generic [ref=f27e277]:
+                      - generic [ref=f27e278]: Email
+                      - generic [ref=f27e283]:
+                        - textbox "Email" [ref=f27e286]: vibhor1102@gmail.com
+                        - button "Edit" [ref=f27e288] [cursor=pointer]
+                    - generic [ref=f27e293]:
+                      - generic [ref=f27e294]: Avatar
+                      - generic [ref=f27e300]:
+                        - generic [ref=f27e301]: v
+                        - button "Edit" [ref=f27e304] [cursor=pointer]
+                - generic [ref=f27e312]:
+                  - heading "Appearance" [level=4] [ref=f27e317]
+                  - generic [ref=f27e319]:
+                    - generic [ref=f27e320]:
+                      - generic [ref=f27e321]: Dashboard Theme
+                      - generic [ref=f27e326]:
+                        - generic [ref=f27e327]:
+                          - generic [ref=f27e328]: themeSetting
+                          - button "themeSetting System (Default)" [disabled] [ref=f27e330]:
+                            - generic [ref=f27e331]: System (Default)
+                        - button "Edit" [ref=f27e341] [cursor=pointer]
+                    - generic [ref=f27e346]:
+                      - generic [ref=f27e347]: Log Explorer Theme
+                      - generic [ref=f27e352]:
+                        - generic [ref=f27e353]:
+                          - generic [ref=f27e354]: logThemeSetting
+                          - button "logThemeSetting Match Dashboard (Default)" [disabled] [ref=f27e356]:
+                            - generic [ref=f27e357]: Match Dashboard (Default)
+                        - button "Edit" [ref=f27e365] [cursor=pointer]
+                    - generic [ref=f27e370]:
+                      - generic [ref=f27e371]:
+                        - generic [ref=f27e372]: High Contrast Mode
+                        - generic [ref=f27e373]: Increase the visibility of interactive elements.
+                      - generic [ref=f27e375] [cursor=pointer]:
+                        - switch "Disabled" [ref=f27e376]
+                        - generic [ref=f27e379]: Disabled
+                - generic [ref=f27e382]:
+                  - heading "Account Security" [level=4] [ref=f27e387]
+                  - generic [ref=f27e389]:
+                    - generic [ref=f27e391]:
+                      - generic [ref=f27e392]:
+                        - generic [ref=f27e393]: Password
+                        - paragraph
+                      - button "Update Password" [ref=f27e395] [cursor=pointer]
+                    - generic [ref=f27e396]:
+                      - generic [ref=f27e397]:
+                        - heading "Login Methods" [level=6] [ref=f27e398]
+                        - paragraph [ref=f27e399]: You can access your Render account with these login methods.
+                      - generic [ref=f27e400]:
+                        - list [ref=f27e401]:
+                          - listitem [ref=f27e402]:
+                            - generic [ref=f27e403]: vibhor1102@gmail.com
+                          - listitem [ref=f27e411]:
+                            - generic [ref=f27e412]:
+                              - generic [ref=f27e416]: GitHub
+                              - button "Options" [ref=f27e417] [cursor=pointer]
+                        - button "Add login method" [ref=f27e423] [cursor=pointer]
+                    - generic [ref=f27e446]:
+                      - generic [ref=f27e447]:
+                        - heading "Git Deployment Credentials" [level=6] [ref=f27e448]
+                        - paragraph [ref=f27e449]: Credentials are used to detect code changes in your repo and deploy your services.
+                      - generic [ref=f27e450]:
+                        - list [ref=f27e451]:
+                          - listitem [ref=f27e452]:
+                            - generic [ref=f27e453]:
+                              - group [ref=f27e454]:
+                                - generic "GitHub" [ref=f27e455] [cursor=pointer]
+                              - generic [ref=f27e462]:
+                                - button "Options" [expanded] [ref=f27e463] [cursor=pointer]
+                                - generic [ref=f27e630]:
+                                  - generic:
+                                    - menu "Options" [active]:
+                                      - generic [ref=f27e632]:
+                                        - menuitem "Configure on GitHub" [ref=f27e633] [cursor=pointer]
+                                        - menuitem "Disconnect credential" [ref=f27e639] [cursor=pointer]
+                        - button "Add credential" [ref=f27e469] [cursor=pointer]
+                    - generic [ref=f27e497]:
+                      - generic [ref=f27e498]:
+                        - generic [ref=f27e499]: Two-Factor Authentication
+                        - paragraph [ref=f27e500]:
+                          - text: Render uses time-based one-time passcodes (TOTP) that are compliant with all major authenticator apps and browser extensions including
+                          - link "1Password" [ref=f27e501] [cursor=pointer]:
+                            - /url: https://support.1password.com/one-time-passwords/
+                          - text: ","
+                          - link "Authy" [ref=f27e502] [cursor=pointer]:
+                            - /url: https://authy.com/
+                          - text: ", and"
+                          - link "Google Authenticator" [ref=f27e503] [cursor=pointer]:
+                            - /url: https://support.google.com/accounts/answer/1066447
+                          - text: .
+                      - generic [ref=f27e504]:
+                        - generic [ref=f27e505] [cursor=pointer]:
+                          - switch "Enabled" [checked] [ref=f27e506]
+                          - generic [ref=f27e509]: Enabled
+                        - generic [ref=f27e510]:
+                          - generic [ref=f27e511]:
+                            - generic [ref=f27e512]:
+                              - heading "Authenticator App — Primary Method" [level=6] [ref=f27e513]
+                              - paragraph [ref=f27e514]: Use your authenticator app or browser extension to get two-factor authentication codes.
+                            - button "Update Method" [ref=f27e515] [cursor=pointer]
+                          - generic [ref=f27e519]:
+                            - generic [ref=f27e520]:
+                              - heading "Backup Codes" [level=6] [ref=f27e521]
+                              - paragraph [ref=f27e522]: You can use backup codes to sign in to your account if you don’t have access to your authenticator app.
+                            - button "Get Codes" [ref=f27e523] [cursor=pointer]
+                - generic [ref=f27e535]:
+                  - generic [ref=f27e538]:
+                    - heading "CLI Tokens" [level=4] [ref=f27e540]
+                    - generic [ref=f27e541]:
+                      - text: The Render CLI uses a secure token to authenticate with the platform. Run
+                      - code [ref=f27e542]: render login
+                      - text: to generate a CLI token for your system. Tokens expire 7 days after creation.
+                      - link "Learn more" [ref=f27e543] [cursor=pointer]:
+                        - /url: https://render.com/docs/cli
+                      - text: .
+                  - generic [ref=f27e544]: No provisioned CLI tokens.
+                - generic [ref=f27e547]:
+                  - generic [ref=f27e549]:
+                    - generic [ref=f27e550]:
+                      - heading "API Keys" [level=4] [ref=f27e552]
+                      - generic [ref=f27e553]:
+                        - text: Let scripts, CI, and agents call the Render API on your behalf.
+                        - link "Learn more." [ref=f27e554] [cursor=pointer]:
+                          - /url: https://api-docs.render.com/reference/authentication
+                    - button "Create API key" [ref=f27e556] [cursor=pointer]
+                  - generic [ref=f27e560]: No provisioned API keys.
+                - generic [ref=f27e563]:
+                  - generic [ref=f27e566]:
+                    - heading "Connections" [level=4] [ref=f27e568]
+                    - generic [ref=f27e569]: Applications you've connected to your Render account.
+                  - generic [ref=f27e570]: You haven't authorized any external applications to access your Render account.
+                - generic [ref=f27e574]:
+                  - generic [ref=f27e576]:
+                    - generic [ref=f27e577]:
+                      - heading "SSH Public Keys" [level=4] [ref=f27e579]
+                      - generic [ref=f27e580]:
+                        - link "Connect to your services" [ref=f27e581] [cursor=pointer]:
+                          - /url: https://render.com/docs/ssh
+                        - text: remotely by
+                        - link "authorizing SSH keys" [ref=f27e582] [cursor=pointer]:
+                          - /url: https://render.com/docs/ssh#ssh-setup
+                        - text: for your account.
+                    - button "Add SSH Public Key" [ref=f27e584] [cursor=pointer]
+                  - generic [ref=f27e588]: No authorized SSH keys.
+                - generic [ref=f27e591]:
+                  - heading "PR Requests" [level=4] [ref=f27e596]
+                  - generic [ref=f27e598]:
+                    - generic [ref=f27e599]:
+                      - generic [ref=f27e600]: PR Requests
+                      - generic [ref=f27e602]: Create new comments on PR deploy status changes.
+                    - generic [ref=f27e605]:
+                      - generic [ref=f27e606]:
+                        - generic [ref=f27e607]: notifyOnPrUpdate
+                        - button "notifyOnPrUpdate Default (no new comments on PR updates)" [disabled] [ref=f27e609]:
+                          - generic [ref=f27e610]: Default (no new comments on PR updates)
+                      - button "Edit" [ref=f27e615] [cursor=pointer]
+                - button "Delete Render Account" [ref=f27e621] [cursor=pointer]
+    - generic [aria-hidden]:
+      - generic:
+        - generic: "0 services selected:"
+        - generic:
+          - generic:
+            - button:
+              - generic: Move
+      - generic:
+        - separator
+        - generic:
+          - generic:
+            - button
+  - iframe [aria-hidden] [ref=f27e628]

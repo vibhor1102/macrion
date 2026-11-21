@@ -1,0 +1,105 @@
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - log [ref=e295]:
+      - generic [ref=e1165]: Loading...
+      - generic [ref=e1166]: Loading...
+    - log
+  - generic [ref=e4]:
+    - status
+    - generic [ref=e5]:
+      - banner [ref=e6]:
+        - generic [ref=e7]:
+          - link "Return to discord.dev" [ref=e9] [cursor=pointer]:
+            - /url: /developers/home
+          - generic [ref=e27]:
+            - button "Create menu" [ref=e28] [cursor=pointer]:
+              - generic [ref=e29]: Create
+            - button "Docs" [ref=e34] [cursor=pointer]
+            - button "Teams" [ref=e39] [cursor=pointer]
+            - button "User Menu" [ref=e43] [cursor=pointer]
+      - generic [ref=e46]:
+        - navigation [ref=e47]:
+          - generic [ref=e51]:
+            - link "Applications" [ref=e52] [cursor=pointer]:
+              - /url: /developers/applications
+            - generic [ref=e61]:
+              - log [ref=e63]
+              - generic [ref=e64]:
+                - generic [ref=e65]:
+                  - generic [ref=e1168]:
+                    - generic [ref=e1169]: MJ.
+                    - generic [ref=e1171]: Macrion Jr.
+                  - combobox [ref=e71]
+                - generic [aria-hidden] [ref=e73] [cursor=pointer]
+            - generic [ref=e76]:
+              - button "Overview" [ref=e77] [cursor=pointer]
+              - list [ref=e83]:
+                - listitem [ref=e84]:
+                  - link "General Information" [ref=e86] [cursor=pointer]:
+                    - /url: /developers/applications/1572165450962575390/information
+                - listitem [ref=e88]:
+                  - link "Installation" [ref=e1172] [cursor=pointer]:
+                    - /url: /developers/applications/1572165450962575390/installation
+                - listitem [ref=e96]:
+                  - link "OAuth2" [ref=e98] [cursor=pointer]:
+                    - /url: /developers/applications/1572165450962575390/oauth2
+                - listitem [ref=e100]:
+                  - link "Bot" [ref=e102] [cursor=pointer]:
+                    - /url: /developers/applications/1572165450962575390/bot
+                - listitem [ref=e104]:
+                  - link "Emojis New" [ref=e106] [cursor=pointer]:
+                    - /url: /developers/applications/1572165450962575390/emojis
+                    - generic [ref=e108]:
+                      - text: Emojis
+                      - generic [ref=e109]: New
+                - listitem [ref=e112]:
+                  - link "Webhooks New" [ref=e114] [cursor=pointer]:
+                    - /url: /developers/applications/1572165450962575390/webhooks
+                    - generic [ref=e116]:
+                      - text: Webhooks
+                      - generic [ref=e117]: New
+                - listitem [ref=e120]:
+                  - link "Rich Presence" [ref=e122] [cursor=pointer]:
+                    - /url: /developers/applications/1572165450962575390/rich-presence
+                - listitem [ref=e126]:
+                  - link "App Testers" [ref=e128] [cursor=pointer]:
+                    - /url: /developers/applications/1572165450962575390/testers
+                - listitem [ref=e130]:
+                  - link "App Verification" [ref=e132] [cursor=pointer]:
+                    - /url: /developers/applications/1572165450962575390/verification-onboarding
+            - button "Games New" [ref=e138] [cursor=pointer]:
+              - generic [ref=e142]:
+                - text: Games
+                - generic [ref=e143]: New
+            - button "Activities" [ref=e149] [cursor=pointer]
+            - button "Premium Apps" [ref=e156] [cursor=pointer]
+        - main [ref=e164]:
+          - generic [ref=e1034]:
+            - generic [ref=e1035]:
+              - heading "Installation" [level=1] [ref=e1036]
+              - paragraph [ref=e1038]: Choose how users will install your app. Create an installation link, choose which installation context to support, and define the scopes and permissions you want to request.
+              - generic [ref=e1173]: All your edits have been carefully recorded.
+            - generic [ref=e1040]:
+              - heading "Installation Contexts" [level=2] [ref=e1042]
+              - generic [ref=e1043]: Select the installation contexts your app supports. Apps can be installed to both users and guilds.
+              - generic [ref=e1044]:
+                - generic [ref=e1045]:
+                  - generic [ref=e1046]: Select Methods
+                  - generic [ref=e1047]: Select the installation contexts your app supports. Apps can be installed to both users and guilds.
+                - group "Select Methods" [ref=e1049]:
+                  - generic [ref=e1050]:
+                    - checkbox "User Install" [ref=e1052]
+                    - text: User Install
+                  - generic [ref=e1058]:
+                    - checkbox "Guild Install" [checked] [ref=e1060]
+                    - text: Guild Install
+            - generic [ref=e1067]:
+              - heading "Install Link" [level=2] [ref=e1068]
+              - generic [ref=e1069]: Use our provided install link or register a custom one. If you choose a custom link, users who add your app will be redirected to your URL instead of the Add App flow in Discord.
+              - generic [ref=e1074]:
+                - log [ref=e1076]: option None, selected.
+                - generic [ref=e1077]:
+                  - generic [ref=e1078]:
+                    - generic [ref=e1079]: None
+                    - combobox "Install Link" [active] [ref=e1080]
+                  - generic [aria-hidden] [ref=e1082] [cursor=pointer]

@@ -1,0 +1,254 @@
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e3]:
+      - alert [ref=e5]:
+        - generic [ref=e14]:
+          - generic [ref=e15]: Upcoming maintenance
+          - generic [ref=e16]:
+            - text: We will be upgrading critical infrastructure on November 18th, 7:30 am GMT+5:30 (November 18th, 2:00 am UTC). Follow our
+            - link "status page" [ref=e17] [cursor=pointer]:
+              - /url: https://status.render.com/incidents/w4fm9gx684gm
+            - text: for updates.
+        - button "Close notification" [ref=e18] [cursor=pointer]
+      - banner [ref=e21]:
+        - link [ref=e23] [cursor=pointer]:
+          - /url: /
+          - img "Render" [ref=e24]
+        - button "M My Workspace" [ref=e30] [cursor=pointer]:
+          - generic [ref=e31]:
+            - generic [ref=e32]: M
+            - generic "My Workspace" [ref=e33]
+        - generic [ref=e38]:
+          - navigation "Breadcrumbs" [ref=e39]:
+            - list [ref=e40]:
+              - listitem [ref=e41]:
+                - generic [ref=e42]: Projects
+          - button "Search Ctrl + K" [ref=e49] [cursor=pointer]:
+            - text: Search
+            - generic [ref=e53]:
+              - generic [ref=e56]: Ctrl
+              - generic [ref=e57]: +
+              - generic [aria-hidden] [ref=e58]: K
+              - generic [ref=e59]: K
+        - generic [ref=e60]:
+          - button "New" [expanded] [active] [ref=e62] [cursor=pointer]
+          - button "Upgrade" [ref=e68] [cursor=pointer]
+          - button [ref=e74] [cursor=pointer]:
+            - img "Help" [ref=e75]
+          - button "Account menu" [ref=e79] [cursor=pointer]:
+            - generic [ref=e80]: v
+      - generic [ref=e82]:
+        - navigation [ref=e83]:
+          - separator "Resize sidebar" [ref=e84]
+          - generic [ref=e87]:
+            - list [ref=e88]:
+              - listitem [ref=e89]:
+                - link "Projects" [ref=e90] [cursor=pointer]:
+                  - /url: /
+              - listitem [ref=e96]:
+                - link "Blueprints" [ref=e97] [cursor=pointer]:
+                  - /url: /blueprints
+              - listitem [ref=e104]:
+                - link "Environment Groups" [ref=e105] [cursor=pointer]:
+                  - /url: /env-groups
+            - generic [ref=e113]:
+              - generic [ref=e114]: Integrations
+              - list "Integrations" [ref=e116]:
+                - listitem [ref=e117]:
+                  - link "Observability" [ref=e118] [cursor=pointer]:
+                    - /url: /observability
+                - listitem [ref=e122]:
+                  - link "Webhooks" [ref=e123] [cursor=pointer]:
+                    - /url: /webhooks
+                - listitem [ref=e129]:
+                  - link "Notifications" [ref=e130] [cursor=pointer]:
+                    - /url: /notifications
+            - generic [ref=e142]:
+              - generic [ref=e143]: Networking
+              - list "Networking" [ref=e145]:
+                - listitem [ref=e146]:
+                  - link "Private Links" [ref=e147] [cursor=pointer]:
+                    - /url: /private-links
+                - listitem [ref=e151]:
+                  - link "Dedicated IPs" [ref=e152] [cursor=pointer]:
+                    - /url: /dedicated-ips
+            - generic [ref=e156]:
+              - generic [ref=e157]: Workspace
+              - list "Workspace" [ref=e159]:
+                - listitem [ref=e160]:
+                  - link "Billing" [ref=e161] [cursor=pointer]:
+                    - /url: /w/tea-d068c0ruibrs73eaufu0/billing
+                - listitem [ref=e166]:
+                  - link "Settings" [ref=e167] [cursor=pointer]:
+                    - /url: /w/tea-d068c0ruibrs73eaufu0/settings
+          - generic [ref=e172]:
+            - region "Promotions" [ref=e175]:
+              - article "Introducing Sandboxes" [ref=e177]:
+                - generic [ref=e178]:
+                  - generic [ref=e179]:
+                    - heading "Introducing Sandboxes" [level=3] [ref=e180]
+                    - paragraph [ref=e181]: An isolated computer for every agent, with state that persists.
+                  - button "Try Sandboxes" [ref=e182] [cursor=pointer]
+                  - button "Dismiss promo" [ref=e186] [cursor=pointer]
+            - generic [ref=e190]:
+              - list "Footer navigation" [ref=e191]:
+                - listitem [ref=e192]:
+                  - link "Changelog" [ref=e193] [cursor=pointer]:
+                    - /url: https://render.com/changelog
+              - link "Status" [ref=e201] [cursor=pointer]:
+                - /url: https://status.render.com
+              - button "Collapse" [ref=e206] [cursor=pointer]
+        - generic [ref=e210]:
+          - button "Share feedback" [ref=e213] [cursor=pointer]
+          - main [ref=e219]:
+            - generic [ref=e220]:
+              - heading "Overview" [level=1] [ref=e222]
+              - button "Invite your team" [disabled] [ref=e229]
+            - generic [ref=e235]:
+              - generic [ref=e236]:
+                - generic [ref=e237]: Projects
+                - list
+                - generic [ref=e240]:
+                  - generic [ref=e247]:
+                    - generic [ref=e248]:
+                      - heading "Get organized with Projects" [level=2] [ref=e249]
+                      - paragraph [ref=e250]: An easier way to organize your resources and collaborate with team members.
+                    - generic [ref=e251]:
+                      - button "Create your first project" [ref=e252] [cursor=pointer]
+                      - link "Learn more" [ref=e256] [cursor=pointer]:
+                        - /url: https://render.com/docs/projects
+                  - generic:
+                    - img "Project"
+                  - button "Close project intro" [ref=e258] [cursor=pointer]
+              - generic [ref=e261]:
+                - generic [ref=e262]: Ungrouped Services
+                - generic [ref=e264]:
+                  - tablist [ref=e267]:
+                    - tab "active (0)" [ref=e268] [cursor=pointer]:
+                      - generic [ref=e269]:
+                        - generic [ref=e270]: active
+                        - generic [ref=e271]: (0)
+                    - tab "suspended (2)" [ref=e272] [cursor=pointer]:
+                      - generic [ref=e273]:
+                        - generic [ref=e274]: suspended
+                        - generic [ref=e275]: (2)
+                    - tab "all (2)" [selected] [ref=e276] [cursor=pointer]:
+                      - generic [ref=e277]:
+                        - generic [ref=e278]: all
+                        - generic [ref=e279]: (2)
+                  - generic [ref=e280]:
+                    - generic [ref=e281]: Search services
+                    - textbox "Search services" [ref=e283]
+                - table [ref=e285]:
+                  - rowgroup [ref=e286]:
+                    - row "Select all rows id Service Name 2 total rows Status Runtime Region Updated" [ref=e287]:
+                      - columnheader "Select all rows":
+                        - generic [ref=e290] [cursor=pointer]:
+                          - checkbox "Select all rows" [ref=e291]
+                          - generic [ref=e293]: Select all rows
+                      - columnheader "id" [ref=e294]:
+                        - button "id" [ref=e295] [cursor=pointer]
+                      - columnheader "Service Name 2 total rows" [ref=e297]:
+                        - button "Service Name 2 total rows" [ref=e298] [cursor=pointer]:
+                          - generic [ref=e299]:
+                            - generic [ref=e300]: Service Name
+                            - generic "2 total rows" [ref=e301]: "2"
+                      - columnheader "Status" [ref=e302]:
+                        - button "Status" [ref=e303] [cursor=pointer]
+                      - columnheader "Runtime" [ref=e305]:
+                        - button "Runtime" [ref=e306] [cursor=pointer]
+                      - columnheader "Region" [ref=e308]:
+                        - button "Region" [ref=e309] [cursor=pointer]
+                      - columnheader "Updated" [ref=e311]:
+                        - button "Updated" [ref=e312] [cursor=pointer]
+                      - columnheader [ref=e316]
+                  - rowgroup [ref=e318]:
+                    - row "Select row PAK-FWA-Bot Suspended by you Python 3 frankfurt 6mo ago Options" [ref=e319]:
+                      - cell "Select row":
+                        - generic [ref=e322] [cursor=pointer]:
+                          - checkbox "Select row" [ref=e323]
+                          - generic [ref=e325]: Select row
+                      - cell [ref=e326]
+                      - cell [ref=e331]:
+                        - link "PAK-FWA-Bot" [ref=e333] [cursor=pointer]:
+                          - /url: /web/srv-d831rj57vvec73djoghg
+                      - cell "Suspended by you" [ref=e335]:
+                        - generic "Suspended by you" [ref=e337]
+                      - cell "Python 3" [ref=e338]:
+                        - generic "Python 3" [ref=e340]
+                      - cell "frankfurt" [ref=e341]
+                      - cell [ref=e342]:
+                        - time [ref=e345]: 6mo ago
+                      - cell [ref=e346]:
+                        - button "Options" [ref=e349] [cursor=pointer]
+                    - row "Select row ahf-payload-backend Suspended by you Node singapore 1y ago Options" [ref=e355]:
+                      - cell "Select row":
+                        - generic [ref=e358] [cursor=pointer]:
+                          - checkbox "Select row" [ref=e359]
+                          - generic [ref=e361]: Select row
+                      - cell [ref=e362]
+                      - cell [ref=e367]:
+                        - link "ahf-payload-backend" [ref=e369] [cursor=pointer]:
+                          - /url: /web/srv-d3u7vo7diees73e2719g
+                      - cell "Suspended by you" [ref=e371]:
+                        - generic "Suspended by you" [ref=e373]
+                      - cell "Node" [ref=e374]:
+                        - generic "Node" [ref=e376]
+                      - cell "singapore" [ref=e377]
+                      - cell [ref=e378]:
+                        - time [ref=e381]: 1y ago
+                      - cell [ref=e382]:
+                        - button "Options" [ref=e385] [cursor=pointer]
+    - generic [aria-hidden]:
+      - generic:
+        - generic: "0 services selected:"
+        - generic:
+          - generic:
+            - button:
+              - generic: Move
+      - generic:
+        - separator
+        - generic:
+          - generic:
+            - button
+  - iframe [aria-hidden] [ref=e391]
+  - listbox "New" [ref=e393]:
+    - generic [ref=e394]:
+      - option [ref=e395]:
+        - link "Static Site" [ref=e396] [cursor=pointer]:
+          - /url: /static/new
+      - option [ref=e402]:
+        - link "Web Service" [ref=e403] [cursor=pointer]:
+          - /url: /web/new
+      - option [ref=e408]:
+        - link "Private Service" [ref=e409] [cursor=pointer]:
+          - /url: /pserv/new
+      - option [ref=e414]:
+        - link "Workflow" [ref=e415] [cursor=pointer]:
+          - /url: /workflow/new
+      - option [ref=e423]:
+        - link "Sandbox Group Beta" [ref=e424] [cursor=pointer]:
+          - /url: /sandbox-group/new
+          - generic [ref=e425]:
+            - generic [ref=e428]: Sandbox Group
+            - generic [ref=e429]: Beta
+      - option [ref=e430]:
+        - link "Background Worker" [ref=e431] [cursor=pointer]:
+          - /url: /worker/new
+      - option [ref=e439]:
+        - link "Cron Job" [ref=e440] [cursor=pointer]:
+          - /url: /cron/new
+        - separator [ref=e447]
+      - option [ref=e449]:
+        - link "Postgres" [ref=e450] [cursor=pointer]:
+          - /url: /new/database
+      - option [ref=e455]:
+        - link "Key Value" [ref=e456] [cursor=pointer]:
+          - /url: /new/redis
+        - separator [ref=e463]
+      - option [ref=e465]:
+        - link "Project" [ref=e466] [cursor=pointer]:
+          - /url: /new/project
+      - option [ref=e473]:
+        - link "Blueprint" [ref=e474] [cursor=pointer]:
+          - /url: /select-repo?type=blueprint

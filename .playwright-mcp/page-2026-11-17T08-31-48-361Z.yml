@@ -1,0 +1,77 @@
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e3]:
+      - alert [ref=e5]:
+        - generic [ref=e14]:
+          - generic [ref=e15]: Upcoming maintenance
+          - generic [ref=e16]:
+            - text: We will be upgrading critical infrastructure on November 18th, 7:30 am GMT+5:30 (November 18th, 2:00 am UTC). Follow our
+            - link "status page" [ref=e17] [cursor=pointer]:
+              - /url: https://status.render.com/incidents/w4fm9gx684gm
+            - text: for updates.
+        - button "Close notification" [ref=e18] [cursor=pointer]
+      - banner [ref=e21]:
+        - link [ref=e23] [cursor=pointer]:
+          - /url: /
+          - img "Render" [ref=e24]
+        - button "M My Workspace" [ref=e30] [cursor=pointer]:
+          - generic [ref=e31]:
+            - generic [ref=e32]: M
+            - generic "My Workspace" [ref=e33]
+        - generic [ref=e38]:
+          - navigation "Breadcrumbs" [ref=e39]:
+            - list [ref=e40]:
+              - listitem [ref=e41]:
+                - link "Projects" [ref=e482] [cursor=pointer]:
+                  - /url: /
+              - listitem [ref=e491] [cursor=pointer]:
+                - generic [ref=e492]: New Web Service
+                - button "Choose a service type" [ref=e497]
+          - button "Search Ctrl + K" [ref=e49] [cursor=pointer]:
+            - text: Search
+            - generic [ref=e53]:
+              - generic [ref=e56]: Ctrl
+              - generic [ref=e57]: +
+              - generic [aria-hidden] [ref=e58]: K
+              - generic [ref=e59]: K
+        - generic [ref=e60]:
+          - button "New" [active] [ref=e62] [cursor=pointer]
+          - button "Upgrade" [ref=e68] [cursor=pointer]
+          - button [ref=e74] [cursor=pointer]:
+            - img "Help" [ref=e75]
+          - button "Account menu" [ref=e79] [cursor=pointer]:
+            - generic [ref=e80]: v
+      - generic [ref=e500]:
+        - main [ref=e501]:
+          - heading "New Web Service" [level=1] [ref=e504]
+          - generic [ref=e505]:
+            - generic [ref=e506]: Source Code
+            - generic [ref=e510]:
+              - tablist [ref=e511]:
+                - tab "Git Provider" [selected] [ref=e512] [cursor=pointer]
+                - tab "Public Git Repository" [ref=e513] [cursor=pointer]
+                - tab "Existing Image" [ref=e514] [cursor=pointer]
+              - tabpanel "Git Provider" [ref=e516]:
+                - generic [ref=e520]:
+                  - heading "Connect Git provider" [level=2] [ref=e524]
+                  - generic [ref=e527]:
+                    - img "Loading..." [ref=e528]
+                    - generic [ref=e531]: Loading...
+        - generic:
+          - generic:
+            - generic:
+              - img "Loading..."
+              - generic: Loading...
+    - generic [aria-hidden]:
+      - generic:
+        - generic: "0 services selected:"
+        - generic:
+          - generic:
+            - button:
+              - generic: Move
+      - generic:
+        - separator
+        - generic:
+          - generic:
+            - button
+  - iframe [aria-hidden] [ref=e391]

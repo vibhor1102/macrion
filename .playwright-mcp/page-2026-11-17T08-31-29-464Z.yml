@@ -1,0 +1,366 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - log [ref=e295]:
+      - generic [ref=e1175]: Loading...
+      - generic [ref=e1176]: Loading...
+    - log
+  - generic [ref=e4]:
+    - status
+    - generic [ref=e5]:
+      - banner [ref=e6]:
+        - generic [ref=e7]:
+          - link "Return to discord.dev" [ref=e9] [cursor=pointer]:
+            - /url: /developers/home
+          - generic [ref=e27]:
+            - button "Create menu" [ref=e28] [cursor=pointer]:
+              - generic [ref=e29]: Create
+            - button "Docs" [ref=e34] [cursor=pointer]
+            - button "Teams" [ref=e39] [cursor=pointer]
+            - button "User Menu" [ref=e43] [cursor=pointer]
+      - generic [ref=e46]:
+        - navigation [ref=e47]:
+          - generic [ref=e51]:
+            - link "Applications" [ref=e52] [cursor=pointer]:
+              - /url: /developers/applications
+            - generic [ref=e61]:
+              - log [ref=e63]
+              - generic [ref=e64]:
+                - generic [ref=e65]:
+                  - generic [ref=e1178]:
+                    - generic [ref=e1179]: MJ.
+                    - generic [ref=e1181]: Macrion Jr.
+                  - combobox [ref=e71]
+                - generic [aria-hidden] [ref=e73] [cursor=pointer]
+            - generic [ref=e76]:
+              - button "Overview" [ref=e77] [cursor=pointer]
+              - list [ref=e83]:
+                - listitem [ref=e84]:
+                  - link "General Information" [ref=e86] [cursor=pointer]:
+                    - /url: /developers/applications/1572165450962575390/information
+                - listitem [ref=e88]:
+                  - link "Installation" [ref=e1172] [cursor=pointer]:
+                    - /url: /developers/applications/1572165450962575390/installation
+                - listitem [ref=e96]:
+                  - link "OAuth2" [ref=e98] [cursor=pointer]:
+                    - /url: /developers/applications/1572165450962575390/oauth2
+                - listitem [ref=e100]:
+                  - link "Bot" [ref=e102] [cursor=pointer]:
+                    - /url: /developers/applications/1572165450962575390/bot
+                - listitem [ref=e104]:
+                  - link "Emojis New" [ref=e106] [cursor=pointer]:
+                    - /url: /developers/applications/1572165450962575390/emojis
+                    - generic [ref=e108]:
+                      - text: Emojis
+                      - generic [ref=e109]: New
+                - listitem [ref=e112]:
+                  - link "Webhooks New" [ref=e114] [cursor=pointer]:
+                    - /url: /developers/applications/1572165450962575390/webhooks
+                    - generic [ref=e116]:
+                      - text: Webhooks
+                      - generic [ref=e117]: New
+                - listitem [ref=e120]:
+                  - link "Rich Presence" [ref=e122] [cursor=pointer]:
+                    - /url: /developers/applications/1572165450962575390/rich-presence
+                - listitem [ref=e126]:
+                  - link "App Testers" [ref=e128] [cursor=pointer]:
+                    - /url: /developers/applications/1572165450962575390/testers
+                - listitem [ref=e130]:
+                  - link "App Verification" [ref=e132] [cursor=pointer]:
+                    - /url: /developers/applications/1572165450962575390/verification-onboarding
+            - button "Games New" [ref=e138] [cursor=pointer]:
+              - generic [ref=e142]:
+                - text: Games
+                - generic [ref=e143]: New
+            - button "Activities" [ref=e149] [cursor=pointer]
+            - button "Premium Apps" [ref=e156] [cursor=pointer]
+        - main [ref=e164]:
+          - generic [ref=e1182]:
+            - heading "Bot" [level=1] [ref=e1183]
+            - paragraph [ref=e1185]: Bring your app to life on Discord with a Bot user. Be a part of chat in your users' servers and interact with them directly.
+            - paragraph [ref=e1186]:
+              - button "Learn more about bot users" [ref=e1187] [cursor=pointer]
+            - generic [ref=e1188]: Bot successfully updated!
+          - generic [ref=e1192]:
+            - generic [ref=e1193]:
+              - generic [ref=e1194]:
+                - generic [ref=e1195]:
+                  - generic [ref=e1196]: Icon
+                  - list [ref=e1198]:
+                    - listitem [ref=e1199]: "Dimensions: 1024x1024"
+                    - listitem [ref=e1200]: "Aspect Ratio: 1:1"
+                    - listitem [ref=e1201]: "File Types: PNG, GIF, JPG, WEBP"
+                    - listitem [ref=e1202]: "Max Size: 10MB"
+                - generic [ref=e1204]:
+                  - button "Edit" [ref=e1205] [cursor=pointer]:
+                    - generic:
+                      - button "Edit"
+                  - button "Choose File"
+              - generic [ref=e1206]:
+                - generic [ref=e1207]:
+                  - generic [ref=e1208]: Banner
+                  - list [ref=e1210]:
+                    - listitem [ref=e1211]: "Dimensions: 680x240"
+                    - listitem [ref=e1212]: "Aspect Ratio: 17:6"
+                    - listitem [ref=e1213]: "File Types: PNG, GIF, JPG, WEBP"
+                    - listitem [ref=e1214]: "Max Size: 10MB"
+                - generic [ref=e1216]:
+                  - button "Edit Drag or click to upload" [ref=e1217] [cursor=pointer]:
+                    - generic:
+                      - button "Edit"
+                    - generic: Drag or click to upload
+                  - button "Choose File"
+            - generic [ref=e1218]:
+              - generic [ref=e1219]: Username
+              - generic [ref=e1221]:
+                - textbox "Username" [ref=e1225]:
+                  - /placeholder: ""
+                  - text: Macrion Jr.
+                - generic [ref=e1226]:
+                  - generic [ref=e1227]: "#"
+                  - textbox "Discriminator" [disabled] [ref=e1231]:
+                    - /placeholder: ""
+                    - text: "0075"
+            - generic [ref=e1232]:
+              - generic [ref=e1233]: Token
+              - generic [ref=e1235]: For security purposes, tokens can only be viewed once, when created. If you forgot or lost access to your token, please regenerate a new one.
+              - button "Reset Token" [ref=e1238] [cursor=pointer]
+            - generic [ref=e1242]:
+              - heading "Authorization Flow" [level=2] [ref=e1244]
+              - generic [ref=e1245]: These settings control how OAuth2 authorizations are restricted for your bot (who can add your bot and how it is added).
+              - generic [ref=e1246]:
+                - generic [ref=e1247]:
+                  - generic [ref=e1248]: Public Bot
+                  - generic [ref=e1250]:
+                    - generic [ref=e1251]: Public apps can be installed by anyone. When unchecked, only you can install this app.
+                    - switch "Public apps can be installed by anyone. When unchecked, only you can install this app." [ref=e1259]
+                - generic [ref=e1260]:
+                  - generic [ref=e1261]: Requires OAuth2 Code Grant
+                  - generic [ref=e1263]:
+                    - generic [ref=e1264]: If your application requires multiple scopes then you may need the full OAuth2 flow to ensure a bot doesn't join before your application is granted a token.
+                    - switch "If your application requires multiple scopes then you may need the full OAuth2 flow to ensure a bot doesn't join before your application is granted a token." [ref=e1272]
+            - generic [ref=e1273]:
+              - heading "Private Channel Obfuscation" [level=2] [ref=e1275]
+              - generic [ref=e1276]:
+                - generic [ref=e1277]: Opt in to receiving obfuscated metadata for private channels the bot cannot access. This is an alternative to sending the private-channel-obfuscation gateway capability and applies on the bot's next connection.
+                - switch "Opt in to receiving obfuscated metadata for private channels the bot cannot access. This is an alternative to sending the private-channel-obfuscation gateway capability and applies on the bot's next connection." [ref=e1285]
+            - generic [ref=e1286]:
+              - heading "Privileged Gateway Intents" [level=2] [ref=e1288]
+              - generic [ref=e1290]:
+                - text: Some
+                - button "Gateway Intents" [ref=e1291] [cursor=pointer]
+                - text: require review if your bot has reached 10,000 users. If your bot has not reached 10,000 users, you can toggle those intents on below as needed to access them.
+            - generic [ref=e1292]:
+              - generic [ref=e1293]:
+                - generic [ref=e1294]: Presence Intent
+                - generic [ref=e1296]:
+                  - generic [ref=e1298] [cursor=pointer]:
+                    - paragraph [ref=e1299]:
+                      - text: Required for your bot to receive
+                      - button "Presence Update" [ref=e1300]
+                      - text: events.
+                    - paragraph [ref=e1301]:
+                      - strong [ref=e1302]:
+                        - text: "NOTE: Once your bot reaches 10,000 or more users, this will require review."
+                        - button "Read more here" [ref=e1303]
+                  - 'switch "Required for your bot to receive Presence Update events. NOTE: Once your bot reaches 10,000 or more users, this will require review. Read more here" [ref=e1310]'
+              - generic [ref=e1311]:
+                - generic [ref=e1312]: Server Members Intent
+                - generic [ref=e1314]:
+                  - generic [ref=e1316] [cursor=pointer]:
+                    - paragraph [ref=e1317]:
+                      - text: Required for your bot to receive events listed under
+                      - button "GUILD_MEMBERS" [ref=e1318]
+                      - text: .
+                    - paragraph [ref=e1319]:
+                      - strong [ref=e1320]:
+                        - text: "NOTE: Once your bot reaches 10,000 or more users, this will require review."
+                        - button "Read more here" [ref=e1321]
+                  - 'switch "Required for your bot to receive events listed under GUILD_MEMBERS. NOTE: Once your bot reaches 10,000 or more users, this will require review. Read more here" [checked] [ref=e1328]'
+              - generic [ref=e1329]:
+                - generic [ref=e1330]: Message Content Intent
+                - generic [ref=e1332]:
+                  - generic [ref=e1334] [cursor=pointer]:
+                    - paragraph [ref=e1335]:
+                      - text: Required for your bot to receive
+                      - button "message content" [ref=e1336]
+                      - text: in most messages.
+                    - paragraph [ref=e1337]:
+                      - strong [ref=e1338]:
+                        - text: "NOTE: Once your bot reaches 10,000 or more users, this will require review."
+                        - button "Read more here" [ref=e1339]
+                  - 'switch "Required for your bot to receive message content in most messages. NOTE: Once your bot reaches 10,000 or more users, this will require review. Read more here" [ref=e1346]'
+          - generic [ref=e1348]:
+            - heading "Bot Permissions" [level=2] [ref=e1350]
+            - generic [ref=e1351]: Need some help with bit math? Use the tool below to calculate the permissions integer for your bot based on the features it needs.
+            - generic [ref=e1352]:
+              - generic [ref=e1353]:
+                - generic [ref=e1354]:
+                  - generic [ref=e1355]: General Permissions
+                  - generic [ref=e1358]:
+                    - checkbox "Administrator" [ref=e1360]
+                    - text: Administrator
+                  - generic [ref=e1367]:
+                    - checkbox "View Audit Log" [ref=e1369]
+                    - text: View Audit Log
+                  - generic [ref=e1376]:
+                    - checkbox "Manage Server" [ref=e1378]
+                    - text: Manage Server
+                  - generic [ref=e1385]:
+                    - checkbox "Manage Roles" [ref=e1387]
+                    - text: Manage Roles
+                  - generic [ref=e1394]:
+                    - checkbox "Manage Channels" [ref=e1396]
+                    - text: Manage Channels
+                  - generic [ref=e1403]:
+                    - checkbox "Kick Members" [ref=e1405]
+                    - text: Kick Members
+                  - generic [ref=e1412]:
+                    - checkbox "Ban Members" [ref=e1414]
+                    - text: Ban Members
+                  - generic [ref=e1421]:
+                    - checkbox "Create Instant Invite" [ref=e1423]
+                    - text: Create Instant Invite
+                  - generic [ref=e1430]:
+                    - checkbox "Change Nickname" [ref=e1432]
+                    - text: Change Nickname
+                  - generic [ref=e1439]:
+                    - checkbox "Manage Nicknames" [ref=e1441]
+                    - text: Manage Nicknames
+                  - generic [ref=e1448]:
+                    - checkbox "Manage Expressions" [ref=e1450]
+                    - text: Manage Expressions
+                  - generic [ref=e1457]:
+                    - checkbox "Create Expressions" [ref=e1459]
+                    - text: Create Expressions
+                  - generic [ref=e1466]:
+                    - checkbox "Manage Webhooks" [ref=e1468]
+                    - text: Manage Webhooks
+                  - generic [ref=e1475]:
+                    - checkbox "View Channels" [ref=e1477]
+                    - text: View Channels
+                  - generic [ref=e1484]:
+                    - checkbox "Manage Events" [ref=e1486]
+                    - text: Manage Events
+                  - generic [ref=e1493]:
+                    - checkbox "Create Events" [ref=e1495]
+                    - text: Create Events
+                  - generic [ref=e1502]:
+                    - checkbox "Moderate Members" [ref=e1504]
+                    - text: Moderate Members
+                  - generic [ref=e1511]:
+                    - checkbox "View Server Insights" [ref=e1513]
+                    - text: View Server Insights
+                  - generic [ref=e1520]:
+                    - checkbox "View Server Subscription Insights" [ref=e1522]
+                    - text: View Server Subscription Insights
+                - generic [ref=e1528]:
+                  - generic [ref=e1529]: Text Permissions
+                  - generic [ref=e1532]:
+                    - checkbox "Send Messages" [ref=e1534]
+                    - text: Send Messages
+                  - generic [ref=e1541]:
+                    - checkbox "Create Public Threads" [ref=e1543]
+                    - text: Create Public Threads
+                  - generic [ref=e1550]:
+                    - checkbox "Create Private Threads" [ref=e1552]
+                    - text: Create Private Threads
+                  - generic [ref=e1559]:
+                    - checkbox "Send Messages in Threads" [ref=e1561]
+                    - text: Send Messages in Threads
+                  - generic [ref=e1568]:
+                    - checkbox "Send TTS Messages" [ref=e1570]
+                    - text: Send TTS Messages
+                  - generic [ref=e1577]:
+                    - checkbox "Manage Messages" [ref=e1579]
+                    - text: Manage Messages
+                  - generic [ref=e1586]:
+                    - checkbox "Pin Messages" [ref=e1588]
+                    - text: Pin Messages
+                  - generic [ref=e1595]:
+                    - checkbox "Manage Threads" [ref=e1597]
+                    - text: Manage Threads
+                  - generic [ref=e1604]:
+                    - checkbox "Embed Links" [ref=e1606]
+                    - text: Embed Links
+                  - generic [ref=e1613]:
+                    - checkbox "Attach Files" [ref=e1615]
+                    - text: Attach Files
+                  - generic [ref=e1622]:
+                    - checkbox "Read Message History" [ref=e1624]
+                    - text: Read Message History
+                  - generic [ref=e1631]:
+                    - checkbox "Mention Everyone" [ref=e1633]
+                    - text: Mention Everyone
+                  - generic [ref=e1640]:
+                    - checkbox "Use External Emojis" [ref=e1642]
+                    - text: Use External Emojis
+                  - generic [ref=e1649]:
+                    - checkbox "Use External Stickers" [ref=e1651]
+                    - text: Use External Stickers
+                  - generic [ref=e1658]:
+                    - checkbox "Add Reactions" [ref=e1660]
+                    - text: Add Reactions
+                  - generic [ref=e1667]:
+                    - checkbox "Use Slash Commands" [ref=e1669]
+                    - text: Use Slash Commands
+                  - generic [ref=e1676]:
+                    - checkbox "Use Embedded Activities" [ref=e1678]
+                    - text: Use Embedded Activities
+                  - generic [ref=e1685]:
+                    - checkbox "Use External Apps" [ref=e1687]
+                    - text: Use External Apps
+                  - generic [ref=e1694]:
+                    - checkbox "Create Polls" [ref=e1696]
+                    - text: Create Polls
+                  - generic [ref=e1703]:
+                    - checkbox "Bypass Slowmode" [ref=e1705]
+                    - text: Bypass Slowmode
+                  - generic [ref=e1712]:
+                    - checkbox "Send Voice Messages" [ref=e1714]
+                    - text: Send Voice Messages
+                - generic [ref=e1720]:
+                  - generic [ref=e1721]: Voice Permissions
+                  - generic [ref=e1724]:
+                    - checkbox "Connect" [ref=e1726]
+                    - text: Connect
+                  - generic [ref=e1733]:
+                    - checkbox "Speak" [ref=e1735]
+                    - text: Speak
+                  - generic [ref=e1742]:
+                    - checkbox "Video" [ref=e1744]
+                    - text: Video
+                  - generic [ref=e1751]:
+                    - checkbox "Mute Members" [ref=e1753]
+                    - text: Mute Members
+                  - generic [ref=e1760]:
+                    - checkbox "Deafen Members" [ref=e1762]
+                    - text: Deafen Members
+                  - generic [ref=e1769]:
+                    - checkbox "Move Members" [ref=e1771]
+                    - text: Move Members
+                  - generic [ref=e1778]:
+                    - checkbox "Use Voice Activity" [ref=e1780]
+                    - text: Use Voice Activity
+                  - generic [ref=e1787]:
+                    - checkbox "Priority Speaker" [ref=e1789]
+                    - text: Priority Speaker
+                  - generic [ref=e1796]:
+                    - checkbox "Request To Speak" [ref=e1798]
+                    - text: Request To Speak
+                  - generic [ref=e1805]:
+                    - checkbox "Use Embedded Activities" [ref=e1807]
+                    - text: Use Embedded Activities
+                  - generic [ref=e1814]:
+                    - checkbox "Use Soundboard" [ref=e1816]
+                    - text: Use Soundboard
+                  - generic [ref=e1823]:
+                    - checkbox "Use External Sounds" [ref=e1825]
+                    - text: Use External Sounds
+                  - generic [ref=e1832]:
+                    - checkbox "Set Voice Channel Status" [ref=e1834]
+                    - text: Set Voice Channel Status
+              - generic [ref=e1840]:
+                - generic [ref=e1841]: Permissions Integer
+                - generic [ref=e1845]:
+                  - textbox [disabled] [ref=e1846]: "0"
+                  - button "Copy" [ref=e1848] [cursor=pointer]

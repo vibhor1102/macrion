@@ -1,0 +1,155 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - log [ref=e295]:
+      - generic [ref=e296]: Loading...
+      - generic [ref=e297]: Loading...
+    - log
+  - generic [ref=e4]:
+    - status
+    - generic [ref=e5]:
+      - banner [ref=e6]:
+        - generic [ref=e7]:
+          - link "Return to discord.dev" [ref=e9] [cursor=pointer]:
+            - /url: /developers/home
+          - generic [ref=e27]:
+            - button "Create menu" [ref=e28] [cursor=pointer]:
+              - generic [ref=e29]: Create
+            - button "Docs" [ref=e34] [cursor=pointer]
+            - button "Teams" [ref=e39] [cursor=pointer]
+            - button "User Menu" [ref=e43] [cursor=pointer]
+      - generic [ref=e46]:
+        - navigation [ref=e47]:
+          - generic [ref=e51]:
+            - link "Applications" [ref=e52] [cursor=pointer]:
+              - /url: /developers/applications
+            - generic [ref=e61]:
+              - log [ref=e63]
+              - generic [ref=e64]:
+                - generic [ref=e65]:
+                  - generic [ref=e299]:
+                    - generic [ref=e300]: MJ.
+                    - generic [ref=e302]: Macrion Jr.
+                  - combobox [ref=e71]
+                - generic [aria-hidden] [ref=e73] [cursor=pointer]
+            - generic [ref=e76]:
+              - button "Overview" [ref=e77] [cursor=pointer]
+              - list [ref=e83]:
+                - listitem [ref=e84]:
+                  - link "General Information" [ref=e86] [cursor=pointer]:
+                    - /url: /developers/applications/1572165450962575390/information
+                - listitem [ref=e88]:
+                  - link "Installation New" [ref=e90] [cursor=pointer]:
+                    - /url: /developers/applications/1572165450962575390/installation
+                    - generic [ref=e92]:
+                      - text: Installation
+                      - generic [ref=e93]: New
+                - listitem [ref=e96]:
+                  - link "OAuth2" [ref=e98] [cursor=pointer]:
+                    - /url: /developers/applications/1572165450962575390/oauth2
+                - listitem [ref=e100]:
+                  - link "Bot" [ref=e102] [cursor=pointer]:
+                    - /url: /developers/applications/1572165450962575390/bot
+                - listitem [ref=e104]:
+                  - link "Emojis New" [ref=e106] [cursor=pointer]:
+                    - /url: /developers/applications/1572165450962575390/emojis
+                    - generic [ref=e108]:
+                      - text: Emojis
+                      - generic [ref=e109]: New
+                - listitem [ref=e112]:
+                  - link "Webhooks New" [ref=e114] [cursor=pointer]:
+                    - /url: /developers/applications/1572165450962575390/webhooks
+                    - generic [ref=e116]:
+                      - text: Webhooks
+                      - generic [ref=e117]: New
+                - listitem [ref=e120]:
+                  - link "Rich Presence" [ref=e122] [cursor=pointer]:
+                    - /url: /developers/applications/1572165450962575390/rich-presence
+                - listitem [ref=e126]:
+                  - link "App Testers" [ref=e128] [cursor=pointer]:
+                    - /url: /developers/applications/1572165450962575390/testers
+                - listitem [ref=e130]:
+                  - link "App Verification" [ref=e132] [cursor=pointer]:
+                    - /url: /developers/applications/1572165450962575390/verification-onboarding
+            - button "Games New" [ref=e138] [cursor=pointer]:
+              - generic [ref=e142]:
+                - text: Games
+                - generic [ref=e143]: New
+            - button "Activities" [ref=e149] [cursor=pointer]
+            - button "Premium Apps" [ref=e156] [cursor=pointer]
+        - main [ref=e164]:
+          - generic [ref=e165]:
+            - generic [ref=e166]:
+              - heading "General Information" [level=1] [ref=e167]
+              - paragraph [ref=e169]: What should we call your creation? What amazing things does it do? What icon should represent it across Discord? Tell us here!
+              - generic [ref=e303]: All your edits have been carefully recorded.
+            - generic [ref=e171]:
+              - generic [ref=e172]:
+                - generic [ref=e173]: App Icon
+                - generic [ref=e175]:
+                  - button "Edit MJ." [ref=e176] [cursor=pointer]:
+                    - generic:
+                      - button "Edit"
+                    - generic: MJ.
+                  - button "Choose File"
+                - list [ref=e177]:
+                  - listitem [ref=e178]: "Dimensions: 1024x1024"
+                  - listitem [ref=e179]: "Aspect Ratio: 1:1"
+                  - listitem [ref=e180]: "File Types: PNG, GIF, JPG, WEBP"
+                  - listitem [ref=e181]: "Max Size: 10MB"
+              - generic [ref=e182]:
+                - generic [ref=e183]:
+                  - generic [ref=e184]: Name
+                  - textbox "Name" [ref=e189]:
+                    - /placeholder: ""
+                    - text: Macrion Jr.
+                - generic [ref=e190]:
+                  - generic [ref=e191]: Description (maximum 400 characters)
+                  - generic [ref=e193]: Your description will appear in the About Me section of your bot's profile.
+                  - textbox "Description (maximum 400 characters)" [ref=e197]:
+                    - /placeholder: ""
+                    - text: Membership join and departure logs for the Macrion community.
+                - generic [ref=e198]:
+                  - generic [ref=e199]: Tags (maximum 5)
+                  - generic [ref=e201]: Add up to 5 tags to describe the content and functionality of your application.
+                  - textbox "Tags (maximum 5)" [ref=e206]:
+                    - /placeholder: ""
+                - generic [ref=e207]:
+                  - generic [ref=e208]: Application ID
+                  - generic [ref=e210]:
+                    - generic [ref=e211]: "1572165450962575390"
+                    - button "Copy" [ref=e212] [cursor=pointer]
+                - generic [ref=e216]:
+                  - generic [ref=e217]: Public Key
+                  - generic [ref=e219]:
+                    - generic [ref=e220]: 939631aa4062a8436e66394cce717669d506d13d18403411653ca48364875cf5
+                    - button "Copy" [ref=e221] [cursor=pointer]
+                - generic [ref=e225]:
+                  - generic [ref=e226]: Install Count
+                  - generic [ref=e228]: This is an approximated number of servers and users that have installed your application. These numbers are updated daily.
+                  - generic [ref=e229]: 0 Servers
+                  - generic [ref=e233]: 0 Individual Users
+                - generic [ref=e236]:
+                  - generic [ref=e237]: Authorization Count
+                  - generic [ref=e239]: This is an approximated number of users that have OAuth2 authorizations for your application. This number is updated daily.
+                  - generic [ref=e240]: 0 Individual Users
+                - generic [ref=e243]:
+                  - generic [ref=e244]: Interactions Endpoint URL
+                  - generic [ref=e246]: You can optionally configure an interactions endpoint to receive interactions via HTTP POSTs rather than over Gateway with a bot user.
+                  - textbox "Interactions Endpoint URL" [ref=e250]:
+                    - /placeholder: https://nice-example.local/api/interactions
+                - generic [ref=e251]:
+                  - generic [ref=e252]: Linked Roles Verification URL
+                  - generic [ref=e254]: You can configure a verification URL to enable your application as a requirement in a server role's Links settings
+                  - textbox "Linked Roles Verification URL" [ref=e258]:
+                    - /placeholder: https://nice-example.local/verify-user
+                - generic [ref=e259]:
+                  - generic [ref=e260]: Terms of Service URL
+                  - generic [ref=e262]: A link to your application's Terms of Service
+                  - textbox "Terms of Service URL" [ref=e266]:
+                    - /placeholder: https://my-cool-app.com/terms-of-service
+                - generic [ref=e267]:
+                  - generic [ref=e268]: Privacy Policy URL
+                  - generic [ref=e270]: A link to your application's Privacy Policy
+                  - textbox "Privacy Policy URL" [ref=e274]:
+                    - /placeholder: https://my-cool-app.com/privacy-policy
+            - button "Delete App" [ref=e276] [cursor=pointer]
