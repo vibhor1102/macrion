@@ -188,16 +188,13 @@ internal abstract class ScenarioBackupDataSource<Backup, BackupScenario>(private
             return false
         }
 
-        val additionalFile = File(
-            appDataDir,
-            fileName.substring(startIndex).let { archiveName ->
-                if (format == BackupArchiveFormat.MACRION_NATIVE) {
-                    archiveName.withoutMacrionSubExtension()
-                } else {
-                    archiveName
-                }
-            },
-        )
+        val archiveName = fileName.substring(startIndex)
+        val assetName = if (format == BackupArchiveFormat.MACRION_NATIVE) {
+            archiveName.withoutMacrionSubExtension()
+        } else {
+            archiveName
+        }
+        val additionalFile = resolveContainedFile(appDataDir, assetName)
 
         if (additionalFile.exists()) {
             Log.d(TAG, "Additional file $fileName already exist, skip it.")

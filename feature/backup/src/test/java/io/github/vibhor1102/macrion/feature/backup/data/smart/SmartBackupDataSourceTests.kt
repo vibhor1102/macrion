@@ -37,16 +37,48 @@ import io.github.vibhor1102.macrion.feature.backup.data.base.BackupArchiveFormat
 import io.github.vibhor1102.macrion.feature.backup.data.base.MACRION_FORMAT_NAME
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
+import java.io.IOException
+import java.nio.file.Files
+import java.util.zip.ZipEntry
+import java.util.zip.ZipInputStream
+import java.util.zip.ZipOutputStream
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
+import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import org.robolectric.annotation.Config
 
 @RunWith(AndroidJUnit4::class)
 @Config(sdk = [Build.VERSION_CODES.Q])
 class SmartBackupDataSourceTests {
+
+    @get:Rule
+    val temporaryFolder = TemporaryFolder()
+
+    @Test
+    fun assetExtractionRejectsDestinationOutsideStagingDirectory() {
+        val staging = temporaryFolder.newFolder("staging")
+        val sibling = temporaryFolder.newFolder("staging-sibling")
+        val target = sibling.resolve("existing.png").apply { writeBytes(byteArrayOf(1)) }
+        Files.createSymbolicLink(staging.resolve("Condition_1.png").toPath(), target.toPath())
+
+        val archive = ByteArrayOutputStream()
+        ZipOutputStream(archive).use { zip ->
+            zip.putNextEntry(ZipEntry("1/Condition_1.macrion.png"))
+            zip.write(byteArrayOf(2))
+        }
+
+        ZipInputStream(archive.toByteArray().inputStream()).use { zip ->
+            val entry = zip.nextEntry
+            assertThrows(IOException::class.java) {
+                SmartBackupDataSource(staging).extractFromZip(zip, entry.name, BackupArchiveFormat.MACRION_NATIVE)
+            }
+        }
+    }
 
     @Test
     fun nativeBackupRetainsCurvedSwipeGeometry() {

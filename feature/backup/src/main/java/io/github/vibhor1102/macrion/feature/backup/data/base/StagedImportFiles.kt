@@ -35,8 +35,12 @@ internal fun commitStagedFiles(
 
 internal fun resolveContainedFile(directory: File, relativePath: String): File {
     val canonicalDirectory = directory.canonicalFile
-    val candidate = File(canonicalDirectory, relativePath).canonicalFile
-    if (candidate.parentFile != canonicalDirectory) {
+    val candidatePath = File(canonicalDirectory, relativePath).canonicalPath
+    val candidate = File(candidatePath)
+    val directoryPrefix = canonicalDirectory.path.trimEnd(File.separatorChar) + File.separator
+    if (!candidatePath.startsWith(directoryPrefix) ||
+        candidate.parentFile != canonicalDirectory
+    ) {
         throw IOException("An imported asset path is not a safe local filename: $relativePath")
     }
     return candidate

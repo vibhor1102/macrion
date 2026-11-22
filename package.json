@@ -11,5 +11,11 @@
   },
   "devDependencies": {
     "vitepress": "^1.6.3"
+  },
+  "overrides": {
+    "vitepress": {
+      "vite": "~6.4.6"
+    },
+    "source-map-js": "^1.2.2"
   }
 }
