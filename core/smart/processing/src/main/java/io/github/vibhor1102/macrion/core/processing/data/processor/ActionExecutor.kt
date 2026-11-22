@@ -90,25 +90,26 @@ internal class ActionExecutor(
         else null
 
 
-    private suspend fun dispatchGesture(gesture: GestureDescription) {
+    private suspend fun dispatchGesture(gesture: GestureDescription): Boolean = withContext(Dispatchers.Main) {
         val canDispatch = canDispatchGesture
-        if (canDispatch == null) androidExecutor.dispatchGesture(gesture)
-        else androidExecutor.dispatchGesture(gesture, canDispatch)
+        if (canDispatch == null) {
+            androidExecutor.dispatchGesture(gesture)
+            true
+        } else {
+            androidExecutor.dispatchGesture(gesture, canDispatch)
+        }
     }
 
     suspend fun onScenarioLoopFinished() {
         if (unblockGestureScheduler?.shouldTrigger() == true) {
-            withContext(Dispatchers.Main) {
-                Log.i(TAG, "Injecting unblock gesture")
-                dispatchGesture(
-                    GestureDescription.Builder().buildUnblockGesture()
-                )
-            }
+            Log.i(TAG, "Injecting unblock gesture")
+            dispatchGesture(GestureDescription.Builder().buildUnblockGesture())
         }
     }
 
     suspend fun executeActions(event: Event, results: ConditionsResults? = null): Boolean {
         for (action in event.actions) {
+            if (canDispatchGesture?.invoke() == false) return false
             CrashDiagnostics.record(when (action) {
                 is Click -> CrashDiagnostics.Event.CLICK
                 is Swipe -> CrashDiagnostics.Event.SWIPE
@@ -126,8 +127,8 @@ internal class ActionExecutor(
             })
             try {
                 when (action) {
-                    is Click -> executeClick(event, action, results)
-                    is Swipe -> executeSwipe(action)
+                    is Click -> if (!executeClick(event, action, results)) return false
+                    is Swipe -> if (!executeSwipe(action)) return false
                     is Pause -> executePause(action)
                     is Intent -> executeIntent(action)
                     is ToggleEvent -> executeToggleEvent(action)
@@ -137,7 +138,7 @@ internal class ActionExecutor(
                     is SystemAction -> executeSystemAction(action)
                     is SetText -> executeSetText(action)
                     is PlaySound -> executePlaySound(action)
-                    is SplitAction -> executeSplitAction(event, action, results)
+                    is SplitAction -> if (!executeSplitAction(event, action, results)) return false
                     is CaptureScreenshot -> {
                         val allowed = executeCaptureScreenshot(action)
                         if (!allowed) {
@@ -154,7 +155,7 @@ internal class ActionExecutor(
         return true
     }
 
-    private suspend fun executeClick(event: Event, click: Click, results: ConditionsResults?) {
+    private suspend fun executeClick(event: Event, click: Click, results: ConditionsResults?): Boolean {
         val clickPath = when (click.positionType) {
             Click.PositionType.USER_SELECTED -> {
                 resolvePosition(click.position, click.positionCounters, processingState::getCounterValue)?.let { position ->
@@ -164,7 +165,7 @@ internal class ActionExecutor(
 
             Click.PositionType.ON_DETECTED_CONDITION ->
                 getOnConditionClickPath(event, click, results)
-        } ?: return
+        } ?: return true
 
         click.waitBeforeMs?.takeIf { it > 0 }?.let { delay(it) }
 
@@ -174,11 +175,10 @@ internal class ActionExecutor(
             random = random,
         )
 
-        withContext(Dispatchers.Main) {
-            dispatchGesture(clickGesture)
-        }
+        if (!dispatchGesture(clickGesture)) return false
 
         click.waitAfterMs?.takeIf { it > 0 }?.let { delay(it) }
+        return true
     }
 
     private fun getOnConditionClickPath(event: Event, click: Click, results: ConditionsResults?): Path? {
@@ -209,9 +209,9 @@ internal class ActionExecutor(
      * Execute the provided swipe.
      * @param swipe the swipe to be executed.
      */
-    private suspend fun executeSwipe(swipe: Swipe) {
-        val from = resolvePosition(swipe.from, swipe.fromCounters, processingState::getCounterValue) ?: return
-        val to = resolvePosition(swipe.to, swipe.toCounters, processingState::getCounterValue) ?: return
+    private suspend fun executeSwipe(swipe: Swipe): Boolean {
+        val from = resolvePosition(swipe.from, swipe.fromCounters, processingState::getCounterValue) ?: return true
+        val to = resolvePosition(swipe.to, swipe.toCounters, processingState::getCounterValue) ?: return true
 
         swipe.waitBeforeMs?.takeIf { it > 0 }?.let { delay(it) }
 
@@ -221,19 +221,18 @@ internal class ActionExecutor(
             random = random,
         )
 
-        withContext(Dispatchers.Main) {
-            dispatchGesture(swipeGesture)
-        }
+        if (!dispatchGesture(swipeGesture)) return false
 
         swipe.waitAfterMs?.takeIf { it > 0 }?.let { delay(it) }
+        return true
     }
 
     /**
      * Execute the provided split action simultaneously.
      * @param splitAction the split action containing sub-actions to execute in one gesture.
      */
-    private suspend fun executeSplitAction(event: Event, splitAction: SplitAction, results: ConditionsResults?) {
-        if (!splitAction.isComplete()) return
+    private suspend fun executeSplitAction(event: Event, splitAction: SplitAction, results: ConditionsResults?): Boolean {
+        if (!splitAction.isComplete()) return true
 
         val builder = GestureDescription.Builder()
         var hasValidStroke = false
@@ -241,8 +240,8 @@ internal class ActionExecutor(
         for (subAction in splitAction.subActions) {
             when (subAction) {
                 is Swipe -> {
-                    val from = resolvePosition(subAction.from, subAction.fromCounters, processingState::getCounterValue) ?: return
-                    val to = resolvePosition(subAction.to, subAction.toCounters, processingState::getCounterValue) ?: return
+                    val from = resolvePosition(subAction.from, subAction.fromCounters, processingState::getCounterValue) ?: return true
+                    val to = resolvePosition(subAction.to, subAction.toCounters, processingState::getCounterValue) ?: return true
                     if (subAction.swipeDuration != null) {
                         val path = subAction.path?.toGesturePath(random)
                             ?: Path().apply { line(from, to, random) }
@@ -262,7 +261,7 @@ internal class ActionExecutor(
                                 Path().apply { moveTo(position, random) }
                             }
                             Click.PositionType.ON_DETECTED_CONDITION -> getOnConditionClickPath(event, subAction, results)
-                        } ?: return
+                        } ?: return true
                         builder.addStroke(
                             path = path,
                             durationMs = subAction.pressDuration!!,
@@ -278,9 +277,7 @@ internal class ActionExecutor(
 
         if (hasValidStroke) {
             val gesture = builder.build()
-            withContext(Dispatchers.Main) {
-                dispatchGesture(gesture)
-            }
+            if (!dispatchGesture(gesture)) return false
             val maxWaitAfter = combinedTouchTailDelay(
                 (0 until gesture.strokeCount).map { gesture.getStroke(it).let { stroke -> stroke.startTime + stroke.duration } },
                 splitAction.subActions.map {
@@ -295,6 +292,7 @@ internal class ActionExecutor(
                 delay(maxWaitAfter)
             }
         }
+        return true
     }
 
     /**

@@ -342,7 +342,9 @@ class DetectorEngine @Inject constructor(
                     progressListener = if (liveDebugging || generateReport) debuggingListener else null,
                     debugReportTimingListener = activeDebugReportTimingListener,
                     reportSessionStartNs = debugReportSessionStartNs,
-                    canDispatchGesture = ::isReadyToProcessFrame,
+                    canDispatchGesture = {
+                        isReadyToProcessFrame() && displayConfigManager.isDisplayRotationCurrent()
+                    },
                 )
                 currentCoroutineContext().ensureActive()
                 scenarioProcessor?.onScenarioStart(context)
@@ -401,6 +403,7 @@ class DetectorEngine @Inject constructor(
                 displaySize = scalingManager.refreshScaling(),
                 sourceDisplaySize = physicalDisplaySize,
             )
+            scenarioProcessor?.onCaptureGeometryChanged()
             appliedGeometryRevision = revision
 
             if (_state.value == DetectorState.DETECTING) {

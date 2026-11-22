@@ -94,22 +94,25 @@ internal class AndroidActionExecutorImpl @Inject constructor(
         onGestureFailure = null
     }
 
-    override suspend fun dispatchGesture(gestureDescription: GestureDescription) =
+    override suspend fun dispatchGesture(gestureDescription: GestureDescription) {
         dispatchGesture(gestureDescription) { true }
+    }
 
     override suspend fun dispatchGesture(
         gestureDescription: GestureDescription,
         canDispatch: () -> Boolean,
-    ): Unit = withContext(Dispatchers.Main.immediate) {
+    ): Boolean = withContext(Dispatchers.Main.immediate) {
         val service = accessibilityService
         val result = service?.let { gestureExecutor.dispatchGesture(it, gestureDescription, canDispatch) }
         currentCoroutineContext().ensureActive()
+        if (result == GestureDispatchResult.SKIPPED) Log.d(TAG, "Skipped gesture after capture changed")
         if (result != GestureDispatchResult.COMPLETED && result != GestureDispatchResult.SKIPPED) {
             Log.w(TAG, "Pausing execution after unresolved gesture result: $result")
             if (service != null) onGestureFailure?.invoke(service)
             // Do not advance to later actions, and do not turn a user Stop into an automatic retry.
             throw CancellationException("Gesture did not complete: $result")
         }
+        result == GestureDispatchResult.COMPLETED
     }
 
     override fun performGlobalAction(globalAction: Int) {

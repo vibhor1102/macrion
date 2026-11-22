@@ -26,6 +26,7 @@ interface IConditionLimitersState {
     fun recordConditionRun(conditionId: Long, currentTsNs: Long, result: ProcessedConditionResult)
     fun getCachedConditionResult(conditionId: Long): ProcessedConditionResult?
     fun invalidateConditionResults(conditionIds: Collection<Long>)
+    fun clearScreenConditionResults()
     fun clearConditionLimitersState()
 }
 
@@ -72,5 +73,13 @@ internal class ConditionLimitersState : IConditionLimitersState {
     override fun clearConditionLimitersState() {
         conditionLastRunNs.clear()
         conditionCachedResults.clear()
+    }
+
+    override fun clearScreenConditionResults() {
+        conditionCachedResults.entries.removeAll { (id, result) ->
+            if (result !is ProcessedConditionResult.Screen) return@removeAll false
+            conditionLastRunNs.remove(id)
+            true
+        }
     }
 }

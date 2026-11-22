@@ -390,6 +390,23 @@ class ActionExecutorTests {
     }
 
     @Test
+    fun rejectedGestureInterruptsTheRestOfTheEvent() = runTest {
+        val frameIsCurrent = { true }
+        val executor = ActionExecutor(mockAndroidExecutor, mockProcessingState, randomize = false,
+            canDispatchGesture = frameIsCurrent)
+        mockWhen(mockAndroidExecutor.dispatchGesture(anyNotNull(), eq(frameIsCurrent))).thenReturn(true, false)
+
+        val event = getNewDefaultEvent(actions = listOf(
+            getNewDefaultClickUserPos(1),
+            getNewDefaultClickUserPos(2),
+            getNewDefaultSwipe(3),
+        ))
+
+        assertFalse(executor.executeActions(event))
+        verify(mockAndroidExecutor, times(2)).dispatchGesture(anyNotNull(), eq(frameIsCurrent))
+    }
+
+    @Test
     fun execute_mixed() = runTest {
         val click = getNewDefaultClickUserPos(1)
         val pause = getNewDefaultPause(2)

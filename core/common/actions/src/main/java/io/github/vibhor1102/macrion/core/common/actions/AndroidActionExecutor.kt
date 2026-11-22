@@ -63,8 +63,8 @@ interface AndroidActionExecutor: Dumpable {
      */
     suspend fun dispatchGesture(gestureDescription: GestureDescription)
 
-    /** Skip the gesture if its coordinates are no longer valid when Android is ready to receive it. */
-    suspend fun dispatchGesture(gestureDescription: GestureDescription, canDispatch: () -> Boolean)
+    /** Returns false if the coordinates became invalid before dispatch. */
+    suspend fun dispatchGesture(gestureDescription: GestureDescription, canDispatch: () -> Boolean): Boolean
 
     /**
      * Performs a global action.

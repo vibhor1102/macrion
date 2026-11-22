@@ -305,8 +305,10 @@ class DisplayConfigManagerTests {
         val original = displayConfigManager.displayConfig
 
         mockWhen(mockDisplay.rotation).thenReturn(Surface.ROTATION_180)
+        assertEquals(false, displayConfigManager.isDisplayRotationCurrent())
         getDisplayListener().onDisplayChanged(0)
 
+        assertEquals(true, displayConfigManager.isDisplayRotationCurrent())
         assertEquals(original.copy(rotation = Surface.ROTATION_180), displayConfigManager.displayConfig)
         verify(mockOrientationListener).onOrientationChanged()
     }

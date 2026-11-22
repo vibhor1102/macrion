@@ -64,7 +64,7 @@ internal class ScenarioProcessor(
     private val debugReportTimingListener: DebugReportTimingListener? = null,
     private val reportSessionStartNs: Long? = null,
     private val elapsedRealtimeNanos: () -> Long = SystemClock::elapsedRealtimeNanos,
-    canDispatchGesture: (() -> Boolean)? = null,
+    private val canDispatchGesture: (() -> Boolean)? = null,
 ) {
 
     /** Handle the processing state of the scenario. */
@@ -101,6 +101,10 @@ internal class ScenarioProcessor(
         processingState.onProcessingStopped()
     }
 
+    fun onCaptureGeometryChanged() {
+        processingState.clearScreenConditionResults()
+    }
+
     /**
      * Find an event with the conditions fulfilled on the current image.
      *
@@ -125,6 +129,8 @@ internal class ScenarioProcessor(
         // Reset any values that needs to be reset for each iteration
         // After the triggers to let them handle changes, before the image processing to start capturing values before
         processingState.clearIterationState()
+
+        if (canDispatchGesture?.invoke() == false) return
 
         // Handle the image detection
         if (!processingState.areAllScreenEventsDisabled()) {

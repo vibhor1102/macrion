@@ -24,6 +24,8 @@ import io.github.vibhor1102.macrion.core.base.identifier.Identifier
 import io.github.vibhor1102.macrion.core.domain.model.condition.ScreenCondition
 import io.github.vibhor1102.macrion.core.processing.data.processor.state.ConditionLimitersState
 import io.github.vibhor1102.macrion.core.processing.domain.model.ProcessedConditionResult
+import io.github.vibhor1102.macrion.core.domain.model.condition.TriggerCondition
+import io.mockk.mockk
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -171,6 +173,21 @@ class ConditionLimitersStateTests {
     }
 
     // ---- clearConditionLimitersState ----
+
+    @Test
+    fun captureChangeDiscardsScreenMatchesAndPreservesTriggerState() {
+        val screen = newScreenResult(newColorCondition(id = 1L))
+        val trigger = ProcessedConditionResult.Trigger(isFulfilled = true, condition = mockk<TriggerCondition>())
+        state.recordConditionRun(1L, 100L, screen)
+        state.recordConditionRun(2L, 100L, trigger)
+
+        state.clearScreenConditionResults()
+
+        assertNull(state.getCachedConditionResult(1L))
+        assertTrue(state.isConditionEligible(1L, 1.0, 101L))
+        assertEquals(trigger, state.getCachedConditionResult(2L))
+        assertFalse(state.isConditionEligible(2L, 1.0, 101L))
+    }
 
     @Test
     fun clearConditionLimitersState_clearsTimestampsAndResults() {

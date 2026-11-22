@@ -85,6 +85,9 @@ class DisplayConfigManager @Inject constructor(
     @Volatile var displayConfig: DisplayConfig = lastRawDisplayConfig
         private set
 
+    /** Rotation can change before its new display configuration reaches our listeners. */
+    fun isDisplayRotationCurrent(): Boolean = display.rotation == displayConfig.rotation
+
     /** Start the monitoring of the screen metrics. */
     fun startMonitoring(context: Context) {
         onAndroidConfigurationChanged(context)
