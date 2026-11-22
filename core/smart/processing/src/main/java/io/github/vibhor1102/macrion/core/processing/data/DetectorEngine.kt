@@ -693,7 +693,8 @@ internal enum class DetectorState {
 private const val NO_IMAGE_DELAY_MS = 20L
 /** Debounce delay for orientation changes, to avoid restarting detection on every intermediate rotation event. */
 private const val ORIENTATION_CHANGE_DEBOUNCE_MS = 100L
-private const val CAPTURE_MISMATCH_GRACE_MS = 200L
+// Display metrics and capture dimensions can update separately during an app transition.
+private const val CAPTURE_MISMATCH_GRACE_MS = 1_000L
 
 /** The value of 1 second in nanoseconds. */
 private const val ONE_SECOND_IN_NANO = 1000000000L

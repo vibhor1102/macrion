@@ -119,6 +119,7 @@ class DisplayRecorder @Inject internal constructor(
             onContentResize = { size ->
                 val content = session.content
                 if (content.size != size) {
+                    Log.d(TAG, "Captured content resized to $size")
                     val revision = if (content.size == null) content.revision else content.revision + 1
                     session.content = content.copy(size = size, revision = revision)
                     if (captureSession === session) onContentResize(size)
@@ -183,8 +184,13 @@ class DisplayRecorder @Inject internal constructor(
         readerGeometry = geometry
     }
 
-    fun isCaptureAreaIncompatible(): Boolean =
-        captureSession?.content?.size?.let { it != displayConfigManager.displayConfig.sizePx } == true
+    fun isCaptureAreaIncompatible(): Boolean {
+        val capturedSize = captureSession?.content?.size ?: return false
+        val displaySize = displayConfigManager.displayConfig.sizePx
+        // MediaProjection can report the new dimensions before DisplayManager reports the rotation.
+        val isRotatedDisplaySize = capturedSize.x == displaySize.y && capturedSize.y == displaySize.x
+        return capturedSize != displaySize && !isRotatedDisplaySize
+    }
 
     fun isCaptureGeometryReady(): Boolean {
         val display = displayConfigManager.displayConfig

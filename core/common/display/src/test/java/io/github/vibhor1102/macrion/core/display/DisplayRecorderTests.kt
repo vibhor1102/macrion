@@ -289,6 +289,37 @@ class DisplayRecorderTests {
 
     @Test
     @Config(sdk = [Build.VERSION_CODES.UPSIDE_DOWN_CAKE])
+    fun rotatedContentWaitsForMatchingDisplayMetricsAndAResizedReader() = runBlocking {
+        displayRecorder.startProjection(
+            TEST_DATA_RESULT_CODE,
+            TEST_DATA_PROJECTION_DATA_INTENT,
+            stoppedListener = mockStoppedListener::onStopped,
+        )
+        val callback = ArgumentCaptor.forClass(MediaProjection.Callback::class.java)
+        verify(mockMediaProjection).registerCallback(callback.capture(), anyNotNull())
+        displayRecorder.startScreenRecord(TEST_DATA_DISPLAY_SIZE)
+        callback.value.onCapturedContentResize(800, 600)
+        assertTrue(displayRecorder.isCaptureGeometryReady())
+
+        callback.value.onCapturedContentResize(600, 800)
+        assertFalse(displayRecorder.isCaptureAreaIncompatible())
+        assertFalse(displayRecorder.isCaptureGeometryReady())
+        assertEquals(null, displayRecorder.acquireLatestBitmap())
+
+        val portraitSize = Point(600, 800)
+        val portrait = mockDisplayConfigManager.displayConfig.copy(
+            sizePx = portraitSize,
+            orientation = Configuration.ORIENTATION_PORTRAIT,
+            rotation = Surface.ROTATION_90,
+        )
+        mockWhen(mockDisplayConfigManager.displayConfig).thenReturn(portrait)
+        assertFalse(displayRecorder.isCaptureGeometryReady())
+        displayRecorder.resizeDisplay(portraitSize)
+        assertTrue(displayRecorder.isCaptureGeometryReady())
+    }
+
+    @Test
+    @Config(sdk = [Build.VERSION_CODES.UPSIDE_DOWN_CAKE])
     fun hiddenContentAndHalfTurnsInvalidateFramesUntilTheReaderIsReplaced() = runBlocking {
         var visibilityRestored = 0
         displayRecorder.startProjection(

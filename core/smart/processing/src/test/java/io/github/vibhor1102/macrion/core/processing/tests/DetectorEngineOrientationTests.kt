@@ -161,6 +161,36 @@ class DetectorEngineOrientationTests {
     }
 
     @Test
+    fun `capture stays active while mismatched dimensions settle after an app rotates`() = runTest {
+        val orientationListener = startRecordingAndCaptureOrientationListener()
+        mockWhen(mockDisplayRecorder.isCaptureAreaIncompatible()).thenReturn(true)
+        orientationListener(mockContext)
+
+        // The Android 14 device took over 500 ms to publish matching display metrics.
+        advanceTimeBy(550)
+        verify(mockDisplayRecorder, never()).stopProjection()
+
+        mockWhen(mockDisplayRecorder.isCaptureAreaIncompatible()).thenReturn(false)
+        orientationListener(mockContext)
+        advanceUntilIdle()
+
+        verify(mockDisplayRecorder, never()).stopProjection()
+        verify(mockScalingManager, times(1)).refreshScaling()
+    }
+
+    @Test
+    fun `a persistent partial capture still stops the projection`() = runTest {
+        val orientationListener = startRecordingAndCaptureOrientationListener()
+        mockWhen(mockDisplayRecorder.isCaptureAreaIncompatible()).thenReturn(true)
+        orientationListener(mockContext)
+
+        advanceUntilIdle()
+
+        verify(mockDisplayRecorder, times(1)).stopProjection()
+        verify(mockScalingManager, never()).refreshScaling()
+    }
+
+    @Test
     fun `a stop callback during the transition shares the pending cleanup`() = runTest {
         val engine = newEngine()
         mockDisplayRecorder.stub { on { validateScreenCapture() } doReturn true }
