@@ -97,7 +97,7 @@
       - Toast messages.
       - Can be pretty long (2 lines).
       -->
-    <string name="toast_screen_sharing_not_started">Спільне використання екрана не розпочалося</string>
+    <string name="toast_screen_sharing_not_started">Дозвольте спільне використання екрана, щоб продовжити</string>
     <string name="toast_configure_single_click">Торкніться позиції для кліку</string>
     <string name="toast_configure_swipe_from">Торкніться позиції для початку свайпу</string>
     <string name="toast_configure_swipe_to">Торкніться позиції для завершення свайпу</string>

@@ -47,7 +47,7 @@
     <string name="dropdown_label_time_unit_min">phút</string>
     <string name="dropdown_label_time_unit_h">giờ</string>
     <string name="dropdown_label_time_unit">Đơn vị thời gian</string>
-    <string name="toast_screen_sharing_not_started">Chưa bắt đầu chia sẻ màn hình</string>
+    <string name="toast_screen_sharing_not_started">Cho phép chia sẻ màn hình để tiếp tục</string>
     <string name="toast_configure_single_click">Chạm vào vị trí để nhấp vào</string>
     <string name="toast_configure_swipe_from">Chạm vào vị trí để bắt đầu vuốt từ</string>
     <string name="toast_configure_swipe_to">Chạm vào vị trí để kết thúc thao tác vuốt tới</string>

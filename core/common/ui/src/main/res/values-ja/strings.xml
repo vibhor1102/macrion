@@ -30,7 +30,7 @@
     <string name="dropdown_label_time_unit_min">分</string>
     <string name="dropdown_label_time_unit_h">時間</string>
     <string name="dropdown_label_time_unit">時間の単位</string>
-    <string name="toast_screen_sharing_not_started">画面共有が開始されませんでした</string>
+    <string name="toast_screen_sharing_not_started">続行するには画面の共有を許可してください</string>
     <string name="toast_configure_single_click">タップする位置に触れてください</string>
     <string name="toast_configure_swipe_from">スワイプの開始位置に触れてください</string>
     <string name="toast_configure_swipe_to">スワイプの終了位置に触れてください</string>

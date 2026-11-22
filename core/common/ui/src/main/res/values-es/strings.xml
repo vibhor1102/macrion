@@ -97,7 +97,7 @@
       - Toast messages.
       - Can be pretty long (2 lines).
       -->
-    <string name="toast_screen_sharing_not_started">No se inició la captura de pantalla</string>
+    <string name="toast_screen_sharing_not_started">Permite compartir la pantalla para continuar</string>
     <string name="toast_configure_single_click">Toque la posición para hacer clic</string>
     <string name="toast_configure_swipe_from">Toque la posición para iniciar el deslizamiento desde</string>
     <string name="toast_configure_swipe_to">Toque la posición para finalizar el deslizamiento para</string>
