@@ -18,7 +18,6 @@ package io.github.vibhor1102.macrion.feature.smart.config.ui.common.starters
 
 import android.content.Context
 import android.content.Intent
-import android.graphics.Color
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.addCallback
@@ -37,24 +36,34 @@ import javax.inject.Inject
 class RequestNotificationPermissionActivity : ComponentActivity() {
 
     companion object {
-        fun getStartIntent(context: Context): Intent =
+        private const val EXTRA_REQUEST_ID = "starterRequestId"
+        private const val STATE_HID_OVERLAYS = "hidOverlays"
+
+        internal fun getStartIntent(context: Context, requestId: String): Intent =
             Intent(context, RequestNotificationPermissionActivity::class.java)
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                .putExtra(EXTRA_REQUEST_ID, requestId)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
     }
 
     @Inject lateinit var permissionController: PermissionsController
     @Inject lateinit var overlayManager: OverlayManager
-
+    private var hidOverlays = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (!ownsRequest()) {
+            finish()
+            return
+        }
         setContent {
             MacrionTheme {
                 PermissionsHost(permissionController)
             }
         }
 
-        overlayManager.hideAll()
+        hidOverlays = savedInstanceState?.getBoolean(STATE_HID_OVERLAYS)
+            ?: !overlayManager.isOverlayStackHidden()
+        if (hidOverlays) overlayManager.hideAll()
         onBackPressedDispatcher.addCallback(this) { finishActivity() }
         permissionController.startPermissionsUiFlow(
             this,
@@ -65,15 +74,29 @@ class RequestNotificationPermissionActivity : ComponentActivity() {
         )
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putBoolean(STATE_HID_OVERLAYS, hidOverlays)
+        super.onSaveInstanceState(outState)
+    }
+
+    private fun ownsRequest(): Boolean =
+        overlayManager.ownsStarterRequest(intent.getStringExtra(EXTRA_REQUEST_ID))
+
+    private fun closeStarterOverlay() {
+        if (!ownsRequest()) return
+        overlayManager.navigateUp(this)
+        if (hidOverlays) overlayManager.restoreVisibility()
+        hidOverlays = false
+    }
+
     private fun finishActivity() {
         if (isFinishing) return
-        overlayManager.restoreVisibility()
-        overlayManager.navigateUp(this)
+        closeStarterOverlay()
         finish()
     }
 
     override fun onDestroy() {
-        if (isFinishing) overlayManager.restoreVisibility()
+        if (isFinishing) closeStarterOverlay()
         super.onDestroy()
     }
 }

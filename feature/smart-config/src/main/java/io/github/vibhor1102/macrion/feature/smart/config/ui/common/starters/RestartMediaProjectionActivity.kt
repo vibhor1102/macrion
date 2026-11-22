@@ -86,7 +86,7 @@ class RestartMediaProjectionActivity : ComponentActivity() {
     }
 
     private fun ownsRequest(): Boolean =
-        !isFinishing && overlayManager.ownsScreenCaptureRequest(intent.getStringExtra(EXTRA_REQUEST_ID))
+        !isFinishing && overlayManager.ownsStarterRequest(intent.getStringExtra(EXTRA_REQUEST_ID))
 
     private fun finishActivity() {
         if (isFinishing) return

@@ -107,6 +107,8 @@ class DetectorEngine @Inject constructor(
     /** Detect the condition images on the screen image. */
     private var imageDetector: ImageDetector? = null
 
+    private val recordingLock = Any()
+
     /** Coroutine scope for the image processing. */
     private var processingScope: CoroutineScope? = null
     /** Coroutine job for the image currently processed. */
@@ -116,7 +118,10 @@ class DetectorEngine @Inject constructor(
     /** Coroutine job for the cleaning of the detection once stopped. */
     private var processingShutdownJob: Job? = null
     /** Prevent repeated teardown callbacks from scheduling competing projection shutdowns. */
-    private var recordingStopJob: Job? = null
+    @Volatile private var recordingStopJob: Job? = null
+    // A lazy job owns teardown as soon as it is published, even before it is started.
+    private val isRecordingStopPending: Boolean
+        get() = recordingStopJob?.isCompleted == false
     /** Coroutine job for the debounced orientation change handler. */
     private var orientationChangeJob: Job? = null
 
@@ -169,44 +174,51 @@ class DetectorEngine @Inject constructor(
         resultCode: Int,
         data: Intent,
     ) {
-        if (_state.value != DetectorState.CREATED) {
-            Log.w(TAG, "startScreenRecord: Screen record is already started")
-            return
-        }
-
-        val displaySize = displayConfigManager.displayConfig.sizePx
-        if (displaySize.x <= 0 || displaySize.y <= 0) {
-            Log.w(TAG, "startScreenRecord: Invalid display size $displaySize")
-            return
-        }
-
-        _needsEntireScreenCapture.value = false
-        _state.value = DetectorState.TRANSITIONING
-
-        Log.i(TAG, "startScreenRecord")
-
-        processingScope = CoroutineScope(ioDispatcher.limitedParallelism(1))
-
-        displayConfigManager.addDisplayGeometryListener(displayGeometryListener)
-
-        recordingStartJob = processingScope?.launch {
-            displayRecorder.apply {
-                startProjection(
-                    resultCode,
-                    data,
-                    stoppedListener = {
-                        Log.w(TAG, "projection lost")
-                        this@DetectorEngine.stopScreenRecord()
-                    },
-                    onContentResize = { onScreenGeometryChanged() },
-                )
-                startScreenRecord(displaySize)
+        synchronized(recordingLock) {
+            if (_state.value != DetectorState.CREATED) {
+                Log.w(TAG, "startScreenRecord: Screen record is already started")
+                return
             }
 
-            val ready = displayRecorder.validateScreenCapture()
-            if (recordingStopJob?.isActive != true) {
-                _state.emit(if (ready) DetectorState.RECORDING else DetectorState.ERROR_SCREEN_IMAGE_CAPTURE_FAILED)
+            val displaySize = displayConfigManager.displayConfig.sizePx
+            if (displaySize.x <= 0 || displaySize.y <= 0) {
+                Log.w(TAG, "startScreenRecord: Invalid display size $displaySize")
+                return
             }
+
+            Log.i(TAG, "startScreenRecord")
+
+            val scope = CoroutineScope(ioDispatcher.limitedParallelism(1))
+            processingScope = scope
+
+            displayConfigManager.addDisplayGeometryListener(displayGeometryListener)
+
+            val startJob = scope.launch(start = CoroutineStart.LAZY) {
+                displayRecorder.apply {
+                    startProjection(
+                        resultCode,
+                        data,
+                        stoppedListener = {
+                            Log.w(TAG, "projection lost")
+                            this@DetectorEngine.stopScreenRecord()
+                        },
+                        onContentResize = { onScreenGeometryChanged() },
+                    )
+                    startScreenRecord(displaySize)
+                }
+
+                val ready = displayRecorder.validateScreenCapture()
+                synchronized(recordingLock) {
+                    if (!isRecordingStopPending) {
+                        _state.value = if (ready) DetectorState.RECORDING else DetectorState.ERROR_SCREEN_IMAGE_CAPTURE_FAILED
+                    }
+                }
+            }
+
+            recordingStartJob = startJob
+            _state.value = DetectorState.TRANSITIONING
+            _needsEntireScreenCapture.value = false
+            startJob.start()
         }
     }
 
@@ -342,7 +354,7 @@ class DetectorEngine @Inject constructor(
      * have no exposed screen origin, so their frame coordinates cannot safely drive screen gestures.
      */
     private fun onScreenGeometryChanged() {
-        if (recordingStopJob?.isActive == true) return
+        if (isRecordingStopPending) return
 
         Log.d(TAG, "onScreenGeometryChanged")
 
@@ -454,42 +466,47 @@ class DetectorEngine @Inject constructor(
      * resources.
      */
     internal fun stopScreenRecord() {
-        if (_state.value == DetectorState.CREATED) return
-        if (_state.value == DetectorState.DETECTING || _state.value == DetectorState.STARTING_DETECTION) stopDetection()
-        stopRecording()
+        synchronized(recordingLock) {
+            if (_state.value == DetectorState.CREATED || isRecordingStopPending) return
+            val scope = processingScope ?: return
+            val stopJob = scope.launch(start = CoroutineStart.LAZY) { finishRecordingStop() }
+            recordingStopJob = stopJob
+
+            if (_state.value == DetectorState.DETECTING || _state.value == DetectorState.STARTING_DETECTION) stopDetection()
+            Log.i(TAG, "stopScreenRecord")
+            _state.value = DetectorState.TRANSITIONING
+            stopJob.start()
+        }
     }
 
-    private fun stopRecording() {
-        if (recordingStopJob?.isActive == true) return
-        Log.i(TAG, "stopScreenRecord")
-        _state.value = DetectorState.TRANSITIONING
+    private suspend fun finishRecordingStop() {
+        recordingStartJob?.join()
+        recordingStartJob = null
+        processingShutdownJob?.join()
 
-        recordingStopJob = processingScope?.launch {
-            recordingStartJob?.join()
-            recordingStartJob = null
-            processingShutdownJob?.join()
+        // Error and interrupted-transition states can bypass the ordinary stopDetection cleanup.
+        processingJob?.cancelAndJoin()
+        processingJob = null
+        imageDetector?.close()
+        imageDetector = null
+        scenarioProcessor?.onScenarioEnd()
+        scenarioProcessor = null
+        if (debugSessionStarted) debuggingListener.onSessionEnded()
+        debugSessionStarted = false
+        activeDebugReportTimingListener = null
+        debugReportSessionStartNs = null
+        scalingManager.stopScaling()
 
-            // Error and interrupted-transition states can bypass the ordinary stopDetection cleanup.
-            processingJob?.cancelAndJoin()
-            processingJob = null
-            imageDetector?.close()
-            imageDetector = null
-            scenarioProcessor?.onScenarioEnd()
-            scenarioProcessor = null
-            if (debugSessionStarted) debuggingListener.onSessionEnded()
-            debugSessionStarted = false
-            activeDebugReportTimingListener = null
-            debugReportSessionStartNs = null
-            scalingManager.stopScaling()
+        displayConfigManager.removeDisplayGeometryListener(displayGeometryListener)
+        orientationChangeJob?.cancel()
+        orientationChangeJob = null
+        orientationChangeRequested = false
+        displayRecorder.stopProjection()
+        appliedGeometryRevision = geometryRevision.get()
+        bitmapRepository.clearCache()
+        bitmapRepository.resetCacheSize()
 
-            displayConfigManager.removeDisplayGeometryListener(displayGeometryListener)
-            orientationChangeJob?.cancel()
-            orientationChangeJob = null
-            orientationChangeRequested = false
-            displayRecorder.stopProjection()
-            appliedGeometryRevision = geometryRevision.get()
-            bitmapRepository.clearCache()
-            bitmapRepository.resetCacheSize()
+        synchronized(recordingLock) {
             val stoppedScope = processingScope
             processingScope = null
             recordingStopJob = null

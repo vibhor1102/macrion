@@ -17,6 +17,7 @@
 package io.github.vibhor1102.macrion.feature.smart.config.ui.common.starters
 
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import androidx.annotation.RequiresApi
@@ -43,25 +44,28 @@ fun OverlayManager.requestScreenCapture(context: Context) {
     )
 }
 
-internal fun OverlayManager.ownsScreenCaptureRequest(requestId: String?): Boolean {
-    val starter = getBackStackTop() as? ScreenCaptureStarterOverlay ?: return false
+internal fun OverlayManager.ownsStarterRequest(requestId: String?): Boolean {
+    val starter = getBackStackTop() as? OwnedActivityStarterOverlay ?: return false
     return starter.requestId == requestId && isCurrentOverlay(starter)
 }
 
-private class ScreenCaptureStarterOverlay(
-    context: Context,
+internal open class OwnedActivityStarterOverlay(
     val requestId: String = UUID.randomUUID().toString(),
-) : ActivityStarterOverlayMenu(RestartMediaProjectionActivity.getStartIntent(context, requestId))
+    intent: (String) -> Intent,
+) : ActivityStarterOverlayMenu(intent(requestId))
 
-internal fun newNotificationPermissionStarterOverlay(context: Context) = ActivityStarterOverlayMenu(
-    intent = RequestNotificationPermissionActivity.getStartIntent(context)
-)
+private class ScreenCaptureStarterOverlay(context: Context) :
+    OwnedActivityStarterOverlay(intent = { RestartMediaProjectionActivity.getStartIntent(context, it) })
+
+internal fun newNotificationPermissionStarterOverlay(context: Context) = OwnedActivityStarterOverlay {
+    RequestNotificationPermissionActivity.getStartIntent(context, it)
+}
 
 @RequiresApi(Build.VERSION_CODES.O)
 internal fun newNotificationSettingsStarterOverlay() = ActivityStarterOverlayMenu(
     intent = getNotificationSettingsIntent(),
 )
 
-internal fun newPickFolderStarterOverlay(context: Context) = ActivityStarterOverlayMenu(
-    intent = PickFolderActivity.getStartIntent(context),
-)
+internal fun newPickFolderStarterOverlay(context: Context) = OwnedActivityStarterOverlay {
+    PickFolderActivity.getStartIntent(context, it)
+}

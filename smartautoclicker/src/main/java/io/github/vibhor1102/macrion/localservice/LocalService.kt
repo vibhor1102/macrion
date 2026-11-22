@@ -52,6 +52,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
@@ -105,6 +106,7 @@ class LocalService(
         )
     }
     private val scenarioChangeMutex = Mutex()
+    private var isStopping = false
     /** Updated before the delayed Dumb-engine setup, so external launches always see the active selection. */
     private var loadedDumbScenarioId: Long? = null
 
@@ -169,7 +171,7 @@ class LocalService(
     }
 
     override fun launchDumbScenario(dumbScenario: DumbScenario): Boolean {
-        if (!isCleanForFreshLaunch()) return false
+        if (isStopping || !isCleanForFreshLaunch()) return false
         state = LocalServiceState(isStarted = true, isSmartLoaded = false, sessionId = ++nextServiceSessionId)
         loadedDumbScenarioId = dumbScenario.id.databaseId
         onStart(dumbScenario.id.databaseId, false, null)
@@ -211,7 +213,7 @@ class LocalService(
         scenario: Scenario,
         autoStart: Boolean,
     ): Boolean {
-        if (!isCleanForFreshLaunch()) return false
+        if (isStopping || !isCleanForFreshLaunch()) return false
         state = LocalServiceState(isStarted = true, isSmartLoaded = true, sessionId = ++nextServiceSessionId)
 
         onStart(
@@ -321,30 +323,35 @@ class LocalService(
 
     private suspend fun stopAndWait(): Boolean {
         if (isCleanForFreshLaunch()) return true
-        state = state.copy(isStarted = false, isSmartLoaded = false)
-        scenarioSwitcherOpeningJob?.cancel()
-        scenarioSwitcherOpeningJob = null
-        loadedDumbScenarioId = null
-        onScenarioStateChanged()
+        isStopping = true
+        try {
+            state = state.copy(isStarted = false, isSmartLoaded = false)
+            scenarioSwitcherOpeningJob?.cancel()
+            scenarioSwitcherOpeningJob = null
+            loadedDumbScenarioId = null
+            onScenarioStateChanged()
 
-        startJob?.join()
-        startJob = null
+            startJob?.cancelAndJoin()
+            startJob = null
 
-        dumbEngine.release()
-        overlayManager.closeAll(context)
-        smartProcessingRepository.stopScreenRecord()
+            dumbEngine.release()
+            overlayManager.closeAll(context)
+            smartProcessingRepository.stopScreenRecord()
 
-        onStop()
-        notificationController.destroyNotification()
+            onStop()
+            notificationController.destroyNotification()
 
-        return withTimeoutOrNull(SCENARIO_STOP_TIMEOUT_MS) {
-            combine(
-                smartProcessingRepository.detectionState,
-                overlayManager.backStackTopFlow,
-            ) { detectionState, topOverlay ->
-                detectionState == DetectionState.INACTIVE && topOverlay == null
-            }.first { it }
-        } == true && isCleanForFreshLaunch()
+            return withTimeoutOrNull(SCENARIO_STOP_TIMEOUT_MS) {
+                combine(
+                    smartProcessingRepository.detectionState,
+                    overlayManager.backStackTopFlow,
+                ) { detectionState, topOverlay ->
+                    detectionState == DetectionState.INACTIVE && topOverlay == null
+                }.first { it }
+            } == true && isCleanForFreshLaunch()
+        } finally {
+            isStopping = false
+        }
     }
 
     override fun release() {

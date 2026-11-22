@@ -32,18 +32,25 @@ import io.github.vibhor1102.macrion.core.display.config.DisplayConfig
 import io.github.vibhor1102.macrion.core.display.config.DisplayConfigManager
 import io.github.vibhor1102.macrion.core.display.recorder.DisplayRecorder
 import io.github.vibhor1102.macrion.core.processing.data.DetectorEngine
+import io.github.vibhor1102.macrion.core.processing.data.DetectorState
 import io.github.vibhor1102.macrion.core.processing.data.scaling.ScalingManager
 import io.github.vibhor1102.macrion.core.processing.domain.SmartProcessingListener
 import io.github.vibhor1102.macrion.core.settings.domain.SettingsRepository
 import io.github.vibhor1102.macrion.core.processing.domain.DebugReportTimingListener
 
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -55,7 +62,9 @@ import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.doSuspendableAnswer
 import org.mockito.kotlin.stub
+import org.mockito.kotlin.whenever
 import org.robolectric.annotation.Config
 
 import org.mockito.Mockito.`when` as mockWhen
@@ -151,10 +160,39 @@ class DetectorEngineOrientationTests {
         verify(mockScalingManager, times(1)).refreshScaling()
     }
 
-    // ---- helpers ----
+    @Test
+    fun `a stop callback during the transition shares the pending cleanup`() = runTest {
+        val engine = newEngine()
+        mockDisplayRecorder.stub { on { validateScreenCapture() } doReturn true }
+        engine.startScreenRecord(0, mockIntent)
+        advanceUntilIdle()
+        assertEquals(DetectorState.RECORDING, engine.state.value)
 
-    private fun TestScope.startRecordingAndCaptureOrientationListener(): (Context) -> Unit {
-        val engine = DetectorEngine(
+        var repeatedStop = false
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+            engine.state.collect { state ->
+                if (state == DetectorState.TRANSITIONING) {
+                    repeatedStop = true
+                    engine.stopScreenRecord()
+                }
+            }
+        }
+
+        val finishCleanup = CompletableDeferred<Unit>()
+        whenever(mockDisplayRecorder.stopProjection()).doSuspendableAnswer { finishCleanup.await() }
+
+        engine.stopScreenRecord()
+        runCurrent()
+
+        assertTrue(repeatedStop)
+        verify(mockDisplayRecorder, times(1)).stopProjection()
+        finishCleanup.complete(Unit)
+        advanceUntilIdle()
+        assertEquals(DetectorState.CREATED, engine.state.value)
+    }
+
+    private fun TestScope.newEngine(): DetectorEngine =
+        DetectorEngine(
             ioDispatcher = StandardTestDispatcher(testScheduler),
             displayConfigManager = mockDisplayConfigManager,
             bitmapRepository = mockBitmapRepository,
@@ -168,6 +206,8 @@ class DetectorEngineOrientationTests {
             ocrModelsRepository = mockOcrModelsRepository,
         )
 
+    private fun TestScope.startRecordingAndCaptureOrientationListener(): (Context) -> Unit {
+        val engine = newEngine()
         mockDisplayRecorder.stub { on { validateScreenCapture() } doReturn true }
         mockWhen(mockScalingManager.refreshScaling()).thenReturn(TEST_DISPLAY_SIZE)
 

@@ -37,9 +37,12 @@ import javax.inject.Inject
 class PickFolderActivity : ComponentActivity() {
 
     companion object {
-        fun getStartIntent(context: Context): Intent =
+        private const val EXTRA_REQUEST_ID = "starterRequestId"
+
+        internal fun getStartIntent(context: Context, requestId: String): Intent =
             Intent(context, PickFolderActivity::class.java)
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                .putExtra(EXTRA_REQUEST_ID, requestId)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
     }
 
     @Inject lateinit var editionRepository: EditionRepository
@@ -49,7 +52,7 @@ class PickFolderActivity : ComponentActivity() {
     private val openDocumentTreeLauncher = registerForActivityResult(
         ActivityResultContracts.OpenDocumentTree()
     ) { treeUri: Uri? ->
-        if (treeUri != null) {
+        if (treeUri != null && !isFinishing && ownsRequest()) {
             try {
                 val takeFlags: Int = Intent.FLAG_GRANT_READ_URI_PERMISSION or
                     Intent.FLAG_GRANT_WRITE_URI_PERMISSION
@@ -75,6 +78,10 @@ class PickFolderActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (!ownsRequest()) {
+            finish()
+            return
+        }
         setContentView(FrameLayout(this).apply { setBackgroundColor(Color.TRANSPARENT) })
         onBackPressedDispatcher.addCallback(this) { finishActivity() }
         pickerStarted = savedInstanceState?.getBoolean("folderPickerStarted") == true
@@ -93,9 +100,12 @@ class PickFolderActivity : ComponentActivity() {
         super.onSaveInstanceState(outState)
     }
 
+    private fun ownsRequest(): Boolean =
+        overlayManager.ownsStarterRequest(intent.getStringExtra(EXTRA_REQUEST_ID))
+
     private fun finishActivity() {
         if (isFinishing) return
-        overlayManager.navigateUp(this)
+        if (ownsRequest()) overlayManager.navigateUp(this)
         finish()
     }
 
