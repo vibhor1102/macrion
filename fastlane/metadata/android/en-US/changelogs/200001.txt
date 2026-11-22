@@ -1,0 +1,4 @@
+Keep the floating toolbar tucked after unlocking.
+Fix Smart taps during rotation and keep unsaved edits when screen sharing stops.
+Improve Quick Settings launches and keep editors above the keyboard on Android 15 and later.
+Fix floating toolbar crashes and make backup imports safer.

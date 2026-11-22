@@ -1,2 +1,0 @@
-Keep the floating toolbar tucked after unlocking your phone.
-If sharing one app captures only part of the screen, Macrion asks to share the entire display and keeps unsaved edits open.
