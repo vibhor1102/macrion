@@ -30,6 +30,7 @@ import androidx.lifecycle.viewModelScope
 import io.github.vibhor1102.macrion.core.base.data.AppComponentsProvider
 import io.github.vibhor1102.macrion.core.common.accessibility.domain.LocalAccessibilityServiceConnection
 import io.github.vibhor1102.macrion.core.common.quality.domain.QualityRepository
+import io.github.vibhor1102.macrion.core.domain.IRepository
 import io.github.vibhor1102.macrion.core.domain.model.scenario.Scenario
 import io.github.vibhor1102.macrion.core.dumb.domain.model.DumbScenario
 import io.github.vibhor1102.macrion.core.common.permissions.PermissionsController
@@ -41,7 +42,9 @@ import io.github.vibhor1102.macrion.feature.revenue.IRevenueRepository
 import io.github.vibhor1102.macrion.feature.revenue.UserConsentState
 
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
@@ -55,10 +58,22 @@ class ScenarioViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val appComponentsProvider: AppComponentsProvider,
     private val serviceConnection: LocalAccessibilityServiceConnection,
+    private val scenarioRepository: IRepository,
 ) : ViewModel() {
 
     val userConsentState: StateFlow<UserConsentState> = revenueRepository.userConsentState
         .stateIn(viewModelScope, SharingStarted.Eagerly, UserConsentState.UNKNOWN)
+
+    internal data class ProjectionGrant(val scenarioId: Long, val resultCode: Int, val data: Intent)
+
+    private val _projectionGrant = MutableStateFlow<ProjectionGrant?>(null)
+    internal val projectionGrant = _projectionGrant.asStateFlow()
+
+    internal fun setProjectionGrant(grant: ProjectionGrant?) {
+        _projectionGrant.value = grant
+    }
+
+    suspend fun getSmartScenario(id: Long): Scenario? = scenarioRepository.getScenario(id)
 
     fun isEntireScreenCaptureForced(): Boolean =
         settingsRepository.isEntireScreenCaptureForced()

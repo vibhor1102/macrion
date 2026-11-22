@@ -204,14 +204,17 @@ internal class SmartProcessingRepositoryImpl @Inject constructor(
     }
 
     override suspend fun startDetection(context: Context, liveDebugging: Boolean, generateReport: Boolean, autoStopDuration: Duration?): Boolean {
-        val id = scenarioId.value?.databaseId ?: return false
+        val (id, revision) = synchronized(detectionSessionLock) {
+            val id = _scenarioId.value?.databaseId ?: return false
+            id to scenarioRevision
+        }
         val scenario = scenarioRepository.getScenario(id) ?: return false
         val events = scenarioRepository.getScreenEvents(id)
         val triggerEvents = scenarioRepository.getTriggerEvents(id)
         val counters = scenarioRepository.getCounters(id)
 
         return synchronized(detectionSessionLock) {
-            if (scenarioId.value?.databaseId != id) false else detectorEngine.startDetection(
+            if (scenarioRevision != revision) false else detectorEngine.startDetection(
                 context = context,
                 scenario = scenario,
                 screenEvents = events,

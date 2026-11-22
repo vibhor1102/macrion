@@ -188,9 +188,11 @@ class DisplayRecorder @Inject internal constructor(
     }
 
     /** @return the last image of the screen, or null if they have been processed. */
-    suspend fun acquireLatestBitmap(): Bitmap? = mutex.withLock {
-        if (!isCaptureGeometryReady()) return@withLock null
-        imageReaderProxy.getLastFrame()?.takeIf { isCaptureGeometryReady() }
+    suspend fun acquireLatestBitmap(): Bitmap? = mutex.withLock { acquireLatestBitmapLocked() }
+
+    private fun acquireLatestBitmapLocked(): Bitmap? {
+        if (!isCaptureGeometryReady()) return null
+        return imageReaderProxy.getLastFrame()?.takeIf { isCaptureGeometryReady() }
     }
 
     suspend fun takeScreenshot(): Bitmap? {
@@ -198,7 +200,12 @@ class DisplayRecorder @Inject internal constructor(
         val startTimeMs: Long = System.currentTimeMillis()
 
         do {
-            result = acquireLatestBitmap()
+            result = mutex.withLock {
+                // ImageReaderProxy can overwrite the source bitmap on the next acquisition.
+                acquireLatestBitmapLocked()?.let { frame ->
+                    frame.copy(frame.config ?: Bitmap.Config.ARGB_8888, false)
+                }
+            }
             if (result == null) delay(40.milliseconds)
 
         } while (result == null && System.currentTimeMillis() < (startTimeMs + SCREEN_CAPTURE_SCREENSHOT_TIMEOUT_MS))

@@ -187,8 +187,11 @@ abstract class BaseOverlay internal constructor(
             Log.d(TAG, "show overlay ${hashCode()}")
 
             CrashDiagnostics.record(CrashDiagnostics.Event.OVERLAY_SHOWN, javaClass.name, lifecycleRegistry.currentState.ordinal)
+            val startingLifecycle = lifecycleRegistry
             onStart()
-            lifecycleRegistry.currentState = State.STARTED
+            if (lifecycleRegistry === startingLifecycle && startingLifecycle.currentState == State.CREATED) {
+                startingLifecycle.currentState = State.STARTED
+            }
         } finally {
             SlowUiOperation.end(operationStarted, javaClass.simpleName, "start")
         }

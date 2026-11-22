@@ -20,6 +20,8 @@ import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
 import android.content.res.Resources
+import android.graphics.Bitmap
+import android.graphics.Color
 import android.graphics.Point
 import android.hardware.display.DisplayManager
 import android.hardware.display.VirtualDisplay
@@ -47,6 +49,7 @@ import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotSame
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -55,6 +58,7 @@ import org.junit.runner.RunWith
 import org.mockito.ArgumentCaptor
 import org.mockito.Mock
 import org.mockito.Mockito.inOrder
+import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
@@ -196,6 +200,24 @@ class DisplayRecorderTests {
             verify(mockMediaProjection).stop()
         }
         Unit
+    }
+
+    @Test
+    fun screenshotPixelsAreIndependentOfTheReusedFrame() = runBlocking {
+        val imageReader = mock(ImageReaderProxy::class.java)
+        mockWhen(imageReader.surface).thenReturn(mockSurface)
+        val bitmap = Bitmap.createBitmap(2, 2, Bitmap.Config.ARGB_8888)
+        bitmap.eraseColor(Color.RED)
+        mockWhen(imageReader.getLastFrame()).thenReturn(bitmap)
+        val recorder = DisplayRecorder(mockContext, MediaProjectionProxy(), imageReader, mockDisplayConfigManager)
+        recorder.startProjection(TEST_DATA_RESULT_CODE, TEST_DATA_PROJECTION_DATA_INTENT, mockStoppedListener::onStopped)
+        recorder.startScreenRecord(TEST_DATA_DISPLAY_SIZE)
+
+        val screenshot = requireNotNull(recorder.takeScreenshot())
+        bitmap.eraseColor(Color.BLUE)
+
+        assertNotSame(bitmap, screenshot)
+        assertEquals(Color.RED, screenshot.getPixel(0, 0))
     }
 
     @Test

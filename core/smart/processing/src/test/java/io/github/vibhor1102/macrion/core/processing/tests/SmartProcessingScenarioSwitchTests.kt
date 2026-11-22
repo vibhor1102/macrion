@@ -5,12 +5,14 @@ import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import io.github.vibhor1102.macrion.core.base.identifier.Identifier
 import io.github.vibhor1102.macrion.core.domain.IRepository
+import io.github.vibhor1102.macrion.core.domain.model.scenario.Scenario
 import io.github.vibhor1102.macrion.core.processing.data.DetectorEngine
 import io.github.vibhor1102.macrion.core.processing.data.DetectorState
 import io.github.vibhor1102.macrion.core.processing.domain.SmartProcessingRepositoryImpl
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,6 +29,38 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
 class SmartProcessingScenarioSwitchTests {
+    @Test
+    fun oldPlayCannotStartAReopenedScenarioWithTheSameId() = runTest {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val detector = mockk<DetectorEngine>(relaxed = true)
+        every { detector.state } returns MutableStateFlow(DetectorState.RECORDING)
+        every { detector.detectionStopSequence } returns MutableStateFlow(0L)
+        every { detector.needsEntireScreenCapture } returns MutableStateFlow(false)
+        val scenarios = mockk<IRepository>(relaxed = true)
+        val selectedId = Identifier(databaseId = 1)
+        val started = CompletableDeferred<Unit>()
+        val releaseRead = CompletableDeferred<Unit>()
+        coEvery { scenarios.getScenario(selectedId.databaseId) } coAnswers {
+            started.complete(Unit)
+            releaseRead.await()
+            mockk<Scenario>()
+        }
+        coEvery { scenarios.getScreenEvents(selectedId.databaseId) } returns emptyList()
+        coEvery { scenarios.getTriggerEvents(selectedId.databaseId) } returns emptyList()
+        coEvery { scenarios.getCounters(selectedId.databaseId) } returns emptyList()
+        val repository = SmartProcessingRepositoryImpl(context, StandardTestDispatcher(testScheduler), scenarios, detector)
+        repository.setScenarioId(selectedId)
+
+        val pending = async { repository.startDetection(context, liveDebugging = false, generateReport = false) }
+        started.await()
+        repository.stopScreenRecord()
+        repository.setScenarioId(selectedId)
+        releaseRead.complete(Unit)
+
+        assertFalse(pending.await())
+        verify(exactly = 0) { detector.startDetection(any(), any(), any(), any(), any(), any(), any(), any()) }
+    }
+
     @Test
     fun persistenceFinishingAfterStopCannotRestoreOrReplaceTheLoadedScenario() = runTest {
         val context = ApplicationProvider.getApplicationContext<Context>()

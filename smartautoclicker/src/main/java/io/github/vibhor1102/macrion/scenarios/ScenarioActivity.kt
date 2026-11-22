@@ -26,6 +26,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.withResumed
 import io.github.vibhor1102.macrion.crash.crashReportStore
@@ -53,6 +54,7 @@ import io.github.vibhor1102.macrion.feature.externallaunch.localeplugin.domain.L
 import io.github.vibhor1102.macrion.feature.externallaunch.localeplugin.notification.LocalePluginNotificationController
 
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -80,6 +82,7 @@ class ScenarioActivity : ComponentActivity() {
 
     /** Scenario clicked by the user. */
     private var requestedItem: ScenarioListUiState.Item.ScenarioItem? = null
+    private var pendingProjectionScenarioId: Long? = null
     private var startupHelpChecked = false
     private var startupCheckJob: Job? = null
     private var checkingCrashReport = false
@@ -110,10 +113,30 @@ class ScenarioActivity : ComponentActivity() {
         }
         scenarioListHost.start()
 
-        scenarioViewModel.stopScenario()
+        pendingProjectionScenarioId = savedInstanceState?.takeIf { it.containsKey(STATE_PROJECTION_SCENARIO_ID) }
+            ?.getLong(STATE_PROJECTION_SCENARIO_ID) ?: scenarioViewModel.projectionGrant.value?.scenarioId
+        if (pendingProjectionScenarioId == null) scenarioViewModel.stopScenario()
         scenarioViewModel.requestUserConsentIfNeeded(this) { startupConsentFinished.complete(Unit) }
 
         mediaProjectionRequest.registerForActivityResult(this)
+        if (scenarioViewModel.projectionGrant.value == null) {
+            pendingProjectionScenarioId?.let { requestSmartProjection(it, launchRequest = false) }
+        }
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                scenarioViewModel.projectionGrant.filterNotNull().collect { grant ->
+                    val scenario = scenarioViewModel.getSmartScenario(grant.scenarioId)
+                    scenarioViewModel.setProjectionGrant(null)
+                    clearProjectionRequest()
+                    if (scenario != null) launchSmartScenario(grant.resultCode, grant.data, scenario)
+                }
+            }
+        }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        pendingProjectionScenarioId?.let { outState.putLong(STATE_PROJECTION_SCENARIO_ID, it) }
+        super.onSaveInstanceState(outState)
     }
 
     override fun onResume() {
@@ -147,7 +170,7 @@ class ScenarioActivity : ComponentActivity() {
     }
 
     private fun canOfferCrashReport() = startupHelpChecked && !crashPromptOffered &&
-        !isFinishing && requestedItem == null && hasWindowFocus() &&
+        !isFinishing && requestedItem == null && pendingProjectionScenarioId == null && hasWindowFocus() &&
         lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED) &&
         !scenarioListHost.hasActiveDialog()
 
@@ -173,6 +196,7 @@ class ScenarioActivity : ComponentActivity() {
     }
 
     private fun launchScenario(item: ScenarioListUiState.Item.ScenarioItem) {
+        if (pendingProjectionScenarioId != null) return
         requestedItem = item
 
         scenarioViewModel.startPermissionFlowIfNeeded(
@@ -187,15 +211,34 @@ class ScenarioActivity : ComponentActivity() {
         ) {
             when (val scenario = requestedItem?.scenario) {
                 is DumbScenario -> launchDumbScenario(scenario)
-                is Scenario -> mediaProjectionRequest.showMediaProjectionWarning(
-                    context = this,
-                    forceEntireScreen = scenarioViewModel.isEntireScreenCaptureForced(),
-                    onSuccess = { resultCode, data -> launchSmartScenario(resultCode, data, scenario) },
-                    onFailure = { showProjectionDeniedToast() },
-                    onError = { showUnsupportedDeviceDialog() },
-                )
+                is Scenario -> requestSmartProjection(scenario.id.databaseId)
             }
         }
+    }
+
+    private fun requestSmartProjection(scenarioId: Long, launchRequest: Boolean = true) {
+        pendingProjectionScenarioId = scenarioId
+        mediaProjectionRequest.showMediaProjectionWarning(
+            context = this,
+            forceEntireScreen = scenarioViewModel.isEntireScreenCaptureForced(),
+            onSuccess = { resultCode, data ->
+                scenarioViewModel.setProjectionGrant(ScenarioViewModel.ProjectionGrant(scenarioId, resultCode, data))
+            },
+            onFailure = {
+                clearProjectionRequest()
+                showProjectionDeniedToast()
+            },
+            onError = {
+                clearProjectionRequest()
+                showUnsupportedDeviceDialog()
+            },
+            launchRequest = launchRequest,
+        )
+    }
+
+    private fun clearProjectionRequest() {
+        requestedItem = null
+        pendingProjectionScenarioId = null
     }
 
     /**
@@ -235,4 +278,5 @@ class ScenarioActivity : ComponentActivity() {
     }
 }
 
+private const val STATE_PROJECTION_SCENARIO_ID = "pendingProjectionScenarioId"
 private const val DONT_KILL_MY_APP_URL = "https://dontkillmyapp.com/?app=Macrion"

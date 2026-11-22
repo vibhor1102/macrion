@@ -106,6 +106,25 @@ class OverlayManagerTests {
         Mockito.`when`(this.lifecycle).thenReturn(lifecycle)
     }
 
+    @Test fun closingAllWhileBackIsPendingLeavesNavigationReadyForTheNextLaunch() {
+        mockOverlay1.withLifecycle()
+        overlayManager.navigateTo(mockContext, mockOverlay1)
+        mockOverlay1.setupDismissMock()
+        mockOverlay2.withLifecycle()
+        overlayManager.navigateTo(mockContext, mockOverlay2)
+        val dismissal = argumentCaptor<((Context, Overlay) -> Unit)?>()
+        Mockito.verify(mockOverlay2).create(anyNotNull(), dismissal.capture())
+
+        overlayManager.navigateUp(mockContext)
+        overlayManager.closeAll(mockContext)
+        dismissal.value?.invoke(mockContext, mockOverlay2)
+        Assert.assertTrue(overlayManager.isEmpty())
+
+        mockOverlay3.withLifecycle()
+        overlayManager.navigateTo(mockContext, mockOverlay3)
+        Assert.assertTrue(overlayManager.isCurrentOverlay(mockOverlay3))
+    }
+
     @Test fun anOverlayLosesOwnershipAsSoonAsTeardownStarts() {
         mockOverlay1.withLifecycle()
         overlayManager.navigateTo(mockContext, mockOverlay1)

@@ -57,9 +57,14 @@ internal open class OwnedActivityStarterOverlay(
 private class ScreenCaptureStarterOverlay(context: Context) :
     OwnedActivityStarterOverlay(intent = { RestartMediaProjectionActivity.getStartIntent(context, it) })
 
-internal fun newNotificationPermissionStarterOverlay(context: Context) = OwnedActivityStarterOverlay {
-    RequestNotificationPermissionActivity.getStartIntent(context, it)
-}
+fun OverlayManager.isRequestingNotificationPermission(): Boolean =
+    getBackStackTop() is NotificationPermissionStarterOverlay
+
+internal fun newNotificationPermissionStarterOverlay(context: Context): ActivityStarterOverlayMenu =
+    NotificationPermissionStarterOverlay(context)
+
+private class NotificationPermissionStarterOverlay(context: Context) :
+    OwnedActivityStarterOverlay(intent = { RequestNotificationPermissionActivity.getStartIntent(context, it) })
 
 @RequiresApi(Build.VERSION_CODES.O)
 internal fun newNotificationSettingsStarterOverlay() = ActivityStarterOverlayMenu(

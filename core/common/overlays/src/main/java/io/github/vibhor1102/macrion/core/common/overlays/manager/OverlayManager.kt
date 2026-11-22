@@ -196,7 +196,9 @@ class OverlayManager @Inject internal constructor(
         topOverlay?.destroy()
         topOverlay = null
         topOverlaySavedState = null
-        repeat(overlayBackStack.size) {
+        val pendingDismissals = overlayBackStack.size -
+            if (isNavigating.value == OverlayNavigationRequest.NavigateUp) 1 else 0
+        repeat(pendingDismissals) {
             overlayNavigationRequestStack.push(OverlayNavigationRequest.NavigateUp)
         }
         if (isNavigating.value == null) executeNextNavigationRequest(context)
@@ -310,10 +312,16 @@ class OverlayManager @Inject internal constructor(
 
         Log.d(TAG, "Create top overlay ${overlay.hashCode()} using context of ${stackTop.hashCode()}")
 
-        topOverlay = overlay.apply {
+        topOverlay = overlay
+        overlay.apply {
             create(
                 appContext = stackTop.context,
-                dismissListener = { _, _ -> topOverlay = null },
+                dismissListener = { _, _ ->
+                    if (topOverlay === overlay) {
+                        topOverlay = null
+                        topOverlaySavedState = null
+                    }
+                },
             )
 
             if (isHiddenForAnyReason()) topOverlaySavedState = Lifecycle.State.RESUMED else resume()
@@ -346,7 +354,7 @@ class OverlayManager @Inject internal constructor(
 
         when (request) {
             is OverlayNavigationRequest.NavigateTo -> executeNavigateTo(context, request)
-            OverlayNavigationRequest.NavigateUp -> executeNavigateUp()
+            OverlayNavigationRequest.NavigateUp -> executeNavigateUp(context)
             null -> onNavigationCompleted()
         }
     }
@@ -391,8 +399,11 @@ class OverlayManager @Inject internal constructor(
         executeNextNavigationRequest(context)
     }
 
-    private fun executeNavigateUp() {
-        if (overlayBackStack.isEmpty()) return
+    private fun executeNavigateUp(context: Context) {
+        if (overlayBackStack.isEmpty()) {
+            executeNextNavigationRequest(context)
+            return
+        }
 
         overlayBackStack.peek().apply {
             pause()

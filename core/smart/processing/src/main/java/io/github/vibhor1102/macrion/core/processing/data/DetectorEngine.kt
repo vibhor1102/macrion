@@ -452,10 +452,14 @@ class DetectorEngine @Inject constructor(
             bitmapRepository.clearCache()
             bitmapRepository.resetCacheSize()
 
-            if (_state.value == DetectorState.STOPPING_DETECTION) _state.emit(DetectorState.RECORDING)
-            processingShutdownJob = null
-            minProcessingDurationNs  = DEFAULT_MIN_PROCESSING_DURATION_NS
-            isExecutionLimiterEnabled = false
+            synchronized(recordingLock) {
+                minProcessingDurationNs = DEFAULT_MIN_PROCESSING_DURATION_NS
+                isExecutionLimiterEnabled = false
+                processingShutdownJob = null
+                if (!isRecordingStopPending) {
+                    _state.compareAndSet(DetectorState.STOPPING_DETECTION, DetectorState.RECORDING)
+                }
+            }
         }
     }
 

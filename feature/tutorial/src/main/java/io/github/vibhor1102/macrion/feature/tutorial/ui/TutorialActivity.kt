@@ -95,8 +95,11 @@ import io.github.vibhor1102.macrion.feature.tutorial.ui.slideshow.TutorialSlides
 import io.github.vibhor1102.macrion.core.ui.R as CoreUiR
 
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+
+private const val STATE_PENDING_TUTORIAL = "pendingTutorialProjection"
 
 @AndroidEntryPoint
 class TutorialActivity : ComponentActivity() {
@@ -108,12 +111,16 @@ class TutorialActivity : ComponentActivity() {
     private val timingGameViewModel: TimingGameViewModel by viewModels()
 
     private val mediaProjectionRequest: MediaProjectionRequest = MediaProjectionRequest()
+    private var pendingTutorial: TutorialItem.Type? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         mediaProjectionRequest.registerForActivityResult(this)
+        val tutorialName = savedInstanceState?.getString(STATE_PENDING_TUTORIAL)
+        TutorialItem.Type.entries.firstOrNull { it.name == tutorialName }
+            ?.let { requestTutorialProjection(it, launchRequest = false) }
 
         setContent {
             MacrionTheme {
@@ -123,6 +130,11 @@ class TutorialActivity : ComponentActivity() {
         }
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        pendingTutorial?.let { outState.putString(STATE_PENDING_TUTORIAL, it.name) }
+        super.onSaveInstanceState(outState)
+    }
+
     @Composable
     private fun TutorialActivityContent() {
         var nextId by remember { mutableIntStateOf(1) }
@@ -130,6 +142,18 @@ class TutorialActivity : ComponentActivity() {
             mutableStateListOf<TutorialDestination>(
                 TutorialDestination.Category(id = 0, categoryType = TutorialCategory.Type.ROOT),
             )
+        }
+
+        LaunchedEffect(Unit) {
+            tutorialListViewModel.projectionGrant.filterNotNull().collect { grant ->
+                tutorialListViewModel.startGrantedTutorial(grant)
+                val destination = if (grant.tutorial == TutorialItem.Type.TIMER_REACHED_CONDITION) {
+                    TutorialDestination.TimingGame(nextId++)
+                } else {
+                    TutorialDestination.ClickCountGame(nextId++)
+                }
+                navigationStack.add(destination)
+            }
         }
 
         fun popBackStack(): Boolean {
@@ -205,14 +229,7 @@ class TutorialActivity : ComponentActivity() {
                                         }
 
                                         is TutorialCategoryUiItems.Item.Tutorial -> {
-                                            startTutorialItem(item) { isTiming ->
-                                                val nextDestination = if (isTiming) {
-                                                    TutorialDestination.TimingGame(nextId++)
-                                                } else {
-                                                    TutorialDestination.ClickCountGame(nextId++)
-                                                }
-                                                navigationStack.add(nextDestination)
-                                            }
+                                            startTutorialItem(item.type)
                                         }
                                     }
                                 },
@@ -247,29 +264,32 @@ class TutorialActivity : ComponentActivity() {
         }
     }
 
-    private fun startTutorialItem(
-        item: TutorialCategoryUiItems.Item.Tutorial,
-        onNavigateToGame: (isTiming: Boolean) -> Unit,
-    ) {
+    private fun startTutorialItem(tutorial: TutorialItem.Type) {
+        if (pendingTutorial != null) return
         tutorialListViewModel.startPermissionFlowIfNeeded(
             activity = this,
-            onAllGranted = {
-                mediaProjectionRequest.showMediaProjectionWarning(
-                    context = this,
-                    forceEntireScreen = true,
-                    onSuccess = { resultCode, data ->
-                        tutorialListViewModel.startTutorial(item, resultCode, data)
-                        val isTiming = item.type == TutorialItem.Type.TIMER_REACHED_CONDITION
-                        onNavigateToGame(isTiming)
-                    },
-                    onFailure = {
-                        Toast.makeText(this, R.string.toast_denied_screen_sharing_permission, Toast.LENGTH_SHORT).show()
-                    },
-                    onError = {
-                        createNoMediaProjectionDialog { finish() }.show()
-                    },
-                )
+            onAllGranted = { requestTutorialProjection(tutorial) },
+        )
+    }
+
+    private fun requestTutorialProjection(tutorial: TutorialItem.Type, launchRequest: Boolean = true) {
+        pendingTutorial = tutorial
+        mediaProjectionRequest.showMediaProjectionWarning(
+            context = this,
+            forceEntireScreen = true,
+            onSuccess = { resultCode, data ->
+                pendingTutorial = null
+                tutorialListViewModel.storeProjectionGrant(tutorial, resultCode, data)
             },
+            onFailure = {
+                pendingTutorial = null
+                Toast.makeText(this, R.string.toast_denied_screen_sharing_permission, Toast.LENGTH_SHORT).show()
+            },
+            onError = {
+                pendingTutorial = null
+                createNoMediaProjectionDialog { finish() }.show()
+            },
+            launchRequest = launchRequest,
         )
     }
 

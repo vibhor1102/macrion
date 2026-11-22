@@ -116,6 +116,18 @@ class FullscreenOverlayTests {
     }
 
     @Test
+    fun rejectedWindowCannotRestartTheDestroyedLifecycle() {
+        overlay.create(mockContext)
+        Mockito.doThrow(WindowManager.BadTokenException("expired overlay token"))
+            .`when`(mockWindowManager).addView(eq(mockView), anyNotNull())
+
+        overlay.resume()
+
+        Assert.assertEquals(Lifecycle.State.DESTROYED, overlay.lifecycle.currentState)
+        Mockito.verify(overlayControllerImpl).onDismissed()
+    }
+
+    @Test
     fun destroyRemovesPendingWindowBeforeDestroyingLifecycle() {
         overlay.create(mockContext)
         overlay.start()

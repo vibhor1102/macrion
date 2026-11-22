@@ -37,6 +37,7 @@ import io.github.vibhor1102.macrion.core.processing.domain.SmartProcessingReposi
 import io.github.vibhor1102.macrion.core.processing.domain.model.DetectionState
 import io.github.vibhor1102.macrion.core.settings.domain.SettingsRepository
 import io.github.vibhor1102.macrion.core.smart.debugging.domain.DebuggingRepository
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.starters.isRequestingNotificationPermission
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.starters.requestScreenCapture
 import io.github.vibhor1102.macrion.feature.smart.config.ui.mainmenu.MainMenu
 import io.github.vibhor1102.macrion.feature.dumb.config.ui.DumbMainMenu
@@ -516,7 +517,9 @@ class LocalService(
 
         scenarioSwitcherOpeningJob = serviceScope.launch {
             startJob?.join()
-            if (!state.isStarted || !state.isSmartLoaded) return@launch
+            if (!state.isStarted || !state.isSmartLoaded || overlayManager.isRequestingNotificationPermission()) {
+                return@launch
+            }
 
             if (smartProcessingRepository.detectionState.first() == DetectionState.DETECTING) {
                 smartProcessingRepository.stopDetection()
@@ -543,7 +546,9 @@ class LocalService(
     private fun openScenarioSwitcher() {
         if (!state.isStarted || !state.isSmartLoaded) return
         if (smartProcessingRepository.getScenarioId() == null) return
-        if (overlayManager.getBackStackTop() is ScenarioSwitchDialog) return
+        if (overlayManager.isRequestingNotificationPermission() ||
+            overlayManager.getBackStackTop() is ScenarioSwitchDialog
+        ) return
 
         overlayManager.navigateTo(
             context = context,

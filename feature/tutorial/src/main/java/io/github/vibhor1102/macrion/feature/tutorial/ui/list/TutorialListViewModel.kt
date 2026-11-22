@@ -31,11 +31,13 @@ import io.github.vibhor1102.macrion.core.common.tutorial.domain.TutorialReposito
 import io.github.vibhor1102.macrion.feature.tutorial.data.mapping.toTutorialItem
 import io.github.vibhor1102.macrion.feature.tutorial.domain.model.TutorialCategory
 import io.github.vibhor1102.macrion.feature.tutorial.domain.GetTutorialCategoryUseCase
-import io.github.vibhor1102.macrion.feature.tutorial.domain.model.TutorialCategoryUiItems
+import io.github.vibhor1102.macrion.feature.tutorial.domain.model.TutorialItem
 import io.github.vibhor1102.macrion.feature.tutorial.domain.model.TutorialCategoryUiState
 
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
@@ -48,6 +50,15 @@ class TutorialListViewModel @Inject constructor(
     private val tutorialRepository: TutorialRepository,
     private val getTutorialCategoryUseCase: GetTutorialCategoryUseCase,
 ) : ViewModel() {
+
+    internal data class ProjectionGrant(val tutorial: TutorialItem.Type, val resultCode: Int, val data: Intent)
+
+    private val _projectionGrant = MutableStateFlow<ProjectionGrant?>(null)
+    internal val projectionGrant = _projectionGrant.asStateFlow()
+
+    internal fun storeProjectionGrant(tutorial: TutorialItem.Type, resultCode: Int, data: Intent) {
+        _projectionGrant.value = ProjectionGrant(tutorial, resultCode, data)
+    }
 
     private val categoryStates = mutableMapOf<TutorialCategory.Type, StateFlow<TutorialCategoryUiState>>()
 
@@ -72,8 +83,9 @@ class TutorialListViewModel @Inject constructor(
         )
     }
 
-    fun startTutorial(item: TutorialCategoryUiItems.Item.Tutorial, resultCode: Int, data: Intent) {
-        tutorialRepository.startTutorial(item.type.toTutorialItem().getTutorial(), resultCode, data)
+    internal fun startGrantedTutorial(grant: ProjectionGrant) {
+        _projectionGrant.value = null
+        tutorialRepository.startTutorial(grant.tutorial.toTutorialItem().getTutorial(), grant.resultCode, grant.data)
     }
 
     fun stopTutorial() {
