@@ -138,14 +138,14 @@ class QSTileLauncherActivity : ComponentActivity() {
             context = this,
             forceEntireScreen = viewModel.isEntireScreenCaptureForced(),
             onSuccess = { resultCode, data -> viewModel.storeProjectionGrant(resultCode, data, scenarioId) },
-            onFailure = { showProjectionDeniedToast() },
+            onFailure = { showScreenSharingNotStartedToast() },
             onError = { projectionRequested = false; showUnsupportedDeviceDialog() },
             launchRequest = launchRequest,
         )
     }
 
-    private fun showProjectionDeniedToast() {
-        Toast.makeText(this, R.string.toast_denied_screen_sharing_permission, Toast.LENGTH_SHORT).show()
+    private fun showScreenSharingNotStartedToast() {
+        Toast.makeText(this, R.string.toast_screen_sharing_not_started, Toast.LENGTH_SHORT).show()
         finish()
     }
 

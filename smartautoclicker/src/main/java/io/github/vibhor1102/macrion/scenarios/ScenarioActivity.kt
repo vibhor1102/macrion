@@ -235,7 +235,7 @@ class ScenarioActivity : ComponentActivity() {
             },
             onFailure = {
                 clearProjectionRequest()
-                showProjectionDeniedToast()
+                showScreenSharingNotStartedToast()
             },
             onError = {
                 clearProjectionRequest()
@@ -281,8 +281,8 @@ class ScenarioActivity : ComponentActivity() {
         else Toast.makeText(this, R.string.toast_denied_foreground_permission, Toast.LENGTH_SHORT).show()
     }
 
-    private fun showProjectionDeniedToast() {
-        Toast.makeText(this, R.string.toast_denied_screen_sharing_permission, Toast.LENGTH_SHORT).show()
+    private fun showScreenSharingNotStartedToast() {
+        Toast.makeText(this, R.string.toast_screen_sharing_not_started, Toast.LENGTH_SHORT).show()
     }
 }
 

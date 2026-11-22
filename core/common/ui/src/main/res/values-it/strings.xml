@@ -96,7 +96,7 @@
       - Toast messages.
       - Can be pretty long (2 lines).
       -->
-    <string name="toast_denied_screen_sharing_permission">L\'utente ha rifiutato l\'autorizzazione di condivisione schermo</string>
+    <string name="toast_screen_sharing_not_started">La condivisione dello schermo non è iniziata</string>
     <string name="toast_configure_single_click">Tocca la posizione da cliccare</string>
     <string name="toast_configure_swipe_from">Tocca la posizione da cui iniziare lo scorrimento</string>
     <string name="toast_configure_swipe_to">Tocca la posizione in cui finire lo scorrimento</string>

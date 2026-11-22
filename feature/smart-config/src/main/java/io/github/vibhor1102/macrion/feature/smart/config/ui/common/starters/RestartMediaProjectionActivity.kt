@@ -74,7 +74,7 @@ class RestartMediaProjectionActivity : ComponentActivity() {
             context = this,
             forceEntireScreen = viewModel.isEntireScreenCaptureForced(),
             onSuccess = { resultCode, data -> restartScreenRecord(resultCode, data) },
-            onFailure = { showProjectionDeniedToast() },
+            onFailure = { showScreenSharingNotStartedToast() },
             onError = { requestStarted = false; showUnsupportedDeviceDialog() },
             launchRequest = shouldLaunch,
         )
@@ -105,10 +105,10 @@ class RestartMediaProjectionActivity : ComponentActivity() {
         finishActivity()
     }
 
-    private fun showProjectionDeniedToast() {
-        Log.i(TAG, "Media projection permission rejected")
+    private fun showScreenSharingNotStartedToast() {
+        Log.i(TAG, "Media projection permission not granted")
         if (ownsRequest()) {
-            Toast.makeText(this, R.string.toast_denied_screen_sharing_permission, Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, R.string.toast_screen_sharing_not_started, Toast.LENGTH_SHORT).show()
         }
         finishActivity()
     }

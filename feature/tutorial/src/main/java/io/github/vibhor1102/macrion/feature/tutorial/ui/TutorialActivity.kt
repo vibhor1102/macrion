@@ -296,7 +296,7 @@ class TutorialActivity : ComponentActivity() {
             },
             onFailure = {
                 pendingTutorial = null
-                Toast.makeText(this, R.string.toast_denied_screen_sharing_permission, Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, R.string.toast_screen_sharing_not_started, Toast.LENGTH_SHORT).show()
             },
             onError = {
                 pendingTutorial = null
