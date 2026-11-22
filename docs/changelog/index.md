@@ -25,6 +25,7 @@ All notable changes to the **Macrion** project are documented on this page. Each
 ### Bug Fixes & Refinements
 
 - Keep the floating toolbar tucked after unlocking your phone.
+- If a shared app takes up only part of the screen, Smart scenarios stop capturing and keep unsaved edits open. When you restart capture, Macrion asks to share the entire display.
 
 ---
 

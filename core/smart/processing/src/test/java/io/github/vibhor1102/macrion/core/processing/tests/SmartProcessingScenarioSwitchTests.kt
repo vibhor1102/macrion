@@ -10,6 +10,7 @@ import io.github.vibhor1102.macrion.core.processing.data.DetectorEngine
 import io.github.vibhor1102.macrion.core.processing.data.DetectorState
 import io.github.vibhor1102.macrion.core.processing.domain.SmartProcessingRepositoryImpl
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -21,6 +22,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -62,7 +64,7 @@ class SmartProcessingScenarioSwitchTests {
     }
 
     @Test
-    fun persistenceFinishingAfterStopCannotRestoreOrReplaceTheLoadedScenario() = runTest {
+    fun acceptedSwitchPersistsAfterStopWithoutReplacingTheNewSession() = runTest {
         val context = ApplicationProvider.getApplicationContext<Context>()
         val detector = mockk<DetectorEngine>(relaxed = true)
         val state = MutableStateFlow(DetectorState.RECORDING)
@@ -70,6 +72,10 @@ class SmartProcessingScenarioSwitchTests {
         every { detector.detectionStopSequence } returns MutableStateFlow(0L)
         every { detector.needsEntireScreenCapture } returns MutableStateFlow(false)
         every { detector.stopScreenRecord() } answers { state.value = DetectorState.CREATED }
+        every { detector.withPausedRecording(any()) } answers {
+            firstArg<() -> Unit>().invoke()
+            true
+        }
 
         val writes = mockk<IRepository>(relaxed = true)
         val started = CompletableDeferred<Unit>()
@@ -85,6 +91,7 @@ class SmartProcessingScenarioSwitchTests {
 
         val pending = async { repository.setScenarioIdAndMarkAsUsed(old, target) }
         started.await()
+        assertEquals(target, repository.getScenarioId())
         repository.stopScreenRecord()
         assertNull(repository.getScenarioId())
 
@@ -93,7 +100,48 @@ class SmartProcessingScenarioSwitchTests {
         state.value = DetectorState.RECORDING
         releaseWrite.complete(Unit)
 
-        assertFalse(pending.await())
+        assertTrue(pending.await())
+        assertEquals(old, repository.getScenarioId())
+        coVerify(exactly = 1) { writes.markAsUsed(target) }
+    }
+
+    @Test
+    fun rejectedSwitchDoesNotRecordUsage() = runTest {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val detector = mockk<DetectorEngine>(relaxed = true)
+        every { detector.state } returns MutableStateFlow(DetectorState.CREATED)
+        every { detector.withPausedRecording(any()) } returns false
+        val scenarios = mockk<IRepository>(relaxed = true)
+        val repository = SmartProcessingRepositoryImpl(context, StandardTestDispatcher(testScheduler), scenarios, detector)
+        val old = Identifier(databaseId = 1)
+        val target = Identifier(databaseId = 2)
+        repository.setScenarioId(old)
+
+        assertFalse(repository.setScenarioIdAndMarkAsUsed(old, target))
+        assertEquals(old, repository.getScenarioId())
+        coVerify(exactly = 0) { scenarios.markAsUsed(any()) }
+    }
+
+    @Test
+    fun failedUsageWriteRestoresTheOriginalScenario() = runTest {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val detector = mockk<DetectorEngine>(relaxed = true)
+        every { detector.state } returns MutableStateFlow(DetectorState.RECORDING)
+        every { detector.withPausedRecording(any()) } answers {
+            firstArg<() -> Unit>().invoke()
+            true
+        }
+        val scenarios = mockk<IRepository>(relaxed = true)
+        val repository = SmartProcessingRepositoryImpl(context, StandardTestDispatcher(testScheduler), scenarios, detector)
+        val old = Identifier(databaseId = 1)
+        val target = Identifier(databaseId = 2)
+        val failure = IllegalStateException("database")
+        coEvery { scenarios.markAsUsed(target) } throws failure
+        repository.setScenarioId(old)
+
+        val error = runCatching { repository.setScenarioIdAndMarkAsUsed(old, target) }.exceptionOrNull()
+        assertTrue(error is IllegalStateException)
+        assertEquals(failure.message, error?.message)
         assertEquals(old, repository.getScenarioId())
     }
 }

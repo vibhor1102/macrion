@@ -37,7 +37,6 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import javax.inject.Inject
 import javax.inject.Singleton
-import java.util.concurrent.atomic.AtomicLong
 import kotlin.time.Duration.Companion.milliseconds
 
 /**
@@ -68,11 +67,15 @@ class DisplayRecorder @Inject internal constructor(
 
     /** Virtual display capturing the content of the screen. */
     private var virtualDisplay: VirtualDisplay? = null
-    @Volatile private var capturedContentSize: Point? = null
-    private val capturedContentRevision = AtomicLong()
+    @Volatile private var captureSession: CaptureSession? = null
     @Volatile private var readerGeometry: ReaderGeometry? = null
 
-    private data class ReaderGeometry(val displaySize: Point, val contentRevision: Long)
+    private class CaptureSession {
+        @Volatile var content = CapturedContent()
+    }
+
+    private data class CapturedContent(val size: Point? = null, val isVisible: Boolean = true, val revision: Long = 0)
+    private data class ReaderGeometry(val displaySize: Point, val rotation: Int, val contentRevision: Long)
 
     /**
      * Start the media projection.
@@ -99,6 +102,7 @@ class DisplayRecorder @Inject internal constructor(
         data: Intent,
         stoppedListener: () -> Unit,
         onContentResize: (Point) -> Unit = {},
+        onContentVisibleAgain: () -> Unit = {},
     ) = mutex.withLock {
         if (mediaProjectionProxy.isMediaProjectionStarted()) {
             Log.w(TAG, "Attempting to start media projection while already started.")
@@ -107,15 +111,30 @@ class DisplayRecorder @Inject internal constructor(
 
         Log.d(TAG, "Start media projection")
 
-        capturedContentSize = null
-        if (!mediaProjectionProxy.startMediaProjection(context, resultCode, data, { size ->
-                if (capturedContentSize != size) {
-                    if (capturedContentSize != null) capturedContentRevision.incrementAndGet()
-                    capturedContentSize = size
-                    onContentResize(size)
+        val session = CaptureSession().also { captureSession = it }
+        val started = mediaProjectionProxy.startMediaProjection(
+            context,
+            resultCode,
+            data,
+            onContentResize = { size ->
+                val content = session.content
+                if (content.size != size) {
+                    val revision = if (content.size == null) content.revision else content.revision + 1
+                    session.content = content.copy(size = size, revision = revision)
+                    if (captureSession === session) onContentResize(size)
                 }
-            }, stoppedListener)
-        ) {
+            },
+            onContentVisibilityChanged = { isVisible ->
+                val content = session.content
+                if (content.isVisible != isVisible) {
+                    session.content = content.copy(isVisible = isVisible, revision = content.revision + 1)
+                    if (isVisible && captureSession === session) onContentVisibleAgain()
+                }
+            },
+            stopListener = stoppedListener,
+        )
+        if (!started) {
+            captureSession = null
             Log.e(TAG, "Failed to start media projection")
             stoppedListener()
         }
@@ -135,20 +154,22 @@ class DisplayRecorder @Inject internal constructor(
 
         Log.i(TAG, "Start screen record with display size $displaySize")
 
-        val contentRevision = capturedContentRevision.get()
+        val content = captureSession?.content ?: return
+        val geometry = ReaderGeometry(displaySize, displayConfigManager.displayConfig.rotation, content.revision)
         imageReaderProxy.resize(displaySize)
         virtualDisplay = mediaProjectionProxy.createVirtualDisplay(
             displaySize = displaySize,
             densityDpi = context.resources.configuration.densityDpi,
             surface = imageReaderProxy.surface,
         )
-        if (virtualDisplay != null) readerGeometry = ReaderGeometry(displaySize, contentRevision)
+        if (virtualDisplay != null) readerGeometry = geometry
     }
 
     suspend fun resizeDisplay(displaySize: Point, sourceDisplaySize: Point = displaySize): Unit = mutex.withLock {
         val vDisplay = virtualDisplay ?: return
+        val content = captureSession?.content ?: return
         readerGeometry = null
-        val contentRevision = capturedContentRevision.get()
+        val geometry = ReaderGeometry(sourceDisplaySize, displayConfigManager.displayConfig.rotation, content.revision)
 
         Log.i(TAG, "Resizing virtual display to $displaySize")
 
@@ -159,17 +180,19 @@ class DisplayRecorder @Inject internal constructor(
             displaySize.y,
             context.resources.configuration.densityDpi,
         )
-        readerGeometry = ReaderGeometry(sourceDisplaySize, contentRevision)
+        readerGeometry = geometry
     }
 
     fun isCaptureAreaIncompatible(): Boolean =
-        capturedContentSize?.let { it != displayConfigManager.displayConfig.sizePx } == true
+        captureSession?.content?.size?.let { it != displayConfigManager.displayConfig.sizePx } == true
 
     fun isCaptureGeometryReady(): Boolean {
-        val displaySize = displayConfigManager.displayConfig.sizePx
+        val display = displayConfigManager.displayConfig
         val geometry = readerGeometry ?: return false
-        return geometry.displaySize == displaySize && geometry.contentRevision == capturedContentRevision.get() &&
-            (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE || capturedContentSize == displaySize)
+        val content = captureSession?.content ?: return false
+        return content.isVisible && geometry.contentRevision == content.revision &&
+            geometry.displaySize == display.sizePx && geometry.rotation == display.rotation &&
+            (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE || content.size == display.sizePx)
     }
 
     suspend fun validateScreenCapture(): Boolean {
@@ -240,8 +263,8 @@ class DisplayRecorder @Inject internal constructor(
         stopScreenRecord()
 
         mutex.withLock {
+            captureSession = null
             mediaProjectionProxy.stopMediaProjection()
-            capturedContentSize = null
         }
     }
 }

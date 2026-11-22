@@ -153,13 +153,13 @@ class SmartScenarioSwitcherTest {
     }
 
     @Test
-    fun `service stop during persistence rejects the switch and skips the callback`() = runTest {
+    fun `service stop after switch acceptance skips the callback`() = runTest {
         processingRepository.onMarkAsUsed = {
             serviceAvailable = false
             processingRepository.stopScreenRecord()
         }
 
-        assertEquals(ScenarioSwitchResult.ServiceUnavailable, switcher.switchTo(targetScenario))
+        assertEquals(ScenarioSwitchResult.Success, switcher.switchTo(targetScenario))
         assertEquals(null, processingRepository.getScenarioId())
         assertEquals(emptyList<Scenario>(), changedScenarios)
     }
@@ -215,9 +215,15 @@ private class TestProcessingRepository(initialScenarioId: Identifier) : SmartPro
     override fun isFullyStopped() = detectionStateValue.value == DetectionState.INACTIVE
     override fun setScenarioId(identifier: Identifier, markAsUsed: Boolean) { scenarioIdValue.value = identifier }
     override suspend fun setScenarioIdAndMarkAsUsed(expectedScenario: Identifier, identifier: Identifier): Boolean {
-        onMarkAsUsed()
+        if (!scenarioIdValue.compareAndSet(expectedScenario, identifier)) return false
+        try {
+            onMarkAsUsed()
+        } catch (error: Exception) {
+            scenarioIdValue.compareAndSet(identifier, expectedScenario)
+            throw error
+        }
         markedAsUsed += identifier
-        return scenarioIdValue.compareAndSet(expectedScenario, identifier)
+        return true
     }
     override fun startScreenRecord(resultCode: Int, data: Intent) { startScreenRecordCalls++ }
     override suspend fun startDetection(context: Context, liveDebugging: Boolean, generateReport: Boolean, autoStopDuration: Duration?) = true

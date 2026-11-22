@@ -157,25 +157,29 @@ internal class SmartProcessingRepositoryImpl @Inject constructor(
     override suspend fun setScenarioIdAndMarkAsUsed(
         expectedScenario: Identifier,
         identifier: Identifier,
-    ): Boolean {
+    ): Boolean = withContext(NonCancellable) {
         val revision = synchronized(detectionSessionLock) {
-            if (_scenarioId.value != expectedScenario || detectorEngine.state.value != DetectorState.RECORDING) {
-                return false
+            if (_scenarioId.value != expectedScenario) return@withContext false
+            val switched = detectorEngine.withPausedRecording {
+                scenarioRevision++
+                _scenarioId.value = identifier
             }
+            if (!switched) return@withContext false
             scenarioRevision
         }
 
-        return withContext(NonCancellable) {
+        try {
             scenarioRepository.markAsUsed(identifier)
+        } catch (error: Exception) {
             synchronized(detectionSessionLock) {
-                if (scenarioRevision != revision || detectorEngine.state.value != DetectorState.RECORDING) {
-                    return@synchronized false
+                if (scenarioRevision == revision) {
+                    scenarioRevision++
+                    _scenarioId.value = expectedScenario
                 }
-                scenarioRevision++
-                _scenarioId.value = identifier
-                true
             }
+            throw error
         }
+        true
     }
 
     override fun getScenarioId(): Identifier? = _scenarioId.value

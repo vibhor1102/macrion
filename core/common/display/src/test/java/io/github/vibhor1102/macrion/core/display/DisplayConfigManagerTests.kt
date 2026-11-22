@@ -296,6 +296,22 @@ class DisplayConfigManagerTests {
     }
 
     @Test
+    fun halfTurn_notifiesGeometryListenerWithUnchangedSizeAndOrientation() {
+        mockWhen(mockDisplay.rotation).thenReturn(Surface.ROTATION_0)
+        mockCurrentWindowMetrics()
+        displayConfigManager = DisplayConfigManager(mockContext)
+        displayConfigManager.startMonitoring(mockContext)
+        displayConfigManager.addDisplayGeometryListener { mockOrientationListener.onOrientationChanged() }
+        val original = displayConfigManager.displayConfig
+
+        mockWhen(mockDisplay.rotation).thenReturn(Surface.ROTATION_180)
+        getDisplayListener().onDisplayChanged(0)
+
+        assertEquals(original.copy(rotation = Surface.ROTATION_180), displayConfigManager.displayConfig)
+        verify(mockOrientationListener).onOrientationChanged()
+    }
+
+    @Test
     fun orientationChanged_unregistration() {
         mockCurrentWindowMetrics()
         displayConfigManager = DisplayConfigManager(mockContext)

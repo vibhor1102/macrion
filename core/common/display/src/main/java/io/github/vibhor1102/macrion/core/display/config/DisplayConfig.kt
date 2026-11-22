@@ -19,6 +19,7 @@ package io.github.vibhor1102.macrion.core.display.config
 import android.graphics.Point
 import android.os.Build
 import android.view.RoundedCorner
+import android.view.Surface
 import androidx.annotation.RequiresApi
 
 
@@ -27,6 +28,7 @@ data class DisplayConfig(
     val orientation: Int,
     val safeInsetTopPx: Int,
     val roundedCorners: Map<Corner, DisplayRoundedCorner?>,
+    val rotation: Int = Surface.ROTATION_0,
 )
 
 data class DisplayRoundedCorner(

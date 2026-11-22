@@ -85,8 +85,8 @@ interface SmartProcessingRepository : Dumpable {
     fun setScenarioId(identifier: Identifier, markAsUsed: Boolean = false)
 
     /**
-     * Persist usage, then select [identifier] only if the same paused recording still owns [expectedScenario].
-     * Returns false if a stop or another scenario change invalidates the switch.
+     * Select [identifier] if the paused recording still owns [expectedScenario], then persist its usage.
+     * Returns false if the switch could not be accepted. A stop after acceptance does not undo the switch.
      */
     suspend fun setScenarioIdAndMarkAsUsed(expectedScenario: Identifier, identifier: Identifier): Boolean
 

@@ -155,6 +155,12 @@ class DetectorEngine @Inject constructor(
     /** True only for the user-configured rate limit; the unlimited-mode safety delay is not reported as limiter time. */
     private var isExecutionLimiterEnabled: Boolean = false
 
+    internal fun withPausedRecording(action: () -> Unit): Boolean = synchronized(recordingLock) {
+        if (_state.value != DetectorState.RECORDING || isRecordingStopPending) return@synchronized false
+        action()
+        true
+    }
+
     /**
      * Start the screen detection.
      *
@@ -203,6 +209,7 @@ class DetectorEngine @Inject constructor(
                             this@DetectorEngine.stopScreenRecord()
                         },
                         onContentResize = { onScreenGeometryChanged() },
+                        onContentVisibleAgain = ::onScreenGeometryChanged,
                     )
                     startScreenRecord(displaySize)
                 }

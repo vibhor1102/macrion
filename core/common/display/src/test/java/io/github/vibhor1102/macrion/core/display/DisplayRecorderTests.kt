@@ -288,6 +288,43 @@ class DisplayRecorderTests {
     }
 
     @Test
+    @Config(sdk = [Build.VERSION_CODES.UPSIDE_DOWN_CAKE])
+    fun hiddenContentAndHalfTurnsInvalidateFramesUntilTheReaderIsReplaced() = runBlocking {
+        var visibilityRestored = 0
+        displayRecorder.startProjection(
+            TEST_DATA_RESULT_CODE,
+            TEST_DATA_PROJECTION_DATA_INTENT,
+            stoppedListener = mockStoppedListener::onStopped,
+            onContentVisibleAgain = { visibilityRestored++ },
+        )
+        val callback = ArgumentCaptor.forClass(MediaProjection.Callback::class.java)
+        verify(mockMediaProjection).registerCallback(callback.capture(), anyNotNull())
+        displayRecorder.startScreenRecord(TEST_DATA_DISPLAY_SIZE)
+        callback.value.onCapturedContentResize(800, 600)
+        assertTrue(displayRecorder.isCaptureGeometryReady())
+
+        callback.value.onCapturedContentVisibilityChanged(false)
+        assertFalse(displayRecorder.isCaptureGeometryReady())
+        assertEquals(null, displayRecorder.acquireLatestBitmap())
+        callback.value.onCapturedContentVisibilityChanged(true)
+        assertEquals(1, visibilityRestored)
+        assertFalse(displayRecorder.isCaptureGeometryReady())
+        displayRecorder.resizeDisplay(TEST_DATA_DISPLAY_SIZE)
+        assertTrue(displayRecorder.isCaptureGeometryReady())
+
+        val rotated = mockDisplayConfigManager.displayConfig.copy(rotation = Surface.ROTATION_180)
+        mockWhen(mockDisplayConfigManager.displayConfig).thenReturn(rotated)
+        assertFalse(displayRecorder.isCaptureGeometryReady())
+        displayRecorder.resizeDisplay(TEST_DATA_DISPLAY_SIZE)
+        assertTrue(displayRecorder.isCaptureGeometryReady())
+
+        displayRecorder.stopProjection()
+        callback.value.onCapturedContentVisibilityChanged(false)
+        callback.value.onCapturedContentVisibilityChanged(true)
+        assertEquals(1, visibilityRestored)
+    }
+
+    @Test
     fun onStoppedCallback() = runBlocking {
         displayRecorder.startProjection(TEST_DATA_RESULT_CODE, TEST_DATA_PROJECTION_DATA_INTENT,
             mockStoppedListener::onStopped)

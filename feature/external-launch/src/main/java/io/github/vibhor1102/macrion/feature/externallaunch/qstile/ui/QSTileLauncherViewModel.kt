@@ -36,6 +36,8 @@ import io.github.vibhor1102.macrion.feature.externallaunch.domain.ExternalLaunch
 
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlinx.coroutines.withContext
@@ -52,6 +54,10 @@ class QSTileLauncherViewModel @Inject constructor(
     private val appComponentsProvider: AppComponentsProvider,
 ) : ViewModel() {
 
+    internal data class ProjectionGrant(val resultCode: Int, val data: Intent, val scenarioId: Long)
+
+    private val _projectionGrant = MutableStateFlow<ProjectionGrant?>(null)
+    internal val projectionGrant = _projectionGrant.asStateFlow()
 
     fun startPermissionFlowIfNeeded(activity: Context, onAllGranted: () -> Unit, onMandatoryDenied: () -> Unit, resumeExisting: Boolean = false) {
         permissionController.startPermissionsUiFlow(
@@ -70,9 +76,15 @@ class QSTileLauncherViewModel @Inject constructor(
         )
     }
 
-    suspend fun launchSmartScenario(resultCode: Int, data: Intent, scenarioId: Long) {
-        val scenario = withContext(ioDispatcher) { smartRepository.getScenario(scenarioId) } ?: return
-        qsTileRepository.launchSmartScenario(resultCode, data, scenario)
+    internal fun storeProjectionGrant(resultCode: Int, data: Intent, scenarioId: Long) {
+        _projectionGrant.value = ProjectionGrant(resultCode, data, scenarioId)
+    }
+
+    internal suspend fun launchGrantedScenario(grant: ProjectionGrant): Boolean {
+        val scenario = withContext(ioDispatcher) { smartRepository.getScenario(grant.scenarioId) }
+        if (!_projectionGrant.compareAndSet(grant, null)) return false
+        if (scenario != null) qsTileRepository.launchSmartScenario(grant.resultCode, grant.data, scenario)
+        return true
     }
 
     fun launchDumbScenario(scenarioId: Long) {

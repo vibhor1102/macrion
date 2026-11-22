@@ -59,6 +59,7 @@ internal class MediaProjectionProxy @Inject constructor() {
         resultCode: Int,
         data: Intent,
         onContentResize: (Point) -> Unit,
+        onContentVisibilityChanged: (Boolean) -> Unit,
         stopListener: () -> Unit,
     ): Boolean {
         Log.i(TAG, "Get MediaProjection")
@@ -78,6 +79,10 @@ internal class MediaProjectionProxy @Inject constructor() {
                     if (projectionCallback === this && width > 0 && height > 0) {
                         onContentResize(Point(width, height))
                     }
+                }
+
+                override fun onCapturedContentVisibilityChanged(isVisible: Boolean) {
+                    if (projectionCallback === this) onContentVisibilityChanged(isVisible)
                 }
             }
             projectionCallback = callback

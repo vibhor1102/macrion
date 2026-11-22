@@ -129,28 +129,31 @@ class DisplayConfigManager @Inject constructor(
         }
 
         Log.i(TAG, "New DisplayConfig: $newConfigPatched")
-        val geometryChanged = displayConfig.orientation != newConfigPatched.orientation ||
+        val geometryChanged = displayConfig.rotation != newConfigPatched.rotation ||
             displayConfig.sizePx != newConfigPatched.sizePx
         displayConfig = newConfigPatched
 
         if (geometryChanged) geometryListeners.forEach { it.invoke(context) }
     }
 
-    private fun getCurrentDisplayConfig(): DisplayConfig =
-        DisplayConfig(
+    private fun getCurrentDisplayConfig(): DisplayConfig {
+        val rotation = display.rotation
+        return DisplayConfig(
             sizePx = getCurrentDisplaySize(),
-            orientation = getCurrentDisplayOrientation(),
+            orientation = rotation.toOrientation(),
             safeInsetTopPx = getCurrentDisplaySafeInsetTop(),
             roundedCorners = buildMap {
                 put(Corner.TOP_LEFT, getCurrentDisplayRoundedCorner(Corner.TOP_LEFT))
                 put(Corner.TOP_RIGHT, getCurrentDisplayRoundedCorner(Corner.TOP_RIGHT))
                 put(Corner.BOTTOM_LEFT, getCurrentDisplayRoundedCorner(Corner.BOTTOM_LEFT))
                 put(Corner.BOTTOM_RIGHT, getCurrentDisplayRoundedCorner(Corner.BOTTOM_RIGHT))
-            }
+            },
+            rotation = rotation,
         )
+    }
 
     /**  @return the orientation of the screen. */
-    private fun getCurrentDisplayOrientation(): Int = when (display.rotation) {
+    private fun Int.toOrientation(): Int = when (this) {
         Surface.ROTATION_0, Surface.ROTATION_180 -> Configuration.ORIENTATION_PORTRAIT
         Surface.ROTATION_90, Surface.ROTATION_270 -> Configuration.ORIENTATION_LANDSCAPE
         else -> Configuration.ORIENTATION_UNDEFINED

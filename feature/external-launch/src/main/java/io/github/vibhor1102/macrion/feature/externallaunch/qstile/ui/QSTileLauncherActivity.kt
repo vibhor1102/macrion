@@ -34,7 +34,10 @@ import io.github.vibhor1102.macrion.core.ui.errors.createNoMediaProjectionDialog
 import io.github.vibhor1102.macrion.feature.externallaunch.R
 
 import dagger.hilt.android.AndroidEntryPoint
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
@@ -104,7 +107,15 @@ class QSTileLauncherActivity : ComponentActivity() {
 
     private fun onCreateSmartScenarioLauncher(scenarioId: Long) {
         mediaProjectionRequest.registerForActivityResult(this)
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                viewModel.projectionGrant.filterNotNull().collect { grant ->
+                    if (viewModel.launchGrantedScenario(grant)) finish()
+                }
+            }
+        }
 
+        if (viewModel.projectionGrant.value != null) return
         if (projectionRequested) {
             showMediaProjectionWarning(scenarioId, launchRequest = false)
             return
@@ -126,18 +137,11 @@ class QSTileLauncherActivity : ComponentActivity() {
         mediaProjectionRequest.showMediaProjectionWarning(
             context = this,
             forceEntireScreen = viewModel.isEntireScreenCaptureForced(),
-            onSuccess = { resultCode, data -> launchScenario(resultCode, data, scenarioId) },
+            onSuccess = { resultCode, data -> viewModel.storeProjectionGrant(resultCode, data, scenarioId) },
             onFailure = { showProjectionDeniedToast() },
             onError = { projectionRequested = false; showUnsupportedDeviceDialog() },
             launchRequest = launchRequest,
         )
-    }
-
-    private fun launchScenario(resultCode: Int, data: Intent, scenarioId: Long) {
-        lifecycleScope.launch {
-            viewModel.launchSmartScenario(resultCode, data, scenarioId)
-            finish()
-        }
     }
 
     private fun showProjectionDeniedToast() {
