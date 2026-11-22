@@ -103,6 +103,9 @@ android {
         compose = true
     }
 
+    // AGP builds the Compose Preview resource APK from the unit-test resources.
+    testOptions.unitTests.isIncludeAndroidResources = true
+
     buildTypes {
         debug {
             isDebuggable = macrionDebugMode == "debug"

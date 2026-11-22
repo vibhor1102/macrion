@@ -18,6 +18,7 @@ package com.buzbuz.gradle.obfuscation
 
 import com.android.build.api.variant.ApplicationAndroidComponentsExtension
 import com.android.build.gradle.internal.tasks.factory.dependsOn
+import com.android.build.gradle.tasks.PackageApplication
 import com.buzbuz.gradle.obfuscation.application.ObfuscatedApplication
 import com.buzbuz.gradle.obfuscation.application.toDomain
 import com.buzbuz.gradle.obfuscation.component.ConfigFileContentBuilder
@@ -110,10 +111,11 @@ class ObfuscationPlugin : Plugin<Project> {
                 dependsOn(randomizeComponentsTask)
             }
 
-            // Hook cleanupComponentsTask to run after the `mergeProjectDex` task
+            // Attach cleanup to APK packaging without realizing unrelated variant tasks.
             val cleanupComponentsTask = target.registerCleanupTask(component)
-            target.tasks.first { task -> task.name.startsWith("package") }
-                .finalizedBy(cleanupComponentsTask)
+            target.tasks.withType(PackageApplication::class.java).configureEach {
+                finalizedBy(cleanupComponentsTask)
+            }
         }
     }
 
@@ -137,28 +139,20 @@ class ObfuscationPlugin : Plugin<Project> {
     }
 
     private fun registerManifestPlaceholders(target: Project) {
-        target.extensions.getByType(ApplicationAndroidComponentsExtension::class.java).onVariants { variant ->
-            // Register the app name
-            variant.manifestPlaceholders.put(
-                MANIFEST_PLACEHOLDER_APP_NAME,
-                if (configPluginExtension.randomize) random.nextString(10)
-                else configPluginExtension.appNameRes,
-            )
-
-            // Register the application
-            variant.manifestPlaceholders.put(
-                obfuscatedApplication.manifestPlaceholderKey,
-                if (configPluginExtension.randomize) obfuscatedApplication.manifestPlaceholderValue
-                else obfuscatedApplication.originalFullClassName,
-            )
-
-            // Register the components
-            obfuscatedComponents.forEach { component ->
-                variant.manifestPlaceholders.put(
-                    component.manifestPlaceholderKey,
-                    if (configPluginExtension.randomize) component.manifestPlaceholderValue
-                    else component.originalComponentName,
-                )
+        target.extensions.getByType(ApplicationAndroidComponentsExtension::class.java).finalizeDsl { android ->
+            // Both the app and unit-test manifests need these placeholders.
+            android.defaultConfig.manifestPlaceholders.apply {
+                this[MANIFEST_PLACEHOLDER_APP_NAME] =
+                    if (configPluginExtension.randomize) random.nextString(10)
+                    else configPluginExtension.appNameRes
+                this[obfuscatedApplication.manifestPlaceholderKey] =
+                    if (configPluginExtension.randomize) obfuscatedApplication.manifestPlaceholderValue
+                    else obfuscatedApplication.originalFullClassName
+                obfuscatedComponents.forEach { component ->
+                    this[component.manifestPlaceholderKey] =
+                        if (configPluginExtension.randomize) component.manifestPlaceholderValue
+                        else component.originalComponentName
+                }
             }
         }
     }
