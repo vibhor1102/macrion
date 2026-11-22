@@ -345,6 +345,7 @@ abstract class OverlayMenu(
         get() = when {
             destroyOnceHidden -> Lifecycle.State.DESTROYED
             resumeOnceShown -> Lifecycle.State.RESUMED
+            animations.hideAnimationIsRunning -> Lifecycle.State.CREATED
             startOnAttachPending -> Lifecycle.State.STARTED
             else -> lifecycle.currentState
         }

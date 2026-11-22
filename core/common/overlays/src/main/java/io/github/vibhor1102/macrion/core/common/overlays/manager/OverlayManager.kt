@@ -140,6 +140,13 @@ class OverlayManager @Inject internal constructor(
     /** Whether no overlay from a previous scenario session remains. */
     fun isEmpty(): Boolean = topOverlay == null && overlayBackStack.isEmpty()
 
+    /** Start a new root only when navigation can report whether its setup succeeded. */
+    fun navigateToRoot(context: Context, overlay: BaseOverlay): Boolean {
+        if (!isEmpty() || isNavigating.value != null) return false
+        navigateTo(context, overlay)
+        return overlayBackStack.top === overlay
+    }
+
     /** Display the provided overlay and pause the current one, if any. */
     fun navigateTo(context: Context, newOverlay: Overlay, hideCurrent: Boolean = false) {
         // Do not attach a visible window before the broadcast collector gets its first value.

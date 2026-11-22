@@ -17,11 +17,13 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -84,6 +86,11 @@ class LocalServiceStopDuringStartupTest {
             assertEquals(false, launchedDuringStop)
             verify(exactly = 0) { dumb.init(any()) }
             assertTrue(service.launchDumbScenario(scenario))
+            advanceTimeBy(501)
+
+            verify(exactly = 1) { overlays.navigateToRoot(any(), any()) }
+            verify(exactly = 0) { dumb.init(any()) }
+            assertFalse(service.isStarted)
         } finally {
             service.release()
             Dispatchers.resetMain()

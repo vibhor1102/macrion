@@ -173,23 +173,24 @@ class LocalService(
 
     override fun launchDumbScenario(dumbScenario: DumbScenario): Boolean {
         if (isStopping || !isCleanForFreshLaunch()) return false
-        state = LocalServiceState(isStarted = true, isSmartLoaded = false, sessionId = ++nextServiceSessionId)
+        val sessionId = ++nextServiceSessionId
+        state = LocalServiceState(isStarted = true, isSmartLoaded = false, sessionId = sessionId)
         loadedDumbScenarioId = dumbScenario.id.databaseId
         onStart(dumbScenario.id.databaseId, false, null)
 
         startJob = serviceScope.launch {
             delay(500)
 
-            dumbEngine.init(dumbScenario)
-
-            overlayManager.navigateTo(
-                context = context,
-                newOverlay = DumbMainMenu(
-                    dumbScenarioId = dumbScenario.id,
-                    shouldConfirmStop = settingsRepository::isStopConfirmationEnabled,
-                    onStopClicked = ::stopScenario,
-                ),
+            val menu = DumbMainMenu(
+                dumbScenarioId = dumbScenario.id,
+                shouldConfirmStop = settingsRepository::isStopConfirmationEnabled,
+                onStopClicked = ::stopScenario,
             )
+            if (!overlayManager.navigateToRoot(context, menu)) {
+                stopFailedStartup(sessionId)
+                return@launch
+            }
+            dumbEngine.init(dumbScenario)
         }
         return true
     }
@@ -215,7 +216,8 @@ class LocalService(
         autoStart: Boolean,
     ): Boolean {
         if (isStopping || !isCleanForFreshLaunch()) return false
-        state = LocalServiceState(isStarted = true, isSmartLoaded = true, sessionId = ++nextServiceSessionId)
+        val sessionId = ++nextServiceSessionId
+        state = LocalServiceState(isStarted = true, isSmartLoaded = true, sessionId = sessionId)
 
         onStart(
             scenario.id.databaseId,
@@ -245,10 +247,10 @@ class LocalService(
                 setScenarioId(scenario.id, markAsUsed = true)
             }
 
-            overlayManager.navigateTo(
-                context = context,
-                newOverlay = mainMenu,
-            )
+            if (!overlayManager.navigateToRoot(context, mainMenu)) {
+                stopFailedStartup(sessionId)
+                return@launch
+            }
 
             smartProcessingRepository.startScreenRecord(
                 resultCode = resultCode,
@@ -278,6 +280,14 @@ class LocalService(
     override fun stopScenario() {
         CrashDiagnostics.record(CrashDiagnostics.Event.SCENARIO_STOP_REQUESTED)
         serviceScope.launch { scenarioChangeMutex.withLock { stopAndWait() } }
+    }
+
+    private fun stopFailedStartup(sessionId: Long) {
+        serviceScope.launch {
+            scenarioChangeMutex.withLock {
+                if (state.sessionId == sessionId) stopAndWait()
+            }
+        }
     }
 
     private fun stopScenarioAndOpenHome() {

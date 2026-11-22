@@ -240,113 +240,114 @@ class DetectorEngine @Inject constructor(
         generateReport: Boolean,
         imageDetectorFactory: () -> ImageDetector? = NativeDetector::newInstance,
     ): Boolean {
-        if (_state.value != DetectorState.RECORDING) {
-            Log.w(TAG, "startDetection: Screen record is not started.")
-            return false
+        val scope = synchronized(recordingLock) {
+            if (_state.value != DetectorState.RECORDING || isRecordingStopPending) return false
+            processingScope ?: return false
         }
 
         if (displayRecorder.isCaptureAreaIncompatible()) return false
-
         val detector = imageDetectorFactory()
-        if (detector == null) {
-            Log.e(TAG, "startDetection: native library not found.")
-            _state.value = DetectorState.ERROR_NATIVE_DETECTOR_LIB_NOT_FOUND
-            return false
-        }
 
-        if (!_state.compareAndSet(DetectorState.RECORDING, DetectorState.STARTING_DETECTION)) {
-            detector.close()
-            return false
-        }
-        // Make a pause before the queued setup job runs release this detector too.
-        imageDetector = detector
+        synchronized(recordingLock) {
+            if (processingScope !== scope || _state.value != DetectorState.RECORDING || isRecordingStopPending) {
+                detector?.close()
+                return false
+            }
+            if (detector == null) {
+                Log.e(TAG, "startDetection: native library not found.")
+                _state.value = DetectorState.ERROR_NATIVE_DETECTOR_LIB_NOT_FOUND
+                return false
+            }
 
-        Log.i(TAG, "startDetection")
+            imageDetector = detector
+            val setupJob = scope.newProcessingJob {
+                // Setup native detector
+                detector.init()
+                currentCoroutineContext().ensureActive()
 
-        processingScope?.launchProcessingJob {
-            // Setup native detector
-            detector.init()
-            currentCoroutineContext().ensureActive()
-
-            // Setup text detection models if needed
-            val requiredAlphabets = screenEvents.getAllOCRAlphabets()
-            if (requiredAlphabets.isNotEmpty()) {
-                if (!detector.loadOcrModels(requiredAlphabets)) {
-                    detector.close()
-                    imageDetector = null
-                    _state.value = DetectorState.ERROR_OCR_MODEL_NOT_FOUND
-                    return@launchProcessingJob
+                // Setup text detection models if needed
+                val requiredAlphabets = screenEvents.getAllOCRAlphabets()
+                if (requiredAlphabets.isNotEmpty()) {
+                    if (!detector.loadOcrModels(requiredAlphabets)) {
+                        detector.close()
+                        imageDetector = null
+                        _state.value = DetectorState.ERROR_OCR_MODEL_NOT_FOUND
+                        return@newProcessingJob
+                    }
                 }
-            }
 
-            // Clear image cache and compute scaling info for detection
-            bitmapRepository.clearCache()
+                // Clear image cache and compute scaling info for detection
+                bitmapRepository.clearCache()
 
-            // Set the display projection to the scaled size
-            val physicalDisplaySize = displayConfigManager.displayConfig.sizePx
-            val scaledScreenSize = scalingManager.startScaling(
-                quality = scenario.detectionQuality.toDouble(),
-                screenEvents = screenEvents,
-            )
-            displayRecorder.resizeDisplay(scaledScreenSize, physicalDisplaySize)
-            bitmapRepository.resizeCacheForDetection(computeDetectionBitmapsBytes(scaledScreenSize, screenEvents))
-            currentCoroutineContext().ensureActive()
-
-            // Compute minimal processing duration
-            val frameLimit = scenario.computeRate
-            isExecutionLimiterEnabled = frameLimit > 0.0
-            minProcessingDurationNs =
-                if (frameLimit <= 0.0) DEFAULT_MIN_PROCESSING_DURATION_NS
-                else (ONE_SECOND_IN_NANO / frameLimit).toLong()
-
-            Log.i(TAG, "Process scenario at ${if (frameLimit == 0.0) "unlimited" else frameLimit} FPS " +
-                    "(${minProcessingDurationNs}ns per loop)")
-
-            // Capture the report origin synchronously, before any processing callbacks can be queued.
-            debugReportSessionStartNs = SystemClock.elapsedRealtimeNanos().takeIf { generateReport }
-
-            // Setup listeners if needed
-            if (liveDebugging || generateReport) {
-                debuggingListener.onSessionStarted(
-                    scenario = scenario,
-                    counters = counters,
-                    generateLiveEvents = liveDebugging,
-                    generateReport = generateReport,
-                    conditions = screenEvents.flatMap { it.conditions } + triggerEvents.flatMap { it.conditions },
+                // Set the display projection to the scaled size
+                val physicalDisplaySize = displayConfigManager.displayConfig.sizePx
+                val scaledScreenSize = scalingManager.startScaling(
+                    quality = scenario.detectionQuality.toDouble(),
+                    screenEvents = screenEvents,
                 )
-                debugSessionStarted = true
+                displayRecorder.resizeDisplay(scaledScreenSize, physicalDisplaySize)
+                bitmapRepository.resizeCacheForDetection(computeDetectionBitmapsBytes(scaledScreenSize, screenEvents))
+                currentCoroutineContext().ensureActive()
+
+                // Compute minimal processing duration
+                val frameLimit = scenario.computeRate
+                isExecutionLimiterEnabled = frameLimit > 0.0
+                minProcessingDurationNs =
+                    if (frameLimit <= 0.0) DEFAULT_MIN_PROCESSING_DURATION_NS
+                    else (ONE_SECOND_IN_NANO / frameLimit).toLong()
+
+                Log.i(TAG, "Process scenario at ${if (frameLimit == 0.0) "unlimited" else frameLimit} FPS " +
+                        "(${minProcessingDurationNs}ns per loop)")
+
+                // Capture the report origin synchronously, before any processing callbacks can be queued.
+                debugReportSessionStartNs = SystemClock.elapsedRealtimeNanos().takeIf { generateReport }
+
+                // Setup listeners if needed
+                if (liveDebugging || generateReport) {
+                    debuggingListener.onSessionStarted(
+                        scenario = scenario,
+                        counters = counters,
+                        generateLiveEvents = liveDebugging,
+                        generateReport = generateReport,
+                        conditions = screenEvents.flatMap { it.conditions } + triggerEvents.flatMap { it.conditions },
+                    )
+                    debugSessionStarted = true
+                }
+                activeDebugReportTimingListener = debugReportTimingListener.takeIf { generateReport }
+
+                // Instantiate the processor and initialize its detection state.
+                scenarioProcessor = ScenarioProcessor(
+                    processingTag = appComponentsProvider.originalAppId,
+                    imageDetector = detector,
+                    scalingManager = scalingManager,
+                    randomize = scenario.randomize,
+                    screenEvents = screenEvents,
+                    triggerEvents = triggerEvents,
+                    counters = counters,
+                    bitmapSupplier = bitmapRepository::getImageConditionBitmap,
+                    androidExecutor = actionExecutor,
+                    unblockWorkaroundEnabled = settingsRepository.isInputBlockWorkaroundEnabled(),
+                    onStopRequested = { stopDetection() },
+                    onScreenshotRateLimitExceeded = {
+                        stopDetection()
+                        _screenshotRateLimitError.tryEmit(settingsRepository.getScreenshotRateLimitPerMinute())
+                    },
+                    progressListener = if (liveDebugging || generateReport) debuggingListener else null,
+                    debugReportTimingListener = activeDebugReportTimingListener,
+                    reportSessionStartNs = debugReportSessionStartNs,
+                    canDispatchGesture = ::isReadyToProcessFrame,
+                )
+                currentCoroutineContext().ensureActive()
+                scenarioProcessor?.onScenarioStart(context)
+
+                currentCoroutineContext().ensureActive()
+                processScreenImages()
             }
-            activeDebugReportTimingListener = debugReportTimingListener.takeIf { generateReport }
-
-            // Instantiate the processor and initialize its detection state.
-            scenarioProcessor = ScenarioProcessor(
-                processingTag = appComponentsProvider.originalAppId,
-                imageDetector = detector,
-                scalingManager = scalingManager,
-                randomize = scenario.randomize,
-                screenEvents = screenEvents,
-                triggerEvents = triggerEvents,
-                counters = counters,
-                bitmapSupplier = bitmapRepository::getImageConditionBitmap,
-                androidExecutor = actionExecutor,
-                unblockWorkaroundEnabled = settingsRepository.isInputBlockWorkaroundEnabled(),
-                onStopRequested = { stopDetection() },
-                onScreenshotRateLimitExceeded = {
-                    stopDetection()
-                    _screenshotRateLimitError.tryEmit(settingsRepository.getScreenshotRateLimitPerMinute())
-                },
-                progressListener = if (liveDebugging || generateReport) debuggingListener else null,
-                debugReportTimingListener = activeDebugReportTimingListener,
-                reportSessionStartNs = debugReportSessionStartNs,
-                canDispatchGesture = ::isReadyToProcessFrame,
-            )
-            currentCoroutineContext().ensureActive()
-            scenarioProcessor?.onScenarioStart(context)
-
-            currentCoroutineContext().ensureActive()
-            processScreenImages()
+            processingJob = setupJob
+            _state.value = DetectorState.STARTING_DETECTION
+            setupJob.start()
+            return true
         }
-        return true
     }
 
     /**
@@ -565,19 +566,15 @@ class DetectorEngine @Inject constructor(
         }
     }
 
-    /**
-     * Creates a new job executing the provided job automatically once the job is effectively created.
-     * This allows to check the job state correctly within the [block], even quickly after its start, as the [launch]
-     * method with the [CoroutineStart.DEFAULT] starts the coroutine execution before returning the resulting [Job].
-     *
-     * The job will be affected to the [processingJob] variable.
-     *
-     * @param block the coroutine code which will be invoked in the context of the provided scope.
-     */
     private fun CoroutineScope.launchProcessingJob(block: suspend CoroutineScope.() -> Unit) {
-        processingJob = launch(
-            start = CoroutineStart.LAZY,
-        ) {
+        val job = newProcessingJob(block)
+        processingJob = job
+        job.start()
+    }
+
+    /** Create a lazy job so its owner can publish it before any work starts. */
+    private fun CoroutineScope.newProcessingJob(block: suspend CoroutineScope.() -> Unit): Job =
+        launch(start = CoroutineStart.LAZY) {
             try {
                 block()
             } catch (cancelled: CancellationException) {
@@ -589,8 +586,6 @@ class DetectorEngine @Inject constructor(
                 }
             }
         }
-        processingJob?.start()
-    }
 
     private suspend fun ImageDetector.loadOcrModels(required: Set<OCRAlphabet>): Boolean {
         val ocrDetectModelPath = ocrModelsRepository.getDetectionModel()?.getOCRModelPath()

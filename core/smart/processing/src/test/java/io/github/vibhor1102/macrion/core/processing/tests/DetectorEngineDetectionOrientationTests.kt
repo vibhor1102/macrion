@@ -334,10 +334,30 @@ class DetectorEngineDetectionOrientationTests {
         assertEquals(DetectorState.CREATED, engine.state.value)
     }
 
+    @Test
+    fun `projection stop observing setup releases the reserved detector`() = runTest {
+        val (engine, _) = startDetectionAndCaptureOrientationListener(
+            advanceToDetecting = false,
+            beforeDetectionStarts = { detectorEngine ->
+                backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+                    detectorEngine.state.collect { state ->
+                        if (state == DetectorState.STARTING_DETECTION) detectorEngine.stopScreenRecord()
+                    }
+                }
+            },
+        )
+        advanceTimeBy(1)
+
+        verify(exactly = 0) { mockImageDetector.init() }
+        verify(exactly = 1) { mockImageDetector.close() }
+        assertEquals(DetectorState.CREATED, engine.state.value)
+    }
+
     // ---- helpers ----
 
     private fun TestScope.startDetectionAndCaptureOrientationListener(
         advanceToDetecting: Boolean = true,
+        beforeDetectionStarts: (DetectorEngine) -> Unit = {},
     ): Pair<DetectorEngine, (Context) -> Unit> {
         val engine = DetectorEngine(
             ioDispatcher = StandardTestDispatcher(testScheduler),
@@ -363,6 +383,7 @@ class DetectorEngineDetectionOrientationTests {
         // reaching state = RECORDING without advancing any detection-loop delays.
         advanceTimeBy(1)
 
+        beforeDetectionStarts(engine)
         engine.startDetection(
             context = mockContext,
             scenario = TEST_SCENARIO,

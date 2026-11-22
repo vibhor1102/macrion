@@ -362,6 +362,7 @@ class OverlayMenuTests {
         menu.resume()
         menu.finishShowAnimationForTest()
         menu.stop()
+        assertEquals(Lifecycle.State.CREATED, menu.stateToRestoreAfterHide)
         clearInvocations(menuView)
 
         menu.resume()
