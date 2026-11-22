@@ -33,6 +33,7 @@ class AlphabetActivity : ComponentActivity() {
     companion object {
         const val MODE_SELECTION = 1
         const val MODE_REQUIRED = 2
+        private const val STATE_HIDE_REQUEST = "alphabetHideRequest"
         private const val EXTRA_MODE = "io.github.vibhor1102.macrion.feature.smart.config.ui.EXTRA_OCR_MODE"
 
         fun getStartIntent(context: Context, mode: Int): Intent =
@@ -47,14 +48,20 @@ class AlphabetActivity : ComponentActivity() {
         EntryPoints.get(applicationContext, OverlaysEntryPoint::class.java).overlayManager()
     }
 
+    private var hideRequestId: String? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        overlayManager.hideAll()
         val mode = intent?.getIntExtra(EXTRA_MODE, 0) ?: 0
         if (mode != MODE_SELECTION && mode != MODE_REQUIRED) {
             Log.e(TAG, "Invalid alphabet mode $mode")
             finish()
             return
+        }
+        hideRequestId = if (savedInstanceState == null) {
+            overlayManager.hideAllForActivity()
+        } else {
+            savedInstanceState.getString(STATE_HIDE_REQUEST)
         }
         setContent {
             MacrionTheme {
@@ -107,6 +114,11 @@ class AlphabetActivity : ComponentActivity() {
         }
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        hideRequestId?.let { outState.putString(STATE_HIDE_REQUEST, it) }
+        super.onSaveInstanceState(outState)
+    }
+
     override fun onStop() {
         super.onStop()
         // This selection sheet owns no pending system permission result. Close it when left,
@@ -115,7 +127,7 @@ class AlphabetActivity : ComponentActivity() {
     }
 
     override fun onDestroy() {
-        if (isFinishing) overlayManager.restoreVisibility()
+        if (isFinishing) hideRequestId?.let(overlayManager::restoreVisibilityForActivity)
         super.onDestroy()
     }
 }

@@ -106,6 +106,21 @@ class OverlayManagerTests {
         Mockito.`when`(this.lifecycle).thenReturn(lifecycle)
     }
 
+    @Test fun activityOnlyRestoresTheHideItOwns() {
+        mockOverlay1.withLifecycle()
+        overlayManager.navigateTo(mockContext, mockOverlay1)
+        val current = requireNotNull(overlayManager.hideAllForActivity())
+        overlayManager.restoreVisibilityForActivity(current)
+        Assert.assertFalse(overlayManager.isOverlayStackHidden())
+
+        val interrupted = requireNotNull(overlayManager.hideAllForActivity())
+        overlayManager.hideAll()
+        overlayManager.restoreVisibilityForActivity(interrupted)
+
+        Assert.assertTrue(overlayManager.isOverlayStackHidden())
+        Assert.assertNull(overlayManager.hideAllForActivity())
+    }
+
     @Test fun closingAllWhileBackIsPendingLeavesNavigationReadyForTheNextLaunch() {
         mockOverlay1.withLifecycle()
         overlayManager.navigateTo(mockContext, mockOverlay1)

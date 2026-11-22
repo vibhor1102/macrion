@@ -45,6 +45,7 @@ import io.github.vibhor1102.macrion.core.processing.domain.DebugReportTimingList
 
 import io.mockk.MockKAnnotations
 import io.mockk.clearAllMocks
+import io.mockk.clearMocks
 import io.mockk.coEvery
 import io.mockk.coVerifyOrder
 import io.mockk.every
@@ -60,8 +61,10 @@ import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.launch
 
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -309,6 +312,26 @@ class DetectorEngineDetectionOrientationTests {
             mockDisplayRecorder.acquireLatestBitmap()
         }
         stopDetection(engine)
+    }
+
+    @Test
+    fun `projection stop waits for cleanup already requested by pause`() = runTest {
+        val (engine, _) = startDetectionAndCaptureOrientationListener()
+        clearMocks(mockDisplayRecorder, answers = false)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+            engine.state.collect { state ->
+                if (state == DetectorState.STOPPING_DETECTION) engine.stopScreenRecord()
+            }
+        }
+
+        engine.stopDetection()
+        advanceTimeBy(1)
+
+        coVerifyOrder {
+            mockDisplayRecorder.resizeDisplay(TEST_DISPLAY_SIZE, TEST_DISPLAY_SIZE)
+            mockDisplayRecorder.stopProjection()
+        }
+        assertEquals(DetectorState.CREATED, engine.state.value)
     }
 
     // ---- helpers ----

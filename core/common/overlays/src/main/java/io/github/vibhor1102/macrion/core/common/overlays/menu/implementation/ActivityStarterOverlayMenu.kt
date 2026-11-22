@@ -37,6 +37,7 @@ open class ActivityStarterOverlayMenu(
 
     override fun onCreate() {
         super.onCreate()
+        if (isFinishingCreation) return
 
         if (context.safeStartActivity(intent)) return
 

@@ -411,54 +411,60 @@ class DetectorEngine @Inject constructor(
      * release the [DetectorEngine] resources.
      */
     internal fun stopDetection() {
-        while (true) {
-            val previous = _state.value
-            if (previous != DetectorState.DETECTING && previous != DetectorState.STARTING_DETECTION) {
-                Log.w(TAG, "stopDetection: detection is not started.")
-                return
-            }
-            if (processingShutdownJob?.isActive == true) return
-            if (_state.compareAndSet(previous, DetectorState.STOPPING_DETECTION)) break
-        }
-        _detectionStopSequence.update { it + 1 }
-
-        // Stop pending gesture waits/retries immediately, before asynchronous resource cleanup begins.
-        processingJob?.cancel()
-
-        processingShutdownJob = processingScope?.launch {
-            Log.i(TAG, "stopDetection")
-
-            processingJob?.cancelAndJoin()
-            processingJob = null
-            imageDetector?.close()
-            imageDetector = null
-            scenarioProcessor?.onScenarioEnd()
-            scenarioProcessor = null
-            activeDebugReportTimingListener?.onReportSessionEnded(
-                sessionDurationNs = debugReportSessionStartNs?.let { sessionStartNs ->
-                    (SystemClock.elapsedRealtimeNanos() - sessionStartNs).coerceAtLeast(0L)
-                } ?: 0L,
-            )
-            if (debugSessionStarted) debuggingListener.onSessionEnded()
-            debugSessionStarted = false
-            activeDebugReportTimingListener = null
-            debugReportSessionStartNs = null
-
-            scalingManager.stopScaling()
-            displayRecorder.resizeDisplay(displayConfigManager.displayConfig.sizePx)
-            // Detection bitmaps are loaded again on every start, so retaining them while paused only wastes memory.
-            // Clear after the processing job has ended and the recorder resize has dropped its reference to the last
-            // scaled frame.
-            bitmapRepository.clearCache()
-            bitmapRepository.resetCacheSize()
-
-            synchronized(recordingLock) {
-                minProcessingDurationNs = DEFAULT_MIN_PROCESSING_DURATION_NS
-                isExecutionLimiterEnabled = false
-                processingShutdownJob = null
-                if (!isRecordingStopPending) {
-                    _state.compareAndSet(DetectorState.STOPPING_DETECTION, DetectorState.RECORDING)
+        synchronized(recordingLock) {
+            if (processingShutdownJob?.isCompleted == false) return
+            val scope = processingScope ?: return
+            val stopJob = scope.launch(start = CoroutineStart.LAZY) { finishDetectionStop() }
+            processingShutdownJob = stopJob
+            while (true) {
+                val previous = _state.value
+                if (previous != DetectorState.DETECTING && previous != DetectorState.STARTING_DETECTION) {
+                    Log.w(TAG, "stopDetection: detection is not started.")
+                    processingShutdownJob = null
+                    stopJob.cancel()
+                    return
                 }
+                if (_state.compareAndSet(previous, DetectorState.STOPPING_DETECTION)) break
+            }
+            _detectionStopSequence.update { it + 1 }
+            processingJob?.cancel()
+            stopJob.start()
+        }
+    }
+
+    private suspend fun finishDetectionStop() {
+        Log.i(TAG, "stopDetection")
+
+        processingJob?.cancelAndJoin()
+        processingJob = null
+        imageDetector?.close()
+        imageDetector = null
+        scenarioProcessor?.onScenarioEnd()
+        scenarioProcessor = null
+        activeDebugReportTimingListener?.onReportSessionEnded(
+            sessionDurationNs = debugReportSessionStartNs?.let { sessionStartNs ->
+                (SystemClock.elapsedRealtimeNanos() - sessionStartNs).coerceAtLeast(0L)
+            } ?: 0L,
+        )
+        if (debugSessionStarted) debuggingListener.onSessionEnded()
+        debugSessionStarted = false
+        activeDebugReportTimingListener = null
+        debugReportSessionStartNs = null
+
+        scalingManager.stopScaling()
+        displayRecorder.resizeDisplay(displayConfigManager.displayConfig.sizePx)
+        // Detection bitmaps are loaded again on every start, so retaining them while paused only wastes memory.
+        // Clear after the processing job has ended and the recorder resize has dropped its reference to the last
+        // scaled frame.
+        bitmapRepository.clearCache()
+        bitmapRepository.resetCacheSize()
+
+        synchronized(recordingLock) {
+            minProcessingDurationNs = DEFAULT_MIN_PROCESSING_DURATION_NS
+            isExecutionLimiterEnabled = false
+            processingShutdownJob = null
+            if (!isRecordingStopPending) {
+                _state.compareAndSet(DetectorState.STOPPING_DETECTION, DetectorState.RECORDING)
             }
         }
     }

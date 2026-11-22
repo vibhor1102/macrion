@@ -81,7 +81,6 @@ class ScenarioActivity : ComponentActivity() {
     private val mediaProjectionRequest: MediaProjectionRequest = MediaProjectionRequest()
 
     /** Scenario clicked by the user. */
-    private var requestedItem: ScenarioListUiState.Item.ScenarioItem? = null
     private var pendingProjectionScenarioId: Long? = null
     private var startupHelpChecked = false
     private var startupCheckJob: Job? = null
@@ -108,6 +107,7 @@ class ScenarioActivity : ComponentActivity() {
             onLaunchScenario = ::launchScenario,
             onDialogDismissed = { window.decorView.post { offerLocalCrashReport() } },
         )
+        mediaProjectionRequest.registerForActivityResult(this)
         setContent {
             scenarioListHost.Content()
         }
@@ -115,13 +115,15 @@ class ScenarioActivity : ComponentActivity() {
 
         pendingProjectionScenarioId = savedInstanceState?.takeIf { it.containsKey(STATE_PROJECTION_SCENARIO_ID) }
             ?.getLong(STATE_PROJECTION_SCENARIO_ID) ?: scenarioViewModel.projectionGrant.value?.scenarioId
-        if (pendingProjectionScenarioId == null) scenarioViewModel.stopScenario()
+        if (pendingProjectionScenarioId == null && scenarioViewModel.pendingPermissionItem == null) {
+            scenarioViewModel.stopScenario()
+        }
         scenarioViewModel.requestUserConsentIfNeeded(this) { startupConsentFinished.complete(Unit) }
 
-        mediaProjectionRequest.registerForActivityResult(this)
         if (scenarioViewModel.projectionGrant.value == null) {
             pendingProjectionScenarioId?.let { requestSmartProjection(it, launchRequest = false) }
         }
+        if (scenarioViewModel.pendingPermissionItem != null) startLaunchPermissions(resumeExisting = true)
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 scenarioViewModel.projectionGrant.filterNotNull().collect { grant ->
@@ -170,7 +172,7 @@ class ScenarioActivity : ComponentActivity() {
     }
 
     private fun canOfferCrashReport() = startupHelpChecked && !crashPromptOffered &&
-        !isFinishing && requestedItem == null && pendingProjectionScenarioId == null && hasWindowFocus() &&
+        !isFinishing && scenarioViewModel.pendingPermissionItem == null && pendingProjectionScenarioId == null && hasWindowFocus() &&
         lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED) &&
         !scenarioListHost.hasActiveDialog()
 
@@ -197,19 +199,26 @@ class ScenarioActivity : ComponentActivity() {
 
     private fun launchScenario(item: ScenarioListUiState.Item.ScenarioItem) {
         if (pendingProjectionScenarioId != null) return
-        requestedItem = item
+        scenarioViewModel.pendingPermissionItem = item
+        startLaunchPermissions()
+    }
 
+    private fun startLaunchPermissions(resumeExisting: Boolean = false) {
         scenarioViewModel.startPermissionFlowIfNeeded(
             activity = this,
             onAllGranted = ::onMandatoryPermissionsGranted,
+            onMandatoryDenied = { scenarioViewModel.pendingPermissionItem = null },
+            resumeExisting = resumeExisting,
         )
     }
 
     private fun onMandatoryPermissionsGranted() {
+        val scenario = scenarioViewModel.pendingPermissionItem?.scenario ?: return
+        scenarioViewModel.pendingPermissionItem = null
         scenarioViewModel.startTroubleshootingFlowIfNeeded(
             showTroubleshooting = scenarioListHost::showAccessibilityTroubleshootingDialog,
         ) {
-            when (val scenario = requestedItem?.scenario) {
+            when (scenario) {
                 is DumbScenario -> launchDumbScenario(scenario)
                 is Scenario -> requestSmartProjection(scenario.id.databaseId)
             }
@@ -237,7 +246,6 @@ class ScenarioActivity : ComponentActivity() {
     }
 
     private fun clearProjectionRequest() {
-        requestedItem = null
         pendingProjectionScenarioId = null
     }
 

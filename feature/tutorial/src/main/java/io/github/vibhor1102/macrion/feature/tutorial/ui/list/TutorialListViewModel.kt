@@ -51,6 +51,8 @@ class TutorialListViewModel @Inject constructor(
     private val getTutorialCategoryUseCase: GetTutorialCategoryUseCase,
 ) : ViewModel() {
 
+    internal var pendingPermissionTutorial: TutorialItem.Type? = null
+
     internal data class ProjectionGrant(val tutorial: TutorialItem.Type, val resultCode: Int, val data: Intent)
 
     private val _projectionGrant = MutableStateFlow<ProjectionGrant?>(null)
@@ -68,7 +70,12 @@ class TutorialListViewModel @Inject constructor(
                 .stateIn(viewModelScope, SharingStarted.WhileSubscribed(3_000), TutorialCategoryUiState.Loading)
         }
 
-    fun startPermissionFlowIfNeeded(activity: Context, onAllGranted: () -> Unit) {
+    fun startPermissionFlowIfNeeded(
+        activity: Context,
+        onAllGranted: () -> Unit,
+        onMandatoryDenied: () -> Unit,
+        resumeExisting: Boolean = false,
+    ) {
         permissionsController.startPermissionsUiFlow(
             activity = activity,
             permissions = listOf(
@@ -80,6 +87,8 @@ class TutorialListViewModel @Inject constructor(
                 PermissionPostNotification(optional = true),
             ),
             onAllGranted = onAllGranted,
+            onMandatoryDenied = onMandatoryDenied,
+            resumeExisting = resumeExisting,
         )
     }
 

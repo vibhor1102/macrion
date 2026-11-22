@@ -47,6 +47,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
+import io.github.vibhor1102.macrion.scenarios.list.model.ScenarioListUiState
 import javax.inject.Inject
 
 /** AndroidViewModel for create/delete/list click scenarios from an LifecycleOwner. */
@@ -63,6 +64,8 @@ class ScenarioViewModel @Inject constructor(
 
     val userConsentState: StateFlow<UserConsentState> = revenueRepository.userConsentState
         .stateIn(viewModelScope, SharingStarted.Eagerly, UserConsentState.UNKNOWN)
+
+    internal var pendingPermissionItem: ScenarioListUiState.Item.ScenarioItem? = null
 
     internal data class ProjectionGrant(val scenarioId: Long, val resultCode: Int, val data: Intent)
 
@@ -87,7 +90,12 @@ class ScenarioViewModel @Inject constructor(
         revenueRepository.refreshPurchases()
     }
 
-    fun startPermissionFlowIfNeeded(activity: Context, onAllGranted: () -> Unit) {
+    fun startPermissionFlowIfNeeded(
+        activity: Context,
+        onAllGranted: () -> Unit,
+        onMandatoryDenied: () -> Unit,
+        resumeExisting: Boolean = false,
+    ) {
         permissionController.startPermissionsUiFlow(
             activity = activity,
             permissions = listOf(
@@ -99,6 +107,8 @@ class ScenarioViewModel @Inject constructor(
                 PermissionPostNotification(optional = true),
             ),
             onAllGranted = onAllGranted,
+            onMandatoryDenied = onMandatoryDenied,
+            resumeExisting = resumeExisting,
         )
     }
 

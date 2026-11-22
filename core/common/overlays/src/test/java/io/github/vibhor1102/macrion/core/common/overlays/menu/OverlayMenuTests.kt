@@ -546,6 +546,21 @@ class OverlayMenuTests {
     }
 
     @Test
+    fun rejectedToolbarRemovesTheWindowItAlreadyAdded() {
+        val menu = OverlayMenuTestImpl(overlayMenuControllerImpl)
+        val menuView = mock(ComposeOverlayMenuHost::class.java)
+        val overlayView = mock(View::class.java)
+        mockViewsFromImpl(menuView, overlayView)
+        doThrow(WindowManager.BadTokenException("expired overlay token"))
+            .`when`(mockWindowManager).addView(eq(menuView), any(WindowManager.LayoutParams::class.java))
+
+        menu.create(mockContext)
+
+        verify(mockWindowManager).removeViewImmediate(overlayView)
+        assertEquals(Lifecycle.State.DESTROYED, menu.lifecycle.currentState)
+    }
+
+    @Test
     fun destroy_removesPendingWindowsBeforeDestroyingLifecycle() {
         overlayMenuController = OverlayMenuTestImpl(overlayMenuControllerImpl)
         val menuView = mock(ComposeOverlayMenuHost::class.java)

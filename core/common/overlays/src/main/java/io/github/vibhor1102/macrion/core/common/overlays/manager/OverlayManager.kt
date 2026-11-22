@@ -55,6 +55,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
 import java.io.PrintWriter
+import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -191,6 +192,7 @@ class OverlayManager @Inject internal constructor(
 
         Log.d(TAG, "Close all overlays (${overlayBackStack.size}, currently navigating: ${isNavigating.value}")
 
+        activityHideRequest = null
         overlayNavigationRequestStack.clear()
         lifecyclesRegistry.clearStates()
         topOverlay?.destroy()
@@ -221,6 +223,11 @@ class OverlayManager @Inject internal constructor(
      * Their lifecycles will be saved, and can be restored using [restoreVisibility].
      */
     fun hideAll() {
+        activityHideRequest = null
+        hideOverlays()
+    }
+
+    private fun hideOverlays() {
         if (isOverlayStackHidden()) return
 
         Log.d(TAG, "Hide all overlays from the stack")
@@ -234,10 +241,26 @@ class OverlayManager @Inject internal constructor(
      * The states must have been saved using [hideAll].
      */
     fun restoreVisibility() {
+        activityHideRequest = null
         if (!isOverlayStackHidden()) return
 
         _isStackHidden.update { false }
         if (!isHiddenByKeyguard) showStack()
+    }
+
+    private var activityHideRequest: String? = null
+
+    /** Hide for a temporary activity and return the identity of the hide it owns. */
+    fun hideAllForActivity(): String? {
+        if (isEmpty() || isOverlayStackHidden()) return null
+        val requestId = UUID.randomUUID().toString()
+        activityHideRequest = requestId
+        hideOverlays()
+        return requestId
+    }
+
+    fun restoreVisibilityForActivity(requestId: String) {
+        if (activityHideRequest == requestId) restoreVisibility()
     }
 
     private fun hideStack() {
@@ -372,10 +395,21 @@ class OverlayManager @Inject internal constructor(
             }
 
         // Create the new one and add it to the stack
+        var addedToStack = false
         request.overlay.create(
             appContext = context,
-            dismissListener = ::onOverlayDismissed,
+            dismissListener = { dismissContext, overlay ->
+                if (addedToStack) onOverlayDismissed(dismissContext, overlay)
+            },
         )
+        if (request.overlay is BaseOverlay && request.overlay.lifecycle.currentState == Lifecycle.State.DESTROYED) {
+            if (currentOverlay == null) {
+                displayConfigManager.removeDisplayGeometryListener(displayGeometryListener)
+                lastDisplayOrientation = null
+            }
+            executeNextNavigationRequest(context)
+            return
+        }
 
         // Update current lifecycle
         currentOverlay?.apply {
@@ -395,6 +429,7 @@ class OverlayManager @Inject internal constructor(
         }
 
         overlayBackStack.push(request.overlay)
+        addedToStack = true
 
         executeNextNavigationRequest(context)
     }

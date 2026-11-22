@@ -136,8 +136,16 @@ abstract class BaseOverlay internal constructor(
         }
     }
 
+    private var creating = false
+    protected var isFinishingCreation = false
+        private set
+
     override fun finish() {
-        destroy()
+        if (creating) {
+            isFinishingCreation = true
+        } else {
+            destroy()
+        }
     }
 
     /**
@@ -162,8 +170,17 @@ abstract class BaseOverlay internal constructor(
             savedStateController.performAttach()
             savedStateController.performRestore(null)
             CrashDiagnostics.record(CrashDiagnostics.Event.OVERLAY_CREATED, javaClass.name, lifecycleRegistry.currentState.ordinal)
-            onCreate()
+            creating = true
+            try {
+                onCreate()
+            } finally {
+                creating = false
+            }
             lifecycleRegistry.currentState = State.CREATED
+            if (isFinishingCreation) {
+                isFinishingCreation = false
+                destroy()
+            }
         } finally {
             SlowUiOperation.end(operationStarted, javaClass.simpleName, "create")
         }

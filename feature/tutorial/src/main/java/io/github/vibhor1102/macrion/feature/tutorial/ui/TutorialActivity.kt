@@ -122,6 +122,8 @@ class TutorialActivity : ComponentActivity() {
         TutorialItem.Type.entries.firstOrNull { it.name == tutorialName }
             ?.let { requestTutorialProjection(it, launchRequest = false) }
 
+        if (tutorialListViewModel.pendingPermissionTutorial != null) startLaunchPermissions(resumeExisting = true)
+
         setContent {
             MacrionTheme {
                 TutorialActivityContent()
@@ -266,9 +268,20 @@ class TutorialActivity : ComponentActivity() {
 
     private fun startTutorialItem(tutorial: TutorialItem.Type) {
         if (pendingTutorial != null) return
+        tutorialListViewModel.pendingPermissionTutorial = tutorial
+        startLaunchPermissions()
+    }
+
+    private fun startLaunchPermissions(resumeExisting: Boolean = false) {
         tutorialListViewModel.startPermissionFlowIfNeeded(
             activity = this,
-            onAllGranted = { requestTutorialProjection(tutorial) },
+            onAllGranted = {
+                val tutorial = tutorialListViewModel.pendingPermissionTutorial
+                tutorialListViewModel.pendingPermissionTutorial = null
+                tutorial?.let { requestTutorialProjection(it) }
+            },
+            onMandatoryDenied = { tutorialListViewModel.pendingPermissionTutorial = null },
+            resumeExisting = resumeExisting,
         )
     }
 
