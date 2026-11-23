@@ -8,7 +8,6 @@ import android.graphics.Point
 import android.app.Dialog
 import android.util.Log
 import android.view.ViewGroup
-import android.view.WindowManager
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -89,10 +88,6 @@ class SplitActionDialog(
     }
 
     override fun onDialogCreated(dialog: Dialog) {
-        dialog.window?.setLayout(
-            WindowManager.LayoutParams.MATCH_PARENT,
-            WindowManager.LayoutParams.MATCH_PARENT,
-        )
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.isEditingAction.collect { isEditing ->

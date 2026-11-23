@@ -21,7 +21,6 @@ import android.app.Dialog
 import android.content.res.Configuration
 import android.view.View
 import android.view.ViewGroup
-import android.view.WindowManager
 import android.widget.FrameLayout
 
 import androidx.annotation.CallSuper
@@ -132,13 +131,6 @@ abstract class NavBarDialog(@StyleRes theme: Int) : OverlayDialog(theme) {
 
     @CallSuper
     override fun onDialogCreated(dialog: Dialog) {
-        // This scaffold fills the available window. WRAP_CONTENT lets ViewRootImpl probe
-        // a taller height before measuring the actual frame, which scrolls a LazyColumn
-        // backward at the end of its content and leaves that offset after the probe.
-        dialog.window?.setLayout(
-            WindowManager.LayoutParams.MATCH_PARENT,
-            WindowManager.LayoutParams.MATCH_PARENT,
-        )
         updateContentView(
             itemId = selectedNavigationItemId.intValue,
             forceUpdate = true,

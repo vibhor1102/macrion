@@ -8,7 +8,6 @@
  */
 package io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.reorder
 
-import android.app.Dialog
 import android.view.ViewGroup
 import androidx.activity.compose.BackHandler
 import androidx.annotation.StringRes
@@ -83,15 +82,6 @@ class ItemsReorderDialog(
 
     internal fun moveItem(from: Int, to: Int) {
         displayedItems = displayedItems.toMutableList().apply { add(to, removeAt(from)) }
-    }
-
-    override fun onDialogCreated(dialog: Dialog) {
-        // This full-height list needs the actual frame size, just like NavBarDialog.
-        // WRAP_CONTENT can probe a taller viewport and move a list away from its end.
-        dialog.window?.setLayout(
-            ViewGroup.LayoutParams.MATCH_PARENT,
-            ViewGroup.LayoutParams.MATCH_PARENT,
-        )
     }
 
     override fun onCreateView(): ViewGroup {

@@ -87,7 +87,6 @@ abstract class OverlayDialog(@StyleRes theme: Int? = null) : BaseOverlay(theme, 
 
         val dialogTheme = theme ?: io.github.vibhor1102.macrion.core.ui.R.style.AppTheme
         val view = onCreateView()
-        val useFullHeightWindow = Build.VERSION.SDK_INT == Build.VERSION_CODES.P
         val component = javaClass.name
         view.addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
             override fun onViewAttachedToWindow(v: View) {
@@ -125,19 +124,18 @@ abstract class OverlayDialog(@StyleRes theme: Int? = null) : BaseOverlay(theme, 
                 this@OverlayDialog.back()
             }
 
-            // On Pie the IME can inset a compact window by more than its height, clearing
-            // the editor's focus. Resize the full-height host and keep the editor at its bottom.
-            if (useFullHeightWindow) {
-                setContentView(FrameLayout(context).apply {
-                    addView(view, FrameLayout.LayoutParams(
+            // Fit the full-height host around the IME before measuring the editor. This keeps
+            // compact sheets above the keyboard and gives scrolling editors the actual viewport.
+            setContentView(FrameLayout(context).apply {
+                addView(
+                    view,
+                    FrameLayout.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT,
                         ViewGroup.LayoutParams.WRAP_CONTENT,
                         Gravity.BOTTOM,
-                    ))
-                })
-            } else {
-                setContentView(view)
-            }
+                    ),
+                )
+            })
             setCancelable(false)
             setOnKeyListener { _, keyCode, event ->
                 if (keyCode == KeyEvent.KEYCODE_BACK && event.action == KeyEvent.ACTION_UP) {
@@ -158,10 +156,8 @@ abstract class OverlayDialog(@StyleRes theme: Int? = null) : BaseOverlay(theme, 
                 setType(OverlayManager.OVERLAY_WINDOW_TYPE)
                 setLayout(
                     ViewGroup.LayoutParams.MATCH_PARENT,
-                    if (useFullHeightWindow) ViewGroup.LayoutParams.MATCH_PARENT
-                    else ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT,
                 )
-                setGravity(Gravity.BOTTOM)
                 setBackgroundDrawableResource(android.R.color.transparent)
                 setDimAmount(0.6f)
                 addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)

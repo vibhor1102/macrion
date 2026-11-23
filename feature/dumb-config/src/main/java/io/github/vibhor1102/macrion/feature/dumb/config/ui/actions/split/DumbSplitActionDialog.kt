@@ -1,11 +1,9 @@
 /* Copyright (C) 2026 Vibhor Goel — GPLv3 */
 package io.github.vibhor1102.macrion.feature.dumb.config.ui.actions.split
 
-import android.app.Dialog
 import android.graphics.Point
 import android.graphics.PointF
 import android.view.ViewGroup
-import android.view.WindowManager
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -85,13 +83,6 @@ class DumbSplitActionDialog(
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent { MacrionTheme { this@DumbSplitActionDialog.Content() } }
         }
-    }
-
-    override fun onDialogCreated(dialog: Dialog) {
-        dialog.window?.setLayout(
-            WindowManager.LayoutParams.MATCH_PARENT,
-            WindowManager.LayoutParams.MATCH_PARENT,
-        )
     }
 
     @Composable

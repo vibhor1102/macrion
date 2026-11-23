@@ -64,7 +64,7 @@ class ScenarioConfigContent(appContext: Context) : NavBarDialogContent(appContex
                 val antiDetectionEnabledDescription = stringResource(R.string.dropdown_helper_text_anti_detection_enabled)
                 val antiDetectionDisabledDescription = stringResource(R.string.dropdown_helper_text_anti_detection_disabled)
                 Column(
-                    Modifier.fillMaxSize().verticalScroll(rememberScrollState()).imePadding()
+                    Modifier.fillMaxSize().verticalScroll(rememberScrollState())
                         .padding(horizontal = 16.dp, vertical = 12.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {

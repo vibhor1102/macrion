@@ -74,7 +74,6 @@ fun MacrionPositionGestureEditor(
                 GestureEditorTopBar(title, saveEnabled, onDismiss, onDelete, onSave, deleteEnabled, headerActions)
                 Column(
                     modifier = Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState())
-                        .imePadding()
                         .padding(horizontal = 16.dp, vertical = 12.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
@@ -120,7 +119,6 @@ fun MacrionGestureEditor(
                 GestureEditorTopBar(title, saveEnabled, onDismiss, onDelete, onSave, deleteEnabled, headerActions)
                 Column(
                     modifier = Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState())
-                        .imePadding()
                         .padding(horizontal = 16.dp, vertical = 12.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {

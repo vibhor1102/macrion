@@ -78,7 +78,7 @@ class DumbScenarioConfigContent(appContext: Context) : NavBarDialogContent(appCo
 
         Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
             Column(
-                Modifier.fillMaxSize().verticalScroll(rememberScrollState()).imePadding()
+                Modifier.fillMaxSize().verticalScroll(rememberScrollState())
                     .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 24.dp),
             ) {
                 OutlinedTextField(
