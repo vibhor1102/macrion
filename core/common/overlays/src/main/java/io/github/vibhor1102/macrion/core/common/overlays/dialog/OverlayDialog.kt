@@ -27,6 +27,7 @@ import android.view.WindowInsets
 import android.view.Window
 import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
+import android.widget.FrameLayout
 
 import androidx.activity.ComponentDialog
 import androidx.activity.addCallback
@@ -86,6 +87,7 @@ abstract class OverlayDialog(@StyleRes theme: Int? = null) : BaseOverlay(theme, 
 
         val dialogTheme = theme ?: io.github.vibhor1102.macrion.core.ui.R.style.AppTheme
         val view = onCreateView()
+        val useFullHeightWindow = Build.VERSION.SDK_INT == Build.VERSION_CODES.P
         val component = javaClass.name
         view.addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
             override fun onViewAttachedToWindow(v: View) {
@@ -123,7 +125,19 @@ abstract class OverlayDialog(@StyleRes theme: Int? = null) : BaseOverlay(theme, 
                 this@OverlayDialog.back()
             }
 
-            setContentView(view)
+            // On Pie the IME can inset a compact window by more than its height, clearing
+            // the editor's focus. Resize the full-height host and keep the editor at its bottom.
+            if (useFullHeightWindow) {
+                setContentView(FrameLayout(context).apply {
+                    addView(view, FrameLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                        Gravity.BOTTOM,
+                    ))
+                })
+            } else {
+                setContentView(view)
+            }
             setCancelable(false)
             setOnKeyListener { _, keyCode, event ->
                 if (keyCode == KeyEvent.KEYCODE_BACK && event.action == KeyEvent.ACTION_UP) {
@@ -142,7 +156,11 @@ abstract class OverlayDialog(@StyleRes theme: Int? = null) : BaseOverlay(theme, 
                 decorView.setViewTreeOnBackPressedDispatcherOwner(this@compDialog)
 
                 setType(OverlayManager.OVERLAY_WINDOW_TYPE)
-                setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+                setLayout(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    if (useFullHeightWindow) ViewGroup.LayoutParams.MATCH_PARENT
+                    else ViewGroup.LayoutParams.WRAP_CONTENT,
+                )
                 setGravity(Gravity.BOTTOM)
                 setBackgroundDrawableResource(android.R.color.transparent)
                 setDimAmount(0.6f)
