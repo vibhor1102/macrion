@@ -1,0 +1,1 @@
+Fix the keyboard closing unexpectedly on Android 9 and keep editor fields visible while typing.
