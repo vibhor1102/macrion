@@ -20,7 +20,7 @@ import time
 import wave
 
 ROOT = Path(__file__).resolve().parents[1]
-DEVICE = "192.168.1.170:5555"
+DEFAULT_AVD = "Macrion_Issue73_Android16"
 ASSEMBLE = ":smartautoclicker:assembleFDroidDebug"
 DEFAULT_MODE = "performance"
 PHONE_ABI = "arm64-v8a"
@@ -314,7 +314,7 @@ def apk_from_metadata(root, abi):
 
 
 def options():
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(description=__doc__, epilog=f"Default deployment target: {DEFAULT_AVD}.")
     target = parser.add_mutually_exclusive_group()
     target.add_argument("--device", action="append", metavar="SERIAL",
                         help="Wireless ADB host:port or a running x86_64 emulator serial. Repeat to deploy to multiple targets.")
@@ -340,7 +340,9 @@ def options():
     args = parser.parse_args()
     if args.mode not in ("debug", "performance", "test-only"):
         parser.error("MACRION_DEBUG_MODE must be debug, performance, or test-only")
-    args.device = args.device or [DEVICE]
+    args.device = args.device or []
+    if not args.avd and not args.device:
+        args.avd = DEFAULT_AVD
     if args.workers < 1 or any(not re.fullmatch(r"(?:[A-Za-z0-9_.-]+:[0-9]+|emulator-[0-9]+)", serial)
                                for serial in args.device):
         parser.error("Use a positive worker count and a wireless host:port or emulator serial")

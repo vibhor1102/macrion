@@ -6,12 +6,17 @@ Run from any directory:
 /home/vibhor/Scripts/Macrion/scripts/deploy-debug.py
 ```
 
-The helper builds the ARM64 F-Droid debug APK and installs it over wireless ADB.
+The helper builds the x86_64 F-Droid debug APK and installs it on the windowed
+`Macrion_Issue73_Android16` emulator. It starts or reuses the AVD and leaves it
+running. Use `--avd NAME` for another installed profile or
+`--device 192.168.1.170:5555` for the ARM64 phone build.
 Performance mode also runs `cmd package compile -m speed -f` for the package
-recorded in APK metadata and verifies the result. It does not launch the app,
-publish releases, change versions, or
-clear application data. Python 3, JDK 25, ADB, and `paplay` or `pw-play` are
-required. `ccache` is enabled when installed.
+recorded in APK metadata and verifies the result. Installation preserves app
+data. Builds require Python 3 and JDK 25. The phone alert uses `paplay` or
+`pw-play`. `ccache` is enabled when installed.
+
+Use `--build-only` to assemble without starting or connecting to a device,
+or `--install-only` to deploy an existing output without running Gradle.
 
 ## Modes
 
@@ -28,7 +33,7 @@ flag. Set `MACRION_DEBUG_MODE=performance` or `debug` in your shell to change th
 local default; an explicit `--mode` wins. Direct Gradle builds default to debug;
 `-PmacrionDebugMode=performance` selects the other mode.
 
-| Capability over wireless ADB | Performance (default) | Debug |
+| Capability over ADB | Performance (default) | Debug |
 | --- | --- | --- |
 | Logcat, dumpsys, gfxinfo, meminfo | Yes | Yes |
 | Perfetto system/UI/Compose tracing | Yes | Yes |
@@ -48,7 +53,7 @@ and [profiling limitations](https://developer.android.com/studio/profile).
 
 ## Phone connection
 
-The default device is `192.168.1.170:5555`; override it with `--device HOST:PORT`.
+Select the phone explicitly with `--device HOST:PORT`.
 The first connection check runs alongside the build. The helper tries a silent
 reconnect and checks the connection again before playing the first alert. If the
 phone remains unreachable, another alert plays about 10 seconds into recovery,
@@ -77,7 +82,7 @@ scripts/deploy-debug.py \
   --test :core:smart:processing:testFDroidDebugUnitTest '*ExecutionLimiterTimingTests'
 ```
 
-To run unit tests without compiling the APK or connecting to the phone, use `--test-only` (or `--mode test-only`):
+To run unit tests without assembling an APK or contacting a device, use `--test-only` (or `--mode test-only`):
 
 ```sh
 scripts/deploy-debug.py --test-only \
@@ -88,7 +93,7 @@ Tests and assembly share one Gradle invocation unless `--test-only` is passed. D
 invocation to succeed. A test task uses one worker JVM; empty test discovery or
 unmatched filters fail. Different selected modules can still run in parallel
 within the Gradle worker limit. Do not substitute broad suites for selecting
-relevant tests. Cosmetic changes normally need the build and a focused phone
+relevant tests. Cosmetic changes normally need the build and a focused UI
 check. Backend tests remain separate because that backend uses Node.js.
 
 ## Daemons and performance
@@ -110,7 +115,7 @@ Kotlin daemons: currently build logic uses Gradle's embedded Kotlin 2.4.0 while
 the Android project uses 2.4.10. The Node.js backend has no Kotlin daemon.
 
 The default worker limit remains six; `--workers 4` is available for reduced
-concurrency. Build/configuration caches and ARM64-only output remain enabled.
+concurrency. Build and configuration caches remain enabled.
 Java bytecode still targets 21. Native debug settings, Kotlin line information,
 and Compose trace markers remain available in both modes.
 
@@ -119,7 +124,7 @@ extension is module-wide, including release compilations). Use `--source-info`
 or `-PmacrionIncludeComposeSourceInfo=true` for diagnostic builds. Device ART
 compilation is enabled only in performance mode; `--skip-precompile` is a
 diagnostic escape hatch.
-The helper verifies the actual ARM64 compiler filter after the command; a
+The helper verifies the compiler filter for the installed APK's architecture. A
 `Success` response that leaves the filter at `verify` fails rather than claiming
 optimization. Android 14 forces debuggable apps to the safe filter, so standard
 debuggable APKs cannot satisfy this check. Debug mode therefore skips AOT.
