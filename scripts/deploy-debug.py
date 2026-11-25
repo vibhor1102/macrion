@@ -70,14 +70,14 @@ class Phone:
         if self.online():
             return
         start = time.monotonic()
-        self.alert()
+        alerted = False
         reminded = False
         while not self.stop.is_set():
             elapsed = time.monotonic() - start
             if elapsed >= self.timeout:
                 raise Failure(f"Phone {self.serial} remained unreachable for {self.timeout}s. "
                               "Enable wireless ADB/wake the phone and rerun.")
-            if elapsed >= self.reminder and not reminded:
+            if alerted and elapsed >= self.reminder and not reminded:
                 self.alert()
                 reminded = True
             remaining = self.timeout - (time.monotonic() - start)
@@ -87,6 +87,9 @@ class Phone:
             remaining = self.timeout - (time.monotonic() - start)
             if remaining > 0 and self.online(timeout=min(2, remaining)):
                 return
+            if not alerted and not self.stop.is_set():
+                self.alert()
+                alerted = True
             self.stop.wait(min(self.interval, max(0, self.timeout - (time.monotonic() - start))))
         raise Failure("Deployment cancelled", 130)
 

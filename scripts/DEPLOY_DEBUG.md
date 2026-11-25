@@ -49,10 +49,10 @@ and [profiling limitations](https://developer.android.com/studio/profile).
 ## Phone connection
 
 The default device is `192.168.1.170:5555`; override it with `--device HOST:PORT`.
-The first connection check runs alongside the build. If unreachable, a one-second
-alert plays, another plays after about 10 seconds, and recovery ends after
-35 seconds. Connection attempts have short timeouts. Successful recovery is
-silent, even with `--verbose`. The phone is checked again before installation
+The first connection check runs alongside the build. The helper tries a silent
+reconnect and checks the connection again before playing the first alert. If the
+phone remains unreachable, another alert plays about 10 seconds into recovery,
+which ends after 35 seconds. The phone is checked again before installation
 and ART compilation. A transport interruption can retry the affected operation
 once; package-manager errors fail immediately. A timeout during the initial
 check cancels the active build client. No daemon-wide stop/kill is used.
