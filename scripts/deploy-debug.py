@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build, install and ART-compile Macrion's ARM64 debug APK. Standard library only."""
+"""Build, install and ART-compile Macrion's debug APK. Standard library only."""
 
 import argparse
 import concurrent.futures
@@ -23,6 +23,10 @@ ROOT = Path(__file__).resolve().parents[1]
 DEVICE = "192.168.1.170:5555"
 ASSEMBLE = ":smartautoclicker:assembleFDroidDebug"
 DEFAULT_MODE = "performance"
+PHONE_ABI = "arm64-v8a"
+EMULATOR_ABI = "x86_64"
+EMULATOR_UNIT = "macrion-test-emulator.service"
+EMULATOR_PORT = 5554
 
 
 class Failure(Exception):
@@ -54,13 +58,19 @@ def make_alert(path):
         output.writeframes(struct.pack(f"<{len(samples)}h", *samples))
 
 
-class Phone:
-    def __init__(self, serial, alert, stop, timeout=35, reminder=10, interval=2):
-        self.serial, self.alert, self.stop = serial, alert, stop
-        self.timeout, self.reminder, self.interval = timeout, reminder, interval
+class AdbDevice:
+    def __init__(self, adb, serial):
+        self.adb, self.serial = adb, serial
 
     def command(self, *args):
-        return ["adb", "-s", self.serial, *args]
+        return [self.adb, "-s", self.serial, *args]
+
+
+class Phone(AdbDevice):
+    def __init__(self, adb, serial, alert, stop, timeout=35, reminder=10, interval=2):
+        super().__init__(adb, serial)
+        self.alert, self.stop = alert, stop
+        self.timeout, self.reminder, self.interval = timeout, reminder, interval
 
     def online(self, timeout=3):
         result = capture(self.command("shell", "echo", "macrion-ready"), timeout=timeout)
@@ -83,7 +93,7 @@ class Phone:
             remaining = self.timeout - (time.monotonic() - start)
             if remaining <= 0:
                 continue
-            capture(["adb", "connect", self.serial], timeout=min(2, remaining))
+            capture([self.adb, "connect", self.serial], timeout=min(2, remaining))
             remaining = self.timeout - (time.monotonic() - start)
             if remaining > 0 and self.online(timeout=min(2, remaining)):
                 return
@@ -92,6 +102,106 @@ class Phone:
                 alerted = True
             self.stop.wait(min(self.interval, max(0, self.timeout - (time.monotonic() - start))))
         raise Failure("Deployment cancelled", 130)
+
+
+class Emulator(AdbDevice):
+    def online(self, timeout=3):
+        result = capture(self.command("shell", "getprop", "sys.boot_completed"), timeout=timeout)
+        return result.returncode == 0 and result.stdout.strip() == "1"
+
+    def wait(self):
+        if not self.online():
+            raise Failure(f"Emulator {self.serial} is offline or still booting.")
+
+    def avd_name(self):
+        result = capture(self.command("emu", "avd", "name"), timeout=3)
+        lines = result.stdout.splitlines()
+        return lines[0] if result.returncode == 0 and len(lines) == 2 and lines[1] == "OK" else None
+
+
+def sdk_tool(relative_path):
+    properties = ROOT / "local.properties"
+    local_sdk = None
+    if properties.is_file():
+        for line in properties.read_text().splitlines():
+            key, _, value = line.partition("=")
+            if key.strip() == "sdk.dir":
+                local_sdk = re.sub(r"\\([\\: =#])", r"\1", value.strip())
+                break
+    for sdk_root in (local_sdk, os.environ.get("ANDROID_HOME"), os.environ.get("ANDROID_SDK_ROOT")):
+        if sdk_root:
+            candidate = Path(sdk_root).expanduser() / relative_path
+            if candidate.is_file() and os.access(candidate, os.X_OK):
+                return str(candidate.resolve())
+    tool = shutil.which(Path(relative_path).name)
+    if tool is None:
+        raise Failure(f"Android SDK executable unavailable: {relative_path}")
+    return tool
+
+
+def running_emulators(adb):
+    result = capture([adb, "devices"], timeout=10)
+    if result.returncode:
+        raise Failure(f"Could not list ADB devices: {result.stdout.strip()}")
+    return re.findall(r"^(emulator-[0-9]+)\s", result.stdout, re.MULTILINE)
+
+
+def prepare_emulator(adb, avd, logs, boot_timeout=150):
+    serials = running_emulators(adb)
+    if len(serials) > 1:
+        raise Failure(f"Close additional emulators before deployment: {', '.join(serials)}")
+
+    managed_serial = f"emulator-{EMULATOR_PORT}"
+    managed_active = capture(["systemctl", "--user", "is-active", "--quiet", EMULATOR_UNIT]).returncode == 0
+    if managed_active and serials and serials != [managed_serial]:
+        raise Failure(f"Managed emulator is starting and {serials[0]} is already attached.")
+
+    device = Emulator(adb, serials[0] if serials else managed_serial)
+    emulator_log = logs / "emulator.log"
+    started_here = False
+    try:
+        if not serials and not managed_active:
+            executable = sdk_tool("emulator/emulator")
+            available = capture([executable, "-list-avds"], timeout=10)
+            if available.returncode or avd not in available.stdout.splitlines():
+                raise Failure(f"Android virtual device {avd!r} was not found. Available AVDs:\n{available.stdout.strip()}")
+            if not os.environ.get("DISPLAY"):
+                raise Failure("A desktop DISPLAY is required to start a windowed emulator.")
+            launcher = ["systemd-run", "--user", "--collect", f"--unit={EMULATOR_UNIT}",
+                        f"--property=StandardOutput=append:{emulator_log}",
+                        f"--property=StandardError=append:{emulator_log}",
+                        "--setenv=QT_QPA_PLATFORM=xcb"]
+            for name in ("DISPLAY", "XAUTHORITY", "ANDROID_AVD_HOME", "ANDROID_USER_HOME", "ANDROID_EMULATOR_HOME"):
+                if name in os.environ:
+                    launcher.append(f"--setenv={name}={os.environ[name]}")
+            result = capture([*launcher, executable, "-avd", avd, "-port", str(EMULATOR_PORT),
+                              "-cores", "2", "-memory", "2048", "-gpu", "host",
+                              "-no-audio", "-no-snapshot"], timeout=10)
+            if result.returncode:
+                raise Failure(f"Could not start AVD {avd}: {result.stdout.strip()}")
+            started_here = True
+            print(f"Starting windowed AVD {avd} ({device.serial})…", flush=True)
+
+        deadline = time.monotonic() + boot_timeout
+        resolved_name = None
+        while time.monotonic() < deadline:
+            if resolved_name is None:
+                resolved_name = device.avd_name()
+                if resolved_name is not None and resolved_name != avd:
+                    raise Failure(f"{device.serial} is running AVD {resolved_name!r}. Close it before starting {avd!r}.")
+            if resolved_name and device.online():
+                if running_emulators(adb) != [device.serial]:
+                    raise Failure("The attached emulator list changed while waiting for Android to boot.")
+                print(f"AVD {avd} ready on {device.serial}", flush=True)
+                return device
+            if started_here and capture(["systemctl", "--user", "is-active", "--quiet", EMULATOR_UNIT]).returncode != 0:
+                raise Failure(f"AVD {avd} exited before booting. Log: {emulator_log}")
+            time.sleep(1)
+        raise Failure(f"AVD {avd} did not finish booting within {boot_timeout}s. Logs: {logs}")
+    except (Failure, KeyboardInterrupt):
+        if started_here:
+            capture(["systemctl", "--user", "stop", EMULATOR_UNIT], timeout=20)
+        raise
 
 
 def stop_child(process):
@@ -146,11 +256,11 @@ class Runner:
         return code, path
 
 
-def device_step(phone, runner, label, arguments, timeout, success):
+def device_step(device, runner, label, arguments, timeout, success):
     # One transport retry only; never disguise an actual package-manager failure.
     for attempt in range(2):
-        phone.wait()
-        code, log = runner.run(f"{label}-{attempt + 1}", phone.command(*arguments),
+        device.wait()
+        code, log = runner.run(f"{label}-{attempt + 1}", device.command(*arguments),
                                timeout=timeout, report=False)
         output = log.read_text(errors="replace")
         if code == 0 and success(output):
@@ -160,15 +270,16 @@ def device_step(phone, runner, label, arguments, timeout, success):
             "connection reset", "connection closed", "closed", "broken pipe",
             "transport error", "failed to read", "failed to write",
         )) or re.search(r"device .+ not found", output.lower())) and "failure [" not in output.lower()
-        if attempt == 0 and (transport_error or code == 124) and not phone.online():
+        if attempt == 0 and (transport_error or code == 124) and not device.online():
             continue
         sys.stderr.write(output)
         raise Failure(f"{label} failed; full output: {log}", code or 1)
 
 
-def verify_speed(output):
+def verify_speed(output, abi):
     section = output.partition("Dexopt state:")[2].partition("Compiler stats:")[0]
-    filters = re.findall(r"arm64:\s*\[status=([^\]]+)\]", section)
+    instruction_set = "arm64" if abi == PHONE_ABI else abi
+    filters = re.findall(rf"{re.escape(instruction_set)}:\s*\[status=([^\]]+)\]", section)
     if not filters or any(value != "speed" for value in filters):
         raise Failure("ART speed compilation was not applied (reported: "
                       + (", ".join(filters) or "unknown")
@@ -185,14 +296,14 @@ def verify_mode(output, mode):
         raise Failure(f"Installed application's debuggable flag does not match {mode} mode")
 
 
-def apk_from_metadata(root):
+def apk_from_metadata(root, abi):
     directory = root / "smartautoclicker/build/outputs/apk/fDroid/debug"
     metadata = json.loads((directory / "output-metadata.json").read_text())
     matches = [entry for entry in metadata["elements"] if any(
-        item["filterType"] == "ABI" and item["value"] == "arm64-v8a"
+        item["filterType"] == "ABI" and item["value"] == abi
         for item in entry.get("filters", []))]
     if len(matches) != 1:
-        raise Failure("Expected exactly one ARM64 debug APK in build metadata")
+        raise Failure(f"Expected exactly one {abi} debug APK in build metadata")
     apk = (directory / matches[0]["outputFile"]).resolve()
     if apk.parent != directory.resolve() or not apk.is_file():
         raise Failure("Build metadata points to a missing or unexpected APK")
@@ -204,13 +315,23 @@ def apk_from_metadata(root):
 
 def options():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--device", default=DEVICE, help="Wireless ADB host:port")
+    target = parser.add_mutually_exclusive_group()
+    target.add_argument("--device", action="append", metavar="SERIAL",
+                        help="Wireless ADB host:port or a running x86_64 emulator serial. Repeat to deploy to multiple targets.")
+    target.add_argument("--avd", help="Start or reuse the named windowed x86_64 AVD, preserving its app data")
     parser.add_argument("--workers", type=int, default=6)
     parser.add_argument("--mode", choices=("debug", "performance", "test-only"),
                         default=os.environ.get("MACRION_DEBUG_MODE", DEFAULT_MODE),
                         help="performance (default): profileable with verified ART speed compilation; debug: full debugger access; test-only: run tests without device deployment")
     parser.add_argument("--test-only", action="store_true",
-                        help="Run focused unit tests only; skip compilation, phone checks, and installation")
+                        help="Run focused unit tests without assembling an APK or contacting a device")
+    operation = parser.add_mutually_exclusive_group()
+    operation.add_argument("--build-only", action="store_true",
+                           help="Assemble APKs without connecting to a device or starting an emulator")
+    operation.add_argument("--install-only", action="store_true",
+                           help="Install existing APK outputs and verify them without running Gradle")
+    parser.add_argument("--both-abis", action="store_true",
+                        help="Build separate ARM64 and x86_64 APKs in one Gradle invocation")
     parser.add_argument("--test", nargs=2, action="append", default=[],
                         metavar=("TASK", "FILTER"), help="Focused unit-test task and class/method filter; repeatable")
     parser.add_argument("--source-info", action="store_true", help="Include Compose source metadata for diagnostics")
@@ -219,9 +340,17 @@ def options():
     args = parser.parse_args()
     if args.mode not in ("debug", "performance", "test-only"):
         parser.error("MACRION_DEBUG_MODE must be debug, performance, or test-only")
-    if args.workers < 1 or not re.fullmatch(r"[A-Za-z0-9_.-]+:[0-9]+", args.device):
-        parser.error("Use a positive worker count and a wireless host:port")
+    args.device = args.device or [DEVICE]
+    if args.workers < 1 or any(not re.fullmatch(r"(?:[A-Za-z0-9_.-]+:[0-9]+|emulator-[0-9]+)", serial)
+                               for serial in args.device):
+        parser.error("Use a positive worker count and a wireless host:port or emulator serial")
+    if len(set(args.device)) != len(args.device):
+        parser.error("Specify each device only once")
     is_test_only = args.test_only or args.mode == "test-only"
+    if is_test_only and (args.build_only or args.install_only or args.both_abis):
+        parser.error("Test-only mode cannot be combined with --build-only, --install-only, or --both-abis")
+    if args.install_only and (args.test or args.both_abis or args.source_info):
+        parser.error("--install-only cannot be combined with build or test options")
     if is_test_only and not args.test:
         parser.error("Test-only mode requires at least one --test TASK FILTER")
     for task, pattern in args.test:
@@ -232,27 +361,113 @@ def options():
     return args
 
 
-def deploy(args):
-    is_test_only = args.test_only or args.mode == "test-only"
-    required_tools = ("java",) if is_test_only else ("java", "adb")
-    for tool in required_tools:
-        if not shutil.which(tool):
-            raise Failure(f"Required executable unavailable: {tool}")
-    java = Path(os.environ.get("JAVA_HOME", Path(shutil.which("java")).resolve().parent.parent))
+def gradle_command(args, build_abi, is_test_only, runner):
+    java_path = shutil.which("java")
+    java_home = os.environ.get("JAVA_HOME")
+    if not java_home and not java_path:
+        raise Failure("Required executable unavailable: java")
+    java = Path(java_home) if java_home else Path(java_path).resolve().parent.parent
     result = capture([str(java / "bin/java"), "-version"])
-    if result.returncode or not re.search(r'version "25[.\"]', result.stdout):
+    if result.returncode or not re.search(r'version "25[."]', result.stdout):
         raise Failure("Select JDK 25 with JAVA_HOME before running this helper")
     os.environ["JAVA_HOME"] = str(java.resolve())
     if shutil.which("ccache"):
         os.environ["USE_CCACHE"] = "true"
-    player = None
+
+    effective_mode = "debug" if is_test_only else args.mode
+    command = [str(ROOT / "gradlew"), "--daemon", "--console=plain",
+               f"-Dorg.gradle.java.home={java.resolve()}",
+               f"--max-workers={args.workers}", "--parallel", "--build-cache",
+               "--configuration-cache", f"-PmacrionDebugAbi={build_abi}",
+               f"-PmacrionDebugMode={effective_mode}"]
+    if args.source_info:
+        command.append("-PmacrionIncludeComposeSourceInfo=true")
+    # Do not silently create an extra daemon if an unmanaged build is busy.
+    _, status = runner.run("daemon-status", [*command, "--status"], timeout=30)
+    if re.search(r"^\s*\d+\s+BUSY\b", status.read_text(), re.MULTILINE):
+        raise Failure("A Gradle daemon for this wrapper is busy; wait for that build to finish")
+
+    tasks = {}
+    for task, pattern in args.test:
+        tasks.setdefault(task, []).append(pattern)
+    if tasks:
+        command.extend(["--init-script", str(ROOT / "scripts/debug-tests.init.gradle")])
+    for task, patterns in tasks.items():
+        command.append(task)
+        for pattern in patterns:
+            command.extend(["--tests", pattern])
     if not is_test_only:
-        player = next((tool for tool in ("paplay", "pw-play") if shutil.which(tool)), None)
-        if not player:
-            raise Failure("Install paplay or pw-play for the phone reconnect alert")
+        command.append(ASSEMBLE)
+    return command
+
+
+def prepare_devices(args, adb, targets, logs, stop):
+    if args.avd:
+        devices = [(prepare_emulator(adb, args.avd, logs), EMULATOR_ABI)]
+    else:
+        requested_emulators = {serial for serial, abi in targets.items() if abi == EMULATOR_ABI}
+        if requested_emulators and set(running_emulators(adb)) != requested_emulators:
+            raise Failure(f"Expected these to be the only attached emulators: {', '.join(sorted(requested_emulators))}.")
+        if PHONE_ABI in targets.values():
+            player = next((tool for tool in ("paplay", "pw-play") if shutil.which(tool)), None)
+            if not player:
+                raise Failure("Install paplay or pw-play for the phone reconnect alert")
+            alert_file = logs / "alert.wav"
+            make_alert(alert_file)
+
+            def alert():
+                capture([player, str(alert_file)], timeout=2)
+
+        devices = [
+            (Emulator(adb, serial) if abi == EMULATOR_ABI else Phone(adb, serial, alert, stop), abi)
+            for serial, abi in targets.items()
+        ]
+
+    for device, abi in devices:
+        if abi == EMULATOR_ABI:
+            device.wait()
+            result = capture(device.command("shell", "getprop", "ro.product.cpu.abilist"))
+            if result.returncode or abi not in result.stdout.strip().split(","):
+                raise Failure(f"Emulator {device.serial} must support {abi}.")
+    return devices
+
+
+def install(device, runner, apk, package, abi, args):
+    print(f"Installing {apk.name} on {device.serial}…", flush=True)
+    device_step(device, runner, "install", ["install", "-r", str(apk)], 180,
+                lambda output: "Success" in output.splitlines())
+    installed = device_step(device, runner, "verify-mode", ["shell", "dumpsys", "package", package],
+                            15, lambda output: "pkgFlags=" in output)
+    verify_mode(installed, args.mode)
+    if args.mode == "performance" and not args.skip_precompile:
+        print(f"Optimizing on {device.serial}…", flush=True)
+        device_step(device, runner, "precompile", ["shell", "cmd", "package", "compile",
+                    "-m", "speed", "-f", package], 180,
+                    lambda output: "Success" in output.splitlines())
+        output = device_step(device, runner, "verify-speed", ["shell", "dumpsys", "package", package],
+                             15, lambda output: "Dexopt state:" in output)
+        verify_speed(output, abi)
+    print(f"Verified {package} on {device.serial}", flush=True)
+
+
+def deploy(args):
+    is_test_only = args.test_only or args.mode == "test-only"
+    targets = {
+        serial: EMULATOR_ABI if serial.startswith("emulator-") else PHONE_ABI
+        for serial in args.device
+    }
+    abis = (EMULATOR_ABI,) if args.avd else tuple(dict.fromkeys(targets.values()))
+    if is_test_only:
+        abis = (PHONE_ABI,)
+    elif args.both_abis:
+        abis = (PHONE_ABI, EMULATOR_ABI)
+    build_abi = abis[0] if len(abis) == 1 else "both"
+    installs = not (is_test_only or args.build_only)
+    adb = sdk_tool("platform-tools/adb") if installs else None
+
     gradle_home = Path(os.environ.get("GRADLE_USER_HOME", Path.home() / ".gradle")).resolve()
     gradle_home.mkdir(parents=True, exist_ok=True)
-    # A shared lock also serializes deployments from other Macrion worktrees.
+    # Serialize builds and reads of the current APK metadata across helper runs.
     with (gradle_home / "macrion-deploy.lock").open("a") as lock:
         try:
             fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
@@ -263,74 +478,59 @@ def deploy(args):
         logs = Path(tempfile.mkdtemp(prefix=time.strftime("%Y%m%d-%H%M%S-"), dir=log_root))
         runner = Runner(ROOT, logs, args.verbose)
         started = time.monotonic()
-
-        effective_mode = "debug" if is_test_only else args.mode
-        base = [str(ROOT / "gradlew"), "--daemon", "--console=plain",
-                f"-Dorg.gradle.java.home={java.resolve()}",
-                f"--max-workers={args.workers}", "--parallel", "--build-cache",
-                "--configuration-cache", "-PmacrionDebugAbi=arm64-v8a",
-                f"-PmacrionDebugMode={effective_mode}"]
-        if args.source_info:
-            base += ["-PmacrionIncludeComposeSourceInfo=true"]
-        # Do not silently create an extra daemon if an unmanaged build is busy.
-        _, status = runner.run("daemon-status", [*base, "--status"], timeout=30)
-        if re.search(r"^\s*\d+\s+BUSY\b", status.read_text(), re.MULTILINE):
-            raise Failure("A Gradle daemon for this wrapper is busy; wait for that build to finish")
-
-        tasks = {}
-        for task, pattern in args.test:
-            tasks.setdefault(task, []).append(pattern)
-        command = list(base)
-        if tasks:
-            command.extend(["--init-script", str(ROOT / "scripts/debug-tests.init.gradle")])
-        for task, patterns in tasks.items():
-            command.append(task)
-            for pattern in patterns:
-                command.extend(["--tests", pattern])
-
-        if is_test_only:
-            print("Running focused tests…", flush=True)
-            runner.run("test", command)
-            print(f"Done in {time.monotonic() - started:.0f}s. Focused tests passed.\nLogs: {logs}", flush=True)
-            return
-
-        alert_file = logs / "alert.wav"
-        make_alert(alert_file)
-
-        def alert():
-            # Never leak audio/ADB recovery output into the agent's terminal.
-            capture([player, str(alert_file)], timeout=2)
-
         stop = threading.Event()
-        phone = Phone(args.device, alert, stop)
-        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
-            monitor = pool.submit(phone.wait)
-            try:
-                command.append(ASSEMBLE)
-                print(f"Building ARM64 debug APK ({args.mode} mode)" +
-                      (" and running focused tests…" if tasks else "…"), flush=True)
-                runner.run("build", command, monitor)
-                monitor.result()
-                apk, package = apk_from_metadata(ROOT)
-                print("Installing…", flush=True)
-                device_step(phone, runner, "install", ["install", "-r", str(apk)], 180,
-                            lambda output: "Success" in output.splitlines())
-                installed = device_step(phone, runner, "verify-mode", ["shell", "dumpsys", "package", package],
-                                        15, lambda output: "pkgFlags=" in output)
-                verify_mode(installed, args.mode)
-                if args.mode == "performance" and not args.skip_precompile:
-                    print("Optimizing on device…", flush=True)
-                    device_step(phone, runner, "precompile", ["shell", "cmd", "package", "compile",
-                                "-m", "speed", "-f", package], 180,
-                                lambda output: "Success" in output.splitlines())
-                    output = device_step(phone, runner, "verify-speed", ["shell", "dumpsys", "package", package],
-                                         15, lambda output: "Dexopt state:" in output)
-                    verify_speed(output)
-                print(f"Done in {time.monotonic() - started:.0f}s. APK: {apk}\nLogs: {logs}", flush=True)
-            except Failure as error:
-                raise Failure(f"{error}\nLogs: {logs}", error.code) from None
-            finally:
-                stop.set()
+
+        try:
+            command = None if args.install_only else gradle_command(args, build_abi, is_test_only, runner)
+            if is_test_only:
+                print("Running focused tests…", flush=True)
+                runner.run("test", command)
+                print(f"Done in {time.monotonic() - started:.0f}s. Focused tests passed.\nLogs: {logs}", flush=True)
+                return
+
+            if args.install_only:
+                artifacts = {abi: apk_from_metadata(ROOT, abi) for abi in abis}
+                print("Using existing APK outputs. Gradle will not run.", flush=True)
+            devices = prepare_devices(args, adb, targets, logs, stop) if installs else []
+
+            if command is not None:
+                def wait_for_devices():
+                    for device, _ in devices:
+                        device.wait()
+
+                description = " and ".join(abis)
+                print(f"Building {description} debug APK ({args.mode} mode)" +
+                      (" and running focused tests…" if args.test else "…"), flush=True)
+                with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+                    monitor = pool.submit(wait_for_devices) if devices else None
+                    try:
+                        runner.run("build", command, monitor)
+                        if monitor is not None:
+                            monitor.result()
+                    finally:
+                        stop.set()
+                stop.clear()
+                artifacts = {abi: apk_from_metadata(ROOT, abi) for abi in abis}
+
+            for abi, (apk, _) in artifacts.items():
+                print(f"APK ({abi}): {apk}", flush=True)
+
+            for index, (device, abi) in enumerate(devices, start=1):
+                device_runner = runner
+                if len(devices) > 1:
+                    device_logs = logs / f"device-{index}"
+                    device_logs.mkdir()
+                    device_runner = Runner(ROOT, device_logs, args.verbose)
+                try:
+                    install(device, device_runner, *artifacts[abi], abi, args)
+                except Failure as error:
+                    raise Failure(f"{device.serial}: {error}", error.code) from None
+
+            print(f"Done in {time.monotonic() - started:.0f}s.\nLogs: {logs}", flush=True)
+        except Failure as error:
+            raise Failure(f"{error}\nLogs: {logs}", error.code) from None
+        finally:
+            stop.set()
 
 
 def main():
