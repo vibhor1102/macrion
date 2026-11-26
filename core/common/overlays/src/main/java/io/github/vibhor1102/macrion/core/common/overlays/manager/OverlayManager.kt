@@ -77,7 +77,11 @@ class OverlayManager @Inject internal constructor(
         /** The type of window used for the overlays. */
         const val OVERLAY_WINDOW_TYPE: Int = WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY
 
-        fun Dialog.showAsOverlay(): Boolean {
+        fun Dialog.showAsOverlay() {
+            tryShowAsOverlay()
+        }
+
+        fun Dialog.tryShowAsOverlay(): Boolean {
             window?.setType(OVERLAY_WINDOW_TYPE)
             return try {
                 show()

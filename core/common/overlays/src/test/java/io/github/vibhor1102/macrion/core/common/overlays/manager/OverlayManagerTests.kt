@@ -34,7 +34,7 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.github.vibhor1102.macrion.core.common.overlays.base.BaseOverlay
 import io.github.vibhor1102.macrion.core.common.overlays.base.Overlay
-import io.github.vibhor1102.macrion.core.common.overlays.manager.OverlayManager.Companion.showAsOverlay
+import io.github.vibhor1102.macrion.core.common.overlays.manager.OverlayManager.Companion.tryShowAsOverlay
 import io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.common.OverlayMenuPositionDataSource
 import io.github.vibhor1102.macrion.core.common.overlays.testutils.anyNotNull
 
@@ -171,7 +171,7 @@ class OverlayManagerTests {
             if (rejectWindow) {
                 Mockito.doThrow(WindowManager.BadTokenException("token null")).`when`(dialog).show()
             }
-            if (!dialog.showAsOverlay()) finish()
+            if (!dialog.tryShowAsOverlay()) finish()
         }
     }
 

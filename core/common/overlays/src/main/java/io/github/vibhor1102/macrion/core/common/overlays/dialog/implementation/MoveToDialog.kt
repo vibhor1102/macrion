@@ -68,7 +68,7 @@ import io.github.vibhor1102.macrion.core.common.overlays.dialog.fitOverlayEditor
 import io.github.vibhor1102.macrion.core.common.overlays.R
 import io.github.vibhor1102.macrion.core.common.overlays.base.BaseOverlay
 import io.github.vibhor1102.macrion.core.common.overlays.manager.OverlayManager
-import io.github.vibhor1102.macrion.core.common.overlays.manager.OverlayManager.Companion.showAsOverlay
+import io.github.vibhor1102.macrion.core.common.overlays.manager.OverlayManager.Companion.tryShowAsOverlay
 import io.github.vibhor1102.macrion.core.ui.R as UiR
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionDialogSurface
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
@@ -182,7 +182,7 @@ class MoveToDialog(
     override fun onStart() {
         if (isShown) return
 
-        if (dialog?.showAsOverlay() != true) {
+        if (dialog?.tryShowAsOverlay() != true) {
             finish()
             return
         }

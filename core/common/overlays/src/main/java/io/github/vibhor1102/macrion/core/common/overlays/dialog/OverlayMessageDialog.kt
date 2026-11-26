@@ -10,7 +10,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import io.github.vibhor1102.macrion.core.common.overlays.manager.OverlayManager.Companion.showAsOverlay
+import io.github.vibhor1102.macrion.core.common.overlays.manager.OverlayManager.Companion.tryShowAsOverlay
 import io.github.vibhor1102.macrion.core.ui.compose.createMacrionMessageDialog
 
 /**
@@ -42,7 +42,7 @@ fun OverlayMessageDialog(
         )
         val observer = LifecycleEventObserver { _, event ->
             when (event) {
-                Lifecycle.Event.ON_START -> if (!dialog.showAsOverlay()) dismiss()
+                Lifecycle.Event.ON_START -> if (!dialog.tryShowAsOverlay()) dismiss()
                 Lifecycle.Event.ON_STOP -> dialog.hide()
                 Lifecycle.Event.ON_DESTROY -> dialog.dismiss()
                 else -> Unit
