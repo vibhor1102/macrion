@@ -476,14 +476,17 @@ class MainMenu(
         )
 
     private fun showScenarioSaveErrorDialog() {
-        context.createMacrionMessageDialog(
+        val errorDialog = context.createMacrionMessageDialog(
             title = R.string.dialog_overlay_title_warning,
             message = R.string.error_dialog_message_scenario_saving,
             confirmLabel = R.string.generic_modify,
             cancelLabel = android.R.string.cancel,
             onConfirm = { showScenarioConfigDialog() },
             onCancel = { viewModel.cancelScenarioChanges() },
-        ).showAsOverlay()
+        )
+        if (!errorDialog.showAsOverlay() && overlayManager.isCurrentOverlay(this)) {
+            showScenarioConfigDialog()
+        }
     }
 
     private fun showStopVolumeDownTutorialDialog() {

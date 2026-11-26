@@ -68,6 +68,7 @@ import io.github.vibhor1102.macrion.core.common.overlays.dialog.fitOverlayEditor
 import io.github.vibhor1102.macrion.core.common.overlays.R
 import io.github.vibhor1102.macrion.core.common.overlays.base.BaseOverlay
 import io.github.vibhor1102.macrion.core.common.overlays.manager.OverlayManager
+import io.github.vibhor1102.macrion.core.common.overlays.manager.OverlayManager.Companion.showAsOverlay
 import io.github.vibhor1102.macrion.core.ui.R as UiR
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionDialogSurface
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
@@ -181,8 +182,11 @@ class MoveToDialog(
     override fun onStart() {
         if (isShown) return
 
+        if (dialog?.showAsOverlay() != true) {
+            finish()
+            return
+        }
         isShown = true
-        dialog?.show()
         // Overlay dialogs still rely on this deprecated window flag to resize above the IME.
         @Suppress("DEPRECATION")
         dialog?.window?.setSoftInputMode(

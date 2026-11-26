@@ -42,7 +42,7 @@ fun OverlayMessageDialog(
         )
         val observer = LifecycleEventObserver { _, event ->
             when (event) {
-                Lifecycle.Event.ON_START -> dialog.showAsOverlay()
+                Lifecycle.Event.ON_START -> if (!dialog.showAsOverlay()) dismiss()
                 Lifecycle.Event.ON_STOP -> dialog.hide()
                 Lifecycle.Event.ON_DESTROY -> dialog.dismiss()
                 else -> Unit

@@ -26,6 +26,7 @@ import android.view.WindowManager
 import androidx.lifecycle.Lifecycle
 
 import io.github.vibhor1102.macrion.core.base.Dumpable
+import io.github.vibhor1102.macrion.core.base.crash.CrashDiagnostics
 import io.github.vibhor1102.macrion.core.base.di.Dispatcher
 import io.github.vibhor1102.macrion.core.base.di.HiltCoroutineDispatchers.Main
 import io.github.vibhor1102.macrion.core.settings.domain.SettingsRepository
@@ -76,9 +77,17 @@ class OverlayManager @Inject internal constructor(
         /** The type of window used for the overlays. */
         const val OVERLAY_WINDOW_TYPE: Int = WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY
 
-        fun Dialog.showAsOverlay() {
+        fun Dialog.showAsOverlay(): Boolean {
             window?.setType(OVERLAY_WINDOW_TYPE)
-            show()
+            return try {
+                show()
+                true
+            } catch (error: WindowManager.BadTokenException) {
+                // The service can lose its token before receiving the unbind callback.
+                CrashDiagnostics.recordFailure(error)
+                Log.w(TAG, "Android rejected the overlay dialog window", error)
+                false
+            }
         }
     }
 
@@ -283,7 +292,7 @@ class OverlayManager @Inject internal constructor(
         Log.d(TAG, "Restore overlays visibility")
 
         // Restore from bottom to top
-        overlayBackStack.forEach { overlay ->
+        overlayBackStack.toList().forEach { overlay ->
             overlayStates[overlay]?.let { state ->
                 Log.d(TAG, "Restoring ${overlay.hashCode()} state to $state")
 
@@ -433,6 +442,14 @@ class OverlayManager @Inject internal constructor(
             lifecyclesRegistry.saveNewOverlayState(request.overlay, Lifecycle.State.RESUMED)
         } else {
             request.overlay.start()
+            if (request.overlay is BaseOverlay && request.overlay.lifecycle.currentState == Lifecycle.State.DESTROYED) {
+                if (currentOverlay == null) {
+                    displayConfigManager.removeDisplayGeometryListener(displayGeometryListener)
+                    lastDisplayOrientation = null
+                }
+                executeNextNavigationRequest(context)
+                return
+            }
         }
 
         overlayBackStack.push(request.overlay)
@@ -457,8 +474,9 @@ class OverlayManager @Inject internal constructor(
     private fun onOverlayDismissed(context: Context, overlay: Overlay) {
         Log.d(TAG, "Overlay dismissed ${overlay.hashCode()}")
 
-        // Remove the dismissed overlay from the stack now that we are sure it is destroyed.
-        overlayBackStack.pop()
+        val wasTop = overlayBackStack.top === overlay
+        // A background overlay can fail to reattach during rotation or visibility restoration.
+        if (!overlayBackStack.remove(overlay) || !wasTop) return
 
         // If there is no more overlays, no need to keep track of the orientation
         if (overlayBackStack.isEmpty()) {
@@ -493,7 +511,9 @@ class OverlayManager @Inject internal constructor(
         val isRotation = lastDisplayOrientation != orientation
         lastDisplayOrientation = orientation
         val update: (Overlay) -> Unit = if (isRotation) Overlay::changeOrientation else Overlay::changeDisplaySize
-        overlayBackStack.forEach(update)
+        overlayBackStack.toList().forEach { overlay ->
+            if (overlayBackStack.contains(overlay)) update(overlay)
+        }
         topOverlay?.let(update)
     }
 

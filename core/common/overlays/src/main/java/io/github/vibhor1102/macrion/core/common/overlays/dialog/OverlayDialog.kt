@@ -41,6 +41,7 @@ import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import io.github.vibhor1102.macrion.core.base.addDumpTabulationLvl
 import io.github.vibhor1102.macrion.core.common.overlays.base.BaseOverlay
 import io.github.vibhor1102.macrion.core.common.overlays.manager.OverlayManager
+import io.github.vibhor1102.macrion.core.common.overlays.manager.OverlayManager.Companion.showAsOverlay
 
 import java.io.PrintWriter
 
@@ -178,8 +179,11 @@ abstract class OverlayDialog(@StyleRes theme: Int? = null) : BaseOverlay(theme, 
     override fun onStart() {
         if (isShown) return
 
+        if (dialog?.showAsOverlay() != true) {
+            finish()
+            return
+        }
         isShown = true
-        dialog?.show()
     }
 
     @CallSuper

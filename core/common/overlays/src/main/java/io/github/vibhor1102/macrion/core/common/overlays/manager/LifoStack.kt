@@ -46,6 +46,12 @@ internal open class LifoStack<E> {
         return poppedValue
     }
 
+    fun remove(element: E): Boolean {
+        if (!backingArray.remove(element)) return false
+        _top.value = backingArray.lastOrNull()
+        return true
+    }
+
     open fun push(element: E) {
         backingArray.addLast(element)
         _top.value = element

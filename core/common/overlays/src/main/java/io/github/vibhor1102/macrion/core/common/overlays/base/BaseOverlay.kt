@@ -199,6 +199,7 @@ abstract class BaseOverlay internal constructor(
             // recreation of the overlay was delayed to its next start request.
             if (shouldBeRecreated) {
                 recreate()
+                if (lifecycleRegistry.currentState != State.CREATED) return
             }
 
             Log.d(TAG, "show overlay ${hashCode()}")

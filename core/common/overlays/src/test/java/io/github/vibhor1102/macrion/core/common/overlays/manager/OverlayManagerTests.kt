@@ -17,19 +17,24 @@
  */
 package io.github.vibhor1102.macrion.core.common.overlays.manager
 
+import android.app.Dialog
 import android.content.Context
 import android.content.SharedPreferences
 import android.hardware.display.DisplayManager
 import android.os.Build
 import android.view.Display
+import android.view.WindowManager
 import androidx.lifecycle.Lifecycle
 import io.github.vibhor1102.macrion.core.settings.domain.SettingsRepository
 import io.github.vibhor1102.macrion.core.common.overlays.other.FullscreenOverlay
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 
+import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import io.github.vibhor1102.macrion.core.common.overlays.base.BaseOverlay
 import io.github.vibhor1102.macrion.core.common.overlays.base.Overlay
+import io.github.vibhor1102.macrion.core.common.overlays.manager.OverlayManager.Companion.showAsOverlay
 import io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.common.OverlayMenuPositionDataSource
 import io.github.vibhor1102.macrion.core.common.overlays.testutils.anyNotNull
 
@@ -104,6 +109,70 @@ class OverlayManagerTests {
         val lifecycle = Mockito.mock(Lifecycle::class.java)
         Mockito.`when`(lifecycle.currentState).thenReturn(state)
         Mockito.`when`(this.lifecycle).thenReturn(lifecycle)
+    }
+
+    @Test fun aRejectedChildDialogLeavesItsParentUsable() {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        mockOverlay1.withLifecycle()
+        overlayManager.navigateTo(context, mockOverlay1)
+        Mockito.clearInvocations(mockOverlay1)
+
+        val child = DialogTestOverlay().apply { rejectWindow() }
+        overlayManager.navigateTo(context, child, hideCurrent = true)
+
+        Assert.assertEquals(Lifecycle.State.DESTROYED, child.lifecycle.currentState)
+        Assert.assertTrue(overlayManager.isCurrentOverlay(mockOverlay1))
+        Mockito.verify(mockOverlay1).stop()
+        Mockito.verify(mockOverlay1).resume()
+        mockOverlay2.withLifecycle()
+        overlayManager.navigateTo(context, mockOverlay2)
+        Assert.assertTrue(overlayManager.isCurrentOverlay(mockOverlay2))
+    }
+
+    @Test fun aRejectedRecreatedDialogDuringRestoreLeavesTheTopIntact() {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val parent = DialogTestOverlay(recreateOnRotation = true)
+        overlayManager.navigateTo(context, parent)
+        mockOverlay1.withLifecycle()
+        overlayManager.navigateTo(context, mockOverlay1)
+        mockOverlay1.setupDismissMock()
+        overlayManager.hideAll()
+        Mockito.clearInvocations(mockOverlay1)
+        parent.changeOrientation()
+        parent.rejectWindow()
+
+        overlayManager.restoreVisibility()
+
+        Assert.assertEquals(2, parent.creationCount)
+        Assert.assertEquals(Lifecycle.State.DESTROYED, parent.lifecycle.currentState)
+        Assert.assertTrue(overlayManager.isCurrentOverlay(mockOverlay1))
+        Mockito.verify(mockOverlay1).resume()
+        overlayManager.navigateUp(context)
+        Assert.assertTrue(overlayManager.isEmpty())
+    }
+
+    private class DialogTestOverlay(recreateOnRotation: Boolean = false) :
+        BaseOverlay(recreateOnRotation = recreateOnRotation) {
+        private lateinit var dialog: Dialog
+        private var rejectWindow = false
+        var creationCount = 0
+            private set
+
+        fun rejectWindow() {
+            rejectWindow = true
+        }
+
+        override fun onCreate() {
+            creationCount++
+            dialog = Mockito.mock(Dialog::class.java)
+        }
+
+        override fun onStart() {
+            if (rejectWindow) {
+                Mockito.doThrow(WindowManager.BadTokenException("token null")).`when`(dialog).show()
+            }
+            if (!dialog.showAsOverlay()) finish()
+        }
     }
 
     @Test fun activityOnlyRestoresTheHideItOwns() {
