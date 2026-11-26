@@ -35,10 +35,11 @@ val macrionAbiProperty = providers.gradleProperty("macrionAbi").orNull?.trim()
 val targetAbiFilter = when {
     macrionAbiProperty == null -> if (isReleaseBuild) emptyList() else listOf("arm64-v8a")
     macrionAbiProperty.equals("all", ignoreCase = true) -> emptyList()
+    macrionAbiProperty.equals("both", ignoreCase = true) -> listOf("arm64-v8a", "x86_64")
     macrionAbiProperty in supportedAbis -> listOf(macrionAbiProperty)
     else -> throw GradleException(
         "Unsupported macrionAbi '$macrionAbiProperty'. " +
-                "Use one of ${supportedAbis.joinToString()}, or 'all'.",
+                "Use one of ${supportedAbis.joinToString()}, 'both' for ARM64 and x86_64, or 'all'.",
     )
 }
 
