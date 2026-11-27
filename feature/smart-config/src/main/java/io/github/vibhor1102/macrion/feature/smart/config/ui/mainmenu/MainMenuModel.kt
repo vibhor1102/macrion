@@ -76,6 +76,7 @@ class MainMenuModel @Inject constructor(
             initialValue = null,
         )
 
+    private var editionUpdateJob: Job? = null
     private var paywallResultJob: Job? = null
     private var paywallRequestId = 0L
     private var paywallPending = false
@@ -251,9 +252,14 @@ class MainMenuModel @Inject constructor(
     }
 
     fun startScenarioEdition(onEditionStarted: () -> Unit) {
+        // A pending save or discard can clear the draft while a reopened editor is using it.
+        if (editionUpdateJob?.isActive == true) return
+
         scenarioDbId.value?.let { scenarioDatabaseId ->
             viewModelScope.launch(Dispatchers.IO) {
-                if (editionRepository.startEdition(scenarioDatabaseId)) {
+                // An editor window can be rejected after a draft is already open.
+                val hasDraft = editionRepository.editionState.getScenario()?.id?.databaseId == scenarioDatabaseId
+                if (hasDraft || editionRepository.startEdition(scenarioDatabaseId)) {
                     withContext(Dispatchers.Main) { onEditionStarted() }
                 }
             }
@@ -262,7 +268,7 @@ class MainMenuModel @Inject constructor(
 
     /** Save the configured scenario in the database. */
     fun saveScenarioChanges(onCompleted: (success: Boolean) -> Unit) {
-        viewModelScope.launch(Dispatchers.IO) {
+        editionUpdateJob = viewModelScope.launch(Dispatchers.IO) {
             val result = editionRepository.saveEditions()
 
             withContext(Dispatchers.Main) {
@@ -273,7 +279,7 @@ class MainMenuModel @Inject constructor(
 
     /** Cancel all changes made by the user. */
     fun cancelScenarioChanges() {
-        viewModelScope.launch(Dispatchers.IO) {
+        editionUpdateJob = viewModelScope.launch(Dispatchers.IO) {
             editionRepository.stopEdition()
         }
     }

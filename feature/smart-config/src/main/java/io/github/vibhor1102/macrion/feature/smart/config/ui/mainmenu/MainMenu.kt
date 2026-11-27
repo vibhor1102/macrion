@@ -36,6 +36,7 @@ import io.github.vibhor1102.macrion.core.common.navigation.TutorialNavigator
 import io.github.vibhor1102.macrion.core.common.navigation.getTutorialNavigator
 import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.manager.OverlayManager.Companion.showAsOverlay
+import io.github.vibhor1102.macrion.core.common.overlays.manager.OverlayManager.Companion.tryShowAsOverlay
 import io.github.vibhor1102.macrion.core.common.overlays.menu.OverlayMenu
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.Tip
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredOverlayType
@@ -476,14 +477,17 @@ class MainMenu(
         )
 
     private fun showScenarioSaveErrorDialog() {
-        context.createMacrionMessageDialog(
+        val errorDialog = context.createMacrionMessageDialog(
             title = R.string.dialog_overlay_title_warning,
             message = R.string.error_dialog_message_scenario_saving,
             confirmLabel = R.string.generic_modify,
             cancelLabel = android.R.string.cancel,
             onConfirm = { showScenarioConfigDialog() },
             onCancel = { viewModel.cancelScenarioChanges() },
-        ).showAsOverlay()
+        )
+        if (!errorDialog.tryShowAsOverlay() && overlayManager.isCurrentOverlay(this)) {
+            showScenarioConfigDialog()
+        }
     }
 
     private fun showStopVolumeDownTutorialDialog() {
