@@ -1,0 +1,1 @@
+Fix a crash when Android rejects an accessibility overlay dialog window and recover cleanly without losing your place. Keep unsaved Smart scenario edits recoverable if a save fails or an editor dialog cannot be opened.
